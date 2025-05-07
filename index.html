@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - TON Connect</title>
+    <title>TON Gift Universe - Withdraw Flow</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect UI -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <!-- Lottie-Web Player from CDN -->
+    <!-- Lottie-Web Player from CDN (still included for potential future use) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 
     <style>
@@ -93,34 +93,51 @@
             background: linear-gradient(45deg, var(--primary-gradient-end), var(--text-primary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+             flex-shrink: 0; /* Prevent title from shrinking */
+             margin-right: 10px;
         }
-        #app-header .wallet-info { display: flex; align-items: center; gap: 12px; }
+        #app-header .wallet-info { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; /* Slightly reduced gap */
+            flex-shrink: 1; /* Allow this part to shrink if needed */
+            min-width: 0; /* Important for flex-shrink */
+         }
         /* Container for TON Connect Button */
         #ton-connect-button {
-             display: inline-block; /* Or flex depending on layout needs */
+             display: inline-block; 
+             flex-shrink: 0; /* Don't shrink the button itself */
         }
-        /* Hide static address/balance initially, show button */
-         #wallet-address-display, #balance { display: none; }
-         #wallet-address-display.connected, #balance.connected { display: block; }
-         #ton-connect-button.connected { display: none; }
-
-         /* Style the elements that appear when connected */
+        
+         /* Styling for connected state elements */
         #wallet-address-display, #balance {
             background-color: var(--surface-hover-color); 
-            padding: 7px 14px;
+            padding: 7px 10px; /* Adjusted padding */
             border-radius: var(--button-border-radius);
-            font-size: 0.9em;
+            font-size: 0.85em; /* Slightly smaller font */
             font-weight: 600;
             border: 1px solid var(--border-color);
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 150px; /* Limit width to prevent overlap */
+            display: none; /* Initially hidden */
         }
+         #wallet-address-display.connected, #balance.connected { 
+             display: block; 
+         }
+         #ton-connect-button.connected { 
+             display: none; 
+         }
+
         #app-header .ton-icon {
-            width: 18px; height: 18px;
+            width: 16px; height: 16px; /* Kept small */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230A84FF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
             background-size: contain; margin-left: 5px; vertical-align: middle;
         }
 
         /* Content Area */
-        #app-content { flex-grow: 1; padding: 20px 16px; overflow-y: auto; padding-bottom: 80px; /* Ensure space for taller nav */ }
+        #app-content { flex-grow: 1; padding: 20px 16px; overflow-y: auto; padding-bottom: 80px; }
         .page { display: none; }
         .page.active { display: block; animation: pageFadeInMinimal 0.3s ease-out; }
         @keyframes pageFadeInMinimal {
@@ -132,33 +149,33 @@
         #app-nav {
             display: flex;
             justify-content: space-around;
-            align-items: center; /* Center items vertically */
+            align-items: center; 
             background-color: rgba(28, 28, 30, 0.92); 
             backdrop-filter: blur(15px) saturate(180%);
             -webkit-backdrop-filter: blur(15px) saturate(180%);
             border-top: 1px solid var(--border-color);
-            padding: 6px 0 8px 0; /* Adjusted padding top/bottom */
+            padding: 6px 0 8px 0; 
             position: sticky; bottom: 0; z-index: 1000;
-            min-height: 60px; /* Increased height */
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); /* Subtle top shadow */
+            min-height: 60px; 
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
         }
         .nav-button {
             background: none; border: none;
             color: var(--text-secondary);
             display: flex; flex-direction: column; align-items: center;
-            font-size: 11px; /* Slightly larger font */
+            font-size: 11px; 
             font-weight: 500;
-            cursor: pointer; padding: 5px; /* Adjusted padding */
+            cursor: pointer; padding: 5px; 
             border-radius: var(--button-border-radius);
             transition: color 0.2s, transform 0.1s ease-out;
             flex: 1; text-align: center;
-            line-height: 1.3; /* Adjust line height for text */
+            line-height: 1.3; 
         }
         .nav-button:active { transform: scale(0.95); }
         .nav-button.active { color: var(--primary-color); font-weight: 600; }
         .nav-button svg {
-            width: 26px; height: 26px; /* Larger icons */
-            margin-bottom: 3px; /* Slightly more space */
+            width: 26px; height: 26px; 
+            margin-bottom: 3px; 
             fill: currentColor;
         }
         .nav-button.active svg { fill: var(--primary-color); }
@@ -188,6 +205,7 @@
             color: var(--text-secondary); /* Secondary text color */
             border: 1px solid var(--border-color); /* Subtle border */
             box-shadow: none;
+            background-image: none; /* Ensure no gradient */
         }
         .button-secondary:hover { 
             background-color: var(--surface-color); 
@@ -197,7 +215,6 @@
              background-color: var(--surface-hover-color);
              filter: brightness(0.9);
         }
-
 
         h2 {
             margin-top: 0; font-size: 1.85em; 
@@ -266,7 +283,7 @@
             color: var(--text-secondary);
         }
 
-        /* Roulette Modal */
+        /* --- Modal Base --- */
         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
@@ -274,10 +291,13 @@
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             align-items: center; justify-content: center;
             padding: 16px;
-            /* Enable scrolling for the modal itself */
-             overflow-y: auto;
+            overflow-y: auto; /* Enable scrolling for the modal backdrop */
         }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
+        @keyframes modalFadeInMinimal {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
         .modal-content {
             background-color: var(--surface-color);
             padding: 24px;
@@ -286,18 +306,24 @@
             text-align: center;
             box-shadow: 0 12px 35px rgba(0,0,0,0.35);
             border: 1px solid var(--border-color);
-             /* Removed max-height, let content define height */
+            /* Removed max-height, modal itself scrolls */
             display: flex; flex-direction: column;
-             margin: auto; /* Center vertically if modal itself scrolls */
+            margin: auto; /* Helps center when modal scrolls */
         }
-        .modal-content h3 { /* Modal title */
+         .modal-content h3 { /* Modal title */
             margin-top: 0; margin-bottom: 16px;
             font-size: 1.35em; font-weight: 700;
             color: var(--text-primary);
         }
-        #roulette-wheel-container { 
-            width: 100%;
+        .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .modal-body { /* Container for content that might scroll */
+            overflow-y: auto; /* Scroll inside if needed */
+            flex-grow: 1; /* Allow it to take space */
         }
+
+
+        /* --- Roulette Modal Specifics --- */
+        #roulette-wheel-container { width: 100%; }
         #roulette-wheel {
             height: 270px; /* TALLER wheel (90px item height * 3) */
             border: 1px solid var(--border-color);
@@ -309,15 +335,11 @@
         #roulette-wheel::before { /* Single Center marker line */
             content: '';
             position: absolute;
-            left: 10px; 
-            right: 10px;
-            top: 50%;
+            left: 10px; right: 10px; top: 50%;
             height: 2px; 
             background-color: var(--primary-color);
-            opacity: 0.8;
-            transform: translateY(-50%);
-            z-index: 2;
-            pointer-events: none; 
+            opacity: 0.8; transform: translateY(-50%);
+            z-index: 2; pointer-events: none; 
         }
         #roulette-spinner {
             display: flex; flex-direction: column;
@@ -325,53 +347,37 @@
         }
         .roulette-item {
             height: 90px; /* Height matching wheel / 3 */
-            display: flex;
-            align-items: center;
-            justify-content: center; 
-            padding: 0 10px;
-            box-sizing: border-box;
+            display: flex; align-items: center; justify-content: center; 
+            padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
             overflow: hidden; 
         }
         .roulette-item:last-child { border-bottom: none; }
         .roulette-item img { 
-            max-width: 90%;
-            max-height: 75px; /* Adjust based on item height */
-            object-fit: contain;
+            max-width: 90%; max-height: 75px; object-fit: contain;
         }
         .roulette-item.is-winning img { 
-             filter: drop-shadow(0 0 6px var(--primary-color)); /* Slightly bigger glow */
+             filter: drop-shadow(0 0 6px var(--primary-color)); 
         }
-
-        .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
-        
-        /* Prize cards display in modal */
         #possible-prizes-display {
             margin-top: 10px;
-            /* REMOVED: max-height and overflow-y */
-            padding-right: 0px; /* No need for scrollbar space */
+             /* Removed max-height and overflow */
+            padding-right: 0px; 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
             gap: 10px;
         }
         .prize-card {
             background-color: var(--surface-hover-color);
-            border-radius: var(--button-border-radius);
-            padding: 8px;
-            display: flex;
-            flex-direction: column; 
-            align-items: center;
-            justify-content: center; 
-            position: relative; 
+            border-radius: var(--button-border-radius); padding: 8px;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; position: relative; 
             border: 1px solid var(--border-color);
-            text-align: center;
-            min-height: 100px; 
+            text-align: center; min-height: 100px; 
         }
         .prize-card-image-placeholder { 
-            width: 50px; height: 50px;
-            background-color: var(--bg-color);
-            border-radius: 6px;
-            margin-bottom: 6px; 
+            width: 50px; height: 50px; background-color: var(--bg-color);
+            border-radius: 6px; margin-bottom: 6px; 
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
@@ -379,49 +385,56 @@
             display: block; width: 100%; height: 100%; object-fit: contain;
          }
         .prize-card-name {
-            font-size: 0.8em; 
-            font-weight: 500;
-            color: var(--text-secondary);
-            line-height: 1.2;
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap; 
+            font-size: 0.8em; font-weight: 500; color: var(--text-secondary);
+            line-height: 1.2; width: 100%; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap; 
         }
         .prize-card-probability {
-            position: absolute;
-            top: 4px; right: 4px; 
-            background-color: var(--primary-color);
-            color: var(--text-primary);
-            font-size: 0.65em; 
-            font-weight: 600;
-            padding: 1px 4px;
-            border-radius: 4px;
-            line-height: 1;
+            position: absolute; top: 4px; right: 4px; 
+            background-color: var(--primary-color); color: var(--text-primary);
+            font-size: 0.65em; font-weight: 600; padding: 1px 4px;
+            border-radius: 4px; line-height: 1;
         }
-
         #prize-display { 
             margin-top: 16px; font-size: 1.2em; font-weight: 600;
             color: var(--success-color);
         }
         #prize-display.hidden { display: none; }
         
+        /* --- Withdraw Modal Specifics --- */
+        #withdraw-modal .modal-step { display: none; }
+        #withdraw-modal .modal-step.active { display: block; }
+        #withdraw-modal p { color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;}
+        #withdraw-modal strong { color: var(--text-primary); font-weight: 600; }
+        #withdraw-modal a.button { /* Style links as buttons */
+            margin-bottom: 10px; text-decoration: none;
+        }
+        .loader { /* Simple CSS Loader */
+            border: 4px solid var(--surface-hover-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+
         /* Input fields minimal style */
         input[type="text"], input[type="number"], select {
-            width: 100%;
-            padding: 12px 14px;
-            margin-bottom: 12px;
+            width: 100%; padding: 12px 14px; margin-bottom: 12px;
             border-radius: var(--button-border-radius);
             background-color: var(--surface-hover-color);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            font-size: 1em; font-weight: 500;
-            box-sizing: border-box;
+            color: var(--text-primary); border: 1px solid var(--border-color);
+            font-size: 1em; font-weight: 500; box-sizing: border-box;
         }
         input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-placeholder); }
         input[type="text"]:focus, input[type="number"]:focus, select:focus {
-            outline: none;
-            border-color: var(--border-highlight);
+            outline: none; border-color: var(--border-highlight);
             box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); 
         }
 
@@ -432,8 +445,7 @@
             background-color: var(--surface-hover-color);
             display: flex; align-items: center; justify-content: center;
             font-size: 2.5em; font-weight: 600; color: var(--text-secondary);
-            margin: 0 auto 12px auto;
-            border: 2px solid var(--border-color);
+            margin: 0 auto 12px auto; border: 2px solid var(--border-color);
         }
         .profile-info .username { font-size: 1.4em; font-weight: 600; margin-bottom: 4px;}
         .profile-info .userid { font-size: 0.9em; color: var(--text-secondary); }
@@ -450,7 +462,10 @@
         }
         .inventory-item-name { font-size: 0.9em; font-weight: 500; margin-bottom: 6px; }
         .inventory-item-value { font-size: 0.8em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
-        .inventory-item-actions .button { font-size: 0.8em; padding: 6px 10px; }
+        .inventory-item-actions .button { 
+            font-size: 0.8em; padding: 6px 10px; margin-top: 5px; width: auto; display: inline-block; margin-right: 5px;
+        }
+         .inventory-item-actions .withdraw-button { /* Specific style if needed */ }
         
         /* Upgrade Page */
         #upgrade-chance-display {
@@ -511,12 +526,10 @@
          <header id="app-header">
             <div class="app-title">Gift Universe</div>
             <div class="wallet-info">
-                <!-- Static display area (initially hidden) -->
                 <div id="wallet-address-display">Connected: ...</div> 
-                <div id="balance" class="connected">
+                <div id="balance">
                     <span id="ton-balance">0.00</span> <span class="ton-icon"></span>
                 </div>
-                 <!-- TON Connect Button Anchor -->
                 <div id="ton-connect-button"></div>
             </div>
         </header>
@@ -589,28 +602,24 @@
 
             <div id="profile-page" class="page">
                 <div class="profile-header">
-                    <div id="profile-avatar" class="profile-avatar-placeholder">V</div>
+                    <div id="profile-avatar" class="profile-avatar-placeholder">?</div>
                     <div class="profile-info">
-                        <div id="profile-username" class="username">Vasiliy</div>
-                        <div id="profile-userid" class="userid">#5146625949</div>
+                        <div id="profile-username" class="username">User</div>
+                        <div id="profile-userid" class="userid">#...</div>
                     </div>
                 </div>
 
                 <div class="content-card">
                     <h3>Balance</h3>
-                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">100.00 <span class="ton-icon"></span></div>
+                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 <span class="ton-icon"></span></div>
                     <input type="number" id="deposit-amount-input" placeholder="Amount in TON" style="margin-bottom: 10px;">
                     <button id="confirm-deposit-button" class="button">Deposit TON (Test)</button>
                 </div>
 
                 <div class="content-card">
                      <h3>Wallet</h3>
-                     <!-- Static display for connected address -->
                     <div id="profile-wallet-address" style="color:var(--text-secondary); margin-bottom:10px; word-break:break-all;">Not Connected</div>
-                    <!-- Disconnect Button -->
                     <button id="disconnect-wallet-button" class="button button-secondary" style="display: none;">Disconnect Wallet</button>
-                     <!-- TON Connect Button Placeholder - usually placed in header but can be here too if needed -->
-                     <!-- <div id="ton-connect-button-profile"></div> -->
                 </div>
 
                 <div class="content-card">
@@ -673,40 +682,124 @@
         </div>
     </div>
 
+     <!-- Withdraw Modal -->
+    <div id="withdraw-modal" class="modal">
+        <div class="modal-content">
+            <h3>Withdraw Gift</h3>
+            <div class="modal-body">
+                
+                <div id="withdraw-step-1" class="modal-step active">
+                    <p>To withdraw your gift via Tonnel Market, you first need to open their Mini App once to register.</p>
+                    <a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel Market</a>
+                    <button id="withdraw-step1-next" class="button button-secondary">I've opened it</button>
+                </div>
+
+                <div id="withdraw-step-2" class="modal-step">
+                    <p>Great! Now, please send <strong>any message</strong> to the <a href="tg://resolve?domain=giftrelayer" style="color: var(--primary-color)">@giftrelayer</a> bot in Telegram. This allows the system to send the gift to you.</p>
+                    <button id="withdraw-step2-next" class="button button-secondary">I've sent the message</button>
+                     <button id="withdraw-step2-back" class="button button-secondary" style="margin-top: 10px; background-color: var(--surface-hover-color); color: var(--text-secondary);">Back</button>
+                </div>
+
+                <div id="withdraw-step-3" class="modal-step">
+                     <p>Sending your gift via Tonnel Network...</p>
+                    <div class="loader"></div>
+                    <p id="withdraw-status-message" style="font-size: 0.9em; color: var(--text-secondary);"></p>
+                    <button id="withdraw-step3-close" class="button button-secondary" style="margin-top: 15px;">Close</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
 <script>
 // --- Constants and Global State ---
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 
 const currentUser = {
-    id: '5146625949',
-    username: 'Vasiliy',
-    walletAddress: null, // Start as null, update on connect
+    id: null, // Will be set from TG WebApp
+    username: null,
+    first_name: 'User', // Default
+    last_name: null,
+    walletAddress: null, 
+    walletAddressRaw: null,
     tonBalance: 100.00,
     starBalance: 2000,
-    inventory: [],
-    referralCode: 'ref_VASILIY123',
+    inventory: [], // { id, name, imageFilename, floorPrice }
+    referralCode: null, // Can be generated or assigned later
     referralEarnings: 0,
-    invitedUsersCount: 2
+    invitedUsersCount: 0
 };
 
 let currentOpenCase = null;
 let selectedMultiplier = 1.5;
-const upgradeChances = {
+let itemToWithdraw = null; // To store the ID of item being withdrawn
+
+const upgradeChances = { 
     1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
 };
 
 // Function to generate image filename from prize/case name
 function generateImageFilename(name) {
-    if (name === "Durov's Cap") return "Durov's-Cap.png";
-    // Corrected filename generation for Kissed Frog Happy Pepe
-    if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png";
-    if (name === "Vintage Cigar") return "Vintage-CIgar.png"; // Keep typo if it exists in repo
+    if (!name) return 'placeholder.png'; // Fallback for undefined names
+    if (name === "Durov's Cap") return "Durov's-Cap.png"; 
+    if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png"; 
+    if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
     // General rule: replace spaces with hyphens, keep case mostly, add .png
-    return name.replace(/\s+/g, '-').replace(/&/g, 'and') + '.png';
+    return name.replace(/\s+/g, '-').replace(/&/g, 'and') + '.png'; 
 }
 
-// casesData array should be complete here as in the previous answer...
-// Ensure ALL prizes and cases have the 'imageFilename' property correctly generated.
+// --- LocalStorage Functions ---
+function saveData() {
+    try {
+        localStorage.setItem('tonGiftUniverseUser', JSON.stringify(currentUser));
+    } catch (e) {
+        console.error("Error saving data to localStorage:", e);
+    }
+}
+
+function loadData() {
+     try {
+        const savedData = localStorage.getItem('tonGiftUniverseUser');
+        if (savedData) {
+            const loadedUser = JSON.parse(savedData);
+            // Merge loaded data carefully, don't overwrite essential runtime things if not present
+            currentUser.id = loadedUser.id ?? currentUser.id; // Keep TG id if already set
+            currentUser.username = loadedUser.username ?? currentUser.username;
+            currentUser.first_name = loadedUser.first_name ?? currentUser.first_name;
+            currentUser.last_name = loadedUser.last_name ?? currentUser.last_name;
+            currentUser.walletAddress = loadedUser.walletAddress ?? null;
+            currentUser.walletAddressRaw = loadedUser.walletAddressRaw ?? null;
+            currentUser.tonBalance = loadedUser.tonBalance ?? 100.00;
+            currentUser.starBalance = loadedUser.starBalance ?? 0;
+            currentUser.inventory = Array.isArray(loadedUser.inventory) ? loadedUser.inventory : [];
+            currentUser.referralCode = loadedUser.referralCode ?? currentUser.referralCode;
+            currentUser.referralEarnings = loadedUser.referralEarnings ?? 0;
+            currentUser.invitedUsersCount = loadedUser.invitedUsersCount ?? 0;
+
+            // Regenerate referral code if missing and user ID is known
+            if (!currentUser.referralCode && currentUser.id) {
+                currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+            }
+        } else {
+             // Generate referral code for first time user after getting ID
+             if (!currentUser.referralCode && currentUser.id) {
+                  currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+                  saveData(); // Save the newly generated code
+             }
+        }
+    } catch (e) {
+        console.error("Error loading data from localStorage:", e);
+        // Handle potential JSON parsing errors or other issues
+        // Reset to defaults maybe?
+         if (!currentUser.referralCode && currentUser.id) {
+             currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+         }
+    }
+}
+
+
+// --- casesData (ensure imageFilename is present for ALL prizes) ---
+// Using the complete casesData from the previous answer
 const casesData = [
     // REGULAR CASE REMOVED
     { 
@@ -886,7 +979,6 @@ casesData.forEach(caseItem => {
     }
     if (caseItem.prizes) {
         caseItem.prizes.forEach(prize => {
-             // Ensure prize and imageFilename exist before pushing
             if (prize && prize.imageFilename && !imageUrlsToPreload.includes(IMAGE_BASE_URL + prize.imageFilename)) {
                  imageUrlsToPreload.push(IMAGE_BASE_URL + prize.imageFilename);
             }
@@ -904,7 +996,7 @@ function preloadImages(urls) {
 
 
 // --- DOM Elements --- 
-const headerElements = { // Grouped header elements
+const headerElements = { 
     title: document.querySelector('#app-header .app-title'),
     walletInfo: document.querySelector('#app-header .wallet-info'),
     tonConnectButton: document.getElementById('ton-connect-button'),
@@ -925,6 +1017,15 @@ const wonPrizeName = document.getElementById('won-prize-name');
 const spinButton = document.getElementById('spin-button');
 const closeRouletteButton = document.getElementById('close-roulette-button');
 const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); 
+
+const withdrawModal = document.getElementById('withdraw-modal'); // New modal
+const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
+const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
+const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
+const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
+const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close');
+const withdrawStatusMessage = document.getElementById('withdraw-status-message');
+
 
 const profileElements = {
     avatar: document.getElementById('profile-avatar'),
@@ -974,6 +1075,7 @@ function updateBalances() {
     if (profileElements.balanceDisplay) {
          profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
     }
+    saveData(); // Save data whenever balance changes
 }
 
 function navigateToPage(pageId) {
@@ -1003,13 +1105,11 @@ function showTGNotification(message, type = 'info') {
 
 // --- Rendering Functions ---
 function renderHeader() {
-    // Balance update is handled separately now by the listener
-    // This function might become obsolete or used for other header elements
-     updateBalances(); // Keep updating balance display if needed elsewhere
+     updateBalances(); 
 }
 
 function updateUIBasedOnWallet(wallet) {
-     const connected = !!wallet; // Check if wallet object exists
+     const connected = !!wallet; 
      if (connected) {
         const address = wallet.account.address;
         // Use the raw address from the wallet object for internal storage
@@ -1021,13 +1121,13 @@ function updateUIBasedOnWallet(wallet) {
         if (headerElements.walletAddressDisplay) {
             headerElements.walletAddressDisplay.textContent = userFriendlyAddress.substring(0, 5) + '...' + userFriendlyAddress.substring(userFriendlyAddress.length - 4);
             headerElements.walletAddressDisplay.classList.add('connected');
-            headerElements.walletAddressDisplay.style.display = 'block'; // Show display
+            headerElements.walletAddressDisplay.style.display = 'block'; 
         }
         if(headerElements.balanceDisplay) {
              headerElements.balanceDisplay.classList.add('connected');
-             headerElements.balanceDisplay.style.display = 'block'; // Show display
+             headerElements.balanceDisplay.style.display = 'block'; 
         }
-        if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'none'; // Hide button container
+        if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'none'; 
         
         if(profileElements.walletAddress) profileElements.walletAddress.textContent = userFriendlyAddress;
         if(profileElements.disconnectWalletButton) profileElements.disconnectWalletButton.style.display = 'block';
@@ -1039,19 +1139,20 @@ function updateUIBasedOnWallet(wallet) {
         if (headerElements.walletAddressDisplay) {
             headerElements.walletAddressDisplay.textContent = ''; 
             headerElements.walletAddressDisplay.classList.remove('connected');
-             headerElements.walletAddressDisplay.style.display = 'none'; // Hide display
+             headerElements.walletAddressDisplay.style.display = 'none'; 
         }
         if(headerElements.balanceDisplay) {
              headerElements.balanceDisplay.classList.remove('connected');
-             headerElements.balanceDisplay.style.display = 'none'; // Hide display
+             headerElements.balanceDisplay.style.display = 'none'; 
         }
-        if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'block'; // Show button container
+        if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'block'; 
         
         if(profileElements.walletAddress) profileElements.walletAddress.textContent = 'Not Connected';
         if(profileElements.disconnectWalletButton) profileElements.disconnectWalletButton.style.display = 'none';
 
     }
     updateBalances(); 
+    saveData(); // Save wallet status change
 }
 
 
@@ -1098,13 +1199,15 @@ function renderCases() {
 }
 
 function renderProfile() {
-    profileElements.avatar.textContent = currentUser.username ? currentUser.username.charAt(0).toUpperCase() : 'U';
-    profileElements.username.textContent = currentUser.username || 'User';
-    profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '';
-    profileElements.walletAddress.textContent = currentUser.walletAddress 
-        ? currentUser.walletAddress 
-        : 'Not Connected';
+    // Update name/ID from currentUser object (which should be loaded/updated from TG)
+    profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
+    profileElements.username.textContent = currentUser.username || `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'User';
+    profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
+
+    // Wallet status is updated via onStatusChange listener -> updateUIBasedOnWallet
+    profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
+    
     renderInventory();
 }
 
@@ -1121,6 +1224,7 @@ function renderInventory() {
                 <div class="inventory-item-name" title="${item.name}">${item.name}</div>
                 <div class="inventory-item-value">${item.floorPrice.toFixed(2)} TON</div>
                 <div class="inventory-item-actions">
+                    <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess('${item.id}')">Withdraw</button>
                     <button class="button button-secondary" onclick="convertToTon('${item.id}')">Convert</button>
                 </div>
             `;
@@ -1131,6 +1235,7 @@ function renderInventory() {
     populateUpgradeInventorySelect();
 }
 
+// ... (rest of rendering functions: populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - remain same) ...
 function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.forEach(item => {
@@ -1148,7 +1253,7 @@ function renderLeaderboard() {
         { rank: 2, name: 'Starlord77', avatarChar: 'S', opened: 220, income: 1580.2 },
         { rank: 3, name: 'GalaxyGlider', avatarChar: 'G', opened: 300, income: 1250.0 },
         { rank: 4, name: 'CometChaser', avatarChar: 'C', opened: 190, income: 900.7 },
-        { rank: 5, name: currentUser.username, avatarChar: currentUser.username.charAt(0), opened: 10, income: Math.max(0, currentUser.tonBalance - 100 + currentUser.inventory.reduce((sum, item) => sum + item.floorPrice, 0)), isCurrentUser: true },
+        { rank: 5, name: currentUser.username || 'You', avatarChar: (currentUser.first_name || '?').charAt(0), opened: 10, income: Math.max(0, currentUser.tonBalance - 100 + currentUser.inventory.reduce((sum, item) => sum + item.floorPrice, 0)), isCurrentUser: true },
     ].sort((a, b) => b.income - a.income).map((leader, index) => ({...leader, rank: index + 1})); 
 
     leaders.forEach(leader => {
@@ -1169,7 +1274,7 @@ function renderLeaderboard() {
 }
 
 function renderInvitePage() {
-    inviteElements.referralLink.value = `https://t.me/YourAppBot?start=${currentUser.referralCode}`;
+    inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/YourAppBot?start=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarnings.toFixed(2)} <span class="ton-icon"></span>`;
     inviteElements.invitedCount.textContent = currentUser.invitedUsersCount;
 }
@@ -1198,7 +1303,7 @@ function openRouletteModal(caseItem) {
         spinnerItemsContent.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
     }
     spinnerItemsContent.forEach(prize => {
-        if (!prize) return; // Safety check
+        if (!prize) return; 
         const itemEl = document.createElement('div');
         itemEl.className = 'roulette-item';
         const img = document.createElement('img');
@@ -1214,7 +1319,7 @@ function openRouletteModal(caseItem) {
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
     currentOpenCase.prizes.forEach(p => {
-        if(!p || !p.name) return; // More safety checks
+        if(!p || !p.name) return; 
         if (prizeMap.has(p.name)) {
             prizeMap.set(p.name, { 
                 ...prizeMap.get(p.name), 
@@ -1226,7 +1331,7 @@ function openRouletteModal(caseItem) {
     });
 
     prizeMap.forEach((prizeData, name) => {
-        if (!prizeData) return; // Safety check
+        if (!prizeData) return; 
         const probability = prizeData.probability || 0; 
         const prizeCard = document.createElement('div');
         prizeCard.className = 'prize-card';
@@ -1298,7 +1403,7 @@ async function spinRoulette() {
 
     if (currentOpenCase.priceTON) currentUser.tonBalance -= currentOpenCase.priceTON;
     if (currentOpenCase.priceStars) currentUser.starBalance -= currentOpenCase.priceStars;
-    updateBalances();
+    updateBalances(); // Balance changes, save it
     spinButton.disabled = true;
     prizeDisplay.classList.add('hidden');
 
@@ -1340,8 +1445,8 @@ async function spinRoulette() {
     const itemHeight = allItemsInSpinner[0].offsetHeight; 
     const rouletteWheelVisibleHeight = rouletteWheel.clientHeight; 
 
-    // Calculate landing position with random offset for more "azart"
-    const randomOffset = (Math.random() - 0.5) * (itemHeight * 0.6); // Random offset up to +/- 30% of item height
+    // Calculate landing position with random offset
+    const randomOffset = (Math.random() - 0.5) * (itemHeight * 0.6); 
     const landingPosition = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2) + randomOffset;
 
 
@@ -1385,9 +1490,9 @@ async function spinRoulette() {
             ...winner, 
             id: inventoryId 
         });
-        renderInventory(); 
+        renderInventory(); // This calls saveData() indirectly via renderProfile/populateUpgrade
         showTGNotification(`You got: ${winner.name}!`, 'success'); 
-    }, 6100); // Timeout should be slightly longer than animation
+    }, 6100); 
 }
 
 
@@ -1400,7 +1505,7 @@ function convertToTon(itemId) {
     currentUser.tonBalance += item.floorPrice;
     currentUser.inventory.splice(itemIndex, 1);
 
-    updateBalances();
+    updateBalances(); // Saves data
     renderInventory();
     showTGNotification(`${item.name} converted to ${item.floorPrice.toFixed(2)} TON!`, 'success');
 }
@@ -1433,7 +1538,7 @@ function handleUpgrade() {
             upgradeElements.upgradeResult.textContent = `Failed! ${lostItemName} was destroyed. Sent to @Vasiliy939.`;
             showTGNotification("Upgrade failed! Item lost.", 'error');
         }
-        renderInventory(); 
+        renderInventory(); // Saves data indirectly
         upgradeElements.doUpgradeButton.disabled = false;
         upgradeElements.inventorySelect.value = ''; 
     }, 2000);
@@ -1451,9 +1556,51 @@ function handleDeposit() {
         return;
     }
     currentUser.tonBalance += amount;
-    updateBalances();
+    updateBalances(); // Saves data
     showTGNotification(`${amount.toFixed(2)} TON successfully added to your balance! (Test)`, 'success');
     profileElements.depositAmountInput.value = ''; 
+}
+
+// --- Withdraw Flow Logic ---
+function showWithdrawStep(stepNumber) {
+    withdrawSteps.forEach((step, index) => {
+        step.classList.toggle('active', index + 1 === stepNumber);
+    });
+}
+
+function startWithdrawalProcess(itemId) {
+    itemToWithdraw = itemId; // Store the item ID we are withdrawing
+    showWithdrawStep(1);
+    withdrawModal.classList.add('active');
+}
+
+function completeWithdrawal() {
+    // Placeholder for actual backend call
+    withdrawStatusMessage.textContent = "Sending request to server..."; 
+    setTimeout(() => {
+        // Simulate server response (replace with actual fetch)
+        // Assuming success for now
+        const itemIndex = currentUser.inventory.findIndex(item => item.id === itemToWithdraw);
+        if (itemIndex !== -1) {
+             const itemName = currentUser.inventory[itemIndex].name;
+             currentUser.inventory.splice(itemIndex, 1); // Remove from inventory
+             renderInventory(); // Update UI & save data
+             showTGNotification(`${itemName} sent successfully via Tonnel!`, 'success');
+             withdrawStatusMessage.textContent = "Gift sent!"; 
+        } else {
+             withdrawStatusMessage.textContent = "Error: Item not found."; 
+             showTGNotification("Error withdrawing item.", 'error');
+        }
+         // Optionally close modal after a delay or keep it open
+         // setTimeout(closeWithdrawModal, 2000); 
+    }, 2500); // Simulate network delay
+}
+
+function closeWithdrawModal() {
+    withdrawModal.classList.remove('active');
+    itemToWithdraw = null;
+    // Reset to step 1 for next time
+    showWithdrawStep(1); 
 }
 
 
@@ -1471,6 +1618,15 @@ profileElements.disconnectWalletButton.addEventListener('click', () => {
     tonConnectUI.disconnect(); 
 });
 
+// Withdraw Modal Listeners
+withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
+withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
+withdrawStep2NextBtn.addEventListener('click', () => {
+    showWithdrawStep(3);
+    completeWithdrawal(); // Start the final "sending" process
+});
+withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
+
 
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -1487,7 +1643,6 @@ upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
 
     });
 });
-// Initialize chance display for default multiplier
 const defaultMultiplierButton = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="${selectedMultiplier}"]`);
 if (defaultMultiplierButton) {
     defaultMultiplierButton.classList.add('active-multiplier');
@@ -1507,7 +1662,7 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
     if (currentUser.referralEarnings > 0) {
         currentUser.tonBalance += currentUser.referralEarnings;
         currentUser.referralEarnings = 0;
-        updateBalances();
+        updateBalances(); // Saves data
         renderInvitePage();
         showTGNotification("Referral Earnings claimed!", 'success');
     } else {
@@ -1518,6 +1673,9 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+     // Load user data from localStorage first
+    loadData();
+
     preloadImages(imageUrlsToPreload); // Start preloading
 
     // Subscribe to TON Connect UI wallet connection status changes
@@ -1525,10 +1683,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updateUIBasedOnWallet(wallet); // Update UI whenever connection status changes
     });
 
-
+    // Get Telegram User Data
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand(); 
+        
+        const tgUser = Telegram.WebApp.initDataUnsafe?.user;
+        if (tgUser) {
+            currentUser.id = tgUser.id;
+            currentUser.username = tgUser.username;
+            currentUser.first_name = tgUser.first_name;
+            currentUser.last_name = tgUser.last_name;
+            // Regenerate referral code if missing, now that we have the ID
+             if (!currentUser.referralCode && currentUser.id) {
+                 currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+                 saveData(); 
+             }
+        }
+
         try { 
             const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim();
             Telegram.WebApp.setHeaderColor(bgColor);
@@ -1536,10 +1708,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) {
             // Silent fail
         }
+    } else {
+        // Fallback for browser testing - Generate dummy referral code
+        if (!currentUser.referralCode) {
+            currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
+        }
     }
 
-    // Initial UI setup (will be updated by onStatusChange if already connected)
-    updateUIBasedOnWallet(tonConnectUI.wallet); // Check initial state
+    // Initial UI setup (may be updated immediately by onStatusChange if already connected)
+    updateUIBasedOnWallet(tonConnectUI.wallet); 
     renderCases();
     renderProfile(); 
     renderLeaderboard();
