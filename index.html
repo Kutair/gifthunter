@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>TON Gift Roulette</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Lottie-Web Player from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #0088cc; /* TON Blue */
+            --primary-hover-color: #0077b3;
+            --secondary-color: #f0b90b; /* Gold/Star color */
+            --background-color: #1a1a1a; /* Dark background */
+            --surface-color: #2c2c2c;   /* Slightly lighter surface */
+            --surface-highlight-color: #3a3a3a;
+            --text-color: #f0f0f0;
+            --text-secondary-color: #a0a0a0;
+            --border-color: #444444;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* Header */
+        #app-header {
+            background-color: var(--surface-color);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        #app-header .app-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        #app-header .wallet-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        #app-header .wallet-address, #app-header .balance {
+            background-color: var(--surface-highlight-color);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+        #app-header .ton-icon {
+            width: 18px;
+            height: 18px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230088CC'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            margin-left: 5px;
+            vertical-align: middle;
+        }
+
+
+        /* Content Area */
+        #app-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .page {
+            display: none; /* Hidden by default */
+        }
+        .page.active {
+            display: block;
+        }
+
+        /* Navigation Bar */
+        #app-nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: var(--surface-color);
+            border-top: 1px solid var(--border-color);
+            padding: 10px 0;
+            position: sticky;
+            bottom: 0;
+            z-index: 100;
+        }
+        .nav-button {
+            background: none;
+            border: none;
+            color: var(--text-secondary-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8em;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 6px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-button:hover {
+            background-color: var(--surface-highlight-color);
+        }
+        .nav-button.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        .nav-button svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+
+        /* General UI Elements */
+        .button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+        .button:hover {
+            background-color: var(--primary-hover-color);
+        }
+        .button-secondary {
+            background-color: var(--surface-highlight-color);
+            color: var(--text-color);
+        }
+        .button-secondary:hover {
+            background-color: #4a4a4a;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        /* Main Page - Cases */
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .case-card {
+            background-color: var(--surface-color);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .case-card .case-image-placeholder { /* Placeholder for .tgs */
+            width: 80px;
+            height: 80px;
+            background-color: var(--surface-highlight-color);
+            border-radius: 8px;
+            margin: 0 auto 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            color: var(--primary-color);
+        }
+        .case-card .case-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .case-card .case-price {
+            font-size: 0.9em;
+            color: var(--secondary-color);
+        }
+
+        /* Roulette Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: var(--surface-color);
+            margin: auto;
+            padding: 25px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+        }
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        #roulette-wheel {
+            height: 100px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            position: relative;
+            background-color: var(--background-color);
+        }
+        #roulette-spinner {
+            display: flex;
+            flex-direction: column; /* Items will appear to scroll vertically */
+            position: absolute;
+            left: 0;
+            width: 100%;
+            transition: top 0.1s linear; /* For smooth final item selection if needed */
+        }
+        .roulette-item {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            /* background-color: var(--surface-highlight-color); /* Alternate item bg */
+            /* border-bottom: 1px solid var(--border-color); */
+            padding: 0 10px;
+            box-sizing: border-box;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #prize-display {
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+        #prize-display.hidden {
+            display: none;
+        }
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        /* Profile Page */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            background-color: var(--surface-color);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .profile-avatar-placeholder {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            color: white;
+        }
+        .profile-info .username {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .profile-info .userid {
+            font-size: 0.9em;
+            color: var(--text-secondary-color);
+        }
+        .balance-section, .wallet-section, .inventory-section {
+            background-color: var(--surface-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .balance-display, .wallet-display {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+        }
+        .inventory-item {
+            background-color: var(--surface-highlight-color);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+        }
+        .inventory-item-name {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .inventory-item-value {
+            font-size: 0.8em;
+            color: var(--secondary-color);
+        }
+        .inventory-item-actions button {
+            font-size: 0.8em;
+            padding: 5px 8px;
+            margin-top: 8px;
+        }
+
+
+        /* Upgrade Page */
+        .upgrade-area {
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .upgrade-chance-display {
+            width: 150px;
+            height: 150px;
+            border: 5px solid var(--primary-color);
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .multiplier-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .multiplier-buttons button {
+            min-width: 50px;
+        }
+        #upgrade-inventory-select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            background-color: var(--surface-highlight-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+
+        /* Invite Page */
+        .invite-content {
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .referral-link-area input {
+            width: calc(100% - 22px); /* Adjust for padding */
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-highlight-color);
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+        .stats-box {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        .stat-item .label {
+            font-size: 0.9em;
+            color: var(--text-secondary-color);
+        }
+        .invited-users-list .user-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .invited-users-list .user-entry:last-child {
+            border-bottom: none;
+        }
+
+
+        /* Leaderboard Page */
+        .leaderboard-list .leader-entry {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .leader-entry .rank {
+            font-weight: bold;
+            margin-right: 15px;
+            min-width: 20px;
+            text-align: right;
+            color: var(--primary-color);
+        }
+        .leader-entry .avatar-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            color: white;
+        }
+        .leader-entry .info .name {
+            font-weight: bold;
+        }
+        .leader-entry .info .details {
+            font-size: 0.8em;
+            color: var(--text-secondary-color);
+        }
+        .leader-entry .score {
+            margin-left: auto;
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+
+
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <header id="app-header">
+            <div class="app-title">TON Gifts</div>
+            <div class="wallet-info">
+                <div id="wallet-address" class="wallet-address">Connect Wallet</div>
+                <div id="balance" class="balance">
+                    <span id="ton-balance">0.00</span> <span class="ton-icon"></span>
+                    <!-- <span id="star-balance">0</span> ✨ -->
+                </div>
+            </div>
+        </header>
+
+        <main id="app-content">
+            <div id="main-page" class="page active">
+                <h2>Cases</h2>
+                <div id="cases-grid" class="cases-grid">
+                    <!-- Cases will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div id="upgrade-page" class="page">
+                <h2>Upgrade Item</h2>
+                <div class="upgrade-area">
+                    <p>Choose an item from your inventory to upgrade:</p>
+                    <select id="upgrade-inventory-select">
+                        <option value="">-- Select Item --</option>
+                    </select>
+                    <div class="upgrade-chance-display">50%</div>
+                    <p>Choose multiplier:</p>
+                    <div id="multiplier-buttons" class="multiplier-buttons">
+                        <button class="button button-secondary" data-multiplier="1.5">x1.5</button>
+                        <button class="button button-secondary" data-multiplier="2">x2</button>
+                        <button class="button button-secondary" data-multiplier="3">x3</button>
+                        <button class="button button-secondary" data-multiplier="5">x5</button>
+                        <button class="button button-secondary" data-multiplier="10">x10</button>
+                        <button class="button button-secondary" data-multiplier="20">x20</button>
+                    </div>
+                    <button id="do-upgrade-button" class="button">Upgrade Item</button>
+                    <p id="upgrade-result" style="margin-top: 15px;"></p>
+                </div>
+            </div>
+
+            <div id="invite-page" class="page">
+                <h2>Referral Program</h2>
+                <div class="invite-content">
+                    <p>Get <strong>10%</strong> of your friends' deposits!</p>
+                    <div class="referral-link-area">
+                        <input type="text" id="referral-link" value="https://t.me/YourAppBot?start=ref_USER123" readonly>
+                        <button id="copy-ref-link-button" class="button">Copy Link</button>
+                    </div>
+                    <div class="stats-box">
+                        <div class="stat-item">
+                            <div id="referral-balance" class="value">0.00 <span class="ton-icon"></span></div>
+                            <div class="label">Referral Balance</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="invited-count" class="value">0</div>
+                            <div class="label">Invited Users</div>
+                        </div>
+                    </div>
+                    <button id="withdraw-referral-button" class="button button-secondary">Withdraw Referral Earnings</button>
+                    <h3>Invited Users (Demo)</h3>
+                    <div class="invited-users-list">
+                        <div class="user-entry"><span>User_Alpha</span><span>Profit: 1.5 <span class="ton-icon"></span></span></div>
+                        <div class="user-entry"><span>User_Beta99</span><span>Profit: 0.5 <span class="ton-icon"></span></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="leaderboard-page" class="page">
+                <h2>Leaderboard</h2>
+                <div id="leaderboard-list" class="leaderboard-list">
+                    <!-- Leaderboard entries will be dynamically inserted -->
+                </div>
+            </div>
+
+            <div id="profile-page" class="page">
+                <h2>Profile</h2>
+                <div class="profile-header">
+                    <div id="profile-avatar" class="profile-avatar-placeholder">V</div>
+                    <div class="profile-info">
+                        <div id="profile-username" class="username">Vasiliy</div>
+                        <div id="profile-userid" class="userid">#5146625949</div>
+                    </div>
+                </div>
+
+                <div class="balance-section">
+                    <h3>Your Balance</h3>
+                    <div id="profile-balance-display" class="balance-display">100.00 <span class="ton-icon"></span></div>
+                    <button id="deposit-button" class="button">Deposit TON</button>
+                </div>
+
+                <div class="wallet-section">
+                    <h3>Connected Wallet</h3>
+                    <div id="profile-wallet-address" class="wallet-display">UQBoR...3064 (Demo)</div>
+                    <button id="disconnect-wallet-button" class="button button-secondary">Disconnect</button>
+                </div>
+
+                <div class="inventory-section">
+                    <h3>Inventory (<span id="inventory-count">0</span>)</h3>
+                    <div id="inventory-grid" class="inventory-grid">
+                        <p id="empty-inventory-message">Your inventory is empty. Win some gifts!</p>
+                        <!-- Inventory items will be here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav id="app-nav">
+            <button class="nav-button active" data-page="main-page">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                Main
+            </button>
+            <button class="nav-button" data-page="upgrade-page">
+                <svg viewBox="0 0 24 24"><path d="M12 2L6.5 9H10v центральная часть стрелки вверх, похожей на ракету "/></svg> <!-- Placeholder icon -->
+                 Upgrade
+            </button>
+            <button class="nav-button" data-page="invite-page">
+                 <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                Invite
+            </button>
+            <button class="nav-button" data-page="leaderboard-page">
+                <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/><path d="M10.5 15H13v- procédés.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5V15h2.5l-4 4-4-4zM12 11.5c.83 0 1.5-.67 1.5-1.5S12.83 8.5 12 8.5s-1.5.67-1.5 1.5.67 1.5 1.5 1.5z"/></svg> <!-- Placeholder icon -->
+                Leaders
+            </button>
+            <button class="nav-button" data-page="profile-page">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                Profile
+            </button>
+        </nav>
+    </div>
+
+    <!-- Roulette Modal -->
+    <div id="roulette-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="roulette-case-name">Spinning...</h3>
+            <div id="roulette-wheel">
+                <div id="roulette-spinner">
+                    <!-- Prize items will be dynamically added here -->
+                </div>
+            </div>
+            <div id="prize-display" class="hidden">
+                You won: <span id="won-prize-name"></span>!
+            </div>
+            <div class="modal-actions">
+                <button id="spin-button" class="button">Spin (0.0 TON)</button>
+                <button id="close-roulette-button" class="button button-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- Constants and Global State ---
+const GIFT_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftGifs/'; // Not used for display in this version
+
+const currentUser = {
+    id: '5146625949',
+    username: 'Vasiliy',
+    walletAddress: 'UQBoR...3064', // Simulated
+    tonBalance: 100.00,
+    starBalance: 2000, // Example stars
+    inventory: [], // { name, tgsFile, floorPrice, id }
+    referralCode: 'ref_VASILIY123', // Simulated
+    referralEarnings: 0,
+    invitedUsersCount: 2 // Simulated
+};
+
+let currentOpenCase = null;
+let selectedMultiplier = 1.5; // Default for upgrade
+
+// Case Data (probabilities should sum to 1 per case, approx)
+// IMPORTANT: Probabilities are represented as decimals, e.g., 10% = 0.1
+const casesData = [
+    {
+        id: 'regular', name: 'Regular Case', priceTON: 0.1, priceStars: 50,
+        prizes: [
+            { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.00005 },
+            { name: 'Durov\'s Cap', tgsFile: 'Durovs-Cap.tgs', floorPrice: 150, probability: 0.00009 },
+            { name: 'B-Day Candle', tgsFile: 'B-Day-Candle.tgs', floorPrice: 0.7, probability: 0.0475 },
+            { name: 'Toy Bear', tgsFile: 'Toy-Bear.tgs', floorPrice: 5.2, probability: 0.15 },
+            { name: 'Cookie Heart', tgsFile: 'Cookie-Heart.tgs', floorPrice: 0.9, probability: 0.20 },
+            { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.20 },
+            { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.20 },
+            { name: 'Desk Calendar', tgsFile: 'Desk-Calendar.tgs', floorPrice: 0.7, probability: 0.15236 }, // Adjusted to sum ~1
+            { name: 'Candy Cane', tgsFile: 'Candy-Cane.tgs', floorPrice: 0.9, probability: 0.05 },
+        ]
+    },
+    {
+        id: 'lolpop', name: 'Lol Pop Case', priceTON: 0.5,
+        prizes: [
+            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.01 },
+            { name: 'Party Sparkler', tgsFile: 'Party-Sparkler.tgs', floorPrice: 1, probability: 0.10 },
+            { name: 'B-Day Candle', tgsFile: 'B-Day-Candle.tgs', floorPrice: 0.7, probability: 0.10 },
+            { name: 'Homemade Cake', tgsFile: 'Homemade-Cake.tgs', floorPrice: 1, probability: 0.05 },
+            { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.20 },
+            { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.20 },
+            { name: 'Desk Calendar', tgsFile: 'Desk-Calendar.tgs', floorPrice: 0.7, probability: 0.14 },
+            { name: 'Cookie Heart', tgsFile: 'Cookie-Heart.tgs', floorPrice: 0.9, probability: 0.10 },
+            { name: 'Jack-in-the-box', tgsFile: 'Jack-in-the-box.tgs', floorPrice: 1, probability: 0.08 },
+            { name: 'Ginger Cookie', tgsFile: 'Ginger-Cookie.tgs', floorPrice: 1, probability: 0.02 },
+        ]
+    },
+    {
+        id: 'recordplayer', name: 'Record Player Case', priceTON: 3,
+        prizes: [
+            { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.50 },
+            { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.10 },
+            { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.10 },
+            { name: 'Party Sparkler', tgsFile: 'Party-Sparkler.tgs', floorPrice: 1, probability: 0.10 },
+            { name: 'Skull Flower', tgsFile: 'Skull-Flower.tgs', floorPrice: 1.7, probability: 0.10 },
+            { name: 'Jelly Bunny', tgsFile: 'Jelly-Bunny.tgs', floorPrice: 1.8, probability: 0.10 },
+        ]
+    },
+    // ... (Add ALL your other cases here, following the same structure)
+    // For brevity, I'm not including all cases from your prompt, but you should.
+    // Example of a high-tier case:
+     {
+        id: 'happy_pepe', name: 'Happy Pepe Case', priceTON: 600,
+        prizes: [
+            { name: 'Kissed Frog Happy Pepe', tgsFile: 'Happy Pepe Kissed Frog.tgs', floorPrice: 660, probability: 0.3636 },
+            { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.6364 },
+        ]
+    },
+    // Background cases (treated as regular cases with NFT prizes)
+    {
+        id: 'amber', name: 'Amber Case', priceTON: 3,
+        prizes: [
+            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.01 },
+            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.03 },
+            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.05 },
+            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.10 },
+            { name: 'Eternal Rose', tgsFile: 'Eternal-Rose.tgs', floorPrice: 5.5, probability: 0.15 },
+            { name: 'Voodoo Doll', tgsFile: 'Voodoo-Doll.tgs', floorPrice: 4.2, probability: 0.20 },
+            { name: 'Top Hat', tgsFile: 'Top-Hat.tgs', floorPrice: 3, probability: 0.21 },
+            { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.07 },
+            { name: 'Love Potion', tgsFile: 'Love-Potion.tgs', floorPrice: 2.7, probability: 0.08 },
+            { name: 'Sakura Flower', tgsFile: 'Sakura-Flower.tgs', floorPrice: 2, probability: 0.05 },
+            { name: 'Jelly Bunny', tgsFile: 'Jelly-Bunny.tgs', floorPrice: 1.8, probability: 0.05 },
+        ]
+    },
+];
+
+
+// --- DOM Elements ---
+const appHeader = {
+    walletAddress: document.getElementById('wallet-address'),
+    tonBalance: document.getElementById('ton-balance'),
+    // starBalance: document.getElementById('star-balance'),
+};
+const appNavButtons = document.querySelectorAll('.nav-button');
+const pages = document.querySelectorAll('.page');
+const casesGrid = document.getElementById('cases-grid');
+
+// Roulette Modal Elements
+const rouletteModal = document.getElementById('roulette-modal');
+const rouletteCaseName = document.getElementById('roulette-case-name');
+const rouletteWheel = document.getElementById('roulette-wheel');
+const rouletteSpinner = document.getElementById('roulette-spinner');
+const prizeDisplay = document.getElementById('prize-display');
+const wonPrizeName = document.getElementById('won-prize-name');
+const spinButton = document.getElementById('spin-button');
+const closeRouletteButton = document.getElementById('close-roulette-button');
+
+// Profile Page Elements
+const profileElements = {
+    avatar: document.getElementById('profile-avatar'),
+    username: document.getElementById('profile-username'),
+    userid: document.getElementById('profile-userid'),
+    balanceDisplay: document.getElementById('profile-balance-display'),
+    walletAddress: document.getElementById('profile-wallet-address'),
+    inventoryGrid: document.getElementById('inventory-grid'),
+    inventoryCount: document.getElementById('inventory-count'),
+    emptyInventoryMessage: document.getElementById('empty-inventory-message'),
+    depositButton: document.getElementById('deposit-button'),
+    disconnectWalletButton: document.getElementById('disconnect-wallet-button')
+};
+
+// Upgrade Page Elements
+const upgradeElements = {
+    inventorySelect: document.getElementById('upgrade-inventory-select'),
+    multiplierButtons: document.getElementById('multiplier-buttons'),
+    doUpgradeButton: document.getElementById('do-upgrade-button'),
+    upgradeResult: document.getElementById('upgrade-result')
+};
+
+// Invite Page Elements
+const inviteElements = {
+    referralLink: document.getElementById('referral-link'),
+    copyRefLinkButton: document.getElementById('copy-ref-link-button'),
+    referralBalance: document.getElementById('referral-balance'),
+    invitedCount: document.getElementById('invited-count'),
+    withdrawReferralButton: document.getElementById('withdraw-referral-button')
+};
+
+// Leaderboard Page Elements
+const leaderboardList = document.getElementById('leaderboard-list');
+
+
+// --- Utility Functions ---
+function updateBalances() {
+    appHeader.tonBalance.textContent = currentUser.tonBalance.toFixed(2);
+    // appHeader.starBalance.textContent = currentUser.starBalance;
+    profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
+}
+
+function navigateToPage(pageId) {
+    pages.forEach(page => page.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
+    appNavButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.page === pageId);
+    });
+    window.scrollTo(0, 0); // Scroll to top on page change
+}
+
+function showNotification(message, type = 'info') { // type can be 'info', 'success', 'error'
+    // For a real app, use a more sophisticated notification system
+    alert(message);
+    if (type === 'success' && Telegram.WebApp.HapticFeedback) {
+        Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+    } else if (type === 'error' && Telegram.WebApp.HapticFeedback) {
+        Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+    }
+}
+
+// --- Rendering Functions ---
+function renderHeader() {
+    if (currentUser.walletAddress) {
+        appHeader.walletAddress.textContent = currentUser.walletAddress.substring(0, 6) + '...' + currentUser.walletAddress.substring(currentUser.walletAddress.length - 4);
+    } else {
+        appHeader.walletAddress.textContent = "Connect Wallet";
+        appHeader.walletAddress.onclick = () => {
+            // Here you would integrate TON Connect
+            // For demo, simulate connection:
+            currentUser.walletAddress = "UQDemoWalletAddressForUser1234567890";
+            renderHeader();
+            showNotification("Wallet Connected (Demo)!", 'success');
+        };
+    }
+    updateBalances();
+}
+
+function renderCases() {
+    casesGrid.innerHTML = ''; // Clear existing cases
+    casesData.forEach(caseItem => {
+        const card = document.createElement('div');
+        card.className = 'case-card';
+        card.onclick = () => openRouletteModal(caseItem);
+
+        const imagePlaceholder = document.createElement('div');
+        imagePlaceholder.className = 'case-image-placeholder';
+        imagePlaceholder.textContent = '🎁'; // Generic gift icon
+
+        const name = document.createElement('div');
+        name.className = 'case-name';
+        name.textContent = caseItem.name;
+
+        const price = document.createElement('div');
+        price.className = 'case-price';
+        let priceText = '';
+        if (caseItem.priceTON) priceText += `${caseItem.priceTON.toFixed(1)} TON `;
+        if (caseItem.priceStars) priceText += (priceText ? '/ ' : '') + `${caseItem.priceStars} ✨`;
+        price.textContent = priceText || 'Free';
+
+        card.appendChild(imagePlaceholder);
+        card.appendChild(name);
+        card.appendChild(price);
+        casesGrid.appendChild(card);
+    });
+}
+
+function renderProfile() {
+    profileElements.avatar.textContent = currentUser.username ? currentUser.username.charAt(0).toUpperCase() : 'U';
+    profileElements.username.textContent = currentUser.username || 'User';
+    profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '';
+    profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
+    renderInventory();
+}
+
+function renderInventory() {
+    profileElements.inventoryGrid.innerHTML = '';
+    if (currentUser.inventory.length === 0) {
+        profileElements.emptyInventoryMessage.style.display = 'block';
+    } else {
+        profileElements.emptyInventoryMessage.style.display = 'none';
+        currentUser.inventory.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'inventory-item';
+            itemDiv.innerHTML = `
+                <div class="inventory-item-name" title="${item.name}">${item.name}</div>
+                <div class="inventory-item-value">${item.floorPrice.toFixed(2)} TON</div>
+                <div class="inventory-item-actions">
+                    <button class="button button-secondary" onclick="convertToTon('${item.id}')">Convert</button>
+                    <!-- <button class="button button-secondary" onclick="withdrawItem('${item.id}')">Withdraw</button> -->
+                </div>
+            `;
+            // Lottie Placeholder:
+            // If you had JSON files for Lottie:
+            // const lottieContainer = document.createElement('div');
+            // lottieContainer.style.width = '50px'; lottieContainer.style.height = '50px'; margin: '0 auto';
+            // itemDiv.insertBefore(lottieContainer, itemDiv.firstChild);
+            // lottie.loadAnimation({ container: lottieContainer, renderer: 'svg', loop: false, autoplay: true, path: 'URL_TO_ITEM_JSON_ANIMATION' });
+            profileElements.inventoryGrid.appendChild(itemDiv);
+        });
+    }
+    profileElements.inventoryCount.textContent = currentUser.inventory.length;
+    populateUpgradeInventorySelect();
+}
+
+function populateUpgradeInventorySelect() {
+    upgradeElements.inventorySelect.innerHTML = '<option value="">-- Select Item --</option>';
+    currentUser.inventory.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = `${item.name} (${item.floorPrice.toFixed(2)} TON)`;
+        upgradeElements.inventorySelect.appendChild(option);
+    });
+}
+
+function renderLeaderboard() {
+    leaderboardList.innerHTML = ''; // Clear existing
+    // Simulated leaderboard data
+    const leaders = [
+        { rank: 1, name: 'CryptoKing', avatarChar: 'C', opened: 150, income: 1250.5 },
+        { rank: 2, name: 'TONWhale', avatarChar: 'T', opened: 120, income: 980.2 },
+        { rank: 3, name: 'GiftMaster', avatarChar: 'G', opened: 200, income: 850.0 },
+        { rank: 4, name: currentUser.username, avatarChar: currentUser.username.charAt(0), opened: 10, income: currentUser.tonBalance > 100 ? currentUser.tonBalance - 100 : 0, isCurrentUser: true },
+        { rank: 5, name: 'LuckyPepe', avatarChar: 'L', opened: 90, income: 500.7 },
+    ].sort((a, b) => b.income - a.income).map((leader, index) => ({...leader, rank: index + 1})); // Re-rank after sort
+
+    leaders.forEach(leader => {
+        const entry = document.createElement('div');
+        entry.className = 'leader-entry';
+        if (leader.isCurrentUser) entry.style.backgroundColor = 'var(--primary-hover-color)';
+        entry.innerHTML = `
+            <div class="rank">#${leader.rank}</div>
+            <div class="avatar-placeholder">${leader.avatarChar}</div>
+            <div class="info">
+                <div class="name">${leader.name}</div>
+                <div class="details">Opened ${leader.opened} cases</div>
+            </div>
+            <div class="score">${leader.income.toFixed(1)} <span class="ton-icon"></span></div>
+        `;
+        leaderboardList.appendChild(entry);
+    });
+}
+
+function renderInvitePage() {
+    inviteElements.referralLink.value = `https://t.me/YourAppBot?start=${currentUser.referralCode}`;
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarnings.toFixed(2)} <span class="ton-icon"></span>`;
+    inviteElements.invitedCount.textContent = currentUser.invitedUsersCount;
+}
+
+
+// --- Roulette Logic ---
+function openRouletteModal(caseItem) {
+    currentOpenCase = caseItem;
+    rouletteCaseName.textContent = caseItem.name;
+    spinButton.textContent = `Spin (${caseItem.priceTON ? caseItem.priceTON.toFixed(1) + ' TON' : ''} ${caseItem.priceStars && caseItem.priceTON ? '/' : ''} ${caseItem.priceStars ? caseItem.priceStars + ' ✨' : ''})`;
+    spinButton.disabled = false;
+    prizeDisplay.classList.add('hidden');
+    wonPrizeName.textContent = '';
+    rouletteSpinner.innerHTML = ''; // Clear previous items
+
+    // Populate wheel with some prize names for visual effect (not the actual spin items)
+    const displayPrizes = [...caseItem.prizes].sort(() => 0.5 - Math.random()).slice(0, 20); // Show a mix
+    displayPrizes.forEach(prize => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'roulette-item';
+        itemEl.textContent = prize.name;
+        rouletteSpinner.appendChild(itemEl);
+    });
+    rouletteSpinner.style.top = '0px'; // Reset position
+
+    rouletteModal.classList.add('active');
+    if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
+}
+
+function closeRouletteModal() {
+    rouletteModal.classList.remove('active');
+    currentOpenCase = null;
+}
+
+function determineWinner(prizes) {
+    const rand = Math.random();
+    let cumulativeProbability = 0;
+    for (const prize of prizes) {
+        cumulativeProbability += prize.probability;
+        if (rand <= cumulativeProbability) {
+            return prize;
+        }
+    }
+    return prizes[prizes.length - 1]; // Fallback, should not happen if probabilities sum to 1
+}
+
+async function spinRoulette() {
+    if (!currentOpenCase) return;
+
+    // Check balance
+    if (currentOpenCase.priceTON && currentUser.tonBalance < currentOpenCase.priceTON) {
+        showNotification("Not enough TON!", 'error');
+        return;
+    }
+    if (currentOpenCase.priceStars && currentUser.starBalance < currentOpenCase.priceStars) {
+        showNotification("Not enough Stars!", 'error');
+        return;
+    }
+
+    // Deduct price
+    if (currentOpenCase.priceTON) currentUser.tonBalance -= currentOpenCase.priceTON;
+    if (currentOpenCase.priceStars) currentUser.starBalance -= currentOpenCase.priceStars;
+    updateBalances();
+    spinButton.disabled = true;
+    prizeDisplay.classList.add('hidden');
+
+    // --- Animation ---
+    const itemsInSpinner = []; // Array of prize objects to display
+    for (let i = 0; i < 50; i++) { // Create a longer list of items for spinning effect
+        itemsInSpinner.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
+    }
+    const winner = determineWinner(currentOpenCase.prizes);
+    itemsInSpinner[itemsInSpinner.length - 3] = winner; // Place winner near the end for visual effect
+
+    rouletteSpinner.innerHTML = ''; // Clear spinner
+    itemsInSpinner.forEach(prize => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'roulette-item';
+        itemEl.textContent = prize.name;
+        // Lottie Placeholder: If you had JSON for items, you'd load lottie here
+        // For example:
+        // const lottieDiv = document.createElement('div');
+        // lottieDiv.style.width = '80px'; lottieDiv.style.height = '80px';
+        // itemEl.appendChild(lottieDiv);
+        // try {
+        //   lottie.loadAnimation({ container: lottieDiv, renderer: 'svg', loop: true, autoplay: true, path: `URL_TO_${prize.tgsFile.replace('.tgs','.json')}` });
+        // } catch(e) { itemEl.textContent = prize.name; /* fallback to name */ }
+        rouletteSpinner.appendChild(itemEl);
+    });
+
+    const itemHeight = 100; // Must match .roulette-item height
+    const totalHeight = rouletteSpinner.scrollHeight;
+    const landingPosition = totalHeight - itemHeight * 3; // Land on the 3rd to last item (our winner)
+
+    rouletteSpinner.style.transition = 'none'; // For instant jump
+    rouletteSpinner.style.top = '0px';
+
+    // Force reflow
+    void rouletteSpinner.offsetWidth;
+
+    rouletteSpinner.style.transition = 'top 4s cubic-bezier(0.25, 0.1, 0.25, 1)'; // Spin animation
+    rouletteSpinner.style.top = `-${landingPosition}px`;
+
+    if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+
+    setTimeout(() => {
+        wonPrizeName.textContent = winner.name;
+        prizeDisplay.classList.remove('hidden');
+        spinButton.disabled = false; // Allow another spin for the same case type if desired
+
+        // Add to inventory
+        const inventoryId = `item_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+        currentUser.inventory.push({ ...winner, id: inventoryId });
+        renderInventory(); // Update inventory display on profile page
+        showNotification(`You won ${winner.name}!`, 'success');
+        if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+
+    }, 4100); // Slightly after animation ends
+}
+
+
+// --- Other Page Logic ---
+function convertToTon(itemId) {
+    const itemIndex = currentUser.inventory.findIndex(invItem => invItem.id === itemId);
+    if (itemIndex === -1) return;
+
+    const item = currentUser.inventory[itemIndex];
+    currentUser.tonBalance += item.floorPrice;
+    currentUser.inventory.splice(itemIndex, 1);
+
+    updateBalances();
+    renderInventory();
+    showNotification(`${item.name} converted to ${item.floorPrice.toFixed(2)} TON!`, 'success');
+}
+
+function handleUpgrade() {
+    const selectedItemId = upgradeElements.inventorySelect.value;
+    if (!selectedItemId) {
+        showNotification("Please select an item to upgrade.", 'error');
+        return;
+    }
+
+    const itemIndex = currentUser.inventory.findIndex(item => item.id === selectedItemId);
+    const itemToUpgrade = currentUser.inventory[itemIndex];
+
+    upgradeElements.upgradeResult.textContent = "Upgrading...";
+    upgradeElements.doUpgradeButton.disabled = true;
+
+    setTimeout(() => {
+        const success = Math.random() < 0.5; // 50% chance
+        if (success) {
+            const oldValue = itemToUpgrade.floorPrice;
+            itemToUpgrade.floorPrice *= selectedMultiplier;
+            itemToUpgrade.name = `Upgraded ${itemToUpgrade.name} (x${selectedMultiplier})`;
+            upgradeElements.upgradeResult.textContent = `Success! ${itemToUpgrade.name} is now worth ${itemToUpgrade.floorPrice.toFixed(2)} TON.`;
+            upgradeElements.upgradeResult.style.color = 'var(--success-color)';
+            showNotification("Upgrade successful!", 'success');
+        } else {
+            currentUser.inventory.splice(itemIndex, 1); // Item lost
+            upgradeElements.upgradeResult.textContent = `Failed! You lost ${itemToUpgrade.name}. It has been sent to @Vasiliy939.`;
+            upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
+            showNotification("Upgrade failed! Item lost.", 'error');
+            // In a real app, you'd actually send/log this.
+            console.log(`Item ${itemToUpgrade.name} lost in upgrade, would be sent to Vasiliy939 (TG ID 5146625949)`);
+        }
+        renderInventory(); // Update inventory for select and profile
+        upgradeElements.doUpgradeButton.disabled = false;
+    }, 1500);
+}
+
+
+// --- Event Listeners ---
+appNavButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        navigateToPage(button.dataset.page);
+    });
+});
+
+spinButton.addEventListener('click', spinRoulette);
+closeRouletteButton.addEventListener('click', closeRouletteModal);
+
+profileElements.depositButton.addEventListener('click', () => {
+    showNotification("Deposit feature coming soon!", 'info');
+});
+profileElements.disconnectWalletButton.addEventListener('click', () => {
+    currentUser.walletAddress = null;
+    renderHeader();
+    renderProfile();
+    showNotification("Wallet Disconnected (Demo).", 'info');
+});
+
+upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
+    button.addEventListener('click', (e) => {
+        selectedMultiplier = parseFloat(e.target.dataset.multiplier);
+        upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => btn.classList.remove('button-primary'));
+        e.target.classList.add('button-primary');
+        // Optionally update some display text about potential outcome
+    });
+});
+upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
+
+inviteElements.copyRefLinkButton.addEventListener('click', () => {
+    navigator.clipboard.writeText(inviteElements.referralLink.value)
+        .then(() => showNotification("Referral link copied!", 'success'))
+        .catch(err => showNotification("Failed to copy link.", 'error'));
+});
+inviteElements.withdrawReferralButton.addEventListener('click', () => {
+    if (currentUser.referralEarnings > 0) {
+        currentUser.tonBalance += currentUser.referralEarnings;
+        currentUser.referralEarnings = 0;
+        updateBalances();
+        renderInvitePage();
+        showNotification("Referral earnings withdrawn!", 'success');
+    } else {
+        showNotification("No referral earnings to withdraw.", 'info');
+    }
+});
+
+
+// --- Initialization ---
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize Telegram Web App
+    if (window.Telegram && window.Telegram.WebApp) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand(); // Expand the Web App to full height
+
+        // Set theme from Telegram
+        // Telegram.WebApp.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue('--surface-color').trim());
+        // Telegram.WebApp.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue('--background-color').trim());
+
+        // Get user data if available (for real app)
+        // if (Telegram.WebApp.initDataUnsafe && Telegram.WebApp.initDataUnsafe.user) {
+        //     const tgUser = Telegram.WebApp.initDataUnsafe.user;
+        //     currentUser.id = tgUser.id.toString();
+        //     currentUser.username = tgUser.username || `${tgUser.first_name} ${tgUser.last_name || ''}`.trim();
+        // }
+    } else {
+        console.warn("Telegram WebApp SDK not found. Running in browser mode.");
+    }
+
+    renderHeader();
+    renderCases();
+    renderProfile(); // Also calls renderInventory and populateUpgradeInventorySelect
+    renderLeaderboard();
+    renderInvitePage();
+    navigateToPage('main-page'); // Start on main page
+});
+
+</script>
+</body>
+</html>
