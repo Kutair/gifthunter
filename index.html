@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - Final Scroll</title>
+    <title>TON Gift Universe - Polished</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect UI -->
@@ -40,6 +40,21 @@
             --main-border-radius: 14px; 
             --button-border-radius: 10px;
             --soft-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+
+             /* Gradients for Cases */
+            --case-grad-lolpop: linear-gradient(145deg, #ff7e5f, #feb47b);
+            --case-grad-recordplayer: linear-gradient(145deg, #4facfe, #00f2fe);
+            --case-grad-swisswatch: linear-gradient(145deg, #d4af37, #f8d05a); /* Gold-like */
+            --case-grad-perfumebottle: linear-gradient(145deg, #f8cdda, #e7a9cf); /* Pinkish */
+            --case-grad-vintagecigar: linear-gradient(145deg, #8d6e63, #a1887f); /* Brownish */
+            --case-grad-astralshard: linear-gradient(145deg, #4e54c8, #8f94fb); /* Purple/Blue */
+            --case-grad-plushpepe: linear-gradient(145deg, #56ab2f, #a8e063); /* Green */
+            --case-grad-happypepe: linear-gradient(145deg, #fbc2eb, #a6c1ee); /* Light multi */
+            --case-grad-amber: linear-gradient(145deg, #ffc107, #ffecb3); /* Amber */
+            --case-grad-midnightblue: linear-gradient(145deg, #003973, #3b5998); /* Dark Blue */
+            --case-grad-onyxblack: linear-gradient(145deg, #434343, #626262); /* Dark Grey */
+            --case-grad-black: linear-gradient(145deg, #2c3e50, #4ca1af); /* Teal/Grey */
+            --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); /* Fallback */
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -51,7 +66,6 @@
         }
 
         html {
-             /* Ensure smooth scrolling on touch devices */
             -webkit-overflow-scrolling: touch;
         }
 
@@ -123,7 +137,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 150px; 
-            display: none; 
+            display: none; /* Initially hidden */
         }
          #wallet-address-display.connected, #balance.connected { 
              display: block; 
@@ -199,7 +213,6 @@
         }
         .button:hover { filter: brightness(1.1); }
         .button:active { transform: scale(0.97); filter: brightness(0.9); }
-
         .button-secondary {
             background-color: var(--surface-hover-color); 
             color: var(--text-secondary); 
@@ -246,27 +259,62 @@
             gap: 18px; 
         }
         .case-card {
-            background-color: var(--surface-color);
+            /* Default background is surface color */
+             background-color: var(--surface-color); 
             border-radius: var(--main-border-radius);
             padding: 18px;
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             border: 1px solid var(--border-color); 
             overflow: hidden; 
+            position: relative; /* For potential pseudo-elements */
         }
+        /* Apply Specific Gradients */
+        .case-card[data-case-id="lolpop"] { background-image: var(--case-grad-lolpop); }
+        .case-card[data-case-id="recordplayer"] { background-image: var(--case-grad-recordplayer); }
+        .case-card[data-case-id="swisswatch"] { background-image: var(--case-grad-swisswatch); }
+        .case-card[data-case-id="perfumebottle"] { background-image: var(--case-grad-perfumebottle); }
+        .case-card[data-case-id="vintagecigar"] { background-image: var(--case-grad-vintagecigar); }
+        .case-card[data-case-id="astralshard"] { background-image: var(--case-grad-astralshard); }
+        .case-card[data-case-id="plushpepe"] { background-image: var(--case-grad-plushpepe); }
+        .case-card[data-case-id="happypepe"] { background-image: var(--case-grad-happypepe); }
+        .case-card[data-case-id="amber"] { background-image: var(--case-grad-amber); }
+        .case-card[data-case-id="midnightblue"] { background-image: var(--case-grad-midnightblue); }
+        .case-card[data-case-id="onyxblack"] { background-image: var(--case-grad-onyxblack); }
+        .case-card[data-case-id="black"] { background-image: var(--case-grad-black); }
+
+        /* Text color adjustments for better contrast on gradients */
+         .case-card[data-case-id="lolpop"] .case-name, 
+         .case-card[data-case-id="lolpop"] .case-price,
+         .case-card[data-case-id="happypepe"] .case-name, 
+         .case-card[data-case-id="happypepe"] .case-price,
+         .case-card[data-case-id="amber"] .case-name, 
+         .case-card[data-case-id="amber"] .case-price,
+         .case-card[data-case-id="plushpepe"] .case-name,
+         .case-card[data-case-id="plushpepe"] .case-price {
+             color: #333; /* Darker text for light gradients */
+             text-shadow: 0 0 2px rgba(255,255,255,0.3); /* Optional subtle shadow */
+         }
+         /* Ensure other text remains white */
+          .case-card .case-name { color: var(--text-primary); }
+          .case-card .case-price { color: var(--text-secondary); }
+
+
         .case-card:hover {
-            background-color: var(--surface-hover-color);
+            /* Keep hover transform, maybe adjust background slightly */
+            filter: brightness(1.1);
             transform: translateY(-5px);
             box-shadow: var(--soft-shadow);
         }
         .case-card .case-image-display { 
             width: 80px; height: 80px;
             margin: 0 auto 15px auto;
-            background-color: var(--surface-hover-color); 
+            background-color: rgba(255, 255, 255, 0.1); /* Lighter bg for images */
             border-radius: var(--button-border-radius);
             overflow: hidden;
             position: relative; 
+             border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for image */
         }
         .case-card .case-image-display img {
             display: block;
@@ -282,28 +330,32 @@
              transform: translate(-50%, -50%);
              object-fit: contain; 
              pointer-events: none; 
+             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); /* Shadow for overlay */
          }
 
         .case-card .case-name {
-            font-weight: 600; font-size: 1em; margin-bottom: 6px;
-            color: var(--text-primary);
+            font-weight: 700; /* Bolder names on gradients */
+            font-size: 1em; margin-bottom: 6px;
             min-height: 2.4em; 
             display: flex; align-items: center; justify-content: center;
+            /* Text shadow for potentially better readability on some gradients */
+             text-shadow: 0 1px 3px rgba(0,0,0,0.4); 
         }
         .case-card .case-price {
-            font-size: 0.9em; font-weight: 500;
-            color: var(--text-secondary);
+            font-size: 0.9em; font-weight: 600; /* Bolder price */
+            /* Text shadow */
+             text-shadow: 0 1px 3px rgba(0,0,0,0.4); 
         }
 
         /* --- Modal Base --- */
-        .modal {
+        /* ... (Modal base styles remain the same) ... */
+         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.7); 
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             align-items: center; justify-content: center;
             padding: 16px;
-            /* Modal itself should scroll if content exceeds viewport height */
             overflow-y: auto; 
         }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
@@ -319,30 +371,30 @@
             text-align: center;
             box-shadow: 0 12px 35px rgba(0,0,0,0.35);
             border: 1px solid var(--border-color);
-            /* Remove fixed max-height, let content define it */
             display: flex; flex-direction: column;
             margin: auto; 
+             max-height: calc(100vh - 40px); 
         }
-         .modal-content h3 { /* Modal title */
+         .modal-content h3 { 
             margin-top: 0; margin-bottom: 16px;
             font-size: 1.35em; font-weight: 700;
             color: var(--text-primary);
-             flex-shrink: 0; /* Prevent title from shrinking */
+             flex-shrink: 0; 
         }
         .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;  flex-shrink: 0; }
         .modal-body { 
-             /* This section will contain the scrollable prize cards if needed */
             overflow-y: auto; 
-            flex-grow: 1; /* Allow it to take available space */
+            flex-grow: 1; 
             -webkit-overflow-scrolling: touch; 
-            margin-top: 10px; /* Add space above prize cards */
+            margin-top: 10px; 
         }
 
 
         /* --- Roulette Modal Specifics --- */
+        /* ... (Roulette styles remain largely the same, ensure wheel height is correct) ... */
         #roulette-wheel-container { width: 100%;  flex-shrink: 0; }
         #roulette-wheel {
-            height: 270px; 
+            height: 270px; /* TALLER wheel (90px item height * 3) */
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
@@ -363,7 +415,7 @@
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 90px; 
+            height: 90px; /* Height matching wheel / 3 */
             display: flex; align-items: center; justify-content: center; 
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
@@ -377,7 +429,6 @@
              filter: drop-shadow(0 0 6px var(--primary-color)); 
         }
         #possible-prizes-display {
-            /* Removed overflow-y, handled by .modal-body or .modal */
             padding-right: 0px; 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
@@ -418,22 +469,19 @@
              flex-shrink: 0;
         }
         #prize-display.hidden { display: none; }
-        #roulette-modal hr { /* Style the separator */
-             border: none; 
-             border-top: 1px solid var(--border-color); 
-             margin: 16px 0;
+        #roulette-modal hr { 
+             border: none; border-top: 1px solid var(--border-color); margin: 16px 0;
               flex-shrink: 0;
          }
-         #roulette-modal h4 { /* "Possible Prizes" title */
-             font-size: 0.9em; 
-             color: var(--text-secondary); 
-             margin-bottom: 10px; 
+         #roulette-modal h4 { 
+             font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px; 
              font-weight: 500;
               flex-shrink: 0;
          }
-        
+
         /* --- Withdraw Modal Specifics --- */
-        #withdraw-modal .modal-step { display: none; }
+        /* ... (Withdraw modal styles remain the same) ... */
+         #withdraw-modal .modal-step { display: none; }
         #withdraw-modal .modal-step.active { display: block; }
         #withdraw-modal p { color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;}
         #withdraw-modal strong { color: var(--text-primary); font-weight: 600; }
@@ -444,18 +492,14 @@
             border: 4px solid var(--surface-hover-color);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             animation: spin 1s linear infinite;
             margin: 20px auto;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-
-        /* Input fields minimal style */
+        /* Input fields */
+        /* ... (Input styles remain the same) ... */
         input[type="text"], input[type="number"], select {
             width: 100%; padding: 12px 14px; margin-bottom: 12px;
             border-radius: var(--button-border-radius);
@@ -470,7 +514,8 @@
         }
 
         /* Profile Page Specifics */
-        .profile-header { text-align: center; margin-bottom: 24px; padding-top: 10px;}
+        /* ... (Profile styles remain the same) ... */
+         .profile-header { text-align: center; margin-bottom: 24px; padding-top: 10px;}
         .profile-avatar-placeholder {
             width: 80px; height: 80px; border-radius: 50%;
             background-color: var(--surface-hover-color);
@@ -483,23 +528,57 @@
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); /* Adjust minmax slightly */
+            gap: 10px; /* Slightly smaller gap */
         }
         .inventory-item {
             background-color: var(--surface-hover-color);
             border-radius: var(--button-border-radius);
-            padding: 12px; text-align: center;
+            padding: 10px; /* Adjust padding */
+             text-align: center;
+             display: flex; /* Use flex for better control */
+             flex-direction: column;
+             justify-content: space-between; /* Push buttons down */
         }
-        .inventory-item-name { font-size: 0.9em; font-weight: 500; margin-bottom: 6px; }
-        .inventory-item-value { font-size: 0.8em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
-        .inventory-item-actions { display: flex; flex-direction: column; gap: 6px;} 
+         .inventory-item .item-image-display { /* Image container */
+             width: 60px; /* Adjust size */
+             height: 60px;
+             margin: 0 auto 8px auto;
+             background-color: var(--bg-color);
+             border-radius: 6px;
+             overflow: hidden;
+             display: flex; align-items: center; justify-content: center;
+         }
+         .inventory-item .item-image-display img {
+             display: block; width: 100%; height: 100%; object-fit: contain;
+         }
+        .inventory-item-name { font-size: 0.85em; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
+        .inventory-item-value { font-size: 0.75em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
+        .inventory-item-actions { display: flex; flex-direction: column; gap: 5px; margin-top: auto; /* Pushes buttons down */ } 
         .inventory-item-actions .button { 
-            font-size: 0.8em; padding: 6px 10px; margin: 0; width: 100%; 
+            font-size: 0.75em; padding: 5px 8px; margin: 0; width: 100%; 
         }
-         
+
+        /* Added Sell All Button Style */
+        #sell-all-button {
+            margin-top: 15px;
+            background-color: var(--danger-color); /* Use danger color */
+            color: white;
+             background-image: none; /* Remove gradient */
+             box-shadow: 0 2px 5px rgba(255, 59, 48, 0.3);
+        }
+         #sell-all-button:hover {
+              filter: brightness(1.1);
+              background-color: var(--danger-color);
+         }
+         #sell-all-button:active {
+             filter: brightness(0.9);
+              transform: scale(0.97);
+         }
+        
         /* Upgrade Page */
-        #upgrade-chance-display {
+        /* ... (Upgrade styles remain the same) ... */
+         #upgrade-chance-display {
             font-size: 2.5em; font-weight: 700; color: var(--text-primary);
             text-align:center; margin: 20px auto; padding: 15px;
             background-color: var(--surface-hover-color);
@@ -514,7 +593,8 @@
         }
         
         /* Invite Page */
-        .stats-box { display: flex; justify-content: space-around; margin: 20px 0; gap: 12px; }
+        /* ... (Invite styles remain the same) ... */
+         .stats-box { display: flex; justify-content: space-around; margin: 20px 0; gap: 12px; }
         .stat-item {
             background-color: var(--surface-hover-color);
             padding: 12px; border-radius: var(--button-border-radius);
@@ -526,6 +606,7 @@
         .invited-users-list div:last-child { border-bottom: none; }
 
         /* Leaderboard Page */
+        /* ... (Leaderboard styles remain the same) ... */
         .leaderboard-list .leader-entry {
             display: flex; align-items: center; padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
@@ -550,10 +631,11 @@
          .leader-entry.current-user-entry .info .name {
              color: var(--primary-color);
         }
+
     </style>
 </head>
 <body>
-     <!-- HTML Structure (Same as previous answer) -->
+     <!-- HTML Structure (Added Sell All Button) -->
      <div id="app-container">
          <header id="app-header">
             <div class="app-title">Gift Universe</div>
@@ -660,6 +742,7 @@
                         <p id="empty-inventory-message" style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder); padding:15px 0;">Your collection is empty.</p>
                         <!-- Inventory items will be here -->
                     </div>
+                    <button id="sell-all-button" class="button" style="margin-top: 15px; display: none;">Sell All Items for <span id="sell-all-value">0.00</span> TON</button>
                 </div>
             </div>
         </main>
@@ -733,7 +816,7 @@
                 </div>
 
                 <div id="withdraw-step-3" class="modal-step">
-                     <p>Sending your gift via Tonnel Network...</p>
+                     <p>Initiating withdrawal via Tonnel Network...</p> {/* Updated text */}
                     <div class="loader"></div>
                     <p id="withdraw-status-message" style="font-size: 0.9em; color: var(--text-secondary);"></p>
                     <button id="withdraw-step3-close" class="button button-secondary" style="margin-top: 15px;">Close</button>
@@ -771,25 +854,21 @@ const upgradeChances = {
     1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
 };
 
-// Function to generate image filename from prize/case name
 function generateImageFilename(name) {
     if (!name) return 'placeholder.png'; 
     if (name === "Durov's Cap") return "Durov's-Cap.png"; 
     if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png"; 
     if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
-    // Handle background case names specifically if needed, otherwise use general rule
-    if (name === "Amber Nebula Case") return 'Amber.png'; // Direct name for case image
-    if (name === "Midnight Blue Comet") return 'Midnight_Blue.png';
-    if (name === "Onyx Black Hole") return 'Onyx_Black.png';
-    if (name === "BLACK Singularity") return 'Black.png';
-
+    // Background names need special handling if passed here, but usually set directly
+    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) { 
+         return name.replace('-','_') + '.png'; // For background images in bgs folder
+    }
+    // General rule for gift images
     return name.replace(/\s+/g, '-').replace(/&/g, 'and') + '.png'; 
 }
 
-// casesData (ensure imageFilename is present for ALL prizes and the correct
-// bgImageFilename/overlayPrizeName for background cases)
+// --- casesData ---
 const casesData = [
-    // REGULAR CASE REMOVED
     { 
         id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 0.5,
         prizes: [
@@ -877,8 +956,9 @@ const casesData = [
         id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 100,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 560, probability: 0.10 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 150, probability: 0.50 },
-            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 60, probability: 0.40 },
+             // Swapped probabilities for Astral Shard and Durov's Cap
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 150, probability: 0.40 }, 
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 60, probability: 0.50 },
         ]
     },
     { 
@@ -966,9 +1046,7 @@ const casesData = [
     },
 ];
 
-
 // --- Image Preloader ---
-// ... (Код без изменений) ...
 const imageUrlsToPreload = [];
 casesData.forEach(caseItem => {
     if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
@@ -992,9 +1070,8 @@ casesData.forEach(caseItem => {
 });
 function preloadImages(urls) { urls.forEach(url => { const img = new Image(); img.src = url; }); }
 
-
 // --- DOM Elements --- 
-// ... (Все DOM элементы без изменений) ...
+// ... (Остальные DOM элементы без изменений) ...
 const headerElements = { 
     title: document.querySelector('#app-header .app-title'),
     walletInfo: document.querySelector('#app-header .wallet-info'),
@@ -1037,7 +1114,9 @@ const profileElements = {
     emptyInventoryMessage: document.getElementById('empty-inventory-message'),
     disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
     depositAmountInput: document.getElementById('deposit-amount-input'),
-    confirmDepositButton: document.getElementById('confirm-deposit-button')
+    confirmDepositButton: document.getElementById('confirm-deposit-button'),
+    sellAllButton: document.getElementById('sell-all-button'), // Added Sell All Button
+    sellAllValueSpan: document.getElementById('sell-all-value') // Added span for value
 };
 
 const upgradeElements = {
@@ -1102,6 +1181,7 @@ function showTGNotification(message, type = 'info') {
     }
 }
 
+
 // --- LocalStorage Functions ---
 // ... (saveData, loadData - без изменений) ...
 function saveData() {
@@ -1150,8 +1230,7 @@ function loadData() {
 
 
 // --- Rendering Functions ---
-// ... (renderHeader, updateUIBasedOnWallet, renderCases, renderProfile, renderInventory, 
-//      populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - все обновлены или без изменений) ...
+// ... (renderHeader, updateUIBasedOnWallet, renderCases - обновлены) ...
 function renderHeader() {
      updateBalances(); 
 }
@@ -1205,18 +1284,19 @@ function renderCases() {
     casesData.forEach(caseItem => {
         const card = document.createElement('div');
         card.className = 'case-card';
+        card.dataset.caseId = caseItem.id; // Add data attribute for gradient styling
         card.onclick = () => openRouletteModal(caseItem);
 
         const imageContainer = document.createElement('div');
         imageContainer.className = 'case-image-display';
-        imageContainer.style.position = 'relative'; // Needed for absolute positioning of overlay
+        imageContainer.style.position = 'relative'; 
 
-        const img = document.createElement('img'); // Base image (background or main)
+        const img = document.createElement('img'); 
         img.loading = 'lazy'; 
         img.alt = caseItem.name;
         img.onerror = (e) => { 
             e.target.style.display='none'; 
-            imageContainer.textContent = '❓'; // Fallback emoji for missing images
+            imageContainer.textContent = '❓'; 
             imageContainer.style.fontSize='2.5em'; 
             imageContainer.style.display='flex';
             imageContainer.style.alignItems='center';
@@ -1224,10 +1304,9 @@ function renderCases() {
         } 
 
         if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
-            // Background case
-             img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
-             img.style.objectFit = 'cover'; // Cover for background
-             imageContainer.appendChild(img);
+            img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
+            img.style.objectFit = 'cover'; 
+            imageContainer.appendChild(img);
 
              if(caseItem.overlayPrizeName) {
                  const overlayImg = document.createElement('img');
@@ -1235,18 +1314,15 @@ function renderCases() {
                  overlayImg.src = overlayFilename ? IMAGE_BASE_URL + overlayFilename : '';
                  overlayImg.alt = caseItem.overlayPrizeName;
                  overlayImg.loading = 'lazy';
-                 overlayImg.className = 'overlay-image'; // Use class for styling
-                 overlayImg.onerror = (e) => { e.target.style.display = 'none'; } // Hide if overlay fails
+                 overlayImg.className = 'overlay-image'; 
+                 overlayImg.onerror = (e) => { e.target.style.display = 'none'; } 
                  imageContainer.appendChild(overlayImg);
              }
-
         } else if (caseItem.imageFilename) {
-            // Regular case
             img.src = IMAGE_BASE_URL + caseItem.imageFilename;
-            img.style.objectFit = 'contain'; // Contain for regular item images
+            img.style.objectFit = 'contain'; 
             imageContainer.appendChild(img);
         } else {
-            // Fallback if no image specified at all
               imageContainer.textContent = '🎁'; 
               imageContainer.style.fontSize='2.5em'; 
               imageContainer.style.display='flex';
@@ -1274,7 +1350,11 @@ function renderCases() {
 
 function renderProfile() {
     profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
-    profileElements.username.textContent = currentUser.username || `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'User';
+    // Display First Name + Last Name (if available), fallback to username, then 'User'
+    profileElements.username.textContent = 
+        (currentUser.first_name || currentUser.last_name) 
+            ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim()
+            : currentUser.username || 'User';
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
     profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
@@ -1283,14 +1363,26 @@ function renderProfile() {
 
 function renderInventory() {
     profileElements.inventoryGrid.innerHTML = '';
+    let totalValue = 0;
     if (currentUser.inventory.length === 0) {
         profileElements.emptyInventoryMessage.style.display = 'block';
+        profileElements.sellAllButton.style.display = 'none'; // Hide sell all button
     } else {
         profileElements.emptyInventoryMessage.style.display = 'none';
         currentUser.inventory.forEach(item => {
+            totalValue += item.floorPrice; // Calculate total value
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
-            // Added withdraw button call
+            
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'item-image-display'; // Style this class
+            const img = document.createElement('img');
+            img.src = item.imageFilename ? IMAGE_BASE_URL + item.imageFilename : '';
+            img.alt = item.name;
+            img.loading = 'lazy';
+            img.onerror = (e) => { e.target.style.display='none'; imgContainer.textContent = '?';} 
+            imgContainer.appendChild(img);
+
             itemDiv.innerHTML = `
                 <div class="inventory-item-name" title="${item.name}">${item.name}</div>
                 <div class="inventory-item-value">${item.floorPrice.toFixed(2)} TON</div>
@@ -1299,14 +1391,19 @@ function renderInventory() {
                     <button class="button button-secondary" onclick="convertToTon('${item.id}')">Convert</button>
                 </div>
             `;
+             itemDiv.insertBefore(imgContainer, itemDiv.firstChild); // Add image first
             profileElements.inventoryGrid.appendChild(itemDiv);
         });
+        // Show and update Sell All button
+        profileElements.sellAllButton.style.display = 'block';
+        profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
     }
     profileElements.inventoryCount.textContent = currentUser.inventory.length;
     populateUpgradeInventorySelect();
     saveData(); 
 }
 
+// ... (populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - без изменений) ...
 function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.forEach(item => {
@@ -1324,7 +1421,7 @@ function renderLeaderboard() {
         { rank: 2, name: 'Starlord77', avatarChar: 'S', opened: 220, income: 1580.2 },
         { rank: 3, name: 'GalaxyGlider', avatarChar: 'G', opened: 300, income: 1250.0 },
         { rank: 4, name: 'CometChaser', avatarChar: 'C', opened: 190, income: 900.7 },
-        { rank: 5, name: currentUser.username || 'You', avatarChar: (currentUser.first_name || '?').charAt(0), opened: 10, income: Math.max(0, currentUser.tonBalance - 100 + currentUser.inventory.reduce((sum, item) => sum + item.floorPrice, 0)), isCurrentUser: true },
+        { rank: 5, name: currentUser.first_name || currentUser.username || 'You', avatarChar: (currentUser.first_name || '?').charAt(0), opened: 10, income: Math.max(0, currentUser.tonBalance - 100 + currentUser.inventory.reduce((sum, item) => sum + item.floorPrice, 0)), isCurrentUser: true },
     ].sort((a, b) => b.income - a.income).map((leader, index) => ({...leader, rank: index + 1})); 
 
     leaders.forEach(leader => {
@@ -1350,7 +1447,8 @@ function renderInvitePage() {
     inviteElements.invitedCount.textContent = currentUser.invitedUsersCount;
 }
 
-// --- Roulette Logic --- (Using local logic)
+
+// --- Roulette Logic ---
 // ... (openRouletteModal, closeRouletteModal, determineWinner, spinRoulette - без изменений) ...
 function openRouletteModal(caseItem) {
     currentOpenCase = caseItem;
@@ -1647,7 +1745,6 @@ function handleDeposit() { // Test deposit remains local
     profileElements.depositAmountInput.value = ''; 
 }
 
-
 // --- Withdraw Flow Logic --- (Simulated locally)
 function showWithdrawStep(stepNumber) {
     withdrawSteps.forEach((step, index) => {
@@ -1668,7 +1765,7 @@ function startWithdrawalProcess(itemId) {
 }
 
 async function completeWithdrawal() { // Simulate sending locally
-    withdrawStatusMessage.textContent = "Simulating sending process..."; 
+    withdrawStatusMessage.textContent = "Simulating withdrawal process..."; 
     withdrawStatusMessage.style.color = 'var(--text-secondary)'; 
     const loader = withdrawModal.querySelector('.loader'); 
     if(loader) loader.style.display = 'block';
@@ -1701,9 +1798,30 @@ function closeWithdrawModal() {
     withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; 
 }
 
+// New function to handle selling all items
+function sellAllItems() {
+    if (currentUser.inventory.length === 0) {
+        showTGNotification("Your inventory is empty.", "info");
+        return;
+    }
+    let totalSellValue = 0;
+    currentUser.inventory.forEach(item => {
+        totalSellValue += item.floorPrice;
+    });
+
+    // Ask for confirmation (optional but recommended)
+    if (confirm(`Sell all ${currentUser.inventory.length} items for ${totalSellValue.toFixed(2)} TON?`)) {
+        currentUser.tonBalance += totalSellValue;
+        currentUser.inventory = []; // Clear inventory
+        updateBalances(); // Save data
+        renderInventory(); // Update UI
+        showTGNotification(`Sold all items for ${totalSellValue.toFixed(2)} TON!`, "success");
+    }
+}
+
 
 // --- Event Listeners ---
-// ... (Все обработчики событий остаются без изменений) ...
+// ... (Existing event listeners) ...
 appNavButtons.forEach(button => { button.addEventListener('click', () => navigateToPage(button.dataset.page)); });
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
@@ -1750,31 +1868,30 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
     }
 });
 
+// Add listener for the new Sell All button
+if(profileElements.sellAllButton) {
+    profileElements.sellAllButton.addEventListener('click', sellAllItems);
+}
+
 
 // --- Initialization ---
 async function initializeApp() {
-    // Load user data from localStorage first
     loadData(); 
-
     preloadImages(imageUrlsToPreload); 
 
-    // Subscribe to TON Connect UI wallet connection status changes
-    tonConnectUI.onStatusChange(wallet => {
-        updateUIBasedOnWallet(wallet); 
-    });
+    tonConnectUI.onStatusChange(wallet => { updateUIBasedOnWallet(wallet); });
 
-    // Get Telegram User Data
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand(); 
         
         const tgUser = Telegram.WebApp.initDataUnsafe?.user;
         if (tgUser) {
-            // Set user data only if not already loaded from localStorage
-            if (!currentUser.id) currentUser.id = tgUser.id; 
-            currentUser.username = tgUser.username || currentUser.username;
-            currentUser.first_name = tgUser.first_name || currentUser.first_name;
-            currentUser.last_name = tgUser.last_name || currentUser.last_name;
+            // Set user data from TG only if not loaded or differs? Prioritize TG for ID/names.
+            currentUser.id = tgUser.id; 
+            currentUser.username = tgUser.username;
+            currentUser.first_name = tgUser.first_name;
+            currentUser.last_name = tgUser.last_name;
             
              if (!currentUser.referralCode && currentUser.id) {
                  currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
@@ -1788,20 +1905,18 @@ async function initializeApp() {
         } catch (e) { /* Silent fail */ }
 
     } else {
-        // Fallback for browser testing 
         if (!currentUser.referralCode) {
             currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
         }
     }
 
-    // Initial UI setup
     updateUIBasedOnWallet(tonConnectUI.wallet); 
     renderCases();
-    renderProfile(); // Render profile with potentially updated data
+    renderProfile(); 
     renderLeaderboard();
     renderInvitePage();
     navigateToPage('main-page'); 
-    saveData(); // Initial save after setting potential TG data
+    saveData(); // Initial save after potentially setting TG data
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
