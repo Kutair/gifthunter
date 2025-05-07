@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - Minimal</title>
+    <title>TON Gift Universe - Minimal V2</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Lottie-Web Player from CDN -->
@@ -11,30 +11,31 @@
 
     <style>
         :root {
-            --bg-color: #121212; /* Very dark grey, almost black for minimalism */
-            --surface-color: #1E1E1E; /* Dark grey for cards and surfaces */
-            --surface-hover-color: #282828; /* Slightly lighter for hover */
+            --bg-color-start: #121212; /* Base dark */
+            --bg-color-end: #18181A;   /* Slightly lighter for subtle gradient */
+            --surface-color: #1E1E1E; 
+            --surface-hover-color: #282828;
             
-            --primary-color: #007AFF; /* Standard iOS blue - clean and vibrant */
+            --primary-color: #007AFF; 
             --primary-gradient-start: #007AFF;
-            --primary-gradient-end: #00C6FF;   /* Lighter blue for subtle gradient */
+            --primary-gradient-end: #00C6FF;  
 
-            --secondary-color: #FF9500; /* Standard iOS orange for accents */
+            --secondary-color: #FF9500; 
             
             --text-primary: #FFFFFF;
-            --text-secondary: #8E8E93; /* iOS secondary text color */
+            --text-secondary: #8E8E93; 
             --text-placeholder: #5c5c5f;
 
-            --border-color: rgba(120, 120, 128, 0.16); /* Subtle border, similar to iOS separators */
+            --border-color: rgba(120, 120, 128, 0.16); 
             --border-highlight: var(--primary-color);
 
-            --danger-color: #FF3B30;  /* iOS red */
-            --success-color: #34C759; /* iOS green */
+            --danger-color: #FF3B30;  
+            --success-color: #34C759; 
 
             --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --main-border-radius: 12px; 
             --button-border-radius: 8px;
-            --soft-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); /* Softer, more minimal shadow */
+            --soft-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -47,17 +48,18 @@
 
         body {
             font-family: var(--font-family);
-            background-color: var(--bg-color);
+            /* Subtle background gradient */
+            background: linear-gradient(180deg, var(--bg-color-start) 0%, var(--bg-color-end) 100%);
             color: var(--text-primary);
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
+            -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             -webkit-tap-highlight-color: transparent;
             font-weight: 500;
-            font-size: 15px; /* Common base for mobile */
+            font-size: 15px;
             line-height: 1.4;
         }
 
@@ -69,26 +71,26 @@
 
         /* Header */
         #app-header {
-            padding: 12px 16px; /* Slightly less padding */
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
-            background-color: rgba(28, 28, 30, 0.85); /* iOS-like translucent dark */
+            background-color: rgba(20, 20, 22, 0.85); /* Slightly darker than bg-color-start for depth */
             backdrop-filter: blur(12px) saturate(180%);
             -webkit-backdrop-filter: blur(12px) saturate(180%);
             border-bottom: 1px solid var(--border-color);
         }
         #app-header .app-title {
-            font-size: 1.25em; /* 20px if base is 16px */
+            font-size: 1.25em; 
             font-weight: 700;
             color: var(--text-primary);
         }
         #app-header .wallet-info { display: flex; align-items: center; gap: 10px; }
         #app-header .wallet-address, #app-header .balance {
-            background-color: var(--surface-hover-color); /* Slightly distinct */
+            background-color: var(--surface-hover-color); 
             padding: 6px 12px;
             border-radius: var(--button-border-radius);
             font-size: 0.9em;
@@ -113,20 +115,20 @@
         #app-nav {
             display: flex;
             justify-content: space-around;
-            background-color: rgba(28, 28, 30, 0.92); /* Slightly more opaque for nav */
+            background-color: rgba(20, 20, 22, 0.92); 
             backdrop-filter: blur(12px) saturate(180%);
             -webkit-backdrop-filter: blur(12px) saturate(180%);
             border-top: 1px solid var(--border-color);
-            padding: 8px 0; /* Minimal padding */
+            padding: 8px 0; 
             position: sticky; bottom: 0; z-index: 1000;
         }
         .nav-button {
             background: none; border: none;
             color: var(--text-secondary);
             display: flex; flex-direction: column; align-items: center;
-            font-size: 10px; /* iOS tab bar font size */
+            font-size: 10px; 
             font-weight: 500;
-            cursor: pointer; padding: 4px 5px; /* Minimal padding */
+            cursor: pointer; padding: 4px 5px; 
             border-radius: var(--button-border-radius);
             transition: color 0.2s;
             flex: 1; text-align: center;
@@ -144,38 +146,38 @@
             color: var(--text-primary);
             border: none; padding: 12px 20px;
             border-radius: var(--button-border-radius);
-            font-size: 1.05em; /* 17px if base 16px */
+            font-size: 1.05em; 
             font-weight: 600;
             cursor: pointer;
             transition: background-color 0.15s ease-out, transform 0.1s ease-out;
             text-align: center;
-            display: block; /* For full width buttons easily */
+            display: block; 
             width: 100%;
         }
         .button:hover { background-color: color-mix(in srgb, var(--primary-color) 85%, black); }
         .button:active { transform: scale(0.98); }
         .button-secondary {
             background-color: var(--surface-hover-color);
-            color: var(--primary-color); /* Actionable color */
+            color: var(--primary-color); 
         }
         .button-secondary:hover { background-color: var(--surface-color); }
 
         h2 {
-            margin-top: 0; font-size: 1.75em; /* 28px if base 16px */
+            margin-top: 0; font-size: 1.75em; 
             font-weight: 700;
             color: var(--text-primary);
             padding-bottom: 8px; margin-bottom: 24px;
         }
-        h3 { /* For sub-sections within pages */
-            font-size: 1.1em; /* 17-18px */
+        h3 { 
+            font-size: 1.1em; 
             font-weight: 600;
             color: var(--text-secondary);
             margin-top: 20px;
             margin-bottom: 12px;
-            text-transform: uppercase; /* iOS like section headers */
+            text-transform: uppercase; 
             letter-spacing: 0.5px;
         }
-        .content-card { /* Reusable card for sections */
+        .content-card { 
             background-color: var(--surface-color);
             padding: 16px;
             border-radius: var(--main-border-radius);
@@ -201,7 +203,7 @@
             background-color: var(--surface-hover-color);
             transform: translateY(-4px);
         }
-        .case-card .case-image-placeholder { /* Emoji from JS */
+        .case-card .case-image-placeholder { 
             font-size: 2.5em;
             margin-bottom: 12px;
             line-height: 1;
@@ -243,31 +245,28 @@
             font-size: 1.25em; font-weight: 600;
             color: var(--text-primary);
         }
-        #roulette-wheel-container p { /* "Possible Artifacts" text */
-            font-size: 0.85em; color: var(--text-secondary);
-            margin-bottom: 8px; font-weight: 500;
-        }
+        /* REMOVED: #roulette-wheel-container p (Possible Items text) */
         #roulette-wheel {
-            height: 180px; /* 3 items of 60px */
+            height: 180px; 
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
             background-color: var(--bg-color); 
             margin: 16px 0;
         }
-        #roulette-wheel::before { /* Center marker */
+        #roulette-wheel::before { 
             content: '';
             position: absolute;
             left: 0px; 
             right: 0px;
             top: 50%;
             transform: translateY(-50%);
-            height: 60px; /* Height of one item */
+            height: 60px; 
             border-top: 2px solid var(--primary-color);
             border-bottom: 2px solid var(--primary-color);
             opacity: 0.5;
             z-index: 2;
-            pointer-events: none; /* Allow clicks through */
+            pointer-events: none; 
         }
         #roulette-spinner {
             display: flex; flex-direction: column;
@@ -281,7 +280,7 @@
             padding: 0 16px;
             box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
-            background-color: transparent; /* Base item bg */
+            background-color: transparent; 
         }
         .roulette-item:last-child { border-bottom: none; }
         .roulette-item-name {
@@ -290,7 +289,7 @@
         .roulette-item-value { 
             font-size: 0.85em; font-weight: 500; color: var(--secondary-color);
         }
-        .roulette-item.is-winning .roulette-item-name { /* Style for item landing in center */
+        .roulette-item.is-winning .roulette-item-name { 
             color: var(--text-primary) !important;
             font-weight: 700;
         }
@@ -317,7 +316,7 @@
         input[type="text"]:focus, input[type="number"]:focus, select:focus {
             outline: none;
             border-color: var(--border-highlight);
-            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); /* Subtle focus ring */
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); 
         }
 
         /* Profile Page Specifics */
@@ -384,7 +383,7 @@
             font-weight: 600; font-size: 1em;
             min-width: 30px; text-align: left; color: var(--text-secondary);
         }
-        .leader-entry .avatar-placeholder { /* Minimal placeholder */
+        .leader-entry .avatar-placeholder { 
             width: 36px; height: 36px; border-radius: 50%;
             background-color: var(--surface-hover-color); color: var(--text-secondary);
             display: flex; align-items: center; justify-content: center;
@@ -541,7 +540,7 @@
         <div class="modal-content">
             <h3 id="roulette-case-name">Opening Case...</h3>
             <div id="roulette-wheel-container">
-                <p>Possible Items:</p>
+                <!-- REMOVED "Possible Items" text from here -->
                 <div id="roulette-wheel">
                     <div id="roulette-spinner">
                         <!-- Prize items will be dynamically added here -->
@@ -577,24 +576,8 @@ const currentUser = {
 let currentOpenCase = null;
 let selectedMultiplier = 1.5;
 
+// REGULAR CASE REMOVED
 const casesData = [
-    // EMOJIS ADDED TO CASE NAMES
-    {
-        id: 'regular', name: '📦 Regular Cache', priceTON: 0.1, priceStars: 50,
-        prizes: [
-            { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.00005 },
-            { name: 'Durov\'s Cap', tgsFile: 'Durovs-Cap.tgs', floorPrice: 150, probability: 0.00009 },
-            { name: 'B-Day Candle', tgsFile: 'B-Day-Candle.tgs', floorPrice: 0.7, probability: 0.0475 },
-            { name: 'Toy Bear', tgsFile: 'Toy-Bear.tgs', floorPrice: 5.2, probability: 0.08 },
-            { name: 'Cookie Heart', tgsFile: 'Cookie-Heart.tgs', floorPrice: 0.9, probability: 0.15 },
-            { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.20 },
-            { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.20 },
-            { name: 'Desk Calendar', tgsFile: 'Desk-Calendar.tgs', floorPrice: 0.7, probability: 0.12236 },
-            { name: 'Candy Cane', tgsFile: 'Candy-Cane.tgs', floorPrice: 0.9, probability: 0.10 },
-            { name: 'Ginger Cookie', tgsFile: 'Ginger-Cookie.tgs', floorPrice: 1, probability: 0.05 },
-            { name: 'Party Sparkler', tgsFile: 'Party-Sparkler.tgs', floorPrice: 1, probability: 0.05 },
-        ]
-    },
     {
         id: 'lolpop', name: '🍭 Lol Pop Stash', priceTON: 0.5,
         prizes: [
@@ -764,7 +747,22 @@ const casesData = [
 ];
 
 
-// --- DOM Elements ---
+// --- DOM Elements --- (Same as previous JS)
+// ...
+// --- Utility Functions --- (Same as previous JS)
+// ...
+// --- Rendering Functions --- (Same as previous JS, ensure showTGNotification is used)
+// ...
+// --- Roulette Logic --- (Same as previous JS)
+// ...
+// --- Other Page Logic --- (Same as previous JS, ensure handleDeposit is included)
+// ...
+// --- Event Listeners --- (Same as previous JS)
+// ...
+// --- Initialization --- (Same as previous JS)
+
+// For brevity, I'm pasting the full JS again below. Make sure only one <script> block with this content exists.
+// (The JS from the previous "HTML JS without CSS" answer is what should be here)
 const appHeader = {
     walletAddress: document.getElementById('wallet-address'),
     tonBalance: document.getElementById('ton-balance'),
@@ -817,7 +815,7 @@ const leaderboardList = document.getElementById('leaderboard-list');
 // --- Utility Functions ---
 function updateBalances() {
     appHeader.tonBalance.textContent = currentUser.tonBalance.toFixed(2);
-    profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon" style="width:20px; height:20px;"></span>`;
+    profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
 }
 
 function navigateToPage(pageId) {
@@ -870,7 +868,7 @@ function renderCases() {
 
         const imagePlaceholder = document.createElement('div');
         imagePlaceholder.className = 'case-image-placeholder';
-        imagePlaceholder.textContent = caseItem.name.substring(0, caseItem.name.indexOf(' ') +1) || '🎁';
+        imagePlaceholder.textContent = caseItem.name.substring(0, caseItem.name.indexOf(' ') +1).trim() || '🎁';
 
         const name = document.createElement('div');
         name.className = 'case-name';
@@ -952,7 +950,7 @@ function renderLeaderboard() {
                 <div class="name">${leader.name}</div>
                 <div class="details">Opened ${leader.opened} cases</div>
             </div>
-            <div class="score">${leader.income.toFixed(1)} <span class="ton-icon" style="width:16px; height:16px;"></span></div>
+            <div class="score">${leader.income.toFixed(1)} <span class="ton-icon"></span></div>
         `;
         leaderboardList.appendChild(entry);
     });
@@ -960,7 +958,7 @@ function renderLeaderboard() {
 
 function renderInvitePage() {
     inviteElements.referralLink.value = `https://t.me/YourAppBot?start=${currentUser.referralCode}`;
-    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarnings.toFixed(2)} <span class="ton-icon" style="width:16px; height:16px;"></span>`;
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarnings.toFixed(2)} <span class="ton-icon"></span>`;
     inviteElements.invitedCount.textContent = currentUser.invitedUsersCount;
 }
 
@@ -1175,7 +1173,7 @@ upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedMultiplier = parseFloat(e.target.dataset.multiplier);
         upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
-            btn.classList.remove('active-multiplier');
+            btn.classList.remove('active-multiplier'); // This class now controls primary vs secondary
             if(!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
         });
         e.target.classList.add('active-multiplier');
@@ -1215,9 +1213,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand(); 
-        try { // Set theme colors for consistency if possible
-            Telegram.WebApp.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim());
-            Telegram.WebApp.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim());
+        try { 
+            Telegram.WebApp.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color-start').trim());
+            Telegram.WebApp.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color-start').trim());
         } catch (e) {
             console.warn("Could not set Telegram WebApp theme colors.", e);
         }
