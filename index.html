@@ -41,20 +41,19 @@
             --button-border-radius: 10px;
             --soft-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
 
-             /* Gradients for Cases */
-            --case-grad-lolpop: linear-gradient(145deg, #ff7e5f, #feb47b);
-            --case-grad-recordplayer: linear-gradient(145deg, #4facfe, #00f2fe);
-            --case-grad-swisswatch: linear-gradient(145deg, #d4af37, #f8d05a); /* Gold-like */
-            --case-grad-perfumebottle: linear-gradient(145deg, #f8cdda, #e7a9cf); /* Pinkish */
-            --case-grad-vintagecigar: linear-gradient(145deg, #8d6e63, #a1887f); /* Brownish */
-            --case-grad-astralshard: linear-gradient(145deg, #4e54c8, #8f94fb); /* Purple/Blue */
-            --case-grad-plushpepe: linear-gradient(145deg, #56ab2f, #a8e063); /* Green */
-            --case-grad-happypepe: linear-gradient(145deg, #fbc2eb, #a6c1ee); /* Light multi */
-            --case-grad-amber: linear-gradient(145deg, #ffc107, #ffecb3); /* Amber */
-            --case-grad-midnightblue: linear-gradient(145deg, #003973, #3b5998); /* Dark Blue */
-            --case-grad-onyxblack: linear-gradient(145deg, #434343, #626262); /* Dark Grey */
-            --case-grad-black: linear-gradient(145deg, #2c3e50, #4ca1af); /* Teal/Grey */
-            --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); /* Fallback */
+            --case-grad-lolpop: linear-gradient(135deg, #ff5f6d, #ffc371); /* Pink/Orange */
+            --case-grad-recordplayer: linear-gradient(135deg, #11998e, #38ef7d); /* Teal/Green */
+            --case-grad-swisswatch: linear-gradient(135deg, #d4af37, #b38728); /* Richer Gold */
+            --case-grad-perfumebottle: linear-gradient(135deg, #eecda3, #ef629f); /* Peach/Pink */
+            --case-grad-vintagecigar: linear-gradient(135deg, #6d4c41, #9e7a70); /* Deeper Brown */
+            --case-grad-astralshard: linear-gradient(135deg, #6a3093, #a044ff); /* Vibrant Purple */
+            --case-grad-plushpepe: linear-gradient(135deg, #61ba6d, #83c331); /* Brighter Green */
+            --case-grad-happypepe: linear-gradient(135deg, #fbd3e9, #bb377d); /* Pink/Magenta */
+            --case-grad-amber: linear-gradient(135deg, #f5af19, #f12711); /* Orange/Red */
+            --case-grad-midnightblue: linear-gradient(135deg, #2c3e50, #4b79a1); /* Deeper Blue/Grey */
+            --case-grad-onyxblack: linear-gradient(135deg, #373B44, #585e6b); /* Metallic Grey */
+            --case-grad-black: linear-gradient(135deg, #141E30, #243B55); /* Deep Dark Blue */
+            --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); 
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -354,9 +353,10 @@
             left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.7); 
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-            align-items: center; justify-content: center;
-            padding: 16px;
             overflow-y: auto; 
+            align-items: flex-start; /* Align content to top */
+            padding-top: 5vh; /* Add some top padding */
+            padding-bottom: 5vh;
         }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
         @keyframes modalFadeInMinimal {
@@ -373,7 +373,7 @@
             border: 1px solid var(--border-color);
             display: flex; flex-direction: column;
             margin: auto; 
-             max-height: calc(100vh - 40px); 
+             max-height: none; 
         }
          .modal-content h3 { 
             margin-top: 0; margin-bottom: 16px;
@@ -433,7 +433,8 @@
             display: grid; 
             grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
             gap: 10px;
-             flex-shrink: 0; 
+             flex-shrink: 1; 
+             margin-top: 10px;
         }
         .prize-card {
             background-color: var(--surface-hover-color);
