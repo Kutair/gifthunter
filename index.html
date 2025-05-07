@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - Minimal V2</title>
+    <title>TON Gift Universe - Final</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Lottie-Web Player from CDN -->
@@ -11,34 +11,36 @@
 
     <style>
         :root {
-            --bg-color-start: #121212; /* Base dark */
-            --bg-color-end: #18181A;   /* Slightly lighter for subtle gradient */
-            --surface-color: #1E1E1E; 
-            --surface-hover-color: #282828;
-            
-            --primary-color: #007AFF; 
-            --primary-gradient-start: #007AFF;
-            --primary-gradient-end: #00C6FF;  
+            --bg-gradient-start: #1A1D2B; 
+            --bg-gradient-mid: #2C2F40;  
+            --bg-gradient-end: #121212;   
 
-            --secondary-color: #FF9500; 
+            --surface-color: #232633; 
+            --surface-hover-color: #2E3243;
+            
+            --primary-color: #0A84FF; 
+            --primary-gradient-start: #0A84FF;
+            --primary-gradient-end: #34C7F8;   
+
+            --secondary-color: #FF9F0A; 
             
             --text-primary: #FFFFFF;
-            --text-secondary: #8E8E93; 
-            --text-placeholder: #5c5c5f;
+            --text-secondary: #AEAEB2; 
+            --text-placeholder: #636366;
 
-            --border-color: rgba(120, 120, 128, 0.16); 
+            --border-color: rgba(84, 84, 88, 0.35); 
             --border-highlight: var(--primary-color);
 
-            --danger-color: #FF3B30;  
-            --success-color: #34C759; 
+            --danger-color: #FF453A;  
+            --success-color: #30D158; 
 
             --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --main-border-radius: 12px; 
-            --button-border-radius: 8px;
-            --soft-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+            --main-border-radius: 14px; 
+            --button-border-radius: 10px;
+            --soft-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
         * {
             box-sizing: border-box;
@@ -48,8 +50,7 @@
 
         body {
             font-family: var(--font-family);
-            /* Subtle background gradient */
-            background: linear-gradient(180deg, var(--bg-color-start) 0%, var(--bg-color-end) 100%);
+            background: linear-gradient(160deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 50%, var(--bg-gradient-end) 100%);
             color: var(--text-primary);
             overflow-x: hidden;
             display: flex;
@@ -60,7 +61,7 @@
             -webkit-tap-highlight-color: transparent;
             font-weight: 500;
             font-size: 15px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
         #app-container {
@@ -71,99 +72,112 @@
 
         /* Header */
         #app-header {
-            padding: 12px 16px;
+            padding: 14px 18px; 
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
-            background-color: rgba(20, 20, 22, 0.85); /* Slightly darker than bg-color-start for depth */
-            backdrop-filter: blur(12px) saturate(180%);
-            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            background: linear-gradient(to right, rgba(30,33,50,0.85), rgba(40,43,60,0.85));
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
             border-bottom: 1px solid var(--border-color);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
         }
         #app-header .app-title {
-            font-size: 1.25em; 
-            font-weight: 700;
-            color: var(--text-primary);
+            font-size: 1.4em; 
+            font-weight: 800; 
+            background: linear-gradient(45deg, var(--primary-gradient-end), var(--text-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-        #app-header .wallet-info { display: flex; align-items: center; gap: 10px; }
+        #app-header .wallet-info { display: flex; align-items: center; gap: 12px; }
         #app-header .wallet-address, #app-header .balance {
             background-color: var(--surface-hover-color); 
-            padding: 6px 12px;
+            padding: 7px 14px;
             border-radius: var(--button-border-radius);
             font-size: 0.9em;
             font-weight: 600;
+            border: 1px solid var(--border-color);
         }
         #app-header .ton-icon {
-            width: 16px; height: 16px;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%23007AFF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
+            width: 18px; height: 18px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230A84FF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
             background-size: contain; margin-left: 5px; vertical-align: middle;
         }
 
         /* Content Area */
-        #app-content { flex-grow: 1; padding: 20px 16px; overflow-y: auto; }
+        #app-content { flex-grow: 1; padding: 20px 16px; overflow-y: auto; padding-bottom: 80px; /* Ensure space for taller nav */ }
         .page { display: none; }
         .page.active { display: block; animation: pageFadeInMinimal 0.3s ease-out; }
         @keyframes pageFadeInMinimal {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(5px);} 
+            to { opacity: 1; transform: translateY(0px);}
         }
 
-        /* Navigation Bar */
+        /* Navigation Bar - Updated */
         #app-nav {
             display: flex;
             justify-content: space-around;
-            background-color: rgba(20, 20, 22, 0.92); 
-            backdrop-filter: blur(12px) saturate(180%);
-            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            align-items: center; /* Center items vertically */
+            background-color: rgba(28, 28, 30, 0.92); 
+            backdrop-filter: blur(15px) saturate(180%);
+            -webkit-backdrop-filter: blur(15px) saturate(180%);
             border-top: 1px solid var(--border-color);
-            padding: 8px 0; 
+            padding: 6px 0 8px 0; /* Adjusted padding top/bottom */
             position: sticky; bottom: 0; z-index: 1000;
+            min-height: 60px; /* Increased height */
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); /* Subtle top shadow */
         }
         .nav-button {
             background: none; border: none;
             color: var(--text-secondary);
             display: flex; flex-direction: column; align-items: center;
-            font-size: 10px; 
+            font-size: 11px; /* Slightly larger font */
             font-weight: 500;
-            cursor: pointer; padding: 4px 5px; 
+            cursor: pointer; padding: 5px; /* Adjusted padding */
             border-radius: var(--button-border-radius);
-            transition: color 0.2s;
+            transition: color 0.2s, transform 0.1s ease-out;
             flex: 1; text-align: center;
+            line-height: 1.3; /* Adjust line height for text */
         }
+        .nav-button:active { transform: scale(0.95); }
         .nav-button.active { color: var(--primary-color); font-weight: 600; }
         .nav-button svg {
-            width: 22px; height: 22px; margin-bottom: 2px; fill: currentColor;
+            width: 26px; height: 26px; /* Larger icons */
+            margin-bottom: 3px; /* Slightly more space */
+            fill: currentColor;
         }
         .nav-button.active svg { fill: var(--primary-color); }
 
 
         /* General UI Elements */
         .button {
-            background-color: var(--primary-color);
+            background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
             color: var(--text-primary);
-            border: none; padding: 12px 20px;
+            border: none; padding: 13px 22px; 
             border-radius: var(--button-border-radius);
             font-size: 1.05em; 
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.15s ease-out, transform 0.1s ease-out;
+            transition: filter 0.15s ease-out, transform 0.1s ease-out;
             text-align: center;
             display: block; 
             width: 100%;
+            box-shadow: 0 2px 5px rgba(0,122,255,0.2);
         }
-        .button:hover { background-color: color-mix(in srgb, var(--primary-color) 85%, black); }
-        .button:active { transform: scale(0.98); }
+        .button:hover { filter: brightness(1.1); }
+        .button:active { transform: scale(0.97); filter: brightness(0.9); }
         .button-secondary {
             background-color: var(--surface-hover-color);
             color: var(--primary-color); 
+            box-shadow: none;
         }
         .button-secondary:hover { background-color: var(--surface-color); }
 
         h2 {
-            margin-top: 0; font-size: 1.75em; 
+            margin-top: 0; font-size: 1.85em; 
             font-weight: 700;
             color: var(--text-primary);
             padding-bottom: 8px; margin-bottom: 24px;
@@ -179,9 +193,9 @@
         }
         .content-card { 
             background-color: var(--surface-color);
-            padding: 16px;
+            padding: 18px; 
             border-radius: var(--main-border-radius);
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
 
@@ -189,28 +203,40 @@
         .cases-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
+            gap: 18px; 
         }
         .case-card {
             background-color: var(--surface-color);
             border-radius: var(--main-border-radius);
-            padding: 16px;
+            padding: 18px;
             text-align: center;
             cursor: pointer;
             transition: background-color 0.2s ease, transform 0.2s ease;
+            border: 1px solid var(--border-color); 
+            overflow: hidden; 
         }
         .case-card:hover {
             background-color: var(--surface-hover-color);
-            transform: translateY(-4px);
+            transform: translateY(-5px);
+            box-shadow: var(--soft-shadow);
         }
-        .case-card .case-image-placeholder { 
-            font-size: 2.5em;
-            margin-bottom: 12px;
-            line-height: 1;
+        .case-card .case-image-display { 
+            width: 80px; height: 80px;
+            margin: 0 auto 15px auto;
+            background-color: var(--surface-hover-color); 
+            border-radius: var(--button-border-radius);
+            overflow: hidden;
+        }
+        .case-card .case-image-display img {
+            display: block;
+            width: 100%; height: 100%;
+            object-fit: cover; 
         }
         .case-card .case-name {
             font-weight: 600; font-size: 1em; margin-bottom: 6px;
             color: var(--text-primary);
+            min-height: 2.4em; 
+            display: flex; align-items: center; justify-content: center;
         }
         .case-card .case-price {
             font-size: 0.9em; font-weight: 500;
@@ -221,50 +247,49 @@
         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); 
-            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            background-color: rgba(0, 0, 0, 0.7); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             align-items: center; justify-content: center;
             padding: 16px;
         }
-        .modal.active { display: flex; animation: modalFadeInMinimal 0.2s ease-out; }
-        @keyframes modalFadeInMinimal {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
+        .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
         .modal-content {
             background-color: var(--surface-color);
-            padding: 20px;
+            padding: 24px;
             border-radius: var(--main-border-radius);
-            width: 100%; max-width: 380px; 
+            width: 100%; max-width: 400px; 
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+            border: 1px solid var(--border-color);
+            max-height: 90vh; 
+            display: flex; flex-direction: column;
         }
         .modal-content h3 { /* Modal title */
             margin-top: 0; margin-bottom: 16px;
-            font-size: 1.25em; font-weight: 600;
+            font-size: 1.35em; font-weight: 700;
             color: var(--text-primary);
         }
-        /* REMOVED: #roulette-wheel-container p (Possible Items text) */
+        #roulette-wheel-container { 
+            width: 100%;
+        }
         #roulette-wheel {
-            height: 180px; 
+            height: 270px; /* TALLER wheel (90px item height * 3) */
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
             background-color: var(--bg-color); 
-            margin: 16px 0;
+            margin: 16px 0 20px 0; 
         }
-        #roulette-wheel::before { 
+        #roulette-wheel::before { /* Single Center marker line */
             content: '';
             position: absolute;
-            left: 0px; 
-            right: 0px;
+            left: 10px; 
+            right: 10px;
             top: 50%;
+            height: 2px; 
+            background-color: var(--primary-color);
+            opacity: 0.8;
             transform: translateY(-50%);
-            height: 60px; 
-            border-top: 2px solid var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            opacity: 0.5;
             z-index: 2;
             pointer-events: none; 
         }
@@ -273,32 +298,88 @@
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 60px; 
+            height: 90px; /* Height matching wheel / 3 */
             display: flex;
             align-items: center;
-            justify-content: space-between; 
-            padding: 0 16px;
+            justify-content: center; 
+            padding: 0 10px;
             box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
-            background-color: transparent; 
+            overflow: hidden; 
         }
         .roulette-item:last-child { border-bottom: none; }
-        .roulette-item-name {
-            font-size: 1em; font-weight: 500; color: var(--text-secondary);
+        .roulette-item img { 
+            max-width: 90%;
+            max-height: 75px; /* Adjust based on item height */
+            object-fit: contain;
         }
-        .roulette-item-value { 
-            font-size: 0.85em; font-weight: 500; color: var(--secondary-color);
+        .roulette-item.is-winning img { 
+             filter: drop-shadow(0 0 6px var(--primary-color)); /* Slightly bigger glow */
         }
-        .roulette-item.is-winning .roulette-item-name { 
-            color: var(--text-primary) !important;
-            font-weight: 700;
+
+        .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+        
+        /* Prize cards display in modal */
+        #possible-prizes-display {
+            margin-top: 10px;
+            flex-grow: 1; 
+            overflow-y: auto;
+            padding-right: 5px; 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
+            gap: 10px;
         }
-        #prize-display {
-            margin-top: 20px; font-size: 1.2em; font-weight: 600;
+        .prize-card {
+            background-color: var(--surface-hover-color);
+            border-radius: var(--button-border-radius);
+            padding: 8px;
+            display: flex;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center; 
+            position: relative; 
+            border: 1px solid var(--border-color);
+            text-align: center;
+            min-height: 100px; 
+        }
+        .prize-card-image-placeholder { 
+            width: 50px; height: 50px;
+            background-color: var(--bg-color);
+            border-radius: 6px;
+            margin-bottom: 6px; 
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+         .prize-card-image-placeholder img {
+            display: block; width: 100%; height: 100%; object-fit: contain;
+         }
+        .prize-card-name {
+            font-size: 0.8em; 
+            font-weight: 500;
+            color: var(--text-secondary);
+            line-height: 1.2;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap; 
+        }
+        .prize-card-probability {
+            position: absolute;
+            top: 4px; right: 4px; 
+            background-color: var(--primary-color);
+            color: var(--text-primary);
+            font-size: 0.65em; 
+            font-weight: 600;
+            padding: 1px 4px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        #prize-display { 
+            margin-top: 16px; font-size: 1.2em; font-weight: 600;
             color: var(--success-color);
         }
         #prize-display.hidden { display: none; }
-        .modal-actions { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
         
         /* Input fields minimal style */
         input[type="text"], input[type="number"], select {
@@ -349,15 +430,15 @@
         /* Upgrade Page */
         #upgrade-chance-display {
             font-size: 2.5em; font-weight: 700; color: var(--text-primary);
-            text-align:center; margin: 20px 0; padding: 15px;
+            text-align:center; margin: 20px auto; padding: 15px;
             background-color: var(--surface-hover-color);
-            border-radius: 50%; width:100px; height:100px; line-height: 70px; margin-left:auto; margin-right:auto;
+            border-radius: 50%; width:100px; height:100px; line-height: 70px;
             border: 3px solid var(--primary-color);
         }
         .multiplier-buttons { display: flex; justify-content: center; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
         .multiplier-buttons button { width: auto; flex-grow: 1; padding: 10px; font-size: 0.9em;}
         .multiplier-buttons button.active-multiplier {
-            background-color: var(--primary-color);
+            background: var(--primary-color); 
             color: var(--text-primary);
         }
         
@@ -398,12 +479,11 @@
          .leader-entry.current-user-entry .info .name {
              color: var(--primary-color);
         }
-
     </style>
 </head>
 <body>
     <div id="app-container">
-        <header id="app-header">
+         <header id="app-header">
             <div class="app-title">Gift Universe</div>
             <div class="wallet-info">
                 <div id="wallet-address" class="wallet-address">Connect Wallet</div>
@@ -422,23 +502,23 @@
             </div>
 
              <div id="upgrade-page" class="page">
-                <h2>Enhance Item</h2>
+                <h2>Upgrade Item</h2> 
                 <div class="content-card">
                     <p style="text-align:center; margin-bottom:15px; color: var(--text-secondary);">Select an item from your collection:</p>
                     <select id="upgrade-inventory-select">
                         <option value="">-- Choose Item --</option>
                     </select>
-                    <div id="upgrade-chance-display">50%</div>
+                    <div id="upgrade-chance-display">50%</div> 
                      <p style="text-align:center; margin-bottom:10px; color: var(--text-secondary);">Multiplier:</p>
                     <div id="multiplier-buttons" class="multiplier-buttons">
-                        <button class="button button-secondary" data-multiplier="1.5">x1.5</button>
-                        <button class="button button-secondary" data-multiplier="2">x2</button>
-                        <button class="button button-secondary" data-multiplier="3">x3</button>
-                        <button class="button button-secondary" data-multiplier="5">x5</button>
-                        <button class="button button-secondary" data-multiplier="10">x10</button>
-                        <button class="button button-secondary" data-multiplier="20">x20</button>
+                        <button class="button button-secondary" data-multiplier="1.5" data-chance="50">x1.5</button>
+                        <button class="button button-secondary" data-multiplier="2" data-chance="35">x2</button>
+                        <button class="button button-secondary" data-multiplier="3" data-chance="25">x3</button>
+                        <button class="button button-secondary" data-multiplier="5" data-chance="15">x5</button>
+                        <button class="button button-secondary" data-multiplier="10" data-chance="8">x10</button>
+                        <button class="button button-secondary" data-multiplier="20" data-chance="3">x20</button>
                     </div>
-                    <button id="do-upgrade-button" class="button">Attempt Enhancement</button>
+                    <button id="do-upgrade-button" class="button">Attempt Upgrade</button>
                     <p id="upgrade-result" style="margin-top: 15px; font-weight: 500; text-align:center;"></p>
                 </div>
             </div>
@@ -452,7 +532,7 @@
                     
                     <div class="stats-box" style="margin-bottom: 20px;">
                         <div class="stat-item">
-                            <div id="referral-balance" class="value">0.00 <span class="ton-icon" style="width:16px; height:16px;"></span></div>
+                            <div id="referral-balance" class="value">0.00 <span class="ton-icon"></span></div>
                             <div class="label">Referral Earnings</div>
                         </div>
                         <div class="stat-item">
@@ -490,7 +570,7 @@
 
                 <div class="content-card">
                     <h3>Balance</h3>
-                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">100.00 <span class="ton-icon" style="width:20px; height:20px;"></span></div>
+                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">100.00 <span class="ton-icon"></span></div>
                     <input type="number" id="deposit-amount-input" placeholder="Amount in TON" style="margin-bottom: 10px;">
                     <button id="confirm-deposit-button" class="button">Deposit TON (Test)</button>
                 </div>
@@ -512,13 +592,13 @@
         </main>
 
         <nav id="app-nav">
-            <button class="nav-button active" data-page="main-page">
+             <button class="nav-button active" data-page="main-page">
                 <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
                 Cases
             </button>
             <button class="nav-button" data-page="upgrade-page">
                  <svg viewBox="0 0 24 24"><path d="M9.48 5.55L6.91 8.12L5.5 6.71L9.48 2.73L13.47 6.71L12.06 8.12L9.48 5.55M9.48 5.55V13.75C9.48 14.15 9.15 14.48 8.75 14.48C8.35 14.48 8.02 14.15 8.02 13.75V5.55L5.45 8.12L4.04 6.71L8.02 2.73L12.01 6.71L10.6 8.12L8.02 5.55M15.25 10.25C14.85 10.25 14.52 10.58 14.52 10.98V19.18L11.95 16.61L10.54 18L14.52 21.99L18.5 18L17.09 16.61L14.52 19.18V10.98C14.52 10.58 14.19 10.25 13.79 10.25H15.25Z"/></svg>
-                Enhance
+                Upgrade 
             </button>
             <button class="nav-button" data-page="invite-page">
                  <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
@@ -540,26 +620,31 @@
         <div class="modal-content">
             <h3 id="roulette-case-name">Opening Case...</h3>
             <div id="roulette-wheel-container">
-                <!-- REMOVED "Possible Items" text from here -->
                 <div id="roulette-wheel">
                     <div id="roulette-spinner">
-                        <!-- Prize items will be dynamically added here -->
+                        <!-- Prize images will be dynamically added here -->
                     </div>
                 </div>
             </div>
-            <div id="prize-display" class="hidden">
-                You got: <span id="won-prize-name"></span>!
-            </div>
-            <div class="modal-actions">
+            <div class="modal-actions"> 
                 <button id="spin-button" class="button">Spin</button>
                 <button id="close-roulette-button" class="button button-secondary">Close</button>
+            </div>
+            <div id="prize-display" class="hidden"> 
+                You got: <span id="won-prize-name"></span>!
+            </div>
+             <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+             <!-- Title for possible prizes -->
+             <h4 style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500;">Possible Prizes:</h4>
+            <div id="possible-prizes-display">
+                 <!-- Possible prize cards will be dynamically inserted here -->
             </div>
         </div>
     </div>
 
 <script>
 // --- Constants and Global State ---
-const GIFT_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftGifs/';
+const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 
 const currentUser = {
     id: '5146625949',
@@ -575,194 +660,214 @@ const currentUser = {
 
 let currentOpenCase = null;
 let selectedMultiplier = 1.5;
+const upgradeChances = { 
+    1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
+};
 
-// REGULAR CASE REMOVED
+// Function to generate image filename from prize/case name
+function generateImageFilename(name) {
+    if (name === "Durov's Cap") return "Durov's-Cap.png"; 
+    if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png"; // Corrected filename
+    if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
+    // General rule: replace spaces with hyphens, keep case mostly, add .png
+    return name.replace(/\s+/g, '-').replace(/&/g, 'and') + '.png'; 
+}
+
+// EMOJIS REMOVED, imageFilename added/completed for ALL prizes
 const casesData = [
-    {
-        id: 'lolpop', name: '🍭 Lol Pop Stash', priceTON: 0.5,
+    // REGULAR CASE REMOVED
+    { 
+        id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 0.5,
         prizes: [
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.01 },
-            { name: 'Party Sparkler', tgsFile: 'Party-Sparkler.tgs', floorPrice: 1, probability: 0.10 },
-            { name: 'B-Day Candle', tgsFile: 'B-Day-Candle.tgs', floorPrice: 0.7, probability: 0.10 },
-            { name: 'Homemade Cake', tgsFile: 'Homemade-Cake.tgs', floorPrice: 1, probability: 0.09 },
-            { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.20 },
-            { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.20 },
-            { name: 'Desk Calendar', tgsFile: 'Desk-Calendar.tgs', floorPrice: 0.7, probability: 0.10 },
-            { name: 'Cookie Heart', tgsFile: 'Cookie-Heart.tgs', floorPrice: 0.9, probability: 0.10 },
-            { name: 'Jack-in-the-box', tgsFile: 'Jack-in-the-box.tgs', floorPrice: 1, probability: 0.08 },
-            { name: 'Skull Flower', tgsFile: 'Skull-Flower.tgs', floorPrice: 1.7, probability: 0.02 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.01 },
+            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: 1, probability: 0.10 },
+            { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: 0.7, probability: 0.10 },
+            { name: 'Homemade Cake', imageFilename: generateImageFilename('Homemade Cake'), floorPrice: 1, probability: 0.09 },
+            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: 0.7, probability: 0.20 },
+            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: 0.7, probability: 0.20 },
+            { name: 'Desk Calendar', imageFilename: generateImageFilename('Desk Calendar'), floorPrice: 0.7, probability: 0.10 },
+            { name: 'Cookie Heart', imageFilename: generateImageFilename('Cookie Heart'), floorPrice: 0.9, probability: 0.10 },
+            { name: 'Jack-in-the-box', imageFilename: generateImageFilename('Jack-in-the-box'), floorPrice: 1, probability: 0.08 },
+            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 1.7, probability: 0.02 },
         ]
     },
-    {
-        id: 'recordplayer', name: '🎶 Record Player Vault', priceTON: 3,
+    { 
+        id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 3,
         prizes: [
-            { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.50 },
-            { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.08 },
-            { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.08 },
-            { name: 'Party Sparkler', tgsFile: 'Party-Sparkler.tgs', floorPrice: 1, probability: 0.08 },
-            { name: 'Skull Flower', tgsFile: 'Skull-Flower.tgs', floorPrice: 1.7, probability: 0.08 },
-            { name: 'Jelly Bunny', tgsFile: 'Jelly-Bunny.tgs', floorPrice: 1.8, probability: 0.08 },
-            { name: 'Tama Gadget', tgsFile: 'Tama-Gadget.tgs', floorPrice: 2, probability: 0.05 },
-            { name: 'Snow Globe', tgsFile: 'Snow-Globe.tgs', floorPrice: 2, probability: 0.05 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.50 },
+            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: 0.7, probability: 0.08 },
+            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: 0.7, probability: 0.08 },
+            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: 1, probability: 0.08 },
+            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 1.7, probability: 0.08 },
+            { name: 'Jelly Bunny', imageFilename: generateImageFilename('Jelly Bunny'), floorPrice: 1.8, probability: 0.08 },
+            { name: 'Tama Gadget', imageFilename: generateImageFilename('Tama Gadget'), floorPrice: 2, probability: 0.05 },
+            { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 2, probability: 0.05 },
         ]
     },
-    {
-        id: 'swisswatch', name: '⌚ Swiss Watch Box', priceTON: 5,
+    { 
+        id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 5,
         prizes: [
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.10 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.20 },
-            { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.10 },
-            { name: 'Love Potion', tgsFile: 'Love-Potion.tgs', floorPrice: 2.7, probability: 0.15 },
-            { name: 'Top Hat', tgsFile: 'Top-Hat.tgs', floorPrice: 3, probability: 0.15 },
-            { name: 'Voodoo Doll', tgsFile: 'Voodoo-Doll.tgs', floorPrice: 4.2, probability: 0.10 },
-            { name: 'Eternal Rose', tgsFile: 'Eternal-Rose.tgs', floorPrice: 5.5, probability: 0.10 },
-            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.05 },
-            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.05 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.10 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.20 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.10 },
+            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.15 },
+            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.15 },
+            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 4.2, probability: 0.10 },
+            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.10 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.05 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.05 },
         ]
     },
-    {
-        id: 'perfumebottle', name: '💧 Perfume Chest', priceTON: 10,
+    { 
+        id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 10,
         prizes: [
-            { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.10 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.15 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.20 },
-            { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.15 },
-            { name: 'Sharp Tongue', tgsFile: 'Sharp-Tongue.tgs', floorPrice: 10, probability: 0.10 },
-            { name: 'Kissed Frog', tgsFile: 'Kissed-Frog.tgs', floorPrice: 9, probability: 0.10 },
-            { name: 'Loot Bag', tgsFile: 'Loot-Bag.tgs', floorPrice: 12, probability: 0.05 },
-            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.10 },
-            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.05 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.10 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.15 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.20 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.15 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.10 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 9, probability: 0.10 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 12, probability: 0.05 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.10 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.05 },
         ]
     },
-    {
-        id: 'vintagecigar', name: '🚬 Vintage Cigar Safe', priceTON: 20,
+    { 
+        id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 20,
         prizes: [
-            { name: 'Vintage Cigar', tgsFile: 'Vintage-CIgar.tgs', floorPrice: 13, probability: 0.10 },
-            { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.15 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.20 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.15 },
-            { name: 'Sharp Tongue', tgsFile: 'Sharp-Tongue.tgs', floorPrice: 10, probability: 0.15 },
-            { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.10 },
-            { name: 'Mini Oscar', tgsFile: 'Mini-Oscar.tgs', floorPrice: 18, probability: 0.08 },
-            { name: 'Scared Cat', tgsFile: 'Scared-Cat.tgs', floorPrice: 17, probability: 0.07 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 13, probability: 0.10 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.15 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.20 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.15 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.15 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.10 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.08 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.07 },
         ]
     },
-    {
-        id: 'astralshard', name: '✨ Astral Shard Relic', priceTON: 50,
+    { 
+        id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 50,
         prizes: [
-            { name: 'Astral Shard', tgsFile: 'Astral-Shard.tgs', floorPrice: 60, probability: 0.10 },
-            { name: 'Vintage Cigar', tgsFile: 'Vintage-CIgar.tgs', floorPrice: 13, probability: 0.15 },
-            { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.15 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.10 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.10 },
-            { name: 'Precious Peach', tgsFile: 'Precious-Peach.tgs', floorPrice: 60, probability: 0.10 },
-            { name: 'Mini Oscar', tgsFile: 'Mini-Oscar.tgs', floorPrice: 18, probability: 0.15 },
-            { name: 'Scared Cat', tgsFile: 'Scared-Cat.tgs', floorPrice: 17, probability: 0.10 },
-            { name: 'Loot Bag', tgsFile: 'Loot-Bag.tgs', floorPrice: 12, probability: 0.05 },
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 60, probability: 0.10 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 13, probability: 0.15 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.15 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.10 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.10 },
+            { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: 60, probability: 0.10 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.15 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.10 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 12, probability: 0.05 },
         ]
     },
-    {
-        id: 'plushpepe', name: '🐸 Plush Pepe Hoard', priceTON: 100,
+    { 
+        id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 100,
         prizes: [
-            { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.10 },
-            { name: 'Durov\'s Cap', tgsFile: 'Durovs-Cap.tgs', floorPrice: 150, probability: 0.50 },
-            { name: 'Astral Shard', tgsFile: 'Astral-Shard.tgs', floorPrice: 60, probability: 0.40 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 560, probability: 0.10 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 150, probability: 0.50 },
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 60, probability: 0.40 },
         ]
     },
-    {
-        id: 'happypepe', name: '🥳 Happy Pepe Treasure', priceTON: 600,
+    { 
+        id: 'happypepe', name: 'Happy Pepe Treasure', imageFilename: generateImageFilename('Happy Pepe Kissed Frog'), priceTON: 600,
         prizes: [
-            { name: 'Kissed Frog Happy Pepe', tgsFile: 'Happy Pepe Kissed Frog.tgs', floorPrice: 660, probability: 0.3636 },
-            { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.6364 },
+            { name: 'Kissed Frog Happy Pepe', imageFilename: generateImageFilename('Happy Pepe Kissed Frog'), floorPrice: 660, probability: 0.3636 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 560, probability: 0.6364 },
         ]
     },
-    {
-        id: 'amber', name: '🔶 Amber Nebula Case', priceTON: 3,
+    { 
+        id: 'amber', name: 'Amber Nebula Case', imageFilename: 'Amber.png', priceTON: 3, // Placeholder image name
         prizes: [
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.01 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.03 },
-            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.05 },
-            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.10 },
-            { name: 'Eternal Rose', tgsFile: 'Eternal-Rose.tgs', floorPrice: 5.5, probability: 0.15 },
-            { name: 'Voodoo Doll', tgsFile: 'Voodoo-Doll.tgs', floorPrice: 4.2, probability: 0.15 },
-            { name: 'Top Hat', tgsFile: 'Top-Hat.tgs', floorPrice: 3, probability: 0.15 },
-            { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.08 },
-            { name: 'Love Potion', tgsFile: 'Love-Potion.tgs', floorPrice: 2.7, probability: 0.08 },
-            { name: 'Sakura Flower', tgsFile: 'Sakura-Flower.tgs', floorPrice: 2, probability: 0.08 },
-            { name: 'Jelly Bunny', tgsFile: 'Jelly-Bunny.tgs', floorPrice: 1.8, probability: 0.06 },
-            { name: 'Skull Flower', tgsFile: 'Skull-Flower.tgs', floorPrice: 1.7, probability: 0.06 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.01 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.03 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.05 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.10 },
+            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.15 },
+            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 4.2, probability: 0.15 },
+            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.15 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.08 },
+            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.08 },
+            { name: 'Sakura Flower', imageFilename: generateImageFilename('Sakura Flower'), floorPrice: 2, probability: 0.08 },
+            { name: 'Jelly Bunny', imageFilename: generateImageFilename('Jelly Bunny'), floorPrice: 1.8, probability: 0.06 },
+            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 1.7, probability: 0.06 },
         ]
     },
-    {
-        id: 'midnightblue', name: '🔷 Midnight Blue Comet', priceTON: 3,
+    { 
+        id: 'midnightblue', name: 'Midnight Blue Comet', imageFilename: 'Midnight-Blue.png', priceTON: 3, // Placeholder
         prizes: [
-            { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.01 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.03 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.06 },
-            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.10 },
-            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.15 },
-            { name: 'Eternal Rose', tgsFile: 'Eternal-Rose.tgs', floorPrice: 5.5, probability: 0.15 },
-            { name: 'Top Hat', tgsFile: 'Top-Hat.tgs', floorPrice: 3, probability: 0.15 },
-            { name: 'Love Potion', tgsFile: 'Love-Potion.tgs', floorPrice: 2.7, probability: 0.08 },
-            { name: 'Tama Gadget', tgsFile: 'Tama-Gadget.tgs', floorPrice: 2, probability: 0.08 },
-            { name: 'Snow Globe', tgsFile: 'Snow-Globe.tgs', floorPrice: 2, probability: 0.08 },
-            { name: 'Sleigh Bell', tgsFile: 'Sleigh-Bell.tgs', floorPrice: 2, probability: 0.06 },
-            { name: 'Candy Cane', tgsFile: 'Candy-Cane.tgs', floorPrice: 0.9, probability: 0.05 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.01 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.03 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.06 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.10 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.15 },
+            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.15 },
+            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.15 },
+            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.08 },
+            { name: 'Tama Gadget', imageFilename: generateImageFilename('Tama Gadget'), floorPrice: 2, probability: 0.08 },
+            { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 2, probability: 0.08 },
+            { name: 'Sleigh Bell', imageFilename: generateImageFilename('Sleigh Bell'), floorPrice: 2, probability: 0.06 },
+            { name: 'Candy Cane', imageFilename: generateImageFilename('Candy Cane'), floorPrice: 0.9, probability: 0.05 },
         ]
     },
-    {
-        id: 'onyxblack', name: '⚫ Onyx Black Hole', priceTON: 5,
+    { 
+        id: 'onyxblack', name: 'Onyx Black Hole', imageFilename: 'Onyx-Black.png', priceTON: 5, // Placeholder
         prizes: [
-            { name: 'Sharp Tongue', tgsFile: 'Sharp-Tongue.tgs', floorPrice: 10, probability: 0.01 },
-            { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.03 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.05 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.10 },
-            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.15 },
-            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.15 },
-            { name: 'Eternal Rose', tgsFile: 'Eternal-Rose.tgs', floorPrice: 5.5, probability: 0.15 },
-            { name: 'Voodoo Doll', tgsFile: 'Voodoo-Doll.tgs', floorPrice: 4.2, probability: 0.10 },
-            { name: 'Top Hat', tgsFile: 'Top-Hat.tgs', floorPrice: 3, probability: 0.08 },
-            { name: 'Toy Bear', tgsFile: 'Toy-Bear.tgs', floorPrice: 5.2, probability: 0.08 },
-            { name: 'Love Potion', tgsFile: 'Love-Potion.tgs', floorPrice: 2.7, probability: 0.05 },
-            { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.05 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.01 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.03 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.05 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.10 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.15 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.15 },
+            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.15 },
+            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 4.2, probability: 0.10 },
+            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.08 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 5.2, probability: 0.08 },
+            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.05 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.05 },
         ]
     },
-    {
-        id: 'black', name: '🖤 BLACK Singularity', priceTON: 15,
+    { 
+        id: 'black', name: 'BLACK Singularity', imageFilename: 'BLACK.png', priceTON: 15, // Placeholder
         prizes: [
-            { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.01 },
-            { name: 'Mini Oscar', tgsFile: 'Mini-Oscar.tgs', floorPrice: 18, probability: 0.03 },
-            { name: 'Scared Cat', tgsFile: 'Scared-Cat.tgs', floorPrice: 17, probability: 0.05 },
-            { name: 'Vintage Cigar', tgsFile: 'Vintage-CIgar.tgs', floorPrice: 13, probability: 0.10 },
-            { name: 'Loot Bag', tgsFile: 'Loot-Bag.tgs', floorPrice: 12, probability: 0.15 },
-            { name: 'Sharp Tongue', tgsFile: 'Sharp-Tongue.tgs', floorPrice: 10, probability: 0.15 },
-            { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.15 },
-            { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.10 },
-            { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.10 },
-            { name: 'Kissed Frog', tgsFile: 'Kissed-Frog.tgs', floorPrice: 9, probability: 0.08 },
-            { name: 'Electric Skull', tgsFile: 'Electric-Skull.tgs', floorPrice: 6.3, probability: 0.05 },
-            { name: 'Diamond Ring', tgsFile: 'Diamond-Ring.tgs', floorPrice: 5.7, probability: 0.03 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.01 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.03 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.05 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 13, probability: 0.10 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 12, probability: 0.15 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.15 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.15 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.10 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.10 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 9, probability: 0.08 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.05 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.03 },
         ]
     },
 ];
 
 
-// --- DOM Elements --- (Same as previous JS)
-// ...
-// --- Utility Functions --- (Same as previous JS)
-// ...
-// --- Rendering Functions --- (Same as previous JS, ensure showTGNotification is used)
-// ...
-// --- Roulette Logic --- (Same as previous JS)
-// ...
-// --- Other Page Logic --- (Same as previous JS, ensure handleDeposit is included)
-// ...
-// --- Event Listeners --- (Same as previous JS)
-// ...
-// --- Initialization --- (Same as previous JS)
+// --- Image Preloader ---
+const imageUrlsToPreload = [];
+casesData.forEach(caseItem => {
+    if (caseItem.imageFilename) {
+        imageUrlsToPreload.push(IMAGE_BASE_URL + caseItem.imageFilename);
+    }
+    caseItem.prizes.forEach(prize => {
+        if (prize.imageFilename && !imageUrlsToPreload.includes(IMAGE_BASE_URL + prize.imageFilename)) {
+             imageUrlsToPreload.push(IMAGE_BASE_URL + prize.imageFilename);
+        }
+    });
+});
 
-// For brevity, I'm pasting the full JS again below. Make sure only one <script> block with this content exists.
-// (The JS from the previous "HTML JS without CSS" answer is what should be here)
+function preloadImages(urls) {
+    urls.forEach(url => {
+        const img = new Image();
+        img.src = url;
+    });
+}
+// ----------------------
+
+
+// --- DOM Elements --- 
 const appHeader = {
     walletAddress: document.getElementById('wallet-address'),
     tonBalance: document.getElementById('ton-balance'),
@@ -779,6 +884,7 @@ const prizeDisplay = document.getElementById('prize-display');
 const wonPrizeName = document.getElementById('won-prize-name');
 const spinButton = document.getElementById('spin-button');
 const closeRouletteButton = document.getElementById('close-roulette-button');
+const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); 
 
 const profileElements = {
     avatar: document.getElementById('profile-avatar'),
@@ -811,6 +917,7 @@ const inviteElements = {
 };
 
 const leaderboardList = document.getElementById('leaderboard-list');
+
 
 // --- Utility Functions ---
 function updateBalances() {
@@ -866,13 +973,27 @@ function renderCases() {
         card.className = 'case-card';
         card.onclick = () => openRouletteModal(caseItem);
 
-        const imagePlaceholder = document.createElement('div');
-        imagePlaceholder.className = 'case-image-placeholder';
-        imagePlaceholder.textContent = caseItem.name.substring(0, caseItem.name.indexOf(' ') +1).trim() || '🎁';
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'case-image-display';
+        const img = document.createElement('img');
+        // Use case image or default if not specified
+        const caseImageUrl = caseItem.imageFilename ? IMAGE_BASE_URL + caseItem.imageFilename : 'placeholder.png'; // Add a placeholder image URL if needed
+        img.src = caseImageUrl; 
+        img.alt = caseItem.name;
+        img.loading = 'lazy'; // Improve initial load performance
+        img.onerror = (e) => { 
+            e.target.style.display='none'; 
+            imageContainer.textContent = '🎁'; // Fallback emoji
+            imageContainer.style.fontSize='2.5em'; 
+            imageContainer.style.display='flex';
+            imageContainer.style.alignItems='center';
+            imageContainer.style.justifyContent='center';
+        } 
+        imageContainer.appendChild(img);
 
         const name = document.createElement('div');
         name.className = 'case-name';
-        name.textContent = caseItem.name;
+        name.textContent = caseItem.name; 
 
         const price = document.createElement('div');
         price.className = 'case-price';
@@ -881,7 +1002,7 @@ function renderCases() {
         if (caseItem.priceStars) priceText += (priceText ? '/ ' : '') + `${caseItem.priceStars} ✨`;
         price.textContent = priceText || 'Free';
 
-        card.appendChild(imagePlaceholder);
+        card.appendChild(imageContainer);
         card.appendChild(name);
         card.appendChild(price);
         casesGrid.appendChild(card);
@@ -966,6 +1087,11 @@ function renderInvitePage() {
 // --- Roulette Logic ---
 function openRouletteModal(caseItem) {
     currentOpenCase = caseItem;
+    if (!currentOpenCase || !currentOpenCase.prizes) {
+        showTGNotification("Error loading case data.", "error");
+        return;
+    }
+
     rouletteCaseName.textContent = caseItem.name; 
     spinButton.textContent = `Spin (${caseItem.priceTON ? caseItem.priceTON.toFixed(1) + ' TON' : ''} ${caseItem.priceStars && caseItem.priceTON ? '/' : ''} ${caseItem.priceStars ? caseItem.priceStars + ' ✨' : ''})`;
     spinButton.disabled = false;
@@ -975,21 +1101,62 @@ function openRouletteModal(caseItem) {
     rouletteSpinner.style.transition = 'none'; 
     rouletteSpinner.style.top = '0px'; 
 
+    // Populate wheel (images)
     let spinnerItemsContent = [];
-    currentOpenCase.prizes.forEach(p => spinnerItemsContent.push(p));
-    for (let i = spinnerItemsContent.length; i < 80; i++) { 
+    for (let i = 0; i < 80; i++) { 
         spinnerItemsContent.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
     }
-    
     spinnerItemsContent.forEach(prize => {
+        if (!prize) return; // Safety check
         const itemEl = document.createElement('div');
         itemEl.className = 'roulette-item';
-        itemEl.innerHTML = `
-            <span class="roulette-item-name">${prize.name}</span>
-            <span class="roulette-item-value">${prize.floorPrice.toFixed(2)} TON</span>
-        `;
+        const img = document.createElement('img');
+        img.src = prize.imageFilename ? IMAGE_BASE_URL + prize.imageFilename : '';
+        img.alt = prize.name || 'Prize';
+        img.loading = 'lazy';
+        img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
+        itemEl.appendChild(img);
         rouletteSpinner.appendChild(itemEl);
     });
+
+    // Populate possible prizes display (cards with images and probability)
+    possiblePrizesDisplay.innerHTML = '';
+    const prizeMap = new Map();
+    currentOpenCase.prizes.forEach(p => {
+        if(!p || !p.name) return; // More safety checks
+        if (prizeMap.has(p.name)) {
+            prizeMap.set(p.name, { 
+                ...prizeMap.get(p.name), 
+                probability: prizeMap.get(p.name).probability + p.probability 
+            });
+        } else {
+            prizeMap.set(p.name, { ...p }); 
+        }
+    });
+
+    prizeMap.forEach((prizeData, name) => {
+        if (!prizeData) return; // Safety check
+        const probability = prizeData.probability || 0; 
+        const prizeCard = document.createElement('div');
+        prizeCard.className = 'prize-card';
+        
+        const imgContainer = document.createElement('div');
+        imgContainer.className = 'prize-card-image-placeholder';
+        const img = document.createElement('img');
+        img.src = prizeData.imageFilename ? IMAGE_BASE_URL + prizeData.imageFilename : '';
+        img.alt = name;
+        img.loading = 'lazy';
+        img.onerror = (e) => { e.target.style.display='none'; imgContainer.textContent = '?';} 
+        imgContainer.appendChild(img);
+
+        prizeCard.innerHTML = `
+            <span class="prize-card-probability">${(probability * 100).toFixed(probability < 0.01 ? 3 : (probability < 0.1 ? 2 : 1) )}%</span> 
+            <span class="prize-card-name">${name}</span>
+        `; 
+        prizeCard.insertBefore(imgContainer, prizeCard.firstChild); 
+        possiblePrizesDisplay.appendChild(prizeCard);
+    });
+
 
     rouletteModal.classList.add('active');
     if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
@@ -1001,23 +1168,29 @@ function closeRouletteModal() {
 }
 
 function determineWinner(prizes) {
-    let totalProbability = prizes.reduce((sum, p) => sum + p.probability, 0);
+    if(!prizes || prizes.length === 0) return { name: "Error Prize", floorPrice: 0, imageFilename: "", id: "error" }; // Handle empty prizes
+
+    // Normalization logic 
+    let totalProbability = prizes.reduce((sum, p) => sum + (p.probability || 0), 0);
+    let normalizedPrizes = prizes;
+
     if (Math.abs(totalProbability - 1.0) > 0.001 && totalProbability > 0) {
-        prizes = prizes.map(p => ({ ...p, probability: p.probability / totalProbability }));
-    } else if (totalProbability === 0 && prizes.length > 0) {
+        normalizedPrizes = prizes.map(p => ({ ...p, probability: (p.probability || 0) / totalProbability }));
+    } else if (totalProbability === 0) {
         const equalProb = 1 / prizes.length;
-        prizes = prizes.map(p => ({ ...p, probability: equalProb }));
+        normalizedPrizes = prizes.map(p => ({ ...p, probability: equalProb }));
     }
 
     const rand = Math.random();
     let cumulativeProbability = 0;
-    for (const prize of prizes) {
+    for (const prize of normalizedPrizes) {
         cumulativeProbability += prize.probability;
         if (rand <= cumulativeProbability) {
             return prize;
         }
     }
-    return prizes.length > 0 ? prizes[prizes.length - 1] : { name: "Error Prize", floorPrice: 0, tgsFile: "", id: "error" };
+    // Fallback
+    return normalizedPrizes[normalizedPrizes.length - 1]; 
 }
 let spinAnimationTimeout;
 
@@ -1039,6 +1212,11 @@ async function spinRoulette() {
     prizeDisplay.classList.add('hidden');
 
     const winner = determineWinner(currentOpenCase.prizes);
+     if (!winner || winner.id === "error") {
+        showTGNotification("Error determining prize. Please try again.", "error");
+        spinButton.disabled = false;
+        return;
+    }
     
     let spinnerItemsForSpin = [];
     for (let i = 0; i < 70; i++) { 
@@ -1050,17 +1228,25 @@ async function spinRoulette() {
 
     rouletteSpinner.innerHTML = ''; 
     spinnerItemsForSpin.forEach(prize => {
+        if (!prize) return; // Safety check
         const itemEl = document.createElement('div');
         itemEl.className = 'roulette-item';
-         itemEl.innerHTML = `
-            <span class="roulette-item-name">${prize.name}</span>
-            <span class="roulette-item-value">${prize.floorPrice.toFixed(2)} TON</span>
-        `;
+        const img = document.createElement('img');
+        img.src = prize.imageFilename ? IMAGE_BASE_URL + prize.imageFilename : '';
+        img.alt = prize.name || 'Prize';
+        img.loading = 'lazy';
+        img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
+        itemEl.appendChild(img);
         rouletteSpinner.appendChild(itemEl);
     });
     
     const allItemsInSpinner = rouletteSpinner.querySelectorAll('.roulette-item');
-    const itemHeight = allItemsInSpinner[0] ? allItemsInSpinner[0].offsetHeight : 60; 
+    if (allItemsInSpinner.length === 0) { // Prevent error if spinner is empty
+        showTGNotification("Error setting up roulette.", "error");
+        spinButton.disabled = false;
+        return;
+    }
+    const itemHeight = allItemsInSpinner[0].offsetHeight; 
     const rouletteWheelVisibleHeight = rouletteWheel.clientHeight; 
 
     const landingPosition = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2);
@@ -1085,7 +1271,10 @@ async function spinRoulette() {
         }
 
         const inventoryId = `item_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-        currentUser.inventory.push({ ...winner, id: inventoryId });
+        currentUser.inventory.push({ 
+            ...winner, 
+            id: inventoryId 
+        });
         renderInventory(); 
         showTGNotification(`You got: ${winner.name}!`, 'success'); 
     }, 6100); 
@@ -1109,29 +1298,38 @@ function convertToTon(itemId) {
 function handleUpgrade() {
     const selectedItemId = upgradeElements.inventorySelect.value;
     if (!selectedItemId) {
-        showTGNotification("Please select an item to enhance.", 'error'); return;
+        showTGNotification("Please select an item to upgrade.", 'error'); return;
     }
 
     const itemIndex = currentUser.inventory.findIndex(item => item.id === selectedItemId);
+    if (itemIndex === -1) { // Item not found (might happen if selection/inventory mismatch)
+         showTGNotification("Selected item not found in inventory.", 'error'); return;
+    }
     const itemToUpgrade = currentUser.inventory[itemIndex];
+    const currentChance = upgradeChances[selectedMultiplier] || 0; 
 
-    upgradeElements.upgradeResult.textContent = "Enhancing item...";
+    upgradeElements.upgradeResult.textContent = "Attempting upgrade...";
     upgradeElements.doUpgradeButton.disabled = true;
 
     setTimeout(() => {
-        const success = Math.random() < 0.5; 
+        const success = Math.random() * 100 < currentChance; 
         if (success) {
             itemToUpgrade.floorPrice = parseFloat((itemToUpgrade.floorPrice * selectedMultiplier).toFixed(2));
             upgradeElements.upgradeResult.textContent = `Success! ${itemToUpgrade.name} value increased to ${itemToUpgrade.floorPrice.toFixed(2)} TON.`;
-            showTGNotification("Enhancement successful!", 'success');
+            showTGNotification("Upgrade successful!", 'success');
         } else {
+            const lostItemName = itemToUpgrade.name; // Store name before splicing
             currentUser.inventory.splice(itemIndex, 1); 
-            upgradeElements.upgradeResult.textContent = `Failed! ${itemToUpgrade.name} was destroyed. Sent to @Vasiliy939.`;
-            showTGNotification("Enhancement failed! Item lost.", 'error');
-            console.log(`Item ${itemToUpgrade.name} lost in upgrade, would be sent to Vasiliy939 (TG ID 5146625949)`);
+            upgradeElements.upgradeResult.textContent = `Failed! ${lostItemName} was destroyed. Sent to @Vasiliy939.`;
+            showTGNotification("Upgrade failed! Item lost.", 'error');
+            // console.log(`Item ${lostItemName} lost in upgrade, would be sent to Vasiliy939 (TG ID 5146625949)`);
         }
-        renderInventory(); 
+        renderInventory(); // Update inventory select and display
         upgradeElements.doUpgradeButton.disabled = false;
+        upgradeElements.inventorySelect.value = ''; // Reset selection
+        // Update chance display back to default if needed, or keep as is
+        // const defaultChance = upgradeChances[1.5]; // Assuming 1.5x is default
+        // upgradeElements.chanceDisplay.textContent = `${defaultChance}%`;
     }, 2000);
 }
 
@@ -1172,8 +1370,11 @@ profileElements.disconnectWalletButton.addEventListener('click', () => {
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedMultiplier = parseFloat(e.target.dataset.multiplier);
+        const chance = parseFloat(e.target.dataset.chance);
+        upgradeElements.chanceDisplay.textContent = `${chance}%`; // Update chance display
+
         upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
-            btn.classList.remove('active-multiplier'); // This class now controls primary vs secondary
+            btn.classList.remove('active-multiplier'); 
             if(!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
         });
         e.target.classList.add('active-multiplier');
@@ -1181,10 +1382,12 @@ upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
 
     });
 });
+// Initialize chance display for default multiplier
 const defaultMultiplierButton = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="${selectedMultiplier}"]`);
 if (defaultMultiplierButton) {
     defaultMultiplierButton.classList.add('active-multiplier');
     if(defaultMultiplierButton.classList.contains('button-secondary')) defaultMultiplierButton.classList.remove('button-secondary');
+    upgradeElements.chanceDisplay.textContent = `${defaultMultiplierButton.dataset.chance}%`;
 }
 
 
@@ -1210,17 +1413,18 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    preloadImages(imageUrlsToPreload); // Start preloading
+
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand(); 
         try { 
-            Telegram.WebApp.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color-start').trim());
-            Telegram.WebApp.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color-start').trim());
+            const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim();
+            Telegram.WebApp.setHeaderColor(bgColor);
+            Telegram.WebApp.setBackgroundColor(bgColor);
         } catch (e) {
-            console.warn("Could not set Telegram WebApp theme colors.", e);
+            // Silent fail
         }
-    } else {
-        console.warn("Telegram WebApp SDK not found. Running in browser mode.");
     }
 
     renderHeader();
