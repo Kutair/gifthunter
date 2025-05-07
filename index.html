@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - Frontend Fixed</title>
+    <title>TON Gift Universe - Final Scroll</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect UI -->
@@ -48,6 +48,11 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        html {
+             /* Ensure smooth scrolling on touch devices */
+            -webkit-overflow-scrolling: touch;
         }
 
         body {
@@ -118,7 +123,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 150px; 
-            display: none; /* Initially hidden */
+            display: none; 
         }
          #wallet-address-display.connected, #balance.connected { 
              display: block; 
@@ -127,7 +132,7 @@
              display: none; 
          }
         #app-header .ton-icon {
-            width: 16px; height: 16px; /* Kept small */
+            width: 16px; height: 16px; 
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230A84FF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
             background-size: contain; margin-left: 5px; vertical-align: middle;
         }
@@ -195,7 +200,6 @@
         .button:hover { filter: brightness(1.1); }
         .button:active { transform: scale(0.97); filter: brightness(0.9); }
 
-        /* Updated Secondary Button Style */
         .button-secondary {
             background-color: var(--surface-hover-color); 
             color: var(--text-secondary); 
@@ -262,22 +266,22 @@
             background-color: var(--surface-hover-color); 
             border-radius: var(--button-border-radius);
             overflow: hidden;
-            position: relative; /* For overlay */
+            position: relative; 
         }
         .case-card .case-image-display img {
             display: block;
             width: 100%; height: 100%;
-            object-fit: cover; /* Use 'cover' for backgrounds */
+            object-fit: cover; 
         }
-         .case-card .case-image-display .overlay-image { /* Style for overlay image */
+         .case-card .case-image-display .overlay-image { 
              position: absolute;
              width: 70%; 
              height: 70%;
              top: 50%;
              left: 50%;
              transform: translate(-50%, -50%);
-             object-fit: contain; /* Use 'contain' for overlay */
-             pointer-events: none; /* Allow clicks through */
+             object-fit: contain; 
+             pointer-events: none; 
          }
 
         .case-card .case-name {
@@ -299,6 +303,7 @@
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             align-items: center; justify-content: center;
             padding: 16px;
+            /* Modal itself should scroll if content exceeds viewport height */
             overflow-y: auto; 
         }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
@@ -314,25 +319,28 @@
             text-align: center;
             box-shadow: 0 12px 35px rgba(0,0,0,0.35);
             border: 1px solid var(--border-color);
+            /* Remove fixed max-height, let content define it */
             display: flex; flex-direction: column;
             margin: auto; 
-             max-height: calc(100vh - 40px); 
         }
          .modal-content h3 { /* Modal title */
             margin-top: 0; margin-bottom: 16px;
             font-size: 1.35em; font-weight: 700;
             color: var(--text-primary);
+             flex-shrink: 0; /* Prevent title from shrinking */
         }
-        .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;  flex-shrink: 0; }
         .modal-body { 
+             /* This section will contain the scrollable prize cards if needed */
             overflow-y: auto; 
-            flex-grow: 1; 
+            flex-grow: 1; /* Allow it to take available space */
             -webkit-overflow-scrolling: touch; 
+            margin-top: 10px; /* Add space above prize cards */
         }
 
 
         /* --- Roulette Modal Specifics --- */
-        #roulette-wheel-container { width: 100%; }
+        #roulette-wheel-container { width: 100%;  flex-shrink: 0; }
         #roulette-wheel {
             height: 270px; 
             border: 1px solid var(--border-color);
@@ -369,7 +377,7 @@
              filter: drop-shadow(0 0 6px var(--primary-color)); 
         }
         #possible-prizes-display {
-            margin-top: 10px;
+            /* Removed overflow-y, handled by .modal-body or .modal */
             padding-right: 0px; 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
@@ -407,8 +415,22 @@
         #prize-display { 
             margin-top: 16px; font-size: 1.2em; font-weight: 600;
             color: var(--success-color);
+             flex-shrink: 0;
         }
         #prize-display.hidden { display: none; }
+        #roulette-modal hr { /* Style the separator */
+             border: none; 
+             border-top: 1px solid var(--border-color); 
+             margin: 16px 0;
+              flex-shrink: 0;
+         }
+         #roulette-modal h4 { /* "Possible Prizes" title */
+             font-size: 0.9em; 
+             color: var(--text-secondary); 
+             margin-bottom: 10px; 
+             font-weight: 500;
+              flex-shrink: 0;
+         }
         
         /* --- Withdraw Modal Specifics --- */
         #withdraw-modal .modal-step { display: none; }
@@ -531,7 +553,7 @@
     </style>
 </head>
 <body>
-     <!-- HTML Structure (Same as previous answer, including Withdraw Modal) -->
+     <!-- HTML Structure (Same as previous answer) -->
      <div id="app-container">
          <header id="app-header">
             <div class="app-title">Gift Universe</div>
@@ -725,7 +747,6 @@
 // --- Constants and Global State ---
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/'; 
-// Removed API_BASE_URL
 
 const currentUser = {
     id: null, 
@@ -750,22 +771,23 @@ const upgradeChances = {
     1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
 };
 
+// Function to generate image filename from prize/case name
 function generateImageFilename(name) {
     if (!name) return 'placeholder.png'; 
     if (name === "Durov's Cap") return "Durov's-Cap.png"; 
     if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png"; 
     if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
-    // Background names need special handling if passed here, but usually set directly
-    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name)) {
-         return name + '.png'; // Assume direct mapping for backgrounds
-    }
-    // General rule for gift images
+    // Handle background case names specifically if needed, otherwise use general rule
+    if (name === "Amber Nebula Case") return 'Amber.png'; // Direct name for case image
+    if (name === "Midnight Blue Comet") return 'Midnight_Blue.png';
+    if (name === "Onyx Black Hole") return 'Onyx_Black.png';
+    if (name === "BLACK Singularity") return 'Black.png';
+
     return name.replace(/\s+/g, '-').replace(/&/g, 'and') + '.png'; 
 }
 
-// --- casesData ---
-// Ensure this includes the 'imageFilename' for ALL prizes and the correct
-// 'bgImageFilename' and 'overlayPrizeName' for background cases.
+// casesData (ensure imageFilename is present for ALL prizes and the correct
+// bgImageFilename/overlayPrizeName for background cases)
 const casesData = [
     // REGULAR CASE REMOVED
     { 
@@ -944,8 +966,9 @@ const casesData = [
     },
 ];
 
+
 // --- Image Preloader ---
-// ... (Код прелоадера остается без изменений) ...
+// ... (Код без изменений) ...
 const imageUrlsToPreload = [];
 casesData.forEach(caseItem => {
     if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
@@ -971,7 +994,7 @@ function preloadImages(urls) { urls.forEach(url => { const img = new Image(); im
 
 
 // --- DOM Elements --- 
-// ... (Все DOM элементы остаются без изменений) ...
+// ... (Все DOM элементы без изменений) ...
 const headerElements = { 
     title: document.querySelector('#app-header .app-title'),
     walletInfo: document.querySelector('#app-header .wallet-info'),
@@ -1079,8 +1102,6 @@ function showTGNotification(message, type = 'info') {
     }
 }
 
-// --- API Helper (REMOVED) ---
-
 // --- LocalStorage Functions ---
 // ... (saveData, loadData - без изменений) ...
 function saveData() {
@@ -1129,8 +1150,8 @@ function loadData() {
 
 
 // --- Rendering Functions ---
-// ... (renderHeader, updateUIBasedOnWallet, renderCases (обновлен), renderProfile, renderInventory, 
-//      populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - без изменений или обновлены) ...
+// ... (renderHeader, updateUIBasedOnWallet, renderCases, renderProfile, renderInventory, 
+//      populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - все обновлены или без изменений) ...
 function renderHeader() {
      updateBalances(); 
 }
@@ -1179,7 +1200,6 @@ function updateUIBasedOnWallet(wallet) {
     saveData(); 
 }
 
-
 function renderCases() {
     casesGrid.innerHTML = '';
     casesData.forEach(caseItem => {
@@ -1189,7 +1209,8 @@ function renderCases() {
 
         const imageContainer = document.createElement('div');
         imageContainer.className = 'case-image-display';
-        
+        imageContainer.style.position = 'relative'; // Needed for absolute positioning of overlay
+
         const img = document.createElement('img'); // Base image (background or main)
         img.loading = 'lazy'; 
         img.alt = caseItem.name;
@@ -1204,9 +1225,9 @@ function renderCases() {
 
         if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
             // Background case
-            img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
-            img.style.objectFit = 'cover'; // Cover for background
-            imageContainer.appendChild(img);
+             img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
+             img.style.objectFit = 'cover'; // Cover for background
+             imageContainer.appendChild(img);
 
              if(caseItem.overlayPrizeName) {
                  const overlayImg = document.createElement('img');
@@ -1218,6 +1239,7 @@ function renderCases() {
                  overlayImg.onerror = (e) => { e.target.style.display = 'none'; } // Hide if overlay fails
                  imageContainer.appendChild(overlayImg);
              }
+
         } else if (caseItem.imageFilename) {
             // Regular case
             img.src = IMAGE_BASE_URL + caseItem.imageFilename;
@@ -1268,7 +1290,7 @@ function renderInventory() {
         currentUser.inventory.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
-            // Pass item.id to startWithdrawalProcess as string
+            // Added withdraw button call
             itemDiv.innerHTML = `
                 <div class="inventory-item-name" title="${item.name}">${item.name}</div>
                 <div class="inventory-item-value">${item.floorPrice.toFixed(2)} TON</div>
@@ -1328,8 +1350,7 @@ function renderInvitePage() {
     inviteElements.invitedCount.textContent = currentUser.invitedUsersCount;
 }
 
-
-// --- Roulette Logic ---
+// --- Roulette Logic --- (Using local logic)
 // ... (openRouletteModal, closeRouletteModal, determineWinner, spinRoulette - без изменений) ...
 function openRouletteModal(caseItem) {
     currentOpenCase = caseItem;
@@ -1626,6 +1647,7 @@ function handleDeposit() { // Test deposit remains local
     profileElements.depositAmountInput.value = ''; 
 }
 
+
 // --- Withdraw Flow Logic --- (Simulated locally)
 function showWithdrawStep(stepNumber) {
     withdrawSteps.forEach((step, index) => {
@@ -1645,7 +1667,7 @@ function startWithdrawalProcess(itemId) {
     withdrawModal.classList.add('active');
 }
 
-async function completeWithdrawal() { 
+async function completeWithdrawal() { // Simulate sending locally
     withdrawStatusMessage.textContent = "Simulating sending process..."; 
     withdrawStatusMessage.style.color = 'var(--text-secondary)'; 
     const loader = withdrawModal.querySelector('.loader'); 
@@ -1681,7 +1703,7 @@ function closeWithdrawModal() {
 
 
 // --- Event Listeners ---
-// ... (All event listeners remain the same) ...
+// ... (Все обработчики событий остаются без изменений) ...
 appNavButtons.forEach(button => { button.addEventListener('click', () => navigateToPage(button.dataset.page)); });
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
@@ -1775,7 +1797,7 @@ async function initializeApp() {
     // Initial UI setup
     updateUIBasedOnWallet(tonConnectUI.wallet); 
     renderCases();
-    renderProfile(); 
+    renderProfile(); // Render profile with potentially updated data
     renderLeaderboard();
     renderInvitePage();
     navigateToPage('main-page'); 
