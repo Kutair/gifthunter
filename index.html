@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Galaxy</title>
+    <title>TON Gift Universe - Minimal</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- Lottie-Web Player from CDN -->
@@ -11,46 +11,54 @@
 
     <style>
         :root {
-            --primary-gradient-start: #0077b3; /* Darker TON Blue */
-            --primary-gradient-end: #00aaff;   /* Lighter TON Blue */
-            --secondary-color: #ffc107; /* Gold/Star color - vibrant */
-            --accent-color: #8e44ad; /* Purple accent for contrast */
+            --bg-color: #121212; /* Very dark grey, almost black for minimalism */
+            --surface-color: #1E1E1E; /* Dark grey for cards and surfaces */
+            --surface-hover-color: #282828; /* Slightly lighter for hover */
             
-            --background-start: #1c1f2b; /* Deep space blue/purple */
-            --background-end: #2c3140;   /* Slightly lighter space blue */
+            --primary-color: #007AFF; /* Standard iOS blue - clean and vibrant */
+            --primary-gradient-start: #007AFF;
+            --primary-gradient-end: #00C6FF;   /* Lighter blue for subtle gradient */
 
-            --surface-color: rgba(44, 49, 64, 0.8); /* Semi-transparent surface with slight blur */
-            --surface-alt-color: rgba(55, 60, 80, 0.85);
-            --surface-highlight-color: rgba(60, 65, 90, 0.9);
+            --secondary-color: #FF9500; /* Standard iOS orange for accents */
             
-            --text-color: #e0e0e0;
-            --text-secondary-color: #b0b0c0;
-            --text-on-primary: #ffffff;
-            
-            --border-color: rgba(100, 100, 120, 0.3);
-            --danger-color: #e74c3c;
-            --success-color: #2ecc71;
+            --text-primary: #FFFFFF;
+            --text-secondary: #8E8E93; /* iOS secondary text color */
+            --text-placeholder: #5c5c5f;
 
-            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --border-radius-main: 12px;
-            --border-radius-small: 8px;
-            --box-shadow-soft: 0 4px 15px rgba(0, 0, 0, 0.2);
-            --box-shadow-interactive: 0 6px 20px rgba(0, 0, 0, 0.3);
+            --border-color: rgba(120, 120, 128, 0.16); /* Subtle border, similar to iOS separators */
+            --border-highlight: var(--primary-color);
+
+            --danger-color: #FF3B30;  /* iOS red */
+            --success-color: #34C759; /* iOS green */
+
+            --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --main-border-radius: 12px; 
+            --button-border-radius: 8px;
+            --soft-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15); /* Softer, more minimal shadow */
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        body {
-            font-family: var(--font-family);
-            background: linear-gradient(135deg, var(--background-start), var(--background-end));
-            color: var(--text-color);
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-primary);
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased; /* Smoother fonts on WebKit */
+            -moz-osx-font-smoothing: grayscale;
             -webkit-tap-highlight-color: transparent;
+            font-weight: 500;
+            font-size: 15px; /* Common base for mobile */
+            line-height: 1.4;
         }
 
         #app-container {
@@ -59,175 +67,119 @@
             flex-grow: 1;
         }
 
-        /* Frosted Glass Effect for surfaces */
-        .frosted-surface {
-            background-color: var(--surface-color);
-            backdrop-filter: blur(10px) saturate(150%);
-            -webkit-backdrop-filter: blur(10px) saturate(150%);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-main);
-            box-shadow: var(--box-shadow-soft);
-        }
-
         /* Header */
         #app-header {
-            padding: 15px 20px;
+            padding: 12px 16px; /* Slightly less padding */
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
-            background-color: rgba(30, 33, 45, 0.85); /* Slightly darker for header */
+            background-color: rgba(28, 28, 30, 0.85); /* iOS-like translucent dark */
             backdrop-filter: blur(12px) saturate(180%);
             -webkit-backdrop-filter: blur(12px) saturate(180%);
             border-bottom: 1px solid var(--border-color);
         }
         #app-header .app-title {
-            font-size: 1.4em;
+            font-size: 1.25em; /* 20px if base is 16px */
             font-weight: 700;
-            background: linear-gradient(45deg, var(--primary-gradient-end), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
         }
-        #app-header .wallet-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+        #app-header .wallet-info { display: flex; align-items: center; gap: 10px; }
         #app-header .wallet-address, #app-header .balance {
-            background-color: var(--surface-highlight-color);
+            background-color: var(--surface-hover-color); /* Slightly distinct */
             padding: 6px 12px;
-            border-radius: var(--border-radius-small);
+            border-radius: var(--button-border-radius);
             font-size: 0.9em;
-            font-weight: 500;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border: 1px solid rgba(255,255,255,0.1);
+            font-weight: 600;
         }
         #app-header .ton-icon {
-            width: 20px;
-            height: 20px;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230088CC'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
-            background-size: contain;
-            background-repeat: no-repeat;
-            margin-left: 6px;
-            vertical-align: middle;
+            width: 16px; height: 16px;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%23007AFF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
+            background-size: contain; margin-left: 5px; vertical-align: middle;
         }
 
         /* Content Area */
-        #app-content {
-            flex-grow: 1;
-            padding: 20px;
-            overflow-y: auto;
-        }
+        #app-content { flex-grow: 1; padding: 20px 16px; overflow-y: auto; }
         .page { display: none; }
-        .page.active { display: block; animation: fadeIn 0.5s ease-out; }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .page.active { display: block; animation: pageFadeInMinimal 0.3s ease-out; }
+        @keyframes pageFadeInMinimal {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         /* Navigation Bar */
         #app-nav {
             display: flex;
             justify-content: space-around;
-            background-color: rgba(30, 33, 45, 0.9); /* Consistent with header */
+            background-color: rgba(28, 28, 30, 0.92); /* Slightly more opaque for nav */
             backdrop-filter: blur(12px) saturate(180%);
             -webkit-backdrop-filter: blur(12px) saturate(180%);
             border-top: 1px solid var(--border-color);
-            padding: 12px 0;
-            position: sticky;
-            bottom: 0;
-            z-index: 1000;
+            padding: 8px 0; /* Minimal padding */
+            position: sticky; bottom: 0; z-index: 1000;
         }
         .nav-button {
-            background: none;
-            border: none;
-            color: var(--text-secondary-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 0.75em; /* Slightly smaller for more modern feel */
+            background: none; border: none;
+            color: var(--text-secondary);
+            display: flex; flex-direction: column; align-items: center;
+            font-size: 10px; /* iOS tab bar font size */
             font-weight: 500;
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: var(--border-radius-small);
-            transition: color 0.2s, transform 0.2s;
-            flex: 1; /* Distribute space evenly */
-            text-align: center;
+            cursor: pointer; padding: 4px 5px; /* Minimal padding */
+            border-radius: var(--button-border-radius);
+            transition: color 0.2s;
+            flex: 1; text-align: center;
         }
-        .nav-button:hover {
-            color: var(--primary-gradient-end);
-            transform: translateY(-2px);
-        }
-        .nav-button.active {
-            color: var(--primary-gradient-end);
-            font-weight: 700;
-        }
-        .nav-button.active svg {
-            fill: var(--primary-gradient-end);
-        }
+        .nav-button.active { color: var(--primary-color); font-weight: 600; }
         .nav-button svg {
-            width: 22px;
-            height: 22px;
-            margin-bottom: 5px;
-            fill: currentColor;
-            transition: fill 0.2s;
+            width: 22px; height: 22px; margin-bottom: 2px; fill: currentColor;
         }
+        .nav-button.active svg { fill: var(--primary-color); }
+
 
         /* General UI Elements */
         .button {
-            background: linear-gradient(45deg, var(--primary-gradient-start), var(--primary-gradient-end));
-            color: var(--text-on-primary);
-            border: none;
-            padding: 12px 25px;
-            border-radius: var(--border-radius-small);
-            font-size: 1em;
+            background-color: var(--primary-color);
+            color: var(--text-primary);
+            border: none; padding: 12px 20px;
+            border-radius: var(--button-border-radius);
+            font-size: 1.05em; /* 17px if base 16px */
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            transition: background-color 0.15s ease-out, transform 0.1s ease-out;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 120, 200, 0.3);
+            display: block; /* For full width buttons easily */
+            width: 100%;
         }
-        .button:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 4px 12px rgba(0, 120, 200, 0.4);
-        }
-        .button:active {
-            transform: translateY(0px) scale(0.98);
-        }
+        .button:hover { background-color: color-mix(in srgb, var(--primary-color) 85%, black); }
+        .button:active { transform: scale(0.98); }
         .button-secondary {
-            background: var(--surface-highlight-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            box-shadow: none;
+            background-color: var(--surface-hover-color);
+            color: var(--primary-color); /* Actionable color */
         }
-        .button-secondary:hover {
-            background: var(--surface-alt-color);
-            border-color: rgba(120,120,150,0.5);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+        .button-secondary:hover { background-color: var(--surface-color); }
 
         h2 {
-            margin-top: 0;
-            font-size: 1.8em;
+            margin-top: 0; font-size: 1.75em; /* 28px if base 16px */
             font-weight: 700;
-            color: var(--text-color);
-            padding-bottom: 10px;
-            margin-bottom: 25px;
-            border-bottom: 1px solid var(--border-color);
-            position: relative;
+            color: var(--text-primary);
+            padding-bottom: 8px; margin-bottom: 24px;
         }
-        h2::after { /* Subtle accent line */
-            content: '';
-            position: absolute;
-            left: 0;
-            bottom: -1px; /* Align with border */
-            width: 50px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-gradient-start), var(--primary-gradient-end));
-            border-radius: 2px;
+        h3 { /* For sub-sections within pages */
+            font-size: 1.1em; /* 17-18px */
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 20px;
+            margin-bottom: 12px;
+            text-transform: uppercase; /* iOS like section headers */
+            letter-spacing: 0.5px;
+        }
+        .content-card { /* Reusable card for sections */
+            background-color: var(--surface-color);
+            padding: 16px;
+            border-radius: var(--main-border-radius);
+            margin-bottom: 16px;
         }
 
 
@@ -235,386 +187,217 @@
         .cases-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 20px;
+            gap: 16px;
         }
         .case-card {
-            position: relative; /* For pseudo-elements */
-            overflow: hidden; /* For pseudo-elements */
-            padding: 20px;
+            background-color: var(--surface-color);
+            border-radius: var(--main-border-radius);
+            padding: 16px;
             text-align: center;
             cursor: pointer;
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
-            /* Using the frosted-surface class for base style */
-        }
-        .case-card::before { /* Subtle gradient border effect */
-            content: "";
-            position: absolute;
-            top: 0; right: 0; bottom: 0; left: 0;
-            z-index: -1;
-            margin: -1px; /* Adjust for border */
-            border-radius: inherit; /* important */
-            background: linear-gradient(135deg, var(--primary-gradient-start), var(--accent-color), var(--secondary-color));
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
         .case-card:hover {
-            transform: translateY(-8px) scale(1.03);
-            box-shadow: var(--box-shadow-interactive);
+            background-color: var(--surface-hover-color);
+            transform: translateY(-4px);
         }
-        .case-card:hover::before {
-            opacity: 0.7;
-        }
-        .case-card .case-image-placeholder {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--surface-highlight-color), var(--surface-alt-color));
-            border-radius: var(--border-radius-small);
-            margin: 0 auto 15px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .case-card .case-image-placeholder { /* Emoji from JS */
             font-size: 2.5em;
-            color: var(--primary-gradient-end);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 12px;
+            line-height: 1;
         }
         .case-card .case-name {
-            font-weight: 600;
-            font-size: 1.1em;
-            margin-bottom: 8px;
-            color: var(--text-color);
+            font-weight: 600; font-size: 1em; margin-bottom: 6px;
+            color: var(--text-primary);
         }
         .case-card .case-price {
-            font-size: 0.9em;
-            font-weight: 500;
-            color: var(--secondary-color);
+            font-size: 0.9em; font-weight: 500;
+            color: var(--text-secondary);
         }
 
         /* Roulette Modal */
         .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(10, 10, 20, 0.5); /* Darker, more transparent */
-            backdrop-filter: blur(5px); /* Subtle blur for modal background */
-            -webkit-backdrop-filter: blur(5px);
-            align-items: center;
-            justify-content: center;
-            padding: 15px;
-            box-sizing: border-box;
+            display: none; position: fixed; z-index: 2000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); 
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            align-items: center; justify-content: center;
+            padding: 16px;
         }
-        .modal.active { display: flex; animation: modalFadeIn 0.3s ease-out; }
-        @keyframes modalFadeIn {
+        .modal.active { display: flex; animation: modalFadeInMinimal 0.2s ease-out; }
+        @keyframes modalFadeInMinimal {
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
+
         .modal-content {
-            /* frosted-surface class for base style */
-            padding: 30px;
-            width: 100%;
-            max-width: 420px;
+            background-color: var(--surface-color);
+            padding: 20px;
+            border-radius: var(--main-border-radius);
+            width: 100%; max-width: 380px; 
             text-align: center;
-            position: relative; /* For close button if added */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .modal-content h3 {
-            margin-top: 0;
-            margin-bottom: 25px;
-            font-size: 1.6em;
-            font-weight: 700;
-            color: var(--primary-gradient-end);
+        .modal-content h3 { /* Modal title */
+            margin-top: 0; margin-bottom: 16px;
+            font-size: 1.25em; font-weight: 600;
+            color: var(--text-primary);
+        }
+        #roulette-wheel-container p { /* "Possible Artifacts" text */
+            font-size: 0.85em; color: var(--text-secondary);
+            margin-bottom: 8px; font-weight: 500;
         }
         #roulette-wheel {
-            height: 120px; /* Taller */
-            border: 2px solid var(--border-color);
-            border-radius: var(--border-radius-small);
-            margin: 25px 0;
-            overflow: hidden;
-            position: relative;
-            background: linear-gradient(var(--background-start), var(--background-end)); /* Darker inner wheel */
-            box-shadow: inset 0 0 15px rgba(0,0,0,0.3);
+            height: 180px; /* 3 items of 60px */
+            border: 1px solid var(--border-color);
+            border-radius: var(--button-border-radius);
+            overflow: hidden; position: relative;
+            background-color: var(--bg-color); 
+            margin: 16px 0;
         }
-        #roulette-wheel::after { /* Center marker */
+        #roulette-wheel::before { /* Center marker */
             content: '';
             position: absolute;
-            left: 0;
+            left: 0px; 
+            right: 0px;
             top: 50%;
             transform: translateY(-50%);
-            width: 100%;
-            height: 3px; /* Marker line */
-            background: linear-gradient(90deg, transparent, var(--primary-gradient-end), transparent);
+            height: 60px; /* Height of one item */
+            border-top: 2px solid var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
             opacity: 0.5;
-            z-index: 1;
+            z-index: 2;
+            pointer-events: none; /* Allow clicks through */
         }
         #roulette-spinner {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            left: 0;
-            width: 100%;
-            transition: top 0.1s linear;
+            display: flex; flex-direction: column;
+            position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 120px;
+            height: 60px; 
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.3em;
-            font-weight: 600;
-            padding: 0 15px;
+            justify-content: space-between; 
+            padding: 0 16px;
             box-sizing: border-box;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: var(--text-secondary-color);
-            transition: color 0.3s, transform 0.3s;
+            border-bottom: 1px solid var(--border-color);
+            background-color: transparent; /* Base item bg */
         }
-        /* Highlight item near center */
-        /* This would require JS to dynamically add/remove class during spin for best effect */
-        /* .roulette-item.active-in-wheel { color: var(--text-color); transform: scale(1.1); } */
-        
-        #prize-display {
-            margin-top: 25px;
-            font-size: 1.5em;
+        .roulette-item:last-child { border-bottom: none; }
+        .roulette-item-name {
+            font-size: 1em; font-weight: 500; color: var(--text-secondary);
+        }
+        .roulette-item-value { 
+            font-size: 0.85em; font-weight: 500; color: var(--secondary-color);
+        }
+        .roulette-item.is-winning .roulette-item-name { /* Style for item landing in center */
+            color: var(--text-primary) !important;
             font-weight: 700;
+        }
+        #prize-display {
+            margin-top: 20px; font-size: 1.2em; font-weight: 600;
             color: var(--success-color);
         }
         #prize-display.hidden { display: none; }
-        .modal-actions {
-            margin-top: 30px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
+        .modal-actions { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Input fields minimal style */
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border-radius: var(--button-border-radius);
+            background-color: var(--surface-hover-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            font-size: 1em; font-weight: 500;
+            box-sizing: border-box;
+        }
+        input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-placeholder); }
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: var(--border-highlight);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); /* Subtle focus ring */
         }
 
-        /* Profile Page */
-        .profile-header {
-            display: flex;
-            flex-direction: column; /* Stack avatar and info */
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            padding: 25px;
-            text-align: center;
-        }
+        /* Profile Page Specifics */
+        .profile-header { text-align: center; margin-bottom: 24px; padding-top: 10px;}
         .profile-avatar-placeholder {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, var(--primary-gradient-start), var(--accent-color));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5em;
-            font-weight: 700;
-            color: var(--text-on-primary);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            width: 80px; height: 80px; border-radius: 50%;
+            background-color: var(--surface-hover-color);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.5em; font-weight: 600; color: var(--text-secondary);
+            margin: 0 auto 12px auto;
+            border: 2px solid var(--border-color);
         }
-        .profile-info .username {
-            font-size: 1.5em;
-            font-weight: 700;
-            color: var(--text-color);
-        }
-        .profile-info .userid {
-            font-size: 0.9em;
-            color: var(--text-secondary-color);
-        }
-        .balance-section, .wallet-section, .inventory-section {
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .balance-display, .wallet-display {
-            font-size: 1.2em;
-            font-weight: 500;
-            margin-bottom: 15px;
-        }
+        .profile-info .username { font-size: 1.4em; font-weight: 600; margin-bottom: 4px;}
+        .profile-info .userid { font-size: 0.9em; color: var(--text-secondary); }
+
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Slightly larger items */
-            gap: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 12px;
         }
         .inventory-item {
-            background-color: var(--surface-alt-color); /* Darker for items */
-            border-radius: var(--border-radius-small);
-            padding: 15px;
-            text-align: center;
-            border: 1px solid var(--border-color);
-            transition: transform 0.2s, box-shadow 0.2s;
+            background-color: var(--surface-hover-color);
+            border-radius: var(--button-border-radius);
+            padding: 12px; text-align: center;
         }
-        .inventory-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-        .inventory-item-name {
-            font-size: 1em;
-            font-weight: 500;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .inventory-item-value {
-            font-size: 0.85em;
-            color: var(--secondary-color);
-            font-weight: 600;
-        }
-        .inventory-item-actions button {
-            font-size: 0.8em;
-            padding: 6px 10px;
-            margin-top: 10px;
-        }
-
-        /* Input fields */
-        input[type="text"], select {
-            width: 100%;
-            padding: 12px 15px;
-            margin-bottom: 15px;
-            border-radius: var(--border-radius-small);
-            background-color: var(--surface-highlight-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            font-size: 1em;
-            box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input[type="text"]:focus, select:focus {
-            outline: none;
-            border-color: var(--primary-gradient-end);
-            box-shadow: 0 0 0 2px rgba(0, 170, 255, 0.3);
-        }
-
+        .inventory-item-name { font-size: 0.9em; font-weight: 500; margin-bottom: 6px; }
+        .inventory-item-value { font-size: 0.8em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
+        .inventory-item-actions .button { font-size: 0.8em; padding: 6px 10px; }
+        
         /* Upgrade Page */
-        .upgrade-area { padding: 25px; text-align: center; }
-        .upgrade-chance-display {
-            width: 160px;
-            height: 160px;
-            border: 6px solid;
-            border-image-slice: 1;
-            border-image-source: linear-gradient(to right, var(--primary-gradient-start), var(--primary-gradient-end));
-            border-radius: 50%;
-            margin: 25px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.8em;
-            font-weight: 700;
-            color: var(--text-color);
-            box-shadow: 0 0 20px rgba(0, 170, 255, 0.2);
+        #upgrade-chance-display {
+            font-size: 2.5em; font-weight: 700; color: var(--text-primary);
+            text-align:center; margin: 20px 0; padding: 15px;
+            background-color: var(--surface-hover-color);
+            border-radius: 50%; width:100px; height:100px; line-height: 70px; margin-left:auto; margin-right:auto;
+            border: 3px solid var(--primary-color);
         }
-        .multiplier-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 25px 0;
-            flex-wrap: wrap;
+        .multiplier-buttons { display: flex; justify-content: center; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
+        .multiplier-buttons button { width: auto; flex-grow: 1; padding: 10px; font-size: 0.9em;}
+        .multiplier-buttons button.active-multiplier {
+            background-color: var(--primary-color);
+            color: var(--text-primary);
         }
-        .multiplier-buttons button { min-width: 55px; padding: 10px 15px; }
-        .multiplier-buttons button.active-multiplier { /* Add this class with JS */
-             background: linear-gradient(45deg, var(--accent-color), #c0392b); /* Example different active color */
-             box-shadow: 0 2px 8px rgba(142, 68, 173, 0.4);
-        }
-
+        
         /* Invite Page */
-        .invite-content { padding: 25px; text-align: center; }
-        .stats-box {
-            display: flex;
-            justify-content: space-around;
-            margin: 25px 0;
-            gap: 15px;
-        }
+        .stats-box { display: flex; justify-content: space-around; margin: 20px 0; gap: 12px; }
         .stat-item {
-            background-color: var(--surface-alt-color);
-            padding: 15px;
-            border-radius: var(--border-radius-small);
-            flex: 1;
-            text-align: center;
+            background-color: var(--surface-hover-color);
+            padding: 12px; border-radius: var(--button-border-radius);
+            flex: 1; text-align: center;
         }
-        .stat-item .value {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: var(--primary-gradient-end);
-        }
-        .stat-item .label {
-            font-size: 0.9em;
-            color: var(--text-secondary-color);
-            margin-top: 5px;
-        }
-        .invited-users-list .user-entry {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
-            border-bottom: 1px solid var(--border-color);
-            background-color: var(--surface-alt-color);
-            border-radius: var(--border-radius-small);
-            margin-bottom: 8px;
-        }
-        .invited-users-list .user-entry:last-child { border-bottom: none; }
+        .stat-item .value { font-size: 1.5em; font-weight: 600; color: var(--primary-color); }
+        .stat-item .label { font-size: 0.8em; color: var(--text-secondary); margin-top: 4px; }
+        .invited-users-list div { padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em;}
+        .invited-users-list div:last-child { border-bottom: none; }
 
         /* Leaderboard Page */
         .leaderboard-list .leader-entry {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background-color: var(--surface-alt-color); /* Slightly different from profile cards */
-            border-radius: var(--border-radius-small);
-            margin-bottom: 10px;
-            border: 1px solid var(--border-color);
-            transition: background-color 0.2s, transform 0.2s;
+            display: flex; align-items: center; padding: 12px 0;
+            border-bottom: 1px solid var(--border-color);
         }
-        .leaderboard-list .leader-entry:hover {
-            background-color: var(--surface-highlight-color);
-            transform: translateX(5px);
-        }
+        .leaderboard-list .leader-entry:last-child { border-bottom: none; }
         .leader-entry .rank {
-            font-weight: 700;
-            font-size: 1.1em;
-            margin-right: 15px;
-            min-width: 25px;
-            text-align: right;
-            color: var(--primary-gradient-end);
+            font-weight: 600; font-size: 1em;
+            min-width: 30px; text-align: left; color: var(--text-secondary);
         }
-        .leader-entry .avatar-placeholder {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-gradient-start), var(--accent-color));
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1em;
-            color: white;
-            font-weight: 600;
+        .leader-entry .avatar-placeholder { /* Minimal placeholder */
+            width: 36px; height: 36px; border-radius: 50%;
+            background-color: var(--surface-hover-color); color: var(--text-secondary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1em; font-weight: 600; margin: 0 12px;
         }
-        .leader-entry .info .name { font-weight: 600; font-size: 1.05em; }
-        .leader-entry .info .details { font-size: 0.8em; color: var(--text-secondary-color); }
+        .leader-entry .info .name { font-weight: 500; font-size: 1em; }
+        .leader-entry .info .details { font-size: 0.8em; color: var(--text-secondary); }
         .leader-entry .score {
-            margin-left: auto;
-            font-weight: 700;
-            font-size: 1.1em;
-            color: var(--secondary-color);
+            margin-left: auto; font-weight: 600; font-size: 1em;
+            color: var(--text-primary);
         }
-        .leader-entry.current-user-entry { /* Style for current user in leaderboard */
-             border-left: 4px solid var(--secondary-color);
-             background-color: var(--surface-highlight-color);
-        }
-
-
-        /* Apply frosted-surface to common containers */
-        .case-card, .modal-content,
-        .profile-header, .balance-section, .wallet-section, .inventory-section,
-        .upgrade-area, .invite-content
-         {
-            background-color: var(--surface-color);
-            backdrop-filter: blur(10px) saturate(150%);
-            -webkit-backdrop-filter: blur(10px) saturate(150%);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-main);
-            box-shadow: var(--box-shadow-soft);
+         .leader-entry.current-user-entry .info .name {
+             color: var(--primary-color);
         }
 
     </style>
@@ -622,7 +405,7 @@
 <body>
     <div id="app-container">
         <header id="app-header">
-            <div class="app-title">TON Galaxy Gifts</div>
+            <div class="app-title">Gift Universe</div>
             <div class="wallet-info">
                 <div id="wallet-address" class="wallet-address">Connect Wallet</div>
                 <div id="balance" class="balance">
@@ -633,21 +416,21 @@
 
         <main id="app-content">
             <div id="main-page" class="page active">
-                <h2>Explore Cases</h2>
+                <h2>Cases</h2>
                 <div id="cases-grid" class="cases-grid">
                     <!-- Cases will be dynamically inserted here -->
                 </div>
             </div>
 
-            <div id="upgrade-page" class="page">
-                <h2>Item Fortifier</h2>
-                <div class="upgrade-area">
-                    <p>Select an item from your vault to enhance:</p>
+             <div id="upgrade-page" class="page">
+                <h2>Enhance Item</h2>
+                <div class="content-card">
+                    <p style="text-align:center; margin-bottom:15px; color: var(--text-secondary);">Select an item from your collection:</p>
                     <select id="upgrade-inventory-select">
-                        <option value="">-- Choose Your Destiny --</option>
+                        <option value="">-- Choose Item --</option>
                     </select>
-                    <div class="upgrade-chance-display">50%</div>
-                    <p>Select Enhancement Multiplier:</p>
+                    <div id="upgrade-chance-display">50%</div>
+                     <p style="text-align:center; margin-bottom:10px; color: var(--text-secondary);">Multiplier:</p>
                     <div id="multiplier-buttons" class="multiplier-buttons">
                         <button class="button button-secondary" data-multiplier="1.5">x1.5</button>
                         <button class="button button-secondary" data-multiplier="2">x2</button>
@@ -657,46 +440,47 @@
                         <button class="button button-secondary" data-multiplier="20">x20</button>
                     </div>
                     <button id="do-upgrade-button" class="button">Attempt Enhancement</button>
-                    <p id="upgrade-result" style="margin-top: 20px; font-weight: 500;"></p>
+                    <p id="upgrade-result" style="margin-top: 15px; font-weight: 500; text-align:center;"></p>
                 </div>
             </div>
 
             <div id="invite-page" class="page">
-                <h2>Galactic Allies</h2>
-                <div class="invite-content">
-                    <p style="font-size: 1.1em; margin-bottom: 20px;">Earn <strong>10%</strong> from your referred allies' cosmic voyages!</p>
-                    <div class="referral-link-area">
-                        <input type="text" id="referral-link" value="https://t.me/YourAppBot?start=ref_USER123" readonly>
-                        <button id="copy-ref-link-button" class="button" style="width: 100%; margin-top: 10px;">Copy Your Ally Code</button>
-                    </div>
-                    <div class="stats-box">
+                <h2>Referrals</h2>
+                 <div class="content-card">
+                    <p style="font-size: 1em; margin-bottom: 15px; text-align:center; color:var(--text-secondary);">Invite friends and earn <strong>10%</strong> of their deposits!</p>
+                    <input type="text" id="referral-link" value="https://t.me/YourAppBot?start=ref_USER123" readonly>
+                    <button id="copy-ref-link-button" class="button" style="margin-bottom: 20px;">Copy Referral Code</button>
+                    
+                    <div class="stats-box" style="margin-bottom: 20px;">
                         <div class="stat-item">
-                            <div id="referral-balance" class="value">0.00 <span class="ton-icon"></span></div>
-                            <div class="label">Ally Rewards</div>
+                            <div id="referral-balance" class="value">0.00 <span class="ton-icon" style="width:16px; height:16px;"></span></div>
+                            <div class="label">Referral Earnings</div>
                         </div>
                         <div class="stat-item">
                             <div id="invited-count" class="value">0</div>
-                            <div class="label">Allies Recruited</div>
+                            <div class="label">Friends Invited</div>
                         </div>
                     </div>
-                    <button id="withdraw-referral-button" class="button button-secondary" style="width: 100%; margin-bottom:20px;">Claim Ally Rewards</button>
-                    <h3>Recruited Allies (Demo)</h3>
+                    <button id="withdraw-referral-button" class="button button-secondary">Withdraw Earnings</button>
+                </div>
+                <div class="content-card">
+                    <h3>Invited Friends (Demo)</h3>
                     <div class="invited-users-list">
-                        <div class="user-entry"><span>CosmoUser_77</span><span>Contribution: 1.5 <span class="ton-icon"></span></span></div>
-                        <div class="user-entry"><span>StarlightSeeker</span><span>Contribution: 0.5 <span class="ton-icon"></span></span></div>
+                        <div>User_Alpha7 - Profit: 1.5 TON</div>
+                        <div>User_BetaMax - Profit: 0.5 TON</div>
                     </div>
                 </div>
             </div>
 
+
             <div id="leaderboard-page" class="page">
-                <h2>Cosmic Legends</h2>
-                <div id="leaderboard-list" class="leaderboard-list">
-                    <!-- Leaderboard entries will be dynamically inserted -->
+                <h2>Leaderboard</h2>
+                <div id="leaderboard-list" class="leaderboard-list content-card" style="padding-top:0; padding-bottom:0;">
+                    <!-- Leaderboard entries -->
                 </div>
             </div>
 
             <div id="profile-page" class="page">
-                <h2>Stellar Profile</h2>
                 <div class="profile-header">
                     <div id="profile-avatar" class="profile-avatar-placeholder">V</div>
                     <div class="profile-info">
@@ -705,22 +489,23 @@
                     </div>
                 </div>
 
-                <div class="balance-section">
-                    <h3>Your Stash</h3>
-                    <div id="profile-balance-display" class="balance-display">100.00 <span class="ton-icon"></span></div>
-                    <button id="deposit-button" class="button" style="width:100%;">Add TON Crystals</button>
+                <div class="content-card">
+                    <h3>Balance</h3>
+                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">100.00 <span class="ton-icon" style="width:20px; height:20px;"></span></div>
+                    <input type="number" id="deposit-amount-input" placeholder="Amount in TON" style="margin-bottom: 10px;">
+                    <button id="confirm-deposit-button" class="button">Deposit TON (Test)</button>
                 </div>
 
-                <div class="wallet-section">
-                    <h3>Hyperdrive Link</h3>
-                    <div id="profile-wallet-address" class="wallet-display">UQBoR...3064 (Demo)</div>
-                    <button id="disconnect-wallet-button" class="button button-secondary" style="width:100%;">Sever Link</button>
+                <div class="content-card">
+                     <h3>Wallet</h3>
+                    <div id="profile-wallet-address" style="color:var(--text-secondary); margin-bottom:10px; word-break:break-all;">UQBoR...3064 (Demo)</div>
+                    <button id="disconnect-wallet-button" class="button button-secondary">Disconnect Wallet</button>
                 </div>
 
-                <div class="inventory-section">
-                    <h3>Artifact Vault (<span id="inventory-count">0</span>)</h3>
+                <div class="content-card">
+                    <h3>My Collection (<span id="inventory-count">0</span>)</h3>
                     <div id="inventory-grid" class="inventory-grid">
-                        <p id="empty-inventory-message" style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary-color);">Your vault is empty. Uncover some artifacts!</p>
+                        <p id="empty-inventory-message" style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder); padding:15px 0;">Your collection is empty.</p>
                         <!-- Inventory items will be here -->
                     </div>
                 </div>
@@ -733,16 +518,16 @@
                 Cases
             </button>
             <button class="nav-button" data-page="upgrade-page">
-                 <svg viewBox="0 0 24 24"><path d="M9.48 5.55L6.91 8.12L5.5 6.71L9.48 2.73L13.47 6.71L12.06 8.12L9.48 5.55M9.48 5.55V13.75C9.48 14.15 9.15 14.48 8.75 14.48C8.35 14.48 8.02 14.15 8.02 13.75V5.55L5.45 8.12L4.04 6.71L8.02 2.73L12.01 6.71L10.6 8.12L8.02 5.55M15.25 10.25C14.85 10.25 14.52 10.58 14.52 10.98V19.18L11.95 16.61L10.54 18L14.52 21.99L18.5 18L17.09 16.61L14.52 19.18V10.98C14.52 10.58 14.19 10.25 13.79 10.25H15.25Z"/></svg> <!-- Upgrade/Rocket Icon -->
-                Fortify
+                 <svg viewBox="0 0 24 24"><path d="M9.48 5.55L6.91 8.12L5.5 6.71L9.48 2.73L13.47 6.71L12.06 8.12L9.48 5.55M9.48 5.55V13.75C9.48 14.15 9.15 14.48 8.75 14.48C8.35 14.48 8.02 14.15 8.02 13.75V5.55L5.45 8.12L4.04 6.71L8.02 2.73L12.01 6.71L10.6 8.12L8.02 5.55M15.25 10.25C14.85 10.25 14.52 10.58 14.52 10.98V19.18L11.95 16.61L10.54 18L14.52 21.99L18.5 18L17.09 16.61L14.52 19.18V10.98C14.52 10.58 14.19 10.25 13.79 10.25H15.25Z"/></svg>
+                Enhance
             </button>
             <button class="nav-button" data-page="invite-page">
                  <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                Allies
+                Referrals
             </button>
             <button class="nav-button" data-page="leaderboard-page">
-                <svg viewBox="0 0 24 24"><path d="M16,1H4C2.89,1 2,1.89 2,3V17H4V3H16V1M16.5,5H7.5C6.67,5 6,5.67 6,6.5V22.5L12,19.5L18,22.5V6.5C18,5.67 17.33,5 16.5,5M14,11H10V9H14V11M14,15H10V13H14V15Z" /></svg> <!-- Trophy/Leaderboard Icon -->
-                Legends
+                <svg viewBox="0 0 24 24"><path d="M16,1H4C2.89,1 2,1.89 2,3V17H4V3H16V1M16.5,5H7.5C6.67,5 6,5.67 6,6.5V22.5L12,19.5L18,22.5V6.5C18,5.67 17.33,5 16.5,5M14,11H10V9H14V11M14,15H10V13H14V15Z" /></svg>
+                Leaders
             </button>
             <button class="nav-button" data-page="profile-page">
                 <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -754,18 +539,21 @@
     <!-- Roulette Modal -->
     <div id="roulette-modal" class="modal">
         <div class="modal-content">
-            <h3 id="roulette-case-name">Unveiling Mystery...</h3>
-            <div id="roulette-wheel">
-                <div id="roulette-spinner">
-                    <!-- Prize items will be dynamically added here -->
+            <h3 id="roulette-case-name">Opening Case...</h3>
+            <div id="roulette-wheel-container">
+                <p>Possible Items:</p>
+                <div id="roulette-wheel">
+                    <div id="roulette-spinner">
+                        <!-- Prize items will be dynamically added here -->
+                    </div>
                 </div>
             </div>
             <div id="prize-display" class="hidden">
-                Artifact Uncovered: <span id="won-prize-name"></span>!
+                You got: <span id="won-prize-name"></span>!
             </div>
             <div class="modal-actions">
-                <button id="spin-button" class="button">Unlock (0.0 TON)</button>
-                <button id="close-roulette-button" class="button button-secondary">Return</button>
+                <button id="spin-button" class="button">Spin</button>
+                <button id="close-roulette-button" class="button button-secondary">Close</button>
             </div>
         </div>
     </div>
@@ -777,7 +565,7 @@ const GIFT_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/c
 const currentUser = {
     id: '5146625949',
     username: 'Vasiliy',
-    walletAddress: 'UQBoR...3064', // Simulated
+    walletAddress: 'UQBoR...3064', 
     tonBalance: 100.00,
     starBalance: 2000,
     inventory: [],
@@ -790,14 +578,14 @@ let currentOpenCase = null;
 let selectedMultiplier = 1.5;
 
 const casesData = [
-    // == Regular Cases ==
+    // EMOJIS ADDED TO CASE NAMES
     {
-        id: 'regular', name: 'Regular Cache', priceTON: 0.1, priceStars: 50,
+        id: 'regular', name: '📦 Regular Cache', priceTON: 0.1, priceStars: 50,
         prizes: [
             { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.00005 },
             { name: 'Durov\'s Cap', tgsFile: 'Durovs-Cap.tgs', floorPrice: 150, probability: 0.00009 },
             { name: 'B-Day Candle', tgsFile: 'B-Day-Candle.tgs', floorPrice: 0.7, probability: 0.0475 },
-            { name: 'Toy Bear', tgsFile: 'Toy-Bear.tgs', floorPrice: 5.2, probability: 0.08 }, // Increased variety of common
+            { name: 'Toy Bear', tgsFile: 'Toy-Bear.tgs', floorPrice: 5.2, probability: 0.08 },
             { name: 'Cookie Heart', tgsFile: 'Cookie-Heart.tgs', floorPrice: 0.9, probability: 0.15 },
             { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.20 },
             { name: 'Hynpo Lollipop', tgsFile: 'Hynpo-Lollipop.tgs', floorPrice: 0.7, probability: 0.20 },
@@ -808,7 +596,7 @@ const casesData = [
         ]
     },
     {
-        id: 'lolpop', name: 'Lol Pop Stash', priceTON: 0.5,
+        id: 'lolpop', name: '🍭 Lol Pop Stash', priceTON: 0.5,
         prizes: [
             { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.01 },
             { name: 'Party Sparkler', tgsFile: 'Party-Sparkler.tgs', floorPrice: 1, probability: 0.10 },
@@ -823,7 +611,7 @@ const casesData = [
         ]
     },
     {
-        id: 'recordplayer', name: 'Record Player Vault', priceTON: 3,
+        id: 'recordplayer', name: '🎶 Record Player Vault', priceTON: 3,
         prizes: [
             { name: 'Record Player', tgsFile: 'Record-Player.tgs', floorPrice: 2, probability: 0.50 },
             { name: 'Lol Pop', tgsFile: 'Lol-Pop.tgs', floorPrice: 0.7, probability: 0.08 },
@@ -836,7 +624,7 @@ const casesData = [
         ]
     },
     {
-        id: 'swisswatch', name: 'Swiss Watch Box', priceTON: 5,
+        id: 'swisswatch', name: '⌚ Swiss Watch Box', priceTON: 5,
         prizes: [
             { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.10 },
             { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.20 },
@@ -850,7 +638,7 @@ const casesData = [
         ]
     },
     {
-        id: 'perfumebottle', name: 'Perfume Chest', priceTON: 10,
+        id: 'perfumebottle', name: '💧 Perfume Chest', priceTON: 10,
         prizes: [
             { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.10 },
             { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.15 },
@@ -864,9 +652,9 @@ const casesData = [
         ]
     },
     {
-        id: 'vintagecigar', name: 'Vintage Cigar Safe', priceTON: 20,
+        id: 'vintagecigar', name: '🚬 Vintage Cigar Safe', priceTON: 20,
         prizes: [
-            { name: 'Vintage Cigar', tgsFile: 'Vintage-CIgar.tgs', floorPrice: 13, probability: 0.10 }, // Note: filename has CIgar
+            { name: 'Vintage Cigar', tgsFile: 'Vintage-CIgar.tgs', floorPrice: 13, probability: 0.10 },
             { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.15 },
             { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.20 },
             { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.15 },
@@ -877,7 +665,7 @@ const casesData = [
         ]
     },
     {
-        id: 'astralshard', name: 'Astral Shard Relic', priceTON: 50,
+        id: 'astralshard', name: '✨ Astral Shard Relic', priceTON: 50,
         prizes: [
             { name: 'Astral Shard', tgsFile: 'Astral-Shard.tgs', floorPrice: 60, probability: 0.10 },
             { name: 'Vintage Cigar', tgsFile: 'Vintage-CIgar.tgs', floorPrice: 13, probability: 0.15 },
@@ -891,7 +679,7 @@ const casesData = [
         ]
     },
     {
-        id: 'plushpepe', name: 'Plush Pepe Hoard', priceTON: 100,
+        id: 'plushpepe', name: '🐸 Plush Pepe Hoard', priceTON: 100,
         prizes: [
             { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.10 },
             { name: 'Durov\'s Cap', tgsFile: 'Durovs-Cap.tgs', floorPrice: 150, probability: 0.50 },
@@ -899,16 +687,14 @@ const casesData = [
         ]
     },
     {
-        id: 'happypepe', name: 'Happy Pepe Treasure', priceTON: 600,
+        id: 'happypepe', name: '🥳 Happy Pepe Treasure', priceTON: 600,
         prizes: [
             { name: 'Kissed Frog Happy Pepe', tgsFile: 'Happy Pepe Kissed Frog.tgs', floorPrice: 660, probability: 0.3636 },
             { name: 'Plush Pepe', tgsFile: 'Plush-Pepe.tgs', floorPrice: 560, probability: 0.6364 },
         ]
     },
-
-    // == "Background" Cases (Thematic) ==
     {
-        id: 'amber', name: 'Amber Nebula Case', priceTON: 3,
+        id: 'amber', name: '🔶 Amber Nebula Case', priceTON: 3,
         prizes: [
             { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.01 },
             { name: 'Swiss Watch', tgsFile: 'Swiss-Watch.tgs', floorPrice: 9, probability: 0.03 },
@@ -925,7 +711,7 @@ const casesData = [
         ]
     },
     {
-        id: 'midnightblue', name: 'Midnight Blue Comet', priceTON: 3,
+        id: 'midnightblue', name: '🔷 Midnight Blue Comet', priceTON: 3,
         prizes: [
             { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.01 },
             { name: 'Neko Helmet', tgsFile: 'Neko-Helmet.tgs', floorPrice: 7.5, probability: 0.03 },
@@ -942,7 +728,7 @@ const casesData = [
         ]
     },
     {
-        id: 'onyxblack', name: 'Onyx Black Hole', priceTON: 5,
+        id: 'onyxblack', name: '⚫ Onyx Black Hole', priceTON: 5,
         prizes: [
             { name: 'Sharp Tongue', tgsFile: 'Sharp-Tongue.tgs', floorPrice: 10, probability: 0.01 },
             { name: 'Genie Lamp', tgsFile: 'Genie-Lamp.tgs', floorPrice: 9.6, probability: 0.03 },
@@ -959,7 +745,7 @@ const casesData = [
         ]
     },
     {
-        id: 'black', name: 'BLACK Singularity', priceTON: 15,
+        id: 'black', name: '🖤 BLACK Singularity', priceTON: 15,
         prizes: [
             { name: 'Perfume Bottle', tgsFile: 'Perfume-Bottle.tgs', floorPrice: 21, probability: 0.01 },
             { name: 'Mini Oscar', tgsFile: 'Mini-Oscar.tgs', floorPrice: 18, probability: 0.03 },
@@ -977,19 +763,6 @@ const casesData = [
     },
 ];
 
-// --- DOM Elements (same as before) ---
-// ... (rest of the JavaScript code is identical to the previous version)
-// Make sure to copy the JS part from the previous long answer.
-// I'm omitting it here for brevity, but it's crucial.
-// The JS code starts with: const appHeader = { ...
-// And ends with: navigateToPage('main-page'); });
-</script>
-<script>
-// PASTE THE FULL JAVASCRIPT FROM THE PREVIOUS RESPONSE HERE
-// It starts with: const appHeader = { ...
-// And ends with: navigateToPage('main-page'); });
-
-// --- Constants and Global State (already defined above, ensure it's the one with full casesData) ---
 
 // --- DOM Elements ---
 const appHeader = {
@@ -1018,15 +791,17 @@ const profileElements = {
     inventoryGrid: document.getElementById('inventory-grid'),
     inventoryCount: document.getElementById('inventory-count'),
     emptyInventoryMessage: document.getElementById('empty-inventory-message'),
-    depositButton: document.getElementById('deposit-button'),
-    disconnectWalletButton: document.getElementById('disconnect-wallet-button')
+    disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
+    depositAmountInput: document.getElementById('deposit-amount-input'),
+    confirmDepositButton: document.getElementById('confirm-deposit-button')
 };
 
 const upgradeElements = {
     inventorySelect: document.getElementById('upgrade-inventory-select'),
     multiplierButtons: document.getElementById('multiplier-buttons'),
     doUpgradeButton: document.getElementById('do-upgrade-button'),
-    upgradeResult: document.getElementById('upgrade-result')
+    upgradeResult: document.getElementById('upgrade-result'),
+    chanceDisplay: document.getElementById('upgrade-chance-display') 
 };
 
 const inviteElements = {
@@ -1039,11 +814,10 @@ const inviteElements = {
 
 const leaderboardList = document.getElementById('leaderboard-list');
 
-
 // --- Utility Functions ---
 function updateBalances() {
     appHeader.tonBalance.textContent = currentUser.tonBalance.toFixed(2);
-    profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
+    profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon" style="width:20px; height:20px;"></span>`;
 }
 
 function navigateToPage(pageId) {
@@ -1058,9 +832,12 @@ function navigateToPage(pageId) {
     window.scrollTo(0, 0); 
 }
 
-function showNotification(message, type = 'info') { 
-    // A more styled notification could be implemented here
-    alert(message); 
+function showTGNotification(message, type = 'info') { 
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
+        Telegram.WebApp.showAlert(message);
+    } else {
+        alert(message); 
+    }
     if (window.Telegram && Telegram.WebApp.HapticFeedback) {
         if (type === 'success') Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         else if (type === 'error') Telegram.WebApp.HapticFeedback.notificationOccurred('error');
@@ -1071,14 +848,14 @@ function showNotification(message, type = 'info') {
 // --- Rendering Functions ---
 function renderHeader() {
     if (currentUser.walletAddress && currentUser.walletAddress !== "Connect Wallet") {
-        appHeader.walletAddress.textContent = currentUser.walletAddress.substring(0, 6) + '...' + currentUser.walletAddress.substring(currentUser.walletAddress.length - 4);
-        appHeader.walletAddress.onclick = null; // Remove connect action if connected
+        appHeader.walletAddress.textContent = currentUser.walletAddress.substring(0, 5) + '...' + currentUser.walletAddress.substring(currentUser.walletAddress.length - 4);
+        appHeader.walletAddress.onclick = null; 
     } else {
         appHeader.walletAddress.textContent = "Connect Wallet";
         appHeader.walletAddress.onclick = () => {
-            currentUser.walletAddress = "UQDemoWalletAddressForUser1234567890"; // Simulate
+            currentUser.walletAddress = "UQDemoWalletAddrLongSampleText12345"; 
             renderHeader();
-            showNotification("Wallet Connected (Demo)!", 'success');
+            showTGNotification("Wallet Connected (Demo)!", 'success');
         };
     }
     updateBalances();
@@ -1088,12 +865,12 @@ function renderCases() {
     casesGrid.innerHTML = '';
     casesData.forEach(caseItem => {
         const card = document.createElement('div');
-        card.className = 'case-card frosted-surface'; // Added frosted-surface
+        card.className = 'case-card';
         card.onclick = () => openRouletteModal(caseItem);
 
         const imagePlaceholder = document.createElement('div');
         imagePlaceholder.className = 'case-image-placeholder';
-        imagePlaceholder.textContent = '🌌'; // Galaxy/Mystery icon
+        imagePlaceholder.textContent = caseItem.name.substring(0, caseItem.name.indexOf(' ') +1) || '🎁';
 
         const name = document.createElement('div');
         name.className = 'case-name';
@@ -1145,7 +922,7 @@ function renderInventory() {
 }
 
 function populateUpgradeInventorySelect() {
-    upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Your Destiny --</option>';
+    upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.forEach(item => {
         const option = document.createElement('option');
         option.value = item.id;
@@ -1156,7 +933,7 @@ function populateUpgradeInventorySelect() {
 
 function renderLeaderboard() {
     leaderboardList.innerHTML = ''; 
-    const leaders = [
+    const leaders = [ 
         { rank: 1, name: 'NovaPrime', avatarChar: 'N', opened: 250, income: 1850.5 },
         { rank: 2, name: 'Starlord77', avatarChar: 'S', opened: 220, income: 1580.2 },
         { rank: 3, name: 'GalaxyGlider', avatarChar: 'G', opened: 300, income: 1250.0 },
@@ -1173,9 +950,9 @@ function renderLeaderboard() {
             <div class="avatar-placeholder">${leader.avatarChar}</div>
             <div class="info">
                 <div class="name">${leader.name}</div>
-                <div class="details">Unlocked ${leader.opened} artifacts</div>
+                <div class="details">Opened ${leader.opened} cases</div>
             </div>
-            <div class="score">${leader.income.toFixed(1)} <span class="ton-icon"></span></div>
+            <div class="score">${leader.income.toFixed(1)} <span class="ton-icon" style="width:16px; height:16px;"></span></div>
         `;
         leaderboardList.appendChild(entry);
     });
@@ -1183,7 +960,7 @@ function renderLeaderboard() {
 
 function renderInvitePage() {
     inviteElements.referralLink.value = `https://t.me/YourAppBot?start=${currentUser.referralCode}`;
-    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarnings.toFixed(2)} <span class="ton-icon"></span>`;
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarnings.toFixed(2)} <span class="ton-icon" style="width:16px; height:16px;"></span>`;
     inviteElements.invitedCount.textContent = currentUser.invitedUsersCount;
 }
 
@@ -1191,21 +968,30 @@ function renderInvitePage() {
 // --- Roulette Logic ---
 function openRouletteModal(caseItem) {
     currentOpenCase = caseItem;
-    rouletteCaseName.textContent = caseItem.name;
-    spinButton.textContent = `Unlock (${caseItem.priceTON ? caseItem.priceTON.toFixed(1) + ' TON' : ''} ${caseItem.priceStars && caseItem.priceTON ? '/' : ''} ${caseItem.priceStars ? caseItem.priceStars + ' ✨' : ''})`;
+    rouletteCaseName.textContent = caseItem.name; 
+    spinButton.textContent = `Spin (${caseItem.priceTON ? caseItem.priceTON.toFixed(1) + ' TON' : ''} ${caseItem.priceStars && caseItem.priceTON ? '/' : ''} ${caseItem.priceStars ? caseItem.priceStars + ' ✨' : ''})`;
     spinButton.disabled = false;
     prizeDisplay.classList.add('hidden');
     wonPrizeName.textContent = '';
     rouletteSpinner.innerHTML = ''; 
+    rouletteSpinner.style.transition = 'none'; 
+    rouletteSpinner.style.top = '0px'; 
 
-    const displayPrizes = [...caseItem.prizes].sort(() => 0.5 - Math.random()).slice(0, 30); 
-    displayPrizes.forEach(prize => {
+    let spinnerItemsContent = [];
+    currentOpenCase.prizes.forEach(p => spinnerItemsContent.push(p));
+    for (let i = spinnerItemsContent.length; i < 80; i++) { 
+        spinnerItemsContent.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
+    }
+    
+    spinnerItemsContent.forEach(prize => {
         const itemEl = document.createElement('div');
         itemEl.className = 'roulette-item';
-        itemEl.textContent = prize.name;
+        itemEl.innerHTML = `
+            <span class="roulette-item-name">${prize.name}</span>
+            <span class="roulette-item-value">${prize.floorPrice.toFixed(2)} TON</span>
+        `;
         rouletteSpinner.appendChild(itemEl);
     });
-    rouletteSpinner.style.top = '0px'; 
 
     rouletteModal.classList.add('active');
     if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
@@ -1218,17 +1004,12 @@ function closeRouletteModal() {
 
 function determineWinner(prizes) {
     let totalProbability = prizes.reduce((sum, p) => sum + p.probability, 0);
-    // Normalize probabilities if they don't sum to 1 (or close enough)
     if (Math.abs(totalProbability - 1.0) > 0.001 && totalProbability > 0) {
-        console.warn("Probabilities do not sum to 1. Normalizing. Total:", totalProbability);
         prizes = prizes.map(p => ({ ...p, probability: p.probability / totalProbability }));
     } else if (totalProbability === 0 && prizes.length > 0) {
-        // If all probabilities are 0, distribute equally
-        console.warn("All probabilities are 0. Distributing equally.");
         const equalProb = 1 / prizes.length;
         prizes = prizes.map(p => ({ ...p, probability: equalProb }));
     }
-
 
     const rand = Math.random();
     let cumulativeProbability = 0;
@@ -1238,18 +1019,19 @@ function determineWinner(prizes) {
             return prize;
         }
     }
-    // Fallback for floating point issues or if probabilities weren't normalized correctly
     return prizes.length > 0 ? prizes[prizes.length - 1] : { name: "Error Prize", floorPrice: 0, tgsFile: "", id: "error" };
 }
+let spinAnimationTimeout;
 
 async function spinRoulette() {
     if (!currentOpenCase) return;
+    clearTimeout(spinAnimationTimeout); 
 
     if (currentOpenCase.priceTON && currentUser.tonBalance < currentOpenCase.priceTON) {
-        showNotification("Not enough TON Crystals!", 'error'); return;
+        showTGNotification("Not enough TON!", 'error'); return;
     }
     if (currentOpenCase.priceStars && currentUser.starBalance < currentOpenCase.priceStars) {
-        showNotification("Not enough Stardust!", 'error'); return;
+        showTGNotification("Not enough Stars!", 'error'); return;
     }
 
     if (currentOpenCase.priceTON) currentUser.tonBalance -= currentOpenCase.priceTON;
@@ -1258,47 +1040,57 @@ async function spinRoulette() {
     spinButton.disabled = true;
     prizeDisplay.classList.add('hidden');
 
-    const itemsInSpinner = []; 
-    for (let i = 0; i < 60; i++) { // More items for smoother/longer spin visual
-        itemsInSpinner.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
-    }
     const winner = determineWinner(currentOpenCase.prizes);
-    itemsInSpinner[itemsInSpinner.length - 5] = winner; // Place winner strategically
+    
+    let spinnerItemsForSpin = [];
+    for (let i = 0; i < 70; i++) { 
+        spinnerItemsForSpin.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
+    }
+    const winnerVisualIndex = Math.floor(spinnerItemsForSpin.length * 0.85); 
+    spinnerItemsForSpin[winnerVisualIndex] = winner;
+
 
     rouletteSpinner.innerHTML = ''; 
-    itemsInSpinner.forEach(prize => {
+    spinnerItemsForSpin.forEach(prize => {
         const itemEl = document.createElement('div');
         itemEl.className = 'roulette-item';
-        itemEl.textContent = prize.name;
+         itemEl.innerHTML = `
+            <span class="roulette-item-name">${prize.name}</span>
+            <span class="roulette-item-value">${prize.floorPrice.toFixed(2)} TON</span>
+        `;
         rouletteSpinner.appendChild(itemEl);
     });
+    
+    const allItemsInSpinner = rouletteSpinner.querySelectorAll('.roulette-item');
+    const itemHeight = allItemsInSpinner[0] ? allItemsInSpinner[0].offsetHeight : 60; 
+    const rouletteWheelVisibleHeight = rouletteWheel.clientHeight; 
 
-    const itemHeight = 120; 
-    const targetItemIndex = itemsInSpinner.length - 5; // Index of the winning item in the spinner
-    // Center the target item: (targetItemIndex * itemHeight) is top of item, subtract half wheel height, add half item height
-    const landingPosition = (targetItemIndex * itemHeight) - (rouletteWheel.clientHeight / 2) + (itemHeight / 2);
-
+    const landingPosition = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2);
 
     rouletteSpinner.style.transition = 'none'; 
     rouletteSpinner.style.top = '0px';
-    void rouletteSpinner.offsetWidth; // Force reflow
+    void rouletteSpinner.offsetWidth;
 
-    rouletteSpinner.style.transition = 'top 5s cubic-bezier(0.23, 1, 0.32, 1)'; // Smoother easing
+    rouletteSpinner.style.transition = 'top 6s cubic-bezier(0.25, 0.1, 0.2, 1)'; 
     rouletteSpinner.style.top = `-${landingPosition}px`;
-
+    
     if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
 
-    setTimeout(() => {
+    spinAnimationTimeout = setTimeout(() => {
         wonPrizeName.textContent = winner.name;
         prizeDisplay.classList.remove('hidden');
         spinButton.disabled = false; 
 
+        if (allItemsInSpinner[winnerVisualIndex]) {
+            allItemsInSpinner.forEach(el => el.classList.remove('is-winning'));
+            allItemsInSpinner[winnerVisualIndex].classList.add('is-winning');
+        }
+
         const inventoryId = `item_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
         currentUser.inventory.push({ ...winner, id: inventoryId });
         renderInventory(); 
-        showNotification(`Artifact Uncovered: ${winner.name}!`, 'success');
-        if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-    }, 5100); 
+        showTGNotification(`You got: ${winner.name}!`, 'success'); 
+    }, 6100); 
 }
 
 
@@ -1313,41 +1105,53 @@ function convertToTon(itemId) {
 
     updateBalances();
     renderInventory();
-    showNotification(`${item.name} converted to ${item.floorPrice.toFixed(2)} TON Crystals!`, 'success');
+    showTGNotification(`${item.name} converted to ${item.floorPrice.toFixed(2)} TON!`, 'success');
 }
 
 function handleUpgrade() {
     const selectedItemId = upgradeElements.inventorySelect.value;
     if (!selectedItemId) {
-        showNotification("Please select an artifact to fortify.", 'error'); return;
+        showTGNotification("Please select an item to enhance.", 'error'); return;
     }
 
     const itemIndex = currentUser.inventory.findIndex(item => item.id === selectedItemId);
     const itemToUpgrade = currentUser.inventory[itemIndex];
 
-    upgradeElements.upgradeResult.textContent = "Attempting fortification...";
-    upgradeElements.upgradeResult.style.color = 'var(--text-secondary-color)';
+    upgradeElements.upgradeResult.textContent = "Enhancing item...";
     upgradeElements.doUpgradeButton.disabled = true;
 
     setTimeout(() => {
         const success = Math.random() < 0.5; 
         if (success) {
-            const oldValue = itemToUpgrade.floorPrice;
             itemToUpgrade.floorPrice = parseFloat((itemToUpgrade.floorPrice * selectedMultiplier).toFixed(2));
-            itemToUpgrade.name = `Fortified ${itemToUpgrade.name} (x${selectedMultiplier})`;
-            upgradeElements.upgradeResult.textContent = `Success! ${itemToUpgrade.name} is now valued at ${itemToUpgrade.floorPrice.toFixed(2)} TON.`;
-            upgradeElements.upgradeResult.style.color = 'var(--success-color)';
-            showNotification("Fortification successful!", 'success');
+            upgradeElements.upgradeResult.textContent = `Success! ${itemToUpgrade.name} value increased to ${itemToUpgrade.floorPrice.toFixed(2)} TON.`;
+            showTGNotification("Enhancement successful!", 'success');
         } else {
             currentUser.inventory.splice(itemIndex, 1); 
-            upgradeElements.upgradeResult.textContent = `Failure! ${itemToUpgrade.name} was lost to the void. It has been claimed by @Vasiliy939.`;
-            upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
-            showNotification("Fortification failed! Artifact lost.", 'error');
-            console.log(`Artifact ${itemToUpgrade.name} lost in upgrade, would be sent to Vasiliy939 (TG ID 5146625949)`);
+            upgradeElements.upgradeResult.textContent = `Failed! ${itemToUpgrade.name} was destroyed. Sent to @Vasiliy939.`;
+            showTGNotification("Enhancement failed! Item lost.", 'error');
+            console.log(`Item ${itemToUpgrade.name} lost in upgrade, would be sent to Vasiliy939 (TG ID 5146625949)`);
         }
         renderInventory(); 
         upgradeElements.doUpgradeButton.disabled = false;
     }, 2000);
+}
+
+function handleDeposit() {
+    const amountText = profileElements.depositAmountInput.value;
+    if (!amountText.trim()) {
+        showTGNotification("Please enter an amount to deposit.", 'warning');
+        return;
+    }
+    const amount = parseFloat(amountText);
+    if (isNaN(amount) || amount <= 0) {
+        showTGNotification("Please enter a valid positive amount.", 'error');
+        return;
+    }
+    currentUser.tonBalance += amount;
+    updateBalances();
+    showTGNotification(`${amount.toFixed(2)} TON successfully added to your balance! (Test)`, 'success');
+    profileElements.depositAmountInput.value = ''; 
 }
 
 
@@ -1359,38 +1163,39 @@ appNavButtons.forEach(button => {
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
 
-profileElements.depositButton.addEventListener('click', () => showNotification("TON Crystal deposit feature coming soon!", 'info'));
+profileElements.confirmDepositButton.addEventListener('click', handleDeposit); 
 profileElements.disconnectWalletButton.addEventListener('click', () => {
-    currentUser.walletAddress = "Connect Wallet"; // Reset to initial state
+    currentUser.walletAddress = "Connect Wallet"; 
     renderHeader();
     renderProfile();
-    showNotification("Hyperdrive Link severed (Demo).", 'info');
+    showTGNotification("Wallet Disconnected (Demo).", 'info');
 });
 
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedMultiplier = parseFloat(e.target.dataset.multiplier);
         upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
-            btn.classList.remove('button-primary', 'active-multiplier'); // Use a specific class for active
-            if (!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
+            btn.classList.remove('active-multiplier');
+            if(!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
         });
-        e.target.classList.remove('button-secondary');
-        e.target.classList.add('button-primary', 'active-multiplier');
+        e.target.classList.add('active-multiplier');
+        if(e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary');
+
     });
 });
-// Set default active multiplier button
 const defaultMultiplierButton = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="${selectedMultiplier}"]`);
 if (defaultMultiplierButton) {
-    defaultMultiplierButton.classList.remove('button-secondary');
-    defaultMultiplierButton.classList.add('button-primary', 'active-multiplier');
+    defaultMultiplierButton.classList.add('active-multiplier');
+    if(defaultMultiplierButton.classList.contains('button-secondary')) defaultMultiplierButton.classList.remove('button-secondary');
 }
+
 
 upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
 
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value)
-        .then(() => showNotification("Ally Code copied to clipboard!", 'success'))
-        .catch(err => showNotification("Failed to copy Ally Code.", 'error'));
+        .then(() => showTGNotification("Referral Code copied!", 'success'))
+        .catch(err => showTGNotification("Failed to copy code.", 'error'));
 });
 inviteElements.withdrawReferralButton.addEventListener('click', () => {
     if (currentUser.referralEarnings > 0) {
@@ -1398,9 +1203,9 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
         currentUser.referralEarnings = 0;
         updateBalances();
         renderInvitePage();
-        showNotification("Ally Rewards claimed!", 'success');
+        showTGNotification("Referral Earnings claimed!", 'success');
     } else {
-        showNotification("No Ally Rewards to claim yet.", 'info');
+        showTGNotification("No earnings to claim.", 'info');
     }
 });
 
@@ -1410,9 +1215,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready();
         Telegram.WebApp.expand(); 
-        // Theme params can be set based on TG theme if desired
-        // Telegram.WebApp.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue('--background-start').trim());
-        // Telegram.WebApp.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue('--background-start').trim());
+        try { // Set theme colors for consistency if possible
+            Telegram.WebApp.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim());
+            Telegram.WebApp.setBackgroundColor(getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim());
+        } catch (e) {
+            console.warn("Could not set Telegram WebApp theme colors.", e);
+        }
     } else {
         console.warn("Telegram WebApp SDK not found. Running in browser mode.");
     }
