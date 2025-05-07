@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - Withdraw Flow</title>
+    <title>TON Gift Universe - Frontend Fixed</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect UI -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
-    <!-- Lottie-Web Player from CDN (still included for potential future use) -->
+    <!-- Lottie-Web Player from CDN (optional) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 
     <style>
@@ -93,34 +93,31 @@
             background: linear-gradient(45deg, var(--primary-gradient-end), var(--text-primary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-             flex-shrink: 0; /* Prevent title from shrinking */
+             flex-shrink: 0; 
              margin-right: 10px;
         }
         #app-header .wallet-info { 
             display: flex; 
             align-items: center; 
-            gap: 8px; /* Slightly reduced gap */
-            flex-shrink: 1; /* Allow this part to shrink if needed */
-            min-width: 0; /* Important for flex-shrink */
+            gap: 8px; 
+            flex-shrink: 1; 
+            min-width: 0; 
          }
-        /* Container for TON Connect Button */
         #ton-connect-button {
              display: inline-block; 
-             flex-shrink: 0; /* Don't shrink the button itself */
+             flex-shrink: 0; 
         }
-        
-         /* Styling for connected state elements */
         #wallet-address-display, #balance {
             background-color: var(--surface-hover-color); 
-            padding: 7px 10px; /* Adjusted padding */
+            padding: 7px 10px; 
             border-radius: var(--button-border-radius);
-            font-size: 0.85em; /* Slightly smaller font */
+            font-size: 0.85em; 
             font-weight: 600;
             border: 1px solid var(--border-color);
-            white-space: nowrap; /* Prevent wrapping */
+            white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 150px; /* Limit width to prevent overlap */
+            max-width: 150px; 
             display: none; /* Initially hidden */
         }
          #wallet-address-display.connected, #balance.connected { 
@@ -129,7 +126,6 @@
          #ton-connect-button.connected { 
              display: none; 
          }
-
         #app-header .ton-icon {
             width: 16px; height: 16px; /* Kept small */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230A84FF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
@@ -201,15 +197,15 @@
 
         /* Updated Secondary Button Style */
         .button-secondary {
-            background-color: var(--surface-hover-color); /* Neutral dark bg */
-            color: var(--text-secondary); /* Secondary text color */
-            border: 1px solid var(--border-color); /* Subtle border */
+            background-color: var(--surface-hover-color); 
+            color: var(--text-secondary); 
+            border: 1px solid var(--border-color); 
             box-shadow: none;
-            background-image: none; /* Ensure no gradient */
+            background-image: none; 
         }
         .button-secondary:hover { 
             background-color: var(--surface-color); 
-            color: var(--text-primary); /* Brighter text on hover */
+            color: var(--text-primary); 
         }
         .button-secondary:active {
              background-color: var(--surface-hover-color);
@@ -266,12 +262,24 @@
             background-color: var(--surface-hover-color); 
             border-radius: var(--button-border-radius);
             overflow: hidden;
+            position: relative; /* For overlay */
         }
         .case-card .case-image-display img {
             display: block;
             width: 100%; height: 100%;
-            object-fit: cover; 
+            object-fit: cover; /* Use 'cover' for backgrounds */
         }
+         .case-card .case-image-display .overlay-image { /* Style for overlay image */
+             position: absolute;
+             width: 70%; 
+             height: 70%;
+             top: 50%;
+             left: 50%;
+             transform: translate(-50%, -50%);
+             object-fit: contain; /* Use 'contain' for overlay */
+             pointer-events: none; /* Allow clicks through */
+         }
+
         .case-card .case-name {
             font-weight: 600; font-size: 1em; margin-bottom: 6px;
             color: var(--text-primary);
@@ -291,7 +299,7 @@
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             align-items: center; justify-content: center;
             padding: 16px;
-            overflow-y: auto; /* Enable scrolling for the modal backdrop */
+            overflow-y: auto; 
         }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
         @keyframes modalFadeInMinimal {
@@ -306,9 +314,9 @@
             text-align: center;
             box-shadow: 0 12px 35px rgba(0,0,0,0.35);
             border: 1px solid var(--border-color);
-            /* Removed max-height, modal itself scrolls */
             display: flex; flex-direction: column;
-            margin: auto; /* Helps center when modal scrolls */
+            margin: auto; 
+             max-height: calc(100vh - 40px); 
         }
          .modal-content h3 { /* Modal title */
             margin-top: 0; margin-bottom: 16px;
@@ -316,16 +324,17 @@
             color: var(--text-primary);
         }
         .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px; }
-        .modal-body { /* Container for content that might scroll */
-            overflow-y: auto; /* Scroll inside if needed */
-            flex-grow: 1; /* Allow it to take space */
+        .modal-body { 
+            overflow-y: auto; 
+            flex-grow: 1; 
+            -webkit-overflow-scrolling: touch; 
         }
 
 
         /* --- Roulette Modal Specifics --- */
         #roulette-wheel-container { width: 100%; }
         #roulette-wheel {
-            height: 270px; /* TALLER wheel (90px item height * 3) */
+            height: 270px; 
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
@@ -346,7 +355,7 @@
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 90px; /* Height matching wheel / 3 */
+            height: 90px; 
             display: flex; align-items: center; justify-content: center; 
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
@@ -361,11 +370,11 @@
         }
         #possible-prizes-display {
             margin-top: 10px;
-             /* Removed max-height and overflow */
             padding-right: 0px; 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
             gap: 10px;
+             flex-shrink: 0; 
         }
         .prize-card {
             background-color: var(--surface-hover-color);
@@ -406,10 +415,10 @@
         #withdraw-modal .modal-step.active { display: block; }
         #withdraw-modal p { color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;}
         #withdraw-modal strong { color: var(--text-primary); font-weight: 600; }
-        #withdraw-modal a.button { /* Style links as buttons */
+        #withdraw-modal a.button { 
             margin-bottom: 10px; text-decoration: none;
         }
-        .loader { /* Simple CSS Loader */
+        .loader { 
             border: 4px solid var(--surface-hover-color);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
@@ -462,11 +471,11 @@
         }
         .inventory-item-name { font-size: 0.9em; font-weight: 500; margin-bottom: 6px; }
         .inventory-item-value { font-size: 0.8em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
+        .inventory-item-actions { display: flex; flex-direction: column; gap: 6px;} 
         .inventory-item-actions .button { 
-            font-size: 0.8em; padding: 6px 10px; margin-top: 5px; width: auto; display: inline-block; margin-right: 5px;
+            font-size: 0.8em; padding: 6px 10px; margin: 0; width: 100%; 
         }
-         .inventory-item-actions .withdraw-button { /* Specific style if needed */ }
-        
+         
         /* Upgrade Page */
         #upgrade-chance-display {
             font-size: 2.5em; font-weight: 700; color: var(--text-primary);
@@ -522,7 +531,8 @@
     </style>
 </head>
 <body>
-    <div id="app-container">
+     <!-- HTML Structure (Same as previous answer, including Withdraw Modal) -->
+     <div id="app-container">
          <header id="app-header">
             <div class="app-title">Gift Universe</div>
             <div class="wallet-info">
@@ -695,9 +705,9 @@
                 </div>
 
                 <div id="withdraw-step-2" class="modal-step">
-                    <p>Great! Now, please send <strong>any message</strong> to the <a href="https://t.me/giftrelayer" style="color: var(--primary-color)">@giftrelayer</a> bot in Telegram. This allows the system to send the gift to you.</p>
+                    <p>Great! Now, please send <strong>any message</strong> to the <a href="tg://resolve?domain=giftrelayer" style="color: var(--primary-color)">@giftrelayer</a> bot in Telegram. This allows the system to send the gift to you.</p>
                     <button id="withdraw-step2-next" class="button button-secondary">I've sent the message</button>
-                     <button id="withdraw-step2-back" class="button button-secondary" style="margin-top: 10px; background-color: var(--surface-hover-color); color: var(--text-secondary);">Back</button>
+                     <button id="withdraw-step2-back" class="button button-secondary" style="margin-top: 10px;">Back</button>
                 </div>
 
                 <div id="withdraw-step-3" class="modal-step">
@@ -714,92 +724,48 @@
 <script>
 // --- Constants and Global State ---
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
+const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/'; 
+// Removed API_BASE_URL
 
 const currentUser = {
-    id: null, // Will be set from TG WebApp
+    id: null, 
     username: null,
-    first_name: 'User', // Default
+    first_name: 'User', 
     last_name: null,
     walletAddress: null, 
     walletAddressRaw: null,
-    tonBalance: 100.00,
-    starBalance: 2000,
-    inventory: [], // { id, name, imageFilename, floorPrice }
-    referralCode: null, // Can be generated or assigned later
+    tonBalance: 0.00, 
+    starBalance: 0,
+    inventory: [], 
+    referralCode: null, 
     referralEarnings: 0,
     invitedUsersCount: 0
 };
 
 let currentOpenCase = null;
 let selectedMultiplier = 1.5;
-let itemToWithdraw = null; // To store the ID of item being withdrawn
+let itemToWithdraw = null; 
 
 const upgradeChances = { 
     1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
 };
 
-// Function to generate image filename from prize/case name
 function generateImageFilename(name) {
-    if (!name) return 'placeholder.png'; // Fallback for undefined names
+    if (!name) return 'placeholder.png'; 
     if (name === "Durov's Cap") return "Durov's-Cap.png"; 
     if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png"; 
     if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
-    // General rule: replace spaces with hyphens, keep case mostly, add .png
+    // Background names need special handling if passed here, but usually set directly
+    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name)) {
+         return name + '.png'; // Assume direct mapping for backgrounds
+    }
+    // General rule for gift images
     return name.replace(/\s+/g, '-').replace(/&/g, 'and') + '.png'; 
 }
 
-// --- LocalStorage Functions ---
-function saveData() {
-    try {
-        localStorage.setItem('tonGiftUniverseUser', JSON.stringify(currentUser));
-    } catch (e) {
-        console.error("Error saving data to localStorage:", e);
-    }
-}
-
-function loadData() {
-     try {
-        const savedData = localStorage.getItem('tonGiftUniverseUser');
-        if (savedData) {
-            const loadedUser = JSON.parse(savedData);
-            // Merge loaded data carefully, don't overwrite essential runtime things if not present
-            currentUser.id = loadedUser.id ?? currentUser.id; // Keep TG id if already set
-            currentUser.username = loadedUser.username ?? currentUser.username;
-            currentUser.first_name = loadedUser.first_name ?? currentUser.first_name;
-            currentUser.last_name = loadedUser.last_name ?? currentUser.last_name;
-            currentUser.walletAddress = loadedUser.walletAddress ?? null;
-            currentUser.walletAddressRaw = loadedUser.walletAddressRaw ?? null;
-            currentUser.tonBalance = loadedUser.tonBalance ?? 100.00;
-            currentUser.starBalance = loadedUser.starBalance ?? 0;
-            currentUser.inventory = Array.isArray(loadedUser.inventory) ? loadedUser.inventory : [];
-            currentUser.referralCode = loadedUser.referralCode ?? currentUser.referralCode;
-            currentUser.referralEarnings = loadedUser.referralEarnings ?? 0;
-            currentUser.invitedUsersCount = loadedUser.invitedUsersCount ?? 0;
-
-            // Regenerate referral code if missing and user ID is known
-            if (!currentUser.referralCode && currentUser.id) {
-                currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
-            }
-        } else {
-             // Generate referral code for first time user after getting ID
-             if (!currentUser.referralCode && currentUser.id) {
-                  currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
-                  saveData(); // Save the newly generated code
-             }
-        }
-    } catch (e) {
-        console.error("Error loading data from localStorage:", e);
-        // Handle potential JSON parsing errors or other issues
-        // Reset to defaults maybe?
-         if (!currentUser.referralCode && currentUser.id) {
-             currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
-         }
-    }
-}
-
-
-// --- casesData (ensure imageFilename is present for ALL prizes) ---
-// Using the complete casesData from the previous answer
+// --- casesData ---
+// Ensure this includes the 'imageFilename' for ALL prizes and the correct
+// 'bgImageFilename' and 'overlayPrizeName' for background cases.
 const casesData = [
     // REGULAR CASE REMOVED
     { 
@@ -901,7 +867,9 @@ const casesData = [
         ]
     },
     { 
-        id: 'amber', name: 'Amber Nebula Case', imageFilename: 'Amber.png', priceTON: 3, // Placeholder image name
+        id: 'amber', name: 'Amber Nebula Case', 
+        isBackgroundCase: true, bgImageFilename: 'Amber.png', overlayPrizeName: 'Swiss Watch', 
+        priceTON: 3, 
         prizes: [
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.01 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.03 },
@@ -918,8 +886,10 @@ const casesData = [
         ]
     },
     { 
-        id: 'midnightblue', name: 'Midnight Blue Comet', imageFilename: 'Midnight-Blue.png', priceTON: 3, // Placeholder
-        prizes: [
+        id: 'midnightblue', name: 'Midnight Blue Comet', 
+        isBackgroundCase: true, bgImageFilename: 'Midnight_Blue.png', overlayPrizeName: 'Precious Peach', 
+        priceTON: 3, 
+        prizes: [ 
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.01 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.03 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.06 },
@@ -935,8 +905,10 @@ const casesData = [
         ]
     },
     { 
-        id: 'onyxblack', name: 'Onyx Black Hole', imageFilename: 'Onyx-Black.png', priceTON: 5, // Placeholder
-        prizes: [
+        id: 'onyxblack', name: 'Onyx Black Hole', 
+        isBackgroundCase: true, bgImageFilename: 'Onyx_Black.png', overlayPrizeName: 'Perfume Bottle', 
+        priceTON: 5, 
+        prizes: [ 
             { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.01 },
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.03 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.05 },
@@ -952,8 +924,10 @@ const casesData = [
         ]
     },
     { 
-        id: 'black', name: 'BLACK Singularity', imageFilename: 'BLACK.png', priceTON: 15, // Placeholder
-        prizes: [
+        id: 'black', name: 'BLACK Singularity', 
+        isBackgroundCase: true, bgImageFilename: 'Black.png', overlayPrizeName: 'Neko Helmet', 
+        priceTON: 15, 
+        prizes: [ 
             { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.01 },
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.03 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.05 },
@@ -970,12 +944,20 @@ const casesData = [
     },
 ];
 
-
 // --- Image Preloader ---
+// ... (Код прелоадера остается без изменений) ...
 const imageUrlsToPreload = [];
 casesData.forEach(caseItem => {
-    if (caseItem.imageFilename) {
-        imageUrlsToPreload.push(IMAGE_BASE_URL + caseItem.imageFilename);
+    if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
+        imageUrlsToPreload.push(CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename);
+    } else if (caseItem.imageFilename) {
+         imageUrlsToPreload.push(IMAGE_BASE_URL + caseItem.imageFilename);
+    }
+    if(caseItem.isBackgroundCase && caseItem.overlayPrizeName){
+        const overlayFilename = generateImageFilename(caseItem.overlayPrizeName);
+         if (overlayFilename && !imageUrlsToPreload.includes(IMAGE_BASE_URL + overlayFilename)) {
+             imageUrlsToPreload.push(IMAGE_BASE_URL + overlayFilename);
+        }
     }
     if (caseItem.prizes) {
         caseItem.prizes.forEach(prize => {
@@ -985,17 +967,11 @@ casesData.forEach(caseItem => {
         });
     }
 });
-
-function preloadImages(urls) {
-    urls.forEach(url => {
-        const img = new Image();
-        img.src = url;
-    });
-}
-// ----------------------
+function preloadImages(urls) { urls.forEach(url => { const img = new Image(); img.src = url; }); }
 
 
 // --- DOM Elements --- 
+// ... (Все DOM элементы остаются без изменений) ...
 const headerElements = { 
     title: document.querySelector('#app-header .app-title'),
     walletInfo: document.querySelector('#app-header .wallet-info'),
@@ -1018,7 +994,7 @@ const spinButton = document.getElementById('spin-button');
 const closeRouletteButton = document.getElementById('close-roulette-button');
 const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); 
 
-const withdrawModal = document.getElementById('withdraw-modal'); // New modal
+const withdrawModal = document.getElementById('withdraw-modal'); 
 const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
 const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
 const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
@@ -1032,7 +1008,7 @@ const profileElements = {
     username: document.getElementById('profile-username'),
     userid: document.getElementById('profile-userid'),
     balanceDisplay: document.getElementById('profile-balance-display'),
-    walletAddress: document.getElementById('profile-wallet-address'), // Display in profile
+    walletAddress: document.getElementById('profile-wallet-address'), 
     inventoryGrid: document.getElementById('inventory-grid'),
     inventoryCount: document.getElementById('inventory-count'),
     emptyInventoryMessage: document.getElementById('empty-inventory-message'),
@@ -1060,7 +1036,6 @@ const inviteElements = {
 const leaderboardList = document.getElementById('leaderboard-list');
 
 // --- TON Connect ---
-// Correct Raw GitHub URL for manifest (RECOMMEND HOSTING IT YOURSELF!)
 const manifestUrl = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json'; 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     manifestUrl: manifestUrl,
@@ -1068,6 +1043,7 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 // --- Utility Functions ---
+// ... (updateBalances, navigateToPage, showTGNotification - без изменений) ...
 function updateBalances() {
     if (headerElements.tonBalanceSpan) {
         headerElements.tonBalanceSpan.textContent = currentUser.tonBalance.toFixed(2);
@@ -1075,7 +1051,7 @@ function updateBalances() {
     if (profileElements.balanceDisplay) {
          profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
     }
-    saveData(); // Save data whenever balance changes
+    saveData(); 
 }
 
 function navigateToPage(pageId) {
@@ -1103,7 +1079,58 @@ function showTGNotification(message, type = 'info') {
     }
 }
 
+// --- API Helper (REMOVED) ---
+
+// --- LocalStorage Functions ---
+// ... (saveData, loadData - без изменений) ...
+function saveData() {
+    try {
+        localStorage.setItem('tonGiftUniverseUser', JSON.stringify({
+            walletAddress: currentUser.walletAddress,
+            walletAddressRaw: currentUser.walletAddressRaw,
+            tonBalance: currentUser.tonBalance,
+            starBalance: currentUser.starBalance,
+            inventory: currentUser.inventory,
+            referralCode: currentUser.referralCode,
+            referralEarnings: currentUser.referralEarnings,
+            invitedUsersCount: currentUser.invitedUsersCount,
+            id: currentUser.id, 
+            username: currentUser.username,
+            first_name: currentUser.first_name,
+            last_name: currentUser.last_name
+        }));
+    } catch (e) {
+        console.error("Error saving data to localStorage:", e);
+    }
+}
+
+function loadData() {
+     try {
+        const savedData = localStorage.getItem('tonGiftUniverseUser');
+        if (savedData) {
+            const loadedUser = JSON.parse(savedData);
+            currentUser.walletAddress = loadedUser.walletAddress ?? null;
+            currentUser.walletAddressRaw = loadedUser.walletAddressRaw ?? null;
+            currentUser.tonBalance = loadedUser.tonBalance ?? 0.00;
+            currentUser.starBalance = loadedUser.starBalance ?? 0;
+            currentUser.inventory = Array.isArray(loadedUser.inventory) ? loadedUser.inventory : [];
+            currentUser.referralCode = loadedUser.referralCode ?? currentUser.referralCode; 
+            currentUser.referralEarnings = loadedUser.referralEarnings ?? 0;
+            currentUser.invitedUsersCount = loadedUser.invitedUsersCount ?? 0;
+            currentUser.id = loadedUser.id ?? null;
+            currentUser.username = loadedUser.username ?? null;
+            currentUser.first_name = loadedUser.first_name ?? 'User';
+            currentUser.last_name = loadedUser.last_name ?? null;
+        }
+    } catch (e) {
+        console.error("Error loading data from localStorage:", e);
+    }
+}
+
+
 // --- Rendering Functions ---
+// ... (renderHeader, updateUIBasedOnWallet, renderCases (обновлен), renderProfile, renderInventory, 
+//      populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - без изменений или обновлены) ...
 function renderHeader() {
      updateBalances(); 
 }
@@ -1112,9 +1139,7 @@ function updateUIBasedOnWallet(wallet) {
      const connected = !!wallet; 
      if (connected) {
         const address = wallet.account.address;
-        // Use the raw address from the wallet object for internal storage
         currentUser.walletAddressRaw = address; 
-        // Use the user-friendly address for display
         const userFriendlyAddress = TonConnectSDK.toUserFriendlyAddress(address);
         currentUser.walletAddress = userFriendlyAddress;
 
@@ -1131,7 +1156,6 @@ function updateUIBasedOnWallet(wallet) {
         
         if(profileElements.walletAddress) profileElements.walletAddress.textContent = userFriendlyAddress;
         if(profileElements.disconnectWalletButton) profileElements.disconnectWalletButton.style.display = 'block';
-
 
     } else {
         currentUser.walletAddress = null;
@@ -1152,7 +1176,7 @@ function updateUIBasedOnWallet(wallet) {
 
     }
     updateBalances(); 
-    saveData(); // Save wallet status change
+    saveData(); 
 }
 
 
@@ -1165,20 +1189,48 @@ function renderCases() {
 
         const imageContainer = document.createElement('div');
         imageContainer.className = 'case-image-display';
-        const img = document.createElement('img');
-        const caseImageUrl = caseItem.imageFilename ? IMAGE_BASE_URL + caseItem.imageFilename : 'placeholder.png'; 
-        img.src = caseImageUrl; 
-        img.alt = caseItem.name;
+        
+        const img = document.createElement('img'); // Base image (background or main)
         img.loading = 'lazy'; 
+        img.alt = caseItem.name;
         img.onerror = (e) => { 
             e.target.style.display='none'; 
-            imageContainer.textContent = '🎁'; 
+            imageContainer.textContent = '❓'; // Fallback emoji for missing images
             imageContainer.style.fontSize='2.5em'; 
             imageContainer.style.display='flex';
             imageContainer.style.alignItems='center';
             imageContainer.style.justifyContent='center';
         } 
-        imageContainer.appendChild(img);
+
+        if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
+            // Background case
+            img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
+            img.style.objectFit = 'cover'; // Cover for background
+            imageContainer.appendChild(img);
+
+             if(caseItem.overlayPrizeName) {
+                 const overlayImg = document.createElement('img');
+                 const overlayFilename = generateImageFilename(caseItem.overlayPrizeName);
+                 overlayImg.src = overlayFilename ? IMAGE_BASE_URL + overlayFilename : '';
+                 overlayImg.alt = caseItem.overlayPrizeName;
+                 overlayImg.loading = 'lazy';
+                 overlayImg.className = 'overlay-image'; // Use class for styling
+                 overlayImg.onerror = (e) => { e.target.style.display = 'none'; } // Hide if overlay fails
+                 imageContainer.appendChild(overlayImg);
+             }
+        } else if (caseItem.imageFilename) {
+            // Regular case
+            img.src = IMAGE_BASE_URL + caseItem.imageFilename;
+            img.style.objectFit = 'contain'; // Contain for regular item images
+            imageContainer.appendChild(img);
+        } else {
+            // Fallback if no image specified at all
+              imageContainer.textContent = '🎁'; 
+              imageContainer.style.fontSize='2.5em'; 
+              imageContainer.style.display='flex';
+              imageContainer.style.alignItems='center';
+              imageContainer.style.justifyContent='center';
+        }
 
         const name = document.createElement('div');
         name.className = 'case-name';
@@ -1199,15 +1251,11 @@ function renderCases() {
 }
 
 function renderProfile() {
-    // Update name/ID from currentUser object (which should be loaded/updated from TG)
     profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
     profileElements.username.textContent = currentUser.username || `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'User';
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
-
-    // Wallet status is updated via onStatusChange listener -> updateUIBasedOnWallet
     profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
-    
     renderInventory();
 }
 
@@ -1220,11 +1268,12 @@ function renderInventory() {
         currentUser.inventory.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
+            // Pass item.id to startWithdrawalProcess as string
             itemDiv.innerHTML = `
                 <div class="inventory-item-name" title="${item.name}">${item.name}</div>
                 <div class="inventory-item-value">${item.floorPrice.toFixed(2)} TON</div>
                 <div class="inventory-item-actions">
-                    <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess('${item.id}')">Withdraw</button>
+                     <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess('${item.id}')">Withdraw</button> 
                     <button class="button button-secondary" onclick="convertToTon('${item.id}')">Convert</button>
                 </div>
             `;
@@ -1233,14 +1282,14 @@ function renderInventory() {
     }
     profileElements.inventoryCount.textContent = currentUser.inventory.length;
     populateUpgradeInventorySelect();
+    saveData(); 
 }
 
-// ... (rest of rendering functions: populateUpgradeInventorySelect, renderLeaderboard, renderInvitePage - remain same) ...
 function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.forEach(item => {
         const option = document.createElement('option');
-        option.value = item.id;
+        option.value = item.id; // Use the item's actual ID from inventory
         option.textContent = `${item.name} (${item.floorPrice.toFixed(2)} TON)`;
         upgradeElements.inventorySelect.appendChild(option);
     });
@@ -1281,6 +1330,7 @@ function renderInvitePage() {
 
 
 // --- Roulette Logic ---
+// ... (openRouletteModal, closeRouletteModal, determineWinner, spinRoulette - без изменений) ...
 function openRouletteModal(caseItem) {
     currentOpenCase = caseItem;
     if (!currentOpenCase || !currentOpenCase.prizes) {
@@ -1315,7 +1365,7 @@ function openRouletteModal(caseItem) {
         rouletteSpinner.appendChild(itemEl);
     });
 
-    // Populate possible prizes display (cards with images and probability)
+    // Populate possible prizes display
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
     currentOpenCase.prizes.forEach(p => {
@@ -1366,7 +1416,6 @@ function closeRouletteModal() {
 function determineWinner(prizes) {
     if(!prizes || prizes.length === 0) return { name: "Error Prize", floorPrice: 0, imageFilename: "", id: "error" }; 
 
-    // Normalization logic 
     let totalProbability = prizes.reduce((sum, p) => sum + (p.probability || 0), 0);
     let normalizedPrizes = prizes;
 
@@ -1385,15 +1434,15 @@ function determineWinner(prizes) {
             return prize;
         }
     }
-    // Fallback
     return normalizedPrizes[normalizedPrizes.length - 1]; 
 }
 let spinAnimationTimeout;
 
-async function spinRoulette() {
+async function spinRoulette() { 
     if (!currentOpenCase) return;
     clearTimeout(spinAnimationTimeout); 
 
+    // Check balance locally
     if (currentOpenCase.priceTON && currentUser.tonBalance < currentOpenCase.priceTON) {
         showTGNotification("Not enough TON!", 'error'); return;
     }
@@ -1401,54 +1450,62 @@ async function spinRoulette() {
         showTGNotification("Not enough Stars!", 'error'); return;
     }
 
+    // Deduct balance locally
     if (currentOpenCase.priceTON) currentUser.tonBalance -= currentOpenCase.priceTON;
     if (currentOpenCase.priceStars) currentUser.starBalance -= currentOpenCase.priceStars;
-    updateBalances(); // Balance changes, save it
+    updateBalances(); // Update UI and save changes
+
     spinButton.disabled = true;
+    spinButton.textContent = 'Spinning...';
     prizeDisplay.classList.add('hidden');
 
-    const winner = determineWinner(currentOpenCase.prizes);
+    const winner = determineWinner(currentOpenCase.prizes); // Determine winner locally
      if (!winner || winner.id === "error") {
         showTGNotification("Error determining prize. Please try again.", "error");
+        // Rollback balance deduction
+        if (currentOpenCase.priceTON) currentUser.tonBalance += currentOpenCase.priceTON;
+        if (currentOpenCase.priceStars) currentUser.starBalance += currentOpenCase.priceStars;
+        updateBalances();
         spinButton.disabled = false;
+        spinButton.textContent = 'Spin';
         return;
     }
     
+    // --- Visual Animation ---
     let spinnerItemsForSpin = [];
+    const availablePrizes = currentOpenCase.prizes.filter(p => p && p.imageFilename); 
     for (let i = 0; i < 70; i++) { 
-        spinnerItemsForSpin.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
+        spinnerItemsForSpin.push(availablePrizes[Math.floor(Math.random() * availablePrizes.length)]);
     }
     const winnerVisualIndex = Math.floor(spinnerItemsForSpin.length * 0.85); 
-    spinnerItemsForSpin[winnerVisualIndex] = winner;
-
+    spinnerItemsForSpin[winnerVisualIndex] = winner; 
 
     rouletteSpinner.innerHTML = ''; 
     spinnerItemsForSpin.forEach(prize => {
-        if (!prize) return; // Safety check
-        const itemEl = document.createElement('div');
-        itemEl.className = 'roulette-item';
-        const img = document.createElement('img');
-        img.src = prize.imageFilename ? IMAGE_BASE_URL + prize.imageFilename : '';
-        img.alt = prize.name || 'Prize';
-        img.loading = 'lazy';
-        img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
-        itemEl.appendChild(img);
-        rouletteSpinner.appendChild(itemEl);
-    });
-    
+         if (!prize) return; 
+         const itemEl = document.createElement('div');
+         itemEl.className = 'roulette-item';
+         const img = document.createElement('img');
+         img.src = prize.imageFilename ? IMAGE_BASE_URL + prize.imageFilename : '';
+         img.alt = prize.name || 'Prize';
+         img.loading = 'lazy';
+         img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
+         itemEl.appendChild(img);
+         rouletteSpinner.appendChild(itemEl);
+     });
+
     const allItemsInSpinner = rouletteSpinner.querySelectorAll('.roulette-item');
-    if (allItemsInSpinner.length === 0) { // Prevent error if spinner is empty
-        showTGNotification("Error setting up roulette.", "error");
+    if (allItemsInSpinner.length === 0) { 
+        showTGNotification("Error setting up roulette visual.", "error");
         spinButton.disabled = false;
+        spinButton.textContent = 'Spin';
         return;
     }
+
     const itemHeight = allItemsInSpinner[0].offsetHeight; 
     const rouletteWheelVisibleHeight = rouletteWheel.clientHeight; 
-
-    // Calculate landing position with random offset
     const randomOffset = (Math.random() - 0.5) * (itemHeight * 0.6); 
     const landingPosition = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2) + randomOffset;
-
 
     rouletteSpinner.style.transition = 'none'; 
     rouletteSpinner.style.top = '0px';
@@ -1460,63 +1517,70 @@ async function spinRoulette() {
     if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
 
     spinAnimationTimeout = setTimeout(() => {
-        wonPrizeName.textContent = winner.name;
+        wonPrizeName.textContent = winner.name; 
         prizeDisplay.classList.remove('hidden');
         spinButton.disabled = false; 
+        spinButton.textContent = 'Spin Again'; 
 
-        // Highlight the visually closest item after animation stops
-        const finalScrollTop = Math.abs(parseFloat(rouletteSpinner.style.top) || 0);
-        const centerLine = finalScrollTop + rouletteWheelVisibleHeight / 2;
-        let closestItemIndex = 0;
-        let minDistance = Infinity;
-        
-        allItemsInSpinner.forEach((item, index) => {
-            const itemCenter = (index * itemHeight) + (itemHeight / 2);
-            const distance = Math.abs(itemCenter - centerLine);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestItemIndex = index;
-            }
-        });
-
-        if (allItemsInSpinner[closestItemIndex]) {
-             allItemsInSpinner.forEach(el => el.classList.remove('is-winning'));
-             allItemsInSpinner[closestItemIndex].classList.add('is-winning');
-        }
-
-
+        // Add item to local inventory state
         const inventoryId = `item_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
-        currentUser.inventory.push({ 
-            ...winner, 
-            id: inventoryId 
-        });
-        renderInventory(); // This calls saveData() indirectly via renderProfile/populateUpgrade
+        const newItemForInventory = { 
+             id: inventoryId, 
+             name: winner.name, 
+             imageFilename: winner.imageFilename, 
+             floorPrice: winner.floorPrice,
+             upgrade_multiplier: 1.0, 
+             received_at: Date.now() / 1000 
+        };
+        currentUser.inventory.push(newItemForInventory);
+        renderInventory(); 
+
         showTGNotification(`You got: ${winner.name}!`, 'success'); 
+        
+         // Highlight visually closest item
+         const finalScrollTop = Math.abs(parseFloat(rouletteSpinner.style.top) || 0);
+         const centerLine = finalScrollTop + rouletteWheelVisibleHeight / 2;
+         let closestItemIndex = 0;
+         let minDistance = Infinity;
+         allItemsInSpinner.forEach((item, index) => {
+             const itemCenter = (index * itemHeight) + (itemHeight / 2);
+             const distance = Math.abs(itemCenter - centerLine);
+             if (distance < minDistance) {
+                 minDistance = distance;
+                 closestItemIndex = index;
+             }
+         });
+         if (allItemsInSpinner[closestItemIndex]) {
+              allItemsInSpinner.forEach(el => el.classList.remove('is-winning'));
+              allItemsInSpinner[closestItemIndex].classList.add('is-winning');
+         }
+
     }, 6100); 
 }
 
 
-// --- Other Page Logic ---
-function convertToTon(itemId) {
-    const itemIndex = currentUser.inventory.findIndex(invItem => invItem.id === itemId);
+// --- Other Page Logic --- (Using local logic)
+// ... (convertToTon, handleUpgrade, handleDeposit - без изменений) ...
+function convertToTon(itemId) { 
+    const itemIndex = currentUser.inventory.findIndex(invItem => invItem.id === itemId); 
     if (itemIndex === -1) return;
 
     const item = currentUser.inventory[itemIndex];
     currentUser.tonBalance += item.floorPrice;
     currentUser.inventory.splice(itemIndex, 1);
 
-    updateBalances(); // Saves data
+    updateBalances(); 
     renderInventory();
     showTGNotification(`${item.name} converted to ${item.floorPrice.toFixed(2)} TON!`, 'success');
 }
 
-function handleUpgrade() {
+function handleUpgrade() { 
     const selectedItemId = upgradeElements.inventorySelect.value;
     if (!selectedItemId) {
         showTGNotification("Please select an item to upgrade.", 'error'); return;
     }
 
-    const itemIndex = currentUser.inventory.findIndex(item => item.id === selectedItemId);
+    const itemIndex = currentUser.inventory.findIndex(item => item.id === selectedItemId); 
     if (itemIndex === -1) { 
          showTGNotification("Selected item not found in inventory.", 'error'); return;
     }
@@ -1530,6 +1594,7 @@ function handleUpgrade() {
         const success = Math.random() * 100 < currentChance; 
         if (success) {
             itemToUpgrade.floorPrice = parseFloat((itemToUpgrade.floorPrice * selectedMultiplier).toFixed(2));
+            itemToUpgrade.upgrade_multiplier = (itemToUpgrade.upgrade_multiplier || 1.0) * selectedMultiplier; 
             upgradeElements.upgradeResult.textContent = `Success! ${itemToUpgrade.name} value increased to ${itemToUpgrade.floorPrice.toFixed(2)} TON.`;
             showTGNotification("Upgrade successful!", 'success');
         } else {
@@ -1538,13 +1603,13 @@ function handleUpgrade() {
             upgradeElements.upgradeResult.textContent = `Failed! ${lostItemName} was destroyed. Sent to @Vasiliy939.`;
             showTGNotification("Upgrade failed! Item lost.", 'error');
         }
-        renderInventory(); // Saves data indirectly
+        renderInventory(); 
         upgradeElements.doUpgradeButton.disabled = false;
         upgradeElements.inventorySelect.value = ''; 
     }, 2000);
 }
 
-function handleDeposit() {
+function handleDeposit() { // Test deposit remains local
     const amountText = profileElements.depositAmountInput.value;
     if (!amountText.trim()) {
         showTGNotification("Please enter an amount to deposit.", 'warning');
@@ -1556,12 +1621,12 @@ function handleDeposit() {
         return;
     }
     currentUser.tonBalance += amount;
-    updateBalances(); // Saves data
+    updateBalances(); 
     showTGNotification(`${amount.toFixed(2)} TON successfully added to your balance! (Test)`, 'success');
     profileElements.depositAmountInput.value = ''; 
 }
 
-// --- Withdraw Flow Logic ---
+// --- Withdraw Flow Logic --- (Simulated locally)
 function showWithdrawStep(stepNumber) {
     withdrawSteps.forEach((step, index) => {
         step.classList.toggle('active', index + 1 === stepNumber);
@@ -1569,78 +1634,74 @@ function showWithdrawStep(stepNumber) {
 }
 
 function startWithdrawalProcess(itemId) {
-    itemToWithdraw = itemId; // Store the item ID we are withdrawing
+    const item = currentUser.inventory.find(i => i.id === itemId); 
+    if (!item) {
+        showTGNotification("Item not found for withdrawal.", "error");
+        return;
+    }
+    itemToWithdraw = item.id; 
+    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`; 
     showWithdrawStep(1);
     withdrawModal.classList.add('active');
 }
 
-function completeWithdrawal() {
-    // Placeholder for actual backend call
-    withdrawStatusMessage.textContent = "Sending request to server..."; 
-    setTimeout(() => {
-        // Simulate server response (replace with actual fetch)
-        // Assuming success for now
-        const itemIndex = currentUser.inventory.findIndex(item => item.id === itemToWithdraw);
-        if (itemIndex !== -1) {
-             const itemName = currentUser.inventory[itemIndex].name;
-             currentUser.inventory.splice(itemIndex, 1); // Remove from inventory
-             renderInventory(); // Update UI & save data
-             showTGNotification(`${itemName} sent successfully via Tonnel!`, 'success');
-             withdrawStatusMessage.textContent = "Gift sent!"; 
-        } else {
-             withdrawStatusMessage.textContent = "Error: Item not found."; 
-             showTGNotification("Error withdrawing item.", 'error');
-        }
-         // Optionally close modal after a delay or keep it open
-         // setTimeout(closeWithdrawModal, 2000); 
-    }, 2500); // Simulate network delay
+async function completeWithdrawal() { 
+    withdrawStatusMessage.textContent = "Simulating sending process..."; 
+    withdrawStatusMessage.style.color = 'var(--text-secondary)'; 
+    const loader = withdrawModal.querySelector('.loader'); 
+    if(loader) loader.style.display = 'block';
+
+    // Simulate delay
+    await new Promise(resolve => setTimeout(resolve, 2500)); 
+
+    // Simulate success: Remove item from local inventory
+    const itemIndex = currentUser.inventory.findIndex(item => item.id === itemToWithdraw);
+    if (itemIndex !== -1) {
+         const itemName = currentUser.inventory[itemIndex].name;
+         currentUser.inventory.splice(itemIndex, 1); 
+         renderInventory(); 
+         withdrawStatusMessage.textContent = "Gift withdrawal simulated!"; 
+         withdrawStatusMessage.style.color = 'var(--success-color)';
+         showTGNotification(`${itemName} withdrawal simulated!`, 'success');
+    } else {
+         withdrawStatusMessage.textContent = "Error: Item not found locally."; 
+         withdrawStatusMessage.style.color = 'var(--danger-color)';
+         showTGNotification("Error withdrawing item.", 'error');
+    }
+     if(loader) loader.style.display = 'none'; 
+     // setTimeout(closeWithdrawModal, 2000); // Optionally close
 }
 
 function closeWithdrawModal() {
     withdrawModal.classList.remove('active');
     itemToWithdraw = null;
-    // Reset to step 1 for next time
     showWithdrawStep(1); 
+    withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; 
 }
 
 
 // --- Event Listeners ---
-appNavButtons.forEach(button => {
-    button.addEventListener('click', () => navigateToPage(button.dataset.page));
-});
-
+// ... (All event listeners remain the same) ...
+appNavButtons.forEach(button => { button.addEventListener('click', () => navigateToPage(button.dataset.page)); });
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
-
 profileElements.confirmDepositButton.addEventListener('click', handleDeposit); 
-// Disconnect Wallet Listener
-profileElements.disconnectWalletButton.addEventListener('click', () => {
-    tonConnectUI.disconnect(); 
-});
-
-// Withdraw Modal Listeners
+profileElements.disconnectWalletButton.addEventListener('click', () => { tonConnectUI.disconnect(); });
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
-withdrawStep2NextBtn.addEventListener('click', () => {
-    showWithdrawStep(3);
-    completeWithdrawal(); // Start the final "sending" process
-});
+withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); });
 withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
-
-
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedMultiplier = parseFloat(e.target.dataset.multiplier);
         const chance = parseFloat(e.target.dataset.chance);
         upgradeElements.chanceDisplay.textContent = `${chance}%`; 
-
         upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
             btn.classList.remove('active-multiplier'); 
             if(!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
         });
         e.target.classList.add('active-multiplier');
         if(e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary');
-
     });
 });
 const defaultMultiplierButton = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="${selectedMultiplier}"]`);
@@ -1649,10 +1710,7 @@ if (defaultMultiplierButton) {
     if(defaultMultiplierButton.classList.contains('button-secondary')) defaultMultiplierButton.classList.remove('button-secondary');
     upgradeElements.chanceDisplay.textContent = `${defaultMultiplierButton.dataset.chance}%`;
 }
-
-
 upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
-
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value)
         .then(() => showTGNotification("Referral Code copied!", 'success'))
@@ -1662,7 +1720,7 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
     if (currentUser.referralEarnings > 0) {
         currentUser.tonBalance += currentUser.referralEarnings;
         currentUser.referralEarnings = 0;
-        updateBalances(); // Saves data
+        updateBalances(); 
         renderInvitePage();
         showTGNotification("Referral Earnings claimed!", 'success');
     } else {
@@ -1672,15 +1730,15 @@ inviteElements.withdrawReferralButton.addEventListener('click', () => {
 
 
 // --- Initialization ---
-document.addEventListener('DOMContentLoaded', () => {
-     // Load user data from localStorage first
-    loadData();
+async function initializeApp() {
+    // Load user data from localStorage first
+    loadData(); 
 
-    preloadImages(imageUrlsToPreload); // Start preloading
+    preloadImages(imageUrlsToPreload); 
 
     // Subscribe to TON Connect UI wallet connection status changes
     tonConnectUI.onStatusChange(wallet => {
-        updateUIBasedOnWallet(wallet); // Update UI whenever connection status changes
+        updateUIBasedOnWallet(wallet); 
     });
 
     // Get Telegram User Data
@@ -1690,14 +1748,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const tgUser = Telegram.WebApp.initDataUnsafe?.user;
         if (tgUser) {
-            currentUser.id = tgUser.id;
-            currentUser.username = tgUser.username;
-            currentUser.first_name = tgUser.first_name;
-            currentUser.last_name = tgUser.last_name;
-            // Regenerate referral code if missing, now that we have the ID
+            // Set user data only if not already loaded from localStorage
+            if (!currentUser.id) currentUser.id = tgUser.id; 
+            currentUser.username = tgUser.username || currentUser.username;
+            currentUser.first_name = tgUser.first_name || currentUser.first_name;
+            currentUser.last_name = tgUser.last_name || currentUser.last_name;
+            
              if (!currentUser.referralCode && currentUser.id) {
                  currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
-                 saveData(); 
              }
         }
 
@@ -1705,24 +1763,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim();
             Telegram.WebApp.setHeaderColor(bgColor);
             Telegram.WebApp.setBackgroundColor(bgColor);
-        } catch (e) {
-            // Silent fail
-        }
+        } catch (e) { /* Silent fail */ }
+
     } else {
-        // Fallback for browser testing - Generate dummy referral code
+        // Fallback for browser testing 
         if (!currentUser.referralCode) {
             currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
         }
     }
 
-    // Initial UI setup (may be updated immediately by onStatusChange if already connected)
+    // Initial UI setup
     updateUIBasedOnWallet(tonConnectUI.wallet); 
     renderCases();
     renderProfile(); 
     renderLeaderboard();
     renderInvitePage();
     navigateToPage('main-page'); 
-});
+    saveData(); // Initial save after setting potential TG data
+}
+
+document.addEventListener('DOMContentLoaded', initializeApp);
+
 </script>
 </body>
 </html>
