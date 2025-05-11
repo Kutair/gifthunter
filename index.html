@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 
     <style>
-        :root {
+:root {
             --bg-gradient-start: #1A1D2B; 
             --bg-gradient-mid: #2C2F40;  
             --bg-gradient-end: #121212;   
@@ -29,6 +29,8 @@
             --text-primary: #FFFFFF;
             --text-secondary: #AEAEB2; 
             --text-placeholder: #636366;
+            --text-price-color: #BDC3C7; /* Новый цвет для цен, чуть ярче secondary */
+
 
             --border-color: rgba(84, 84, 88, 0.35); 
             --border-highlight: var(--primary-color);
@@ -41,18 +43,7 @@
             --button-border-radius: 10px;
             --soft-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
 
-            --case-grad-lolpop: linear-gradient(135deg, #ff5f6d, #ffc371); /* Pink/Orange */
-            --case-grad-recordplayer: linear-gradient(135deg, #11998e, #38ef7d); /* Teal/Green */
-            --case-grad-swisswatch: linear-gradient(135deg, #d4af37, #b38728); /* Richer Gold */
-            --case-grad-perfumebottle: linear-gradient(135deg, #eecda3, #ef629f); /* Peach/Pink */
-            --case-grad-vintagecigar: linear-gradient(135deg, #6d4c41, #9e7a70); /* Deeper Brown */
-            --case-grad-astralshard: linear-gradient(135deg, #6a3093, #a044ff); /* Vibrant Purple */
-            --case-grad-plushpepe: linear-gradient(135deg, #61ba6d, #83c331); /* Brighter Green */
-            --case-grad-happypepe: linear-gradient(135deg, #fbd3e9, #bb377d); /* Pink/Magenta */
-            --case-grad-amber: linear-gradient(135deg, #f5af19, #f12711); /* Orange/Red */
-            --case-grad-midnightblue: linear-gradient(135deg, #2c3e50, #4b79a1); /* Deeper Blue/Grey */
-            --case-grad-onyxblack: linear-gradient(135deg, #373B44, #585e6b); /* Metallic Grey */
-            --case-grad-black: linear-gradient(135deg, #141E30, #243B55); /* Deep Dark Blue */
+            /* УДАЛЕНЫ --case-grad-... переменные */
             --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); 
         }
 
@@ -258,8 +249,7 @@
             gap: 18px; 
         }
         .case-card {
-            /* Default background is surface color */
-             background-color: var(--surface-color); 
+            background-image: var(--case-grad-default); /* Default subtle gradient */
             border-radius: var(--main-border-radius);
             padding: 18px;
             text-align: center;
@@ -267,53 +257,23 @@
             transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
             border: 1px solid var(--border-color); 
             overflow: hidden; 
-            position: relative; /* For potential pseudo-elements */
+            position: relative;
         }
-        /* Apply Specific Gradients */
-        .case-card[data-case-id="lolpop"] { background-image: var(--case-grad-lolpop); }
-        .case-card[data-case-id="recordplayer"] { background-image: var(--case-grad-recordplayer); }
-        .case-card[data-case-id="swisswatch"] { background-image: var(--case-grad-swisswatch); }
-        .case-card[data-case-id="perfumebottle"] { background-image: var(--case-grad-perfumebottle); }
-        .case-card[data-case-id="vintagecigar"] { background-image: var(--case-grad-vintagecigar); }
-        .case-card[data-case-id="astralshard"] { background-image: var(--case-grad-astralshard); }
-        .case-card[data-case-id="plushpepe"] { background-image: var(--case-grad-plushpepe); }
-        .case-card[data-case-id="happypepe"] { background-image: var(--case-grad-happypepe); }
-        .case-card[data-case-id="amber"] { background-image: var(--case-grad-amber); }
-        .case-card[data-case-id="midnightblue"] { background-image: var(--case-grad-midnightblue); }
-        .case-card[data-case-id="onyxblack"] { background-image: var(--case-grad-onyxblack); }
-        .case-card[data-case-id="black"] { background-image: var(--case-grad-black); }
-
-        /* Text color adjustments for better contrast on gradients */
-         .case-card[data-case-id="lolpop"] .case-name, 
-         .case-card[data-case-id="lolpop"] .case-price,
-         .case-card[data-case-id="happypepe"] .case-name, 
-         .case-card[data-case-id="happypepe"] .case-price,
-         .case-card[data-case-id="amber"] .case-name, 
-         .case-card[data-case-id="amber"] .case-price,
-         .case-card[data-case-id="plushpepe"] .case-name,
-         .case-card[data-case-id="plushpepe"] .case-price {
-             color: #333; /* Darker text for light gradients */
-             text-shadow: 0 0 2px rgba(255,255,255,0.3); /* Optional subtle shadow */
-         }
-         /* Ensure other text remains white */
-          .case-card .case-name { color: var(--text-primary); }
-          .case-card .case-price { color: var(--text-secondary); }
-
+        /* Убраны специфичные градиенты для .case-card[data-case-id="..."] */
 
         .case-card:hover {
-            /* Keep hover transform, maybe adjust background slightly */
-            filter: brightness(1.1);
+            filter: brightness(1.1); /* Общий эффект для всех кейсов */
             transform: translateY(-5px);
             box-shadow: var(--soft-shadow);
         }
         .case-card .case-image-display { 
             width: 80px; height: 80px;
             margin: 0 auto 15px auto;
-            background-color: rgba(255, 255, 255, 0.1); /* Lighter bg for images */
+            background-color: rgba(255, 255, 255, 0.05); /* Еще более прозрачный фон для картинок */
             border-radius: var(--button-border-radius);
             overflow: hidden;
             position: relative; 
-             border: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border for image */
+            border: 1px solid rgba(255, 255, 255, 0.08); 
         }
         .case-card .case-image-display img {
             display: block;
@@ -329,40 +289,35 @@
              transform: translate(-50%, -50%);
              object-fit: contain; 
              pointer-events: none; 
-             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.4)); /* Shadow for overlay */
+             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); 
          }
 
         .case-card .case-name {
-            font-weight: 700; /* Bolder names on gradients */
+            font-weight: 600; /* Сделаем чуть менее жирным, чтобы не конфликтовать с отсутствием ярких фонов */
             font-size: 1em; margin-bottom: 6px;
+            color: var(--text-primary); /* Единый цвет для названий */
             min-height: 2.4em; 
             display: flex; align-items: center; justify-content: center;
-            /* Text shadow for potentially better readability on some gradients */
-             text-shadow: 0 1px 3px rgba(0,0,0,0.4); 
+            text-shadow: none; /* Убрана тень */
         }
         .case-card .case-price {
-            font-size: 0.9em; font-weight: 600; /* Bolder price */
-            /* Text shadow */
-             text-shadow: 0 1px 3px rgba(0,0,0,0.4); 
+            font-size: 0.9em; font-weight: 500;
+            color: var(--text-price-color); /* Новый единый цвет для цен */
+            text-shadow: none; /* Убрана тень */
         }
 
         /* --- Modal Base --- */
-        /* ... (Modal base styles remain the same) ... */
-         .modal {
+        .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.7); 
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             overflow-y: auto; 
-            align-items: flex-start; /* Align content to top */
-            padding-top: 5vh; /* Add some top padding */
+            align-items: flex-start; 
+            padding-top: 5vh; 
             padding-bottom: 5vh;
         }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
-        @keyframes modalFadeInMinimal {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
         .modal-content {
             background-color: var(--surface-color);
             padding: 24px;
@@ -373,7 +328,6 @@
             border: 1px solid var(--border-color);
             display: flex; flex-direction: column;
             margin: auto; 
-             max-height: none; 
         }
          .modal-content h3 { 
             margin-top: 0; margin-bottom: 16px;
@@ -391,17 +345,16 @@
 
 
         /* --- Roulette Modal Specifics --- */
-        /* ... (Roulette styles remain largely the same, ensure wheel height is correct) ... */
         #roulette-wheel-container { width: 100%;  flex-shrink: 0; }
         #roulette-wheel {
-            height: 270px; /* TALLER wheel (90px item height * 3) */
+            height: 270px; 
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
             background-color: var(--bg-color); 
             margin: 16px 0 20px 0; 
         }
-        #roulette-wheel::before { /* Single Center marker line */
+        #roulette-wheel::before { 
             content: '';
             position: absolute;
             left: 10px; right: 10px; top: 50%;
@@ -415,7 +368,7 @@
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 90px; /* Height matching wheel / 3 */
+            height: 90px; 
             display: flex; align-items: center; justify-content: center; 
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
@@ -431,9 +384,9 @@
         #possible-prizes-display {
             padding-right: 0px; 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); /* 3 COLUMNS */
+            grid-template-columns: repeat(3, 1fr); 
             gap: 10px;
-             flex-shrink: 1; 
+             flex-shrink: 0; 
              margin-top: 10px;
         }
         .prize-card {
@@ -479,9 +432,8 @@
              font-weight: 500;
               flex-shrink: 0;
          }
-
+        
         /* --- Withdraw Modal Specifics --- */
-        /* ... (Withdraw modal styles remain the same) ... */
          #withdraw-modal .modal-step { display: none; }
         #withdraw-modal .modal-step.active { display: block; }
         #withdraw-modal p { color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;}
@@ -500,7 +452,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Input fields */
-        /* ... (Input styles remain the same) ... */
         input[type="text"], input[type="number"], select {
             width: 100%; padding: 12px 14px; margin-bottom: 12px;
             border-radius: var(--button-border-radius);
@@ -515,7 +466,6 @@
         }
 
         /* Profile Page Specifics */
-        /* ... (Profile styles remain the same) ... */
          .profile-header { text-align: center; margin-bottom: 24px; padding-top: 10px;}
         .profile-avatar-placeholder {
             width: 80px; height: 80px; border-radius: 50%;
@@ -529,20 +479,20 @@
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); /* Adjust minmax slightly */
-            gap: 10px; /* Slightly smaller gap */
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
+            gap: 10px; 
         }
         .inventory-item {
             background-color: var(--surface-hover-color);
             border-radius: var(--button-border-radius);
-            padding: 10px; /* Adjust padding */
+            padding: 10px; 
              text-align: center;
-             display: flex; /* Use flex for better control */
+             display: flex; 
              flex-direction: column;
-             justify-content: space-between; /* Push buttons down */
+             justify-content: space-between; 
         }
-         .inventory-item .item-image-display { /* Image container */
-             width: 60px; /* Adjust size */
+         .inventory-item .item-image-display { 
+             width: 60px; 
              height: 60px;
              margin: 0 auto 8px auto;
              background-color: var(--bg-color);
@@ -555,17 +505,16 @@
          }
         .inventory-item-name { font-size: 0.85em; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
         .inventory-item-value { font-size: 0.75em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
-        .inventory-item-actions { display: flex; flex-direction: column; gap: 5px; margin-top: auto; /* Pushes buttons down */ } 
+        .inventory-item-actions { display: flex; flex-direction: column; gap: 5px; margin-top: auto; } 
         .inventory-item-actions .button { 
             font-size: 0.75em; padding: 5px 8px; margin: 0; width: 100%; 
         }
-
-        /* Added Sell All Button Style */
+         
         #sell-all-button {
             margin-top: 15px;
-            background-color: var(--danger-color); /* Use danger color */
+            background-color: var(--danger-color); 
             color: white;
-             background-image: none; /* Remove gradient */
+             background-image: none; 
              box-shadow: 0 2px 5px rgba(255, 59, 48, 0.3);
         }
          #sell-all-button:hover {
@@ -578,7 +527,6 @@
          }
         
         /* Upgrade Page */
-        /* ... (Upgrade styles remain the same) ... */
          #upgrade-chance-display {
             font-size: 2.5em; font-weight: 700; color: var(--text-primary);
             text-align:center; margin: 20px auto; padding: 15px;
@@ -594,7 +542,6 @@
         }
         
         /* Invite Page */
-        /* ... (Invite styles remain the same) ... */
          .stats-box { display: flex; justify-content: space-around; margin: 20px 0; gap: 12px; }
         .stat-item {
             background-color: var(--surface-hover-color);
@@ -607,7 +554,6 @@
         .invited-users-list div:last-child { border-bottom: none; }
 
         /* Leaderboard Page */
-        /* ... (Leaderboard styles remain the same) ... */
         .leaderboard-list .leader-entry {
             display: flex; align-items: center; padding: 12px 0;
             border-bottom: 1px solid var(--border-color);
@@ -632,7 +578,6 @@
          .leader-entry.current-user-entry .info .name {
              color: var(--primary-color);
         }
-
     </style>
 </head>
 <body>
