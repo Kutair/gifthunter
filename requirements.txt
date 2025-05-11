@@ -3,4 +3,3 @@ gunicorn
 pyTelegramBotAPI
 requests
 python-dotenv 
-time
