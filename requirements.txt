@@ -1,9 +1,6 @@
 fastapi
+gunicorn 
 pyTelegramBotAPI
-sqlmodel
-aiosqlite
-httpx
-schedule
 requests
-beautifulsoup4
 python-dotenv 
+time
