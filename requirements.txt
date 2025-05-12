@@ -4,3 +4,4 @@ pyTelegramBotAPI
 SQLAlchemy
 psycopg2-binary
 gunicorn
+Flask-CORS
