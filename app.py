@@ -37,7 +37,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Также, если ты тестируешь локально с Live Server, добавь его origin.
+allowed_origins = [
+    "https://vasiliy-katsyka.github.io", 
+    # Если тестируешь локально с разными портами, добавь их:
+    # "http://127.0.0.1:5500", # Пример для Live Server
+    # "http://localhost:5500"  # Пример для Live Server
+]
 
+# Применяем CORS ко всем маршрутам, начинающимся с /api/
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 # --- SQLAlchemy Настройка ---
 if not DATABASE_URL:
