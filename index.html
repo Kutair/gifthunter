@@ -1786,16 +1786,30 @@ if(profileElements.sellAllButton) {
 
 // --- Initialization ---
 async function fetchInitialUserData() {
+    // Важно: эта функция теперь должна вызываться только ОДИН РАЗ после того,
+    // как и initData, и статус кошелька (если он используется для чего-то до загрузки данных) определены.
+    // Или, если initData достаточно, то только после готовности initData.
+
     if (!Telegram.WebApp.initData) {
         console.warn("No initData, cannot fetch user data from backend.");
-        updateUIBasedOnWallet(null); 
-        renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-        navigateToPage('main-page');
-        return;
+        // Если мы здесь, значит, что-то пошло не так с TG инициализацией
+        // Можно показать сообщение об ошибке или использовать дефолты, если это браузер
+        if (!window.Telegram || !window.Telegram.WebApp) { // Явно браузерный режим
+            // Используем дефолтные/локальные значения
+            updateUIBasedOnWallet(null);
+            renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
+            navigateToPage('main-page');
+        } else {
+            showTGNotification("Error: Telegram data not available. Please restart.", "error");
+        }
+        return false; // Указываем на неудачу
     }
+
+    console.log("Fetching initial user data from backend...");
     try {
-        // Явно указываем POST, так как get_user_data ожидает его
+        // Отправляем POST, так как бэкенд ожидает POST для /api/get_user_data
         const data = await apiRequest('/api/get_user_data', 'POST', {}); 
+        
         currentUser.id = data.id;
         currentUser.username = data.username;
         currentUser.first_name = data.first_name || 'User';
@@ -1806,69 +1820,117 @@ async function fetchInitialUserData() {
         currentUser.referralCode = data.referralCode;
         currentUser.referralEarningsPending = data.referralEarningsPending || 0;
         currentUser.total_won_ton = data.total_won_ton || 0;
+        
+        console.log("User data fetched and currentUser updated:", currentUser);
+        return true; // Указываем на успех
+
     } catch (error) {
-        showTGNotification("Could not load your profile data. Please try restarting.", 'error');
-    } finally {
-        // Обновляем UI в любом случае (с данными с бэка или дефолтами)
-        updateUIBasedOnWallet(tonConnectUI.wallet); 
-        renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-        navigateToPage('main-page');
+        console.error("Failed to fetch initial user data:", error);
+        showTGNotification("Could not load your profile data. Please try again later.", 'error');
+        return false; // Указываем на неудачу
     }
 }
 
 async function initializeApp() {
+    console.log("initializeApp started");
     preloadImages(imageUrlsToPreload); 
 
+    let initialDataFetched = false;
+
+    // Подписываемся на изменение статуса кошелька
     tonConnectUI.onStatusChange(async wallet => { 
+        console.log("TON Connect status changed. Wallet:", wallet);
         updateUIBasedOnWallet(wallet); 
-        if (Telegram.WebApp.initData) { // Загружаем данные всегда, если есть initData
-            await fetchInitialUserData(); 
+        // Если данные еще не загружены и initData доступна, пробуем загрузить
+        // Это нужно, если подключение кошелька происходит после initData
+        if (!initialDataFetched && window.Telegram && Telegram.WebApp.initData) {
+            if (await fetchInitialUserData()) {
+                initialDataFetched = true;
+                // Обновляем весь UI после успешной загрузки данных
+                renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
+                navigateToPage('main-page'); // Убедимся, что правильная страница активна
+            }
         }
     });
 
     if (window.Telegram && window.Telegram.WebApp) {
-        Telegram.WebApp.ready();
+        Telegram.WebApp.ready(); // Сообщаем Telegram, что приложение готово
         Telegram.WebApp.expand(); 
+        console.log("Telegram WebApp is ready and expanded.");
         
         const tgUser = Telegram.WebApp.initDataUnsafe?.user;
         if (tgUser) {
-            currentUser.id = tgUser.id; 
-            currentUser.username = tgUser.username;
-            currentUser.first_name = tgUser.first_name || 'User';
-            currentUser.last_name = tgUser.last_name;
-            if (!currentUser.referralCode) { // Генерируем, если с бэка не пришел (например, для нового юзера)
-                 currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
-             }
+            console.log("Telegram user data available (unsafe):", tgUser);
+            // Устанавливаем базовые данные пользователя из TG, если они еще не установлены
+            // или если они отличаются от текущих (хотя currentUser на этом этапе скорее всего пуст)
+            if (!currentUser.id || currentUser.id !== tgUser.id) {
+                currentUser.id = tgUser.id; 
+                currentUser.username = tgUser.username;
+                currentUser.first_name = tgUser.first_name || 'User';
+                currentUser.last_name = tgUser.last_name;
+                if (!currentUser.referralCode) { // Генерируем реф. код, если его нет
+                    currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+                }
+            }
+        } else {
+            console.warn("Telegram.WebApp.initDataUnsafe.user is not available.");
         }
         
-        // Первичная загрузка данных
-        if (Telegram.WebApp.initData) {
-            await fetchInitialUserData();
-        } else { 
-            // Этот блок маловероятен, если мы внутри Telegram WebApp
-            console.warn("Running in Telegram WebApp, but initData is not available yet.");
-            updateUIBasedOnWallet(null);
-            renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-            navigateToPage('main-page');
-        }
-        
+        // Попытка установить цвета темы
         try { 
-            const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim();
+            const rootStyle = getComputedStyle(document.documentElement);
+            const bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
             if (bgColor) { 
                  Telegram.WebApp.setHeaderColor(bgColor);
                  Telegram.WebApp.setBackgroundColor(bgColor);
+                 console.log("Telegram theme colors set.");
             }
-        } catch (e) { /* Silent fail */ }
+        } catch (e) { 
+            console.warn("Could not set Telegram WebApp theme colors.", e);
+        }
+
+        // Основная загрузка данных пользователя
+        if (Telegram.WebApp.initData) {
+            console.log("initData is available, calling fetchInitialUserData.");
+            if (await fetchInitialUserData()) {
+                initialDataFetched = true;
+            }
+        } else { 
+            console.warn("Running in Telegram WebApp, but initData is NOT available at this point.");
+            // Это странная ситуация, если мы уже внутри TG. Возможно, SDK еще не полностью инициализировался.
+            // Можно попробовать подождать немного и повторить, но это усложнит логику.
+            // Пока просто обновим UI с тем, что есть (дефолты).
+            updateUIBasedOnWallet(null); 
+            renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
+            navigateToPage('main-page');
+        }
 
     } else { 
+        // Браузерный режим (не внутри Telegram)
         console.warn("Telegram WebApp SDK not available. Running in simulated browser mode.");
-        if (!currentUser.referralCode) {
+        if (!currentUser.referralCode) { // Генерируем реф. код для браузера
             currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
         }
+        initialDataFetched = true; // Считаем, что "загрузка" прошла с дефолтными данными
         updateUIBasedOnWallet(null); 
         renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
         navigateToPage('main-page');
     }
+
+    // Финальный рендеринг UI, если данные были успешно загружены
+    // Эта проверка нужна, чтобы избежать ререндеринга, если fetchInitialUserData уже все сделал
+    if (initialDataFetched) {
+        console.log("Initial data fetched, performing final UI render.");
+        renderHeader(); 
+        renderCases(); // <--- Вот здесь должны появиться кейсы
+        renderProfile(); 
+        renderLeaderboard(); 
+        renderInvitePage();
+        navigateToPage('main-page'); // Убедимся, что главная страница активна
+    } else {
+        console.warn("Initial data was NOT successfully fetched. UI might be incomplete.");
+    }
+     console.log("initializeApp finished.");
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
