@@ -14,7 +14,7 @@ from datetime import datetime as dt, timezone, timedelta
 import json 
 
 # SQLAlchemy imports
-from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint, BigInteger
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError
@@ -48,14 +48,14 @@ Base = declarative_base()
 # --- Модели Базы Данных ---
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True) 
+    id = Column(BigInteger, primary_key=True, index=True, autoincrement=False) 
     username = Column(String, nullable=True, index=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     ton_balance = Column(Float, default=0.0, nullable=False)
     star_balance = Column(Integer, default=0, nullable=False)
     referral_code = Column(String, unique=True, index=True, nullable=True)
-    referred_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    referred_by_id = Column(BigInteger, ForeignKey("users.id"), nullable=True)
     referral_earnings_pending = Column(Float, default=0.0, nullable=False)
     total_won_ton = Column(Float, default=0.0, nullable=False) 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -73,7 +73,7 @@ class NFT(Base):
 class InventoryItem(Base):
     __tablename__ = "inventory_items"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False) 
     nft_id = Column(Integer, ForeignKey("nfts.id"), nullable=False)
     current_value = Column(Float, nullable=False) 
     upgrade_multiplier = Column(Float, default=1.0, nullable=False)
@@ -84,21 +84,17 @@ class InventoryItem(Base):
 Base.metadata.create_all(bind=engine)
 
 # --- Функция генерации имени файла ---
-def generate_image_filename_from_name(name_str: str) -> str: # Добавил type hint
+def generate_image_filename_from_name(name_str: str) -> str: 
     if not name_str: return 'placeholder.png'
-    # Особые случаи из твоего HTML
     if name_str == "Durov's Cap": return "Durov's-Cap.png"
     if name_str == "Kissed Frog Happy Pepe": return "Kissed-Frog-Happy-Pepe.png"
-    if name_str == "Vintage Cigar": return "Vintage-CIgar.png" # Учитываем CIgar
-    # Общее правило: заменяем пробелы на тире, удаляем апострофы и другие нежелательные символы
-    # (можно расширить список символов для удаления/замены)
+    if name_str == "Vintage Cigar": return "Vintage-CIgar.png" 
     cleaned_name = name_str.replace(' ', '-').replace('&', 'and').replace("'", "")
     return cleaned_name + '.png'
 
-
 # --- Данные кейсов ---
 # 🔴🔴🔴 ВСТАВЬ СЮДА СВОЙ ПОЛНЫЙ МАССИВ cases_data_backend 🔴🔴🔴
-# Он должен выглядеть примерно так, но со ВСЕМИ твоими кейсами и призами:
+# ОБЯЗАТЕЛЬНО ЗАПОЛНИ ЭТОТ МАССИВ, ИНАЧЕ ЛОГИКА НЕ БУДЕТ РАБОТАТЬ!
 cases_data_backend = [
     { 
         'id': 'lolpop', 'name': 'Lol Pop Stash', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'priceTON': 0.5,
@@ -267,8 +263,12 @@ cases_data_backend = [
         ]
     },
 ]
+# 🔴🔴🔴 КОНЕЦ СЕКЦИИ ДЛЯ ВСТАВКИ cases_data_backend 🔴🔴🔴
+
 if not cases_data_backend:
-    logger.warning("Массив cases_data_backend ПУСТ! Логика открытия кейсов и заполнения NFT не будет работать корректно.")
+    logger.critical("Массив cases_data_backend ПУСТ! Приложение не сможет корректно функционировать. Заполни его!")
+    # Можно даже завершить приложение, если это критично для старта
+    # exit("CRITICAL: cases_data_backend is empty. Halting application.")
 
 
 def populate_initial_nfts_from_cases():
@@ -281,17 +281,12 @@ def populate_initial_nfts_from_cases():
         existing_nft_names = {name_tuple[0] for name_tuple in existing_nft_names_query}
         
         nfts_to_add = []
-
         for case_config in cases_data_backend: 
             for prize in case_config.get('prizes', []):
                 if prize['name'] not in existing_nft_names:
-                    # Теперь generate_image_filename_from_name доступна
                     image_fn = prize.get('imageFilename', generate_image_filename_from_name(prize['name']))
-                    
                     nfts_to_add.append(NFT(
-                        name=prize['name'],
-                        image_filename=image_fn,
-                        floor_price=prize['floorPrice']
+                        name=prize['name'], image_filename=image_fn, floor_price=prize['floorPrice']
                     ))
                     existing_nft_names.add(prize['name']) 
 
@@ -301,13 +296,12 @@ def populate_initial_nfts_from_cases():
             logger.info(f"Добавлено {len(nfts_to_add)} новых NFT в базу.")
         else:
             logger.info("Новых NFT для добавления не найдено, или таблица уже заполнена.")
-            
     except IntegrityError:
         db.rollback()
         logger.warning("Ошибка целостности при добавлении NFT (возможно, дубликаты уже существуют). Пропускаем.")
     except Exception as e:
         db.rollback()
-        logger.error(f"Ошибка при заполнении таблицы NFT: {e}")
+        logger.error(f"Ошибка при заполнении таблицы NFT: {type(e).__name__} - {e}")
     finally:
         db.close()
 
@@ -334,15 +328,14 @@ def get_db():
 def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
     try:
         parsed_data = dict(parse_qs(init_data_str))
-        
         if 'hash' not in parsed_data or 'user' not in parsed_data or 'auth_date' not in parsed_data:
             logger.warning("initData missing required fields (hash, user, or auth_date).")
             return None
 
         hash_received = parsed_data.pop('hash')[0]
-        
         auth_date_ts = int(parsed_data['auth_date'][0])
         current_ts = int(dt.now(timezone.utc).timestamp())
+
         if (current_ts - auth_date_ts) > AUTH_DATE_MAX_AGE_SECONDS:
             logger.warning(f"initData is outdated. auth_date: {auth_date_ts}, current_ts: {current_ts}, diff: {current_ts - auth_date_ts}s. Max age: {AUTH_DATE_MAX_AGE_SECONDS}s")
             return None 
@@ -362,7 +355,6 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
         if calculated_hash_hex == hash_received:
             user_data_json_str = unquote(parsed_data['user'][0])
             user_info_dict = json.loads(user_data_json_str) 
-            
             return {
                 "id": int(user_info_dict.get("id")), 
                 "first_name": user_info_dict.get("first_name"),
@@ -383,7 +375,7 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
 # --- API Эндпоинты ---
 @app.route('/') 
 def index_route(): 
-    return "Flask App (Full Backend - Cases Omitted) is running!"
+    return "Flask App (Full Backend - Cases Omitted - BigInt Fix) is running!"
 
 @app.route('/api/get_user_data', methods=['POST'])
 def get_user_data_api():
@@ -403,8 +395,14 @@ def get_user_data_api():
             referral_code=f"ref_{user_id}_{random.randint(1000,9999)}"
         )
         db.add(user)
-        db.commit()
-        db.refresh(user)
+        try:
+            db.commit()
+            db.refresh(user)
+        except Exception as e_commit:
+            db.rollback()
+            logger.error(f"Error creating user {user_id} via API: {e_commit}")
+            return jsonify({"error": "Failed to initialize user data"}), 500
+
 
     inventory_data = []
     for item in user.inventory:
@@ -481,36 +479,29 @@ def open_case_api():
 
     db_nft = db.query(NFT).filter(NFT.name == winner_data['name']).first()
     if not db_nft:
-        logger.error(f"NFT '{winner_data['name']}' NOT FOUND in DB. This is critical if populate_initial_nfts was expected to run.")
-        # Можно попытаться создать NFT "на лету", если это допустимо
+        logger.error(f"NFT '{winner_data['name']}' NOT FOUND in DB. This indicates an issue with populate_initial_nfts_from_cases or missing NFT in cases_data_backend.")
         image_fn_winner = winner_data.get('imageFilename', generate_image_filename_from_name(winner_data['name']))
         db_nft = NFT(name=winner_data['name'], image_filename=image_fn_winner, floor_price=winner_data['floorPrice'])
         db.add(db_nft)
         try:
-            db.commit()
-            db.refresh(db_nft)
+            db.commit(); db.refresh(db_nft)
             logger.info(f"NFT '{winner_data['name']}' created on-the-fly.")
         except Exception as e_create:
-            db.rollback()
-            logger.error(f"Failed to create NFT '{winner_data['name']}' on-the-fly: {e_create}")
-            user.ton_balance += case_cost_ton 
-            user.total_won_ton -= winner_data['floorPrice']
+            db.rollback(); logger.error(f"Failed to create NFT '{winner_data['name']}' on-the-fly: {e_create}")
+            user.ton_balance += case_cost_ton; user.total_won_ton -= winner_data['floorPrice']
             db.commit()
-            return jsonify({"error": "Internal prize data error"}), 500
+            return jsonify({"error": "Internal prize data error, NFT creation failed"}), 500
 
     new_item = InventoryItem(
         user_id=user.id, nft_id=db_nft.id,
         current_value=db_nft.floor_price, upgrade_multiplier=1.0 
     )
-    db.add(new_item)
-    db.commit()
-    db.refresh(new_item) 
+    db.add(new_item); db.commit(); db.refresh(new_item) 
     
     return jsonify({
         "status": "success",
         "won_prize": {
-            "id": new_item.id, 
-            "name": db_nft.name, "imageFilename": db_nft.image_filename,
+            "id": new_item.id, "name": db_nft.name, "imageFilename": db_nft.image_filename,
             "floorPrice": db_nft.floor_price, "currentValue": new_item.current_value
         },
         "new_balance_ton": user.ton_balance,
@@ -658,7 +649,7 @@ def deposit_ton_api():
     if user.referred_by_id:
         referrer = db.query(User).filter(User.id == user.referred_by_id).first()
         if referrer:
-            referral_bonus = round(amount * 0.10, 2) # 10%
+            referral_bonus = round(amount * 0.10, 2) 
             referrer.referral_earnings_pending += referral_bonus
             logger.info(f"Начислено {referral_bonus} TON рефереру {referrer.id} от пополнения {user.id}")
     db.commit()
@@ -679,7 +670,7 @@ def get_leaderboard_api():
             "name": user_leader.first_name or user_leader.username or f"User_{user_leader.id}",
             "avatarChar": (user_leader.first_name or user_leader.username or "U")[0].upper(),
             "income": user_leader.total_won_ton,
-            "user_id": user_leader.id # Добавим user_id для возможности выделения текущего пользователя на фронте
+            "user_id": user_leader.id 
         })
     return jsonify(leaderboard_data)
 
@@ -726,15 +717,13 @@ def send_welcome(message):
             star_balance=0,
             referral_code=f"ref_{message.chat.id}_{random.randint(1000,9999)}"
         )
-        db.add(user) # Добавляем нового пользователя
+        db.add(user) 
     
-    # Обработка реферального параметра
     try:
         start_param = message.text.split(' ')
         if len(start_param) > 1 and start_param[1].startswith('ref_'):
             referrer_code_param = start_param[1]
-            # Проверяем, был ли пользователь уже привязан к рефереру или это его первый /start
-            if created_now and not user.referred_by_id: # Только если новый и еще не имеет реферера
+            if created_now and not user.referred_by_id: 
                 referrer = db.query(User).filter(User.referral_code == referrer_code_param).first()
                 if referrer and referrer.id != user.id :
                     user.referred_by_id = referrer.id
@@ -742,7 +731,6 @@ def send_welcome(message):
     except Exception as e:
         logger.error(f"Ошибка обработки реферального параметра для {user.id}: {e}")
 
-    # Обновление данных, если изменились (даже если пользователь уже был)
     changed_in_db = False
     if user.username != message.from_user.username: user.username = message.from_user.username; changed_in_db=True
     if user.first_name != message.from_user.first_name: user.first_name = message.from_user.first_name; changed_in_db=True
@@ -756,7 +744,6 @@ def send_welcome(message):
         except Exception as e_commit:
             db.rollback()
             logger.error(f"Ошибка сохранения пользователя {message.chat.id}: {e_commit}")
-
 
     markup = types.InlineKeyboardMarkup()
     if not MINI_APP_URL:
