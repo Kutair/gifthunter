@@ -11,7 +11,7 @@ import hmac
 import hashlib
 from urllib.parse import unquote, parse_qs
 from datetime import datetime as dt, timezone, timedelta 
-import json # Для парсинга user_info в initData
+import json 
 
 # SQLAlchemy imports
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint
@@ -22,9 +22,9 @@ from sqlalchemy.exc import IntegrityError
 load_dotenv()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-MINI_APP_URL = os.environ.get("MINI_APP_URL", "https://default_mini_app_url.io") # Замени на свой URL
-DATABASE_URL = os.environ.get("DATABASE_URL") # Должен быть установлен для Neon.tech
-AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 # 24 часа для auth_date (увеличил для тестов, для прода можно меньше)
+MINI_APP_URL = os.environ.get("MINI_APP_URL", "https://default_mini_app_url.io") 
+DATABASE_URL = os.environ.get("DATABASE_URL") 
+AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 
 
 logging.basicConfig(
     level=logging.INFO,
@@ -83,7 +83,20 @@ class InventoryItem(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# --- ДАННЫЕ КЕЙСОВ ---
+# --- Функция генерации имени файла ---
+def generate_image_filename_from_name(name_str: str) -> str: # Добавил type hint
+    if not name_str: return 'placeholder.png'
+    # Особые случаи из твоего HTML
+    if name_str == "Durov's Cap": return "Durov's-Cap.png"
+    if name_str == "Kissed Frog Happy Pepe": return "Kissed-Frog-Happy-Pepe.png"
+    if name_str == "Vintage Cigar": return "Vintage-CIgar.png" # Учитываем CIgar
+    # Общее правило: заменяем пробелы на тире, удаляем апострофы и другие нежелательные символы
+    # (можно расширить список символов для удаления/замены)
+    cleaned_name = name_str.replace(' ', '-').replace('&', 'and').replace("'", "")
+    return cleaned_name + '.png'
+
+
+# --- Данные кейсов ---
 # 🔴🔴🔴 ВСТАВЬ СЮДА СВОЙ ПОЛНЫЙ МАССИВ cases_data_backend 🔴🔴🔴
 # Он должен выглядеть примерно так, но со ВСЕМИ твоими кейсами и призами:
 cases_data_backend = [
@@ -255,14 +268,8 @@ cases_data_backend = [
     },
 ]
 if not cases_data_backend:
-    logger.warning("Массив cases_data_backend ПУСТ! Логика открытия кейсов не будет работать корректно.")
+    logger.warning("Массив cases_data_backend ПУСТ! Логика открытия кейсов и заполнения NFT не будет работать корректно.")
 
-def generate_image_filename_from_name(name_str): # На случай, если в cases_data_backend нет imageFilename
-    if not name_str: return 'placeholder.png'
-    if name_str == "Durov's Cap": return "Durov's-Cap.png"
-    if name_str == "Kissed Frog Happy Pepe": return "Kissed-Frog-Happy-Pepe.png"
-    if name_str == "Vintage Cigar": return "Vintage-CIgar.png"
-    return name_str.replace(' ', '-').replace('&', 'and').replace("'", "") + '.png'
 
 def populate_initial_nfts_from_cases():
     if not cases_data_backend:
@@ -278,11 +285,9 @@ def populate_initial_nfts_from_cases():
         for case_config in cases_data_backend: 
             for prize in case_config.get('prizes', []):
                 if prize['name'] not in existing_nft_names:
-                    image_fn = prize.get('imageFilename')
-                    if not image_fn: # Если imageFilename не предоставлен в кейсе
-                        image_fn = generate_image_filename_from_name(prize['name'])
-                        logger.warning(f"Для приза '{prize['name']}' imageFilename не указан, сгенерировано: '{image_fn}'")
-
+                    # Теперь generate_image_filename_from_name доступна
+                    image_fn = prize.get('imageFilename', generate_image_filename_from_name(prize['name']))
+                    
                     nfts_to_add.append(NFT(
                         name=prize['name'],
                         image_filename=image_fn,
@@ -356,10 +361,10 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
 
         if calculated_hash_hex == hash_received:
             user_data_json_str = unquote(parsed_data['user'][0])
-            user_info_dict = json.loads(user_data_json_str)
+            user_info_dict = json.loads(user_data_json_str) 
             
             return {
-                "id": int(user_info_dict.get("id")), # Убедимся, что ID это int
+                "id": int(user_info_dict.get("id")), 
                 "first_name": user_info_dict.get("first_name"),
                 "last_name": user_info_dict.get("last_name"),
                 "username": user_info_dict.get("username"),
@@ -378,7 +383,7 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
 # --- API Эндпоинты ---
 @app.route('/') 
 def index_route(): 
-    return "Flask App (Full Backend) is running!"
+    return "Flask App (Full Backend - Cases Omitted) is running!"
 
 @app.route('/api/get_user_data', methods=['POST'])
 def get_user_data_api():
@@ -389,7 +394,7 @@ def get_user_data_api():
     user_id = auth_user_data["id"]
     db = next(get_db())
     user = db.query(User).filter(User.id == user_id).first()
-    if not user: # Создаем пользователя, если его нет (он должен быть создан через /start)
+    if not user: 
         logger.warning(f"User {user_id} not found via API, should be created by /start. Creating now.")
         user = User(
             id=user_id, username=auth_user_data.get("username"),
@@ -439,8 +444,6 @@ def open_case_api():
     if not target_case: return jsonify({"error": "Case not found"}), 404
 
     case_cost_ton = target_case.get('priceTON', 0)
-    # case_cost_stars = target_case.get('priceStars', 0) # Если есть звезды
-
     if user.ton_balance < case_cost_ton:
         return jsonify({"error": f"Not enough TON. Need {case_cost_ton}, have {user.ton_balance:.2f}"}), 400
     
@@ -448,42 +451,52 @@ def open_case_api():
     if not prizes: return jsonify({"error": "No prizes in this case"}), 500
 
     total_probability = sum(p.get('probability', 0) for p in prizes)
+    winner_data = None
     if total_probability == 0 and prizes: 
         winner_data = random.choice(prizes)
     elif total_probability > 0:
-        # Нормализация на всякий случай, если сумма не 1.0
         normalized_prizes = []
-        if abs(total_probability - 1.0) > 0.0001: # Если сумма не равна 1
+        if abs(total_probability - 1.0) > 0.0001: 
             logger.warning(f"Probabilities for case {case_id} do not sum to 1 (sum={total_probability}). Normalizing.")
             for p_info in prizes:
                 normalized_prizes.append({**p_info, 'probability': p_info.get('probability',0) / total_probability})
         else:
             normalized_prizes = prizes
         
-        rand_val = random.random() # От 0.0 до 1.0
+        rand_val = random.random() 
         current_prob_sum = 0
-        chosen_prize = None
         for prize_info in normalized_prizes:
             current_prob_sum += prize_info.get('probability', 0)
             if rand_val <= current_prob_sum:
-                chosen_prize = prize_info
+                winner_data = prize_info
                 break
-        winner_data = chosen_prize if chosen_prize else random.choice(normalized_prizes) # Fallback
+        if not winner_data: winner_data = random.choice(normalized_prizes) # Fallback
     else: 
         return jsonify({"error": "Case prize configuration error"}), 500
     
     if not winner_data: return jsonify({"error": "Could not determine prize"}), 500
 
     user.ton_balance -= case_cost_ton
-    user.total_won_ton += winner_data['floorPrice'] # Учитываем для лидерборда (начальную стоимость)
+    user.total_won_ton += winner_data['floorPrice'] 
 
     db_nft = db.query(NFT).filter(NFT.name == winner_data['name']).first()
     if not db_nft:
-        logger.error(f"NFT '{winner_data['name']}' NOT FOUND in DB during case open. This should not happen if populate_initial_nfts worked.")
-        user.ton_balance += case_cost_ton # Возвращаем деньги
-        user.total_won_ton -= winner_data['floorPrice']
-        db.commit()
-        return jsonify({"error": "Internal prize definition error"}), 500
+        logger.error(f"NFT '{winner_data['name']}' NOT FOUND in DB. This is critical if populate_initial_nfts was expected to run.")
+        # Можно попытаться создать NFT "на лету", если это допустимо
+        image_fn_winner = winner_data.get('imageFilename', generate_image_filename_from_name(winner_data['name']))
+        db_nft = NFT(name=winner_data['name'], image_filename=image_fn_winner, floor_price=winner_data['floorPrice'])
+        db.add(db_nft)
+        try:
+            db.commit()
+            db.refresh(db_nft)
+            logger.info(f"NFT '{winner_data['name']}' created on-the-fly.")
+        except Exception as e_create:
+            db.rollback()
+            logger.error(f"Failed to create NFT '{winner_data['name']}' on-the-fly: {e_create}")
+            user.ton_balance += case_cost_ton 
+            user.total_won_ton -= winner_data['floorPrice']
+            db.commit()
+            return jsonify({"error": "Internal prize data error"}), 500
 
     new_item = InventoryItem(
         user_id=user.id, nft_id=db_nft.id,
@@ -491,7 +504,7 @@ def open_case_api():
     )
     db.add(new_item)
     db.commit()
-    db.refresh(new_item) # Чтобы получить ID нового предмета
+    db.refresh(new_item) 
     
     return jsonify({
         "status": "success",
@@ -501,12 +514,10 @@ def open_case_api():
             "floorPrice": db_nft.floor_price, "currentValue": new_item.current_value
         },
         "new_balance_ton": user.ton_balance,
-        # "new_balance_stars": user.star_balance
     })
 
 @app.route('/api/upgrade_item', methods=['POST'])
 def upgrade_item_api():
-    # ... (код из предыдущего ответа, без изменений, но используй validate_init_data) ...
     init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
     auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
@@ -514,13 +525,13 @@ def upgrade_item_api():
 
     data = flask_request.get_json()
     inventory_item_id = data.get('inventory_item_id')
-    multiplier_str = data.get('multiplier_str') # Получаем как строку, т.к. ключи в словаре могут быть строками
+    multiplier_str = data.get('multiplier_str') 
 
     if not all([inventory_item_id, multiplier_str]):
         return jsonify({"error": "inventory_item_id and multiplier_str are required"}), 400
     
     try:
-        multiplier = float(multiplier_str) # Преобразуем в float для использования как ключ
+        multiplier = float(multiplier_str) 
         inventory_item_id = int(inventory_item_id)
     except ValueError:
         return jsonify({"error": "Invalid data format for multiplier or item_id"}), 400
@@ -543,7 +554,7 @@ def upgrade_item_api():
         item_to_upgrade.current_value = new_value
         item_to_upgrade.upgrade_multiplier *= multiplier
         
-        user = db.query(User).filter(User.id == user_id).first() # Обновляем total_won_ton
+        user = db.query(User).filter(User.id == user_id).first() 
         if user: user.total_won_ton += diff_value 
         
         db.commit()
@@ -554,9 +565,9 @@ def upgrade_item_api():
         })
     else:
         item_name_lost = item_to_upgrade.nft.name
-        lost_value = item_to_upgrade.current_value # Ценность потерянного предмета
+        lost_value = item_to_upgrade.current_value 
         
-        user = db.query(User).filter(User.id == user_id).first() # Уменьшаем total_won_ton
+        user = db.query(User).filter(User.id == user_id).first() 
         if user: user.total_won_ton -= lost_value
         
         db.delete(item_to_upgrade)
@@ -569,7 +580,6 @@ def upgrade_item_api():
 
 @app.route('/api/convert_to_ton', methods=['POST'])
 def convert_to_ton_api():
-    # ... (код из предыдущего ответа, без изменений, но используй validate_init_data) ...
     init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
     auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
@@ -591,7 +601,6 @@ def convert_to_ton_api():
 
     conversion_value = item_to_convert.current_value 
     user.ton_balance += conversion_value
-    # При конвертации total_won_ton не меняется, т.к. это уже было учтено при выигрыше/апгрейде
     db.delete(item_to_convert)
     db.commit()
 
@@ -618,11 +627,7 @@ def sell_all_items_api():
     total_sell_value = sum(item.current_value for item in user.inventory)
     user.ton_balance += total_sell_value
     
-    # Удаляем все предметы из инвентаря
-    for item in user.inventory:
-        db.delete(item)
-    # user.inventory = [] # SQLAlchemy должен сам обновить это после удаления
-    
+    for item in user.inventory: db.delete(item)
     db.commit()
 
     return jsonify({
@@ -631,21 +636,17 @@ def sell_all_items_api():
         "new_balance_ton": user.ton_balance
     })
 
-
 @app.route('/api/deposit_ton', methods=['POST'])
 def deposit_ton_api():
-    # ... (код из предыдущего ответа, без изменений, но используй validate_init_data) ...
     init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
     auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
     user_id = auth_user_data["id"]
 
     data = flask_request.get_json()
-    amount_str = data.get('amount') # Сумма может прийти как строка
-
+    amount_str = data.get('amount') 
     if amount_str is None: return jsonify({"error": "amount is required"}), 400
-    try: 
-        amount = float(amount_str)
+    try: amount = float(amount_str)
     except ValueError: return jsonify({"error": "Invalid amount format"}), 400
     if amount <= 0: return jsonify({"error": "Amount must be positive"}), 400
 
@@ -654,16 +655,13 @@ def deposit_ton_api():
     if not user: return jsonify({"error": "User not found"}), 404
 
     user.ton_balance += amount
-    # Если это пополнение от реферала, то 10% его рефереру
     if user.referred_by_id:
         referrer = db.query(User).filter(User.id == user.referred_by_id).first()
         if referrer:
-            referral_bonus = round(amount * 0.10, 2)
+            referral_bonus = round(amount * 0.10, 2) # 10%
             referrer.referral_earnings_pending += referral_bonus
             logger.info(f"Начислено {referral_bonus} TON рефереру {referrer.id} от пополнения {user.id}")
-
     db.commit()
-
     return jsonify({
         "status": "success",
         "message": f"{amount:.2f} TON deposited successfully (Test).",
@@ -673,17 +671,15 @@ def deposit_ton_api():
 @app.route('/api/get_leaderboard', methods=['GET'])
 def get_leaderboard_api():
     db = next(get_db())
-    # Сортируем по total_won_ton, берем топ 100 (или меньше)
     leaders_query = db.query(User).order_by(User.total_won_ton.desc()).limit(100).all()
-    
     leaderboard_data = []
     for rank, user_leader in enumerate(leaders_query, 1):
         leaderboard_data.append({
             "rank": rank,
-            "name": user_leader.first_name or user_leader.username or f"User {user_leader.id}",
-            "avatarChar": (user_leader.first_name or user_leader.username or "?")[0].upper(),
+            "name": user_leader.first_name or user_leader.username or f"User_{user_leader.id}",
+            "avatarChar": (user_leader.first_name or user_leader.username or "U")[0].upper(),
             "income": user_leader.total_won_ton,
-            "isCurrentUser": False # Фронтенд сам определит текущего пользователя
+            "user_id": user_leader.id # Добавим user_id для возможности выделения текущего пользователя на фронте
         })
     return jsonify(leaderboard_data)
 
@@ -715,11 +711,12 @@ def withdraw_referral_earnings_api():
 # --- Команды бота ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    # ... (код из предыдущего ответа, он корректный и создает/обновляет пользователя)
     logger.info(f"Получена команда /start от chat_id: {message.chat.id} ({message.from_user.username or 'N/A'})")
     db = next(get_db())
     user = db.query(User).filter(User.id == message.chat.id).first()
+    created_now = False
     if not user:
+        created_now = True
         user = User(
             id=message.chat.id, 
             username=message.from_user.username,
@@ -729,31 +726,36 @@ def send_welcome(message):
             star_balance=0,
             referral_code=f"ref_{message.chat.id}_{random.randint(1000,9999)}"
         )
-        try:
-            start_param = message.text.split(' ')
-            if len(start_param) > 1 and start_param[1].startswith('ref_'):
-                referrer_code = start_param[1]
-                referrer = db.query(User).filter(User.referral_code == referrer_code).first()
+        db.add(user) # Добавляем нового пользователя
+    
+    # Обработка реферального параметра
+    try:
+        start_param = message.text.split(' ')
+        if len(start_param) > 1 and start_param[1].startswith('ref_'):
+            referrer_code_param = start_param[1]
+            # Проверяем, был ли пользователь уже привязан к рефереру или это его первый /start
+            if created_now and not user.referred_by_id: # Только если новый и еще не имеет реферера
+                referrer = db.query(User).filter(User.referral_code == referrer_code_param).first()
                 if referrer and referrer.id != user.id :
                     user.referred_by_id = referrer.id
-                    logger.info(f"Пользователь {user.id} пришел по реф. коду {referrer_code} от {referrer.id}")
-        except Exception as e:
-            logger.error(f"Ошибка обработки реферального параметра для {user.id}: {e}")
-        db.add(user)
-        db.commit()
-        logger.info(f"Новый пользователь {message.chat.id} ({message.from_user.username or 'N/A'}) добавлен в БД.")
-    else:
-        changed = False
-        if user.username != message.from_user.username: user.username = message.from_user.username; changed=True
-        if user.first_name != message.from_user.first_name: user.first_name = message.from_user.first_name; changed=True
-        if user.last_name != message.from_user.last_name: user.last_name = message.from_user.last_name; changed=True
-        if changed: 
-            try:
-                db.commit()
-                logger.info(f"Данные пользователя {message.chat.id} обновлены.")
-            except Exception as e:
-                db.rollback()
-                logger.error(f"Ошибка обновления данных пользователя {message.chat.id}: {e}")
+                    logger.info(f"Пользователь {user.id} пришел по реф. коду {referrer_code_param} от {referrer.id}")
+    except Exception as e:
+        logger.error(f"Ошибка обработки реферального параметра для {user.id}: {e}")
+
+    # Обновление данных, если изменились (даже если пользователь уже был)
+    changed_in_db = False
+    if user.username != message.from_user.username: user.username = message.from_user.username; changed_in_db=True
+    if user.first_name != message.from_user.first_name: user.first_name = message.from_user.first_name; changed_in_db=True
+    if user.last_name != message.from_user.last_name: user.last_name = message.from_user.last_name; changed_in_db=True
+    
+    if created_now or changed_in_db:
+        try:
+            db.commit()
+            if created_now: logger.info(f"Новый пользователь {message.chat.id} ({message.from_user.username or 'N/A'}) добавлен/обновлен в БД.")
+            elif changed_in_db: logger.info(f"Данные пользователя {message.chat.id} обновлены.")
+        except Exception as e_commit:
+            db.rollback()
+            logger.error(f"Ошибка сохранения пользователя {message.chat.id}: {e_commit}")
 
 
     markup = types.InlineKeyboardMarkup()
@@ -778,7 +780,6 @@ def send_welcome(message):
              bot.send_message(message.chat.id, "Произошла ошибка при открытии игры. Попробуйте позже.")
         except Exception as e2:
             logger.error(f"Не удалось отправить сообщение об ошибке пользователю {message.chat.id}: {e2}")
-
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
@@ -825,5 +826,4 @@ if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN")
 
 if __name__ == '__main__':
     logger.info("Запуск Flask development server...")
-    # Для Gunicorn в production используй: gunicorn main:app
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=False)
