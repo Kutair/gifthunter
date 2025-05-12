@@ -1,6 +1,6 @@
 Flask
-fastapi
-gunicorn 
+python-dotenv
 pyTelegramBotAPI
-requests
-python-dotenv 
+SQLAlchemy
+psycopg2-binary
+gunicorn
