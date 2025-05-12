@@ -37,33 +37,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def temp_alter_column_types():
-    db_session = SessionLocal()
-    try:
-        logger.info("Попытка изменить типы столбцов на BIGINT...")
-        
-        # Сначала inventory_items.user_id, так как он ссылается на users.id
-        # Если есть ограничение внешнего ключа, его может потребоваться временно удалить
-        # Но попробуем сначала так, PostgreSQL может быть достаточно умен
-        db_session.execute(text("ALTER TABLE inventory_items ALTER COLUMN user_id TYPE BIGINT;"))
-        logger.info("Тип inventory_items.user_id изменен на BIGINT (если не было ошибки).")
 
-        db_session.execute(text("ALTER TABLE users ALTER COLUMN referred_by_id TYPE BIGINT;"))
-        logger.info("Тип users.referred_by_id изменен на BIGINT (если не было ошибки).")
-        
-        # users.id меняем последним, если другие таблицы на него ссылались старым типом
-        db_session.execute(text("ALTER TABLE users ALTER COLUMN id TYPE BIGINT;"))
-        logger.info("Тип users.id изменен на BIGINT (если не было ошибки).")
-        
-        db_session.commit()
-        logger.info("Изменения типов столбцов успешно применены.")
-    except Exception as e:
-        db_session.rollback()
-        logger.error(f"Ошибка при изменении типов столбцов: {e}")
-        logger.error("ВАЖНО: Если это ошибка внешнего ключа, тебе может потребоваться сначала удалить ограничение, изменить типы, а затем снова добавить ограничение.")
-    finally:
-        db_session.close()
-temp_alter_column_types() 
 
 # --- SQLAlchemy Настройка ---
 if not DATABASE_URL:
@@ -299,6 +273,33 @@ if not cases_data_backend:
     # Можно даже завершить приложение, если это критично для старта
     # exit("CRITICAL: cases_data_backend is empty. Halting application.")
 
+def temp_alter_column_types():
+    db_session = SessionLocal()
+    try:
+        logger.info("Попытка изменить типы столбцов на BIGINT...")
+        
+        # Сначала inventory_items.user_id, так как он ссылается на users.id
+        # Если есть ограничение внешнего ключа, его может потребоваться временно удалить
+        # Но попробуем сначала так, PostgreSQL может быть достаточно умен
+        db_session.execute(text("ALTER TABLE inventory_items ALTER COLUMN user_id TYPE BIGINT;"))
+        logger.info("Тип inventory_items.user_id изменен на BIGINT (если не было ошибки).")
+
+        db_session.execute(text("ALTER TABLE users ALTER COLUMN referred_by_id TYPE BIGINT;"))
+        logger.info("Тип users.referred_by_id изменен на BIGINT (если не было ошибки).")
+        
+        # users.id меняем последним, если другие таблицы на него ссылались старым типом
+        db_session.execute(text("ALTER TABLE users ALTER COLUMN id TYPE BIGINT;"))
+        logger.info("Тип users.id изменен на BIGINT (если не было ошибки).")
+        
+        db_session.commit()
+        logger.info("Изменения типов столбцов успешно применены.")
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Ошибка при изменении типов столбцов: {e}")
+        logger.error("ВАЖНО: Если это ошибка внешнего ключа, тебе может потребоваться сначала удалить ограничение, изменить типы, а затем снова добавить ограничение.")
+    finally:
+        db_session.close()
+temp_alter_column_types() 
 
 def populate_initial_nfts_from_cases():
     if not cases_data_backend:
