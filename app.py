@@ -1,6 +1,7 @@
 import os
 import logging
 from flask import Flask, jsonify, request as flask_request
+from flask_cors import CORS
 import telebot
 from telebot import types
 from dotenv import load_dotenv
