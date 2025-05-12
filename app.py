@@ -299,7 +299,6 @@ def temp_alter_column_types():
         logger.error("ВАЖНО: Если это ошибка внешнего ключа, тебе может потребоваться сначала удалить ограничение, изменить типы, а затем снова добавить ограничение.")
     finally:
         db_session.close()
-temp_alter_column_types() 
 
 def populate_initial_nfts_from_cases():
     if not cases_data_backend:
