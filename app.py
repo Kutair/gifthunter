@@ -18,6 +18,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text # Импортируй text
 
 load_dotenv()
 
@@ -35,6 +36,34 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
+def temp_alter_column_types():
+    db_session = SessionLocal()
+    try:
+        logger.info("Попытка изменить типы столбцов на BIGINT...")
+        
+        # Сначала inventory_items.user_id, так как он ссылается на users.id
+        # Если есть ограничение внешнего ключа, его может потребоваться временно удалить
+        # Но попробуем сначала так, PostgreSQL может быть достаточно умен
+        db_session.execute(text("ALTER TABLE inventory_items ALTER COLUMN user_id TYPE BIGINT;"))
+        logger.info("Тип inventory_items.user_id изменен на BIGINT (если не было ошибки).")
+
+        db_session.execute(text("ALTER TABLE users ALTER COLUMN referred_by_id TYPE BIGINT;"))
+        logger.info("Тип users.referred_by_id изменен на BIGINT (если не было ошибки).")
+        
+        # users.id меняем последним, если другие таблицы на него ссылались старым типом
+        db_session.execute(text("ALTER TABLE users ALTER COLUMN id TYPE BIGINT;"))
+        logger.info("Тип users.id изменен на BIGINT (если не было ошибки).")
+        
+        db_session.commit()
+        logger.info("Изменения типов столбцов успешно применены.")
+    except Exception as e:
+        db_session.rollback()
+        logger.error(f"Ошибка при изменении типов столбцов: {e}")
+        logger.error("ВАЖНО: Если это ошибка внешнего ключа, тебе может потребоваться сначала удалить ограничение, изменить типы, а затем снова добавить ограничение.")
+    finally:
+        db_session.close()
+temp_alter_column_types() 
 
 # --- SQLAlchemy Настройка ---
 if not DATABASE_URL:
@@ -804,6 +833,7 @@ def run_bot_polling():
         except Exception as e: logger.error(f"Критическая ошибка в polling: {e}. Перезапуск через 60 секунд..."); time.sleep(60)
         else: logger.warning("infinity_polling завершился. Перезапуск через 15 секунд..."); time.sleep(15)
         if not bot_polling_started: break
+
 
 if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
     bot_polling_thread = threading.Thread(target=run_bot_polling)
