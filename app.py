@@ -738,31 +738,41 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
         transactions = await provider.get_transactions(address=DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30) 
         logger.info(f"Fetched {len(transactions)} transactions for address {DEPOSIT_RECIPIENT_ADDRESS_RAW}")
 
-        for tx in transactions:
-            if not tx.in_msg or not tx.in_msg.is_internal:
+        for tx_data in transactions: # Renamed tx to tx_data for clarity
+            # The transaction object from get_transactions is already a parsed Transaction object
+            # tx_data.in_msg is an InMsg object
+            # tx_data.in_msg.body is a Cell object
+
+            if not tx_data.in_msg or not tx_data.in_msg.is_internal:
                 continue
 
-            tx_value_nano = tx.in_msg.info.value_coins
+            tx_value_nano = tx_data.in_msg.info.value_coins
             tx_comment_text = None
 
-            if tx.now < int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()):
+            if tx_data.now < int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()):
                 continue
             
-            if tx.in_msg.body.bits_count >= 32:
-                body_slice = tx.in_msg.body.begin_parse()
-                op_code = body_slice.load_uint(32)
+            # Get a slice of the body cell to parse it
+            body_cell_slice = tx_data.in_msg.body.begin_parse() # <--- KEY CHANGE HERE
+
+            # Check if the body slice has enough bits for an op_code
+            if body_cell_slice.remaining_bits >= 32: # <--- Use remaining_bits on the slice
+                op_code = body_cell_slice.load_uint(32)
                 if op_code == 0: 
                     try:
-                        tx_comment_text = body_slice.load_snake_string()
+                        # Continue loading from the same slice
+                        tx_comment_text = body_cell_slice.load_snake_string()
                     except Exception as e:
-                        logger.debug(f"Could not parse comment from transaction {tx.hash.hex()}: {e}")
+                        logger.debug(f"Could not parse comment from transaction {tx_data.hash.hex()}: {e}")
+            else:
+                logger.debug(f"Transaction {tx_data.hash.hex()} body too short for op_code.")
             
-            logger.debug(f"Scanning TX: hash={tx.hash.hex()}, val={tx_value_nano}, cmt='{tx_comment_text}'")
+            logger.debug(f"Scanning TX: hash={tx_data.hash.hex()}, val={tx_value_nano}, cmt='{tx_comment_text}'")
 
             if tx_value_nano == pending_deposit.final_amount_nano_ton and \
                tx_comment_text == pending_deposit.expected_comment:
                 
-                logger.info(f"MATCH FOUND for deposit ID {pending_deposit.id}! TX hash: {tx.hash.hex()}")
+                logger.info(f"MATCH FOUND for deposit ID {pending_deposit.id}! TX hash: {tx_data.hash.hex()}")
                 
                 user_to_credit = db_session.query(User).filter(User.id == pending_deposit.user_id).first()
                 if not user_to_credit:
@@ -789,18 +799,20 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
         
         if not transaction_found_and_processed:
             logger.info(f"No matching transaction found yet for deposit ID {pending_deposit.id}.")
-            # Check if expired during this check
             if pending_deposit.expires_at <= dt.now(timezone.utc):
-                pending_deposit.status = 'expired'
-                db_session.commit()
+                if pending_deposit.status == 'pending': # Only change if it wasn't already marked
+                    pending_deposit.status = 'expired'
+                    db_session.commit()
+                logger.info(f"Deposit ID {pending_deposit.id} has expired.")
                 return {"status": "expired", "message": "This deposit request has expired."}
             return {"status": "pending", "message": "Transaction not yet confirmed on the blockchain. Please wait a few minutes and try again."}
 
     except Exception as e:
-        logger.error(f"Error during blockchain check for deposit ID {pending_deposit.id}: {type(e).__name__} - {e}")
+        logger.error(f"Error during blockchain check for deposit ID {pending_deposit.id}: {type(e).__name__} - {e}", exc_info=True) # Added exc_info for full traceback
         return {"status": "error", "message": "An error occurred while checking for your transaction. Please try again later."}
     finally:
-        await provider.close_all()
+        if provider.is_connected(): # Ensure provider is closed only if successfully started and connected
+             await provider.close_all()
         logger.info(f"Blockchain check finished for deposit ID {pending_deposit.id}")
 
 
