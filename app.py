@@ -730,49 +730,49 @@ def initiate_deposit_api():
 async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_session):
     logger.info(f"Checking blockchain for pending deposit ID: {pending_deposit.id}, User: {pending_deposit.user_id}, Amount: {pending_deposit.final_amount_nano_ton} nanoTON")
     
-    provider = LiteBalancer.from_mainnet_config(trust_level=2) 
-    
+    # Initialize provider to None so we can check if it was successfully created
+    provider = None
     transaction_found_and_processed = False
+
     try:
+        provider = LiteBalancer.from_mainnet_config(trust_level=2) 
         await provider.start_up()
+        logger.info(f"LiteBalancer started up successfully for deposit check {pending_deposit.id}")
+
         transactions = await provider.get_transactions(address=DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30) 
         logger.info(f"Fetched {len(transactions)} transactions for address {DEPOSIT_RECIPIENT_ADDRESS_RAW}")
 
-        for tx_data in transactions: # Renamed tx to tx_data for clarity
-            # The transaction object from get_transactions is already a parsed Transaction object
-            # tx_data.in_msg is an InMsg object
-            # tx_data.in_msg.body is a Cell object
-
+        for tx_data in transactions:
             if not tx_data.in_msg or not tx_data.in_msg.is_internal:
                 continue
 
             tx_value_nano = tx_data.in_msg.info.value_coins
             tx_comment_text = None
+            
+            # Get transaction hash correctly
+            tx_hash_hex = tx_data.cell.hash.hex() # <--- CORRECTED HASH ACCESS
 
             if tx_data.now < int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()):
                 continue
             
-            # Get a slice of the body cell to parse it
-            body_cell_slice = tx_data.in_msg.body.begin_parse() # <--- KEY CHANGE HERE
+            body_cell_slice = tx_data.in_msg.body.begin_parse()
 
-            # Check if the body slice has enough bits for an op_code
-            if body_cell_slice.remaining_bits >= 32: # <--- Use remaining_bits on the slice
+            if body_cell_slice.remaining_bits >= 32:
                 op_code = body_cell_slice.load_uint(32)
                 if op_code == 0: 
                     try:
-                        # Continue loading from the same slice
                         tx_comment_text = body_cell_slice.load_snake_string()
                     except Exception as e:
-                        logger.debug(f"Could not parse comment from transaction {tx_data.hash.hex()}: {e}")
+                        logger.debug(f"Could not parse comment from transaction {tx_hash_hex}: {e}")
             else:
-                logger.debug(f"Transaction {tx_data.hash.hex()} body too short for op_code.")
+                logger.debug(f"Transaction {tx_hash_hex} body too short for op_code.")
             
-            logger.debug(f"Scanning TX: hash={tx_data.hash.hex()}, val={tx_value_nano}, cmt='{tx_comment_text}'")
+            logger.debug(f"Scanning TX: hash={tx_hash_hex}, val={tx_value_nano}, cmt='{tx_comment_text}'") # Use tx_hash_hex
 
             if tx_value_nano == pending_deposit.final_amount_nano_ton and \
                tx_comment_text == pending_deposit.expected_comment:
                 
-                logger.info(f"MATCH FOUND for deposit ID {pending_deposit.id}! TX hash: {tx_data.hash.hex()}")
+                logger.info(f"MATCH FOUND for deposit ID {pending_deposit.id}! TX hash: {tx_hash_hex}")
                 
                 user_to_credit = db_session.query(User).filter(User.id == pending_deposit.user_id).first()
                 if not user_to_credit:
@@ -800,7 +800,7 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
         if not transaction_found_and_processed:
             logger.info(f"No matching transaction found yet for deposit ID {pending_deposit.id}.")
             if pending_deposit.expires_at <= dt.now(timezone.utc):
-                if pending_deposit.status == 'pending': # Only change if it wasn't already marked
+                if pending_deposit.status == 'pending':
                     pending_deposit.status = 'expired'
                     db_session.commit()
                 logger.info(f"Deposit ID {pending_deposit.id} has expired.")
@@ -808,11 +808,17 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
             return {"status": "pending", "message": "Transaction not yet confirmed on the blockchain. Please wait a few minutes and try again."}
 
     except Exception as e:
-        logger.error(f"Error during blockchain check for deposit ID {pending_deposit.id}: {type(e).__name__} - {e}", exc_info=True) # Added exc_info for full traceback
+        logger.error(f"Error during blockchain check for deposit ID {pending_deposit.id}: {type(e).__name__} - {e}", exc_info=True)
         return {"status": "error", "message": "An error occurred while checking for your transaction. Please try again later."}
     finally:
-        if provider.is_connected(): # Ensure provider is closed only if successfully started and connected
-             await provider.close_all()
+        if provider: # Check if provider was initialized
+            try:
+                await provider.close_all()
+                logger.info(f"LiteBalancer closed for deposit check {pending_deposit.id}")
+            except Exception as close_e:
+                logger.error(f"Error closing LiteBalancer for deposit check {pending_deposit.id}: {close_e}")
+        else:
+            logger.warning(f"LiteBalancer was not initialized for deposit check {pending_deposit.id}, no close needed.")
         logger.info(f"Blockchain check finished for deposit ID {pending_deposit.id}")
 
 
