@@ -14,38 +14,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
 
     <style>
-:root {
+        :root {
             --bg-gradient-start: #1A1D2B; 
             --bg-gradient-mid: #2C2F40;  
             --bg-gradient-end: #121212;   
-
             --surface-color: #232633; 
             --surface-hover-color: #2E3243;
-            
             --primary-color: #0A84FF; 
             --primary-gradient-start: #0A84FF;
             --primary-gradient-end: #34C7F8;   
-
             --secondary-color: #FF9F0A; 
-            
             --text-primary: #FFFFFF;
             --text-secondary: #AEAEB2; 
             --text-placeholder: #636366;
-            --text-price-color: #BDC3C7; /* Новый цвет для цен, чуть ярче secondary */
-
-
+            --text-price-color: #BDC3C7; 
             --border-color: rgba(84, 84, 88, 0.35); 
             --border-highlight: var(--primary-color);
-
             --danger-color: #FF453A;  
             --success-color: #30D158; 
-
             --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             --main-border-radius: 14px; 
             --button-border-radius: 10px;
             --soft-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-
-            /* УДАЛЕНЫ --case-grad-... переменные */
             --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); 
         }
 
@@ -581,9 +571,7 @@
              color: var(--primary-color);
         }
     </style>
-</head>
 <body>
-     <!-- HTML Structure (Added Sell All Button) -->
      <div id="app-container">
          <header id="app-header">
             <div class="app-title">Gift Universe</div>
@@ -674,8 +662,8 @@
                 <div class="content-card">
                     <h3>Balance</h3>
                     <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 <span class="ton-icon"></span></div>
-                    <input type="number" id="deposit-amount-input" placeholder="Amount in TON" style="margin-bottom: 10px;">
-                    <button id="confirm-deposit-button" class="button">Deposit TON (Test)</button>
+                    <input type="number" id="deposit-amount-input" placeholder="Amount in TON (e.g., 1.5)" style="margin-bottom: 10px;">
+                    <button id="initiate-deposit-button" class="button">Deposit TON</button>
                 </div>
 
                 <div class="content-card">
@@ -764,7 +752,7 @@
                 </div>
 
                 <div id="withdraw-step-3" class="modal-step">
-                     <p>Initiating withdrawal via Tonnel Network...</p> {/* Updated text */}
+                     <p>Initiating withdrawal via Tonnel Network...</p>
                     <div class="loader"></div>
                     <p id="withdraw-status-message" style="font-size: 0.9em; color: var(--text-secondary);"></p>
                     <button id="withdraw-step3-close" class="button button-secondary" style="margin-top: 15px;">Close</button>
@@ -774,11 +762,46 @@
         </div>
     </div>
 
+    <!-- Deposit Instructions Modal -->
+    <div id="deposit-instructions-modal" class="modal">
+        <div class="modal-content">
+            <h3>Complete Your TON Deposit</h3>
+            <div class="modal-body" style="text-align: left;">
+                <p>To complete your deposit, please send the exact amount of TON to the specified address with the correct comment.</p>
+                
+                <div style="margin-bottom: 15px;">
+                    <strong>Recipient Address:</strong>
+                    <input type="text" id="deposit-recipient-address" readonly style="margin-top:5px; margin-bottom: 2px;">
+                    <button id="copy-deposit-address" class="button button-secondary" style="font-size:0.8em; padding: 6px 10px; width:auto;">Copy</button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Exact Amount to Send (TON):</strong>
+                    <input type="text" id="deposit-exact-amount" readonly style="margin-top:5px; margin-bottom: 2px;">
+                    <button id="copy-deposit-amount" class="button button-secondary" style="font-size:0.8em; padding: 6px 10px; width:auto;">Copy</button>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <strong>Comment (Memo):</strong>
+                    <input type="text" id="deposit-comment" readonly style="margin-top:5px; margin-bottom: 2px;">
+                    <button id="copy-deposit-comment" class="button button-secondary" style="font-size:0.8em; padding: 6px 10px; width:auto;">Copy</button>
+                </div>
+
+                <p id="deposit-expiry-info" style="font-size:0.9em; color:var(--text-secondary); margin-bottom:15px;"></p>
+                <p id="deposit-status-message" style="font-weight: 500; text-align:center; margin-bottom:15px;"></p>
+                <div id="deposit-loader" class="loader" style="display:none; margin: 10px auto;"></div>
+
+                <button id="confirm-payment-sent-button" class="button">I Have Sent The Funds</button>
+                <button id="cancel-deposit-button" class="button button-secondary" style="margin-top: 10px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+
 <script>
 // --- Constants and Global State ---
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/';
-const API_BASE_URL = 'https://case-v48j.onrender.com'; // Оставляем пустым для относительных путей
+const API_BASE_URL = 'https://case-v48j.onrender.com'; 
 
 const currentUser = {
     id: null, 
@@ -814,8 +837,7 @@ function generateImageFilename(name) {
     return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; 
 }
 
-// --- casesData (Для UI и отображения возможных призов) ---
-// 🔴🔴🔴 ВСТАВЬ СЮДА СВОЙ ПОЛНЫЙ МАССИВ casesData из HTML 🔴🔴🔴
+// --- casesData (Placeholder - to be filled) ---
 const casesData = [
     { 
         id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 0.5,
@@ -993,7 +1015,7 @@ const casesData = [
         ]
     },
 ];
-// 🔴🔴🔴 КОНЕЦ СЕКЦИИ ДЛЯ ВСТАВКИ casesData 🔴🔴🔴
+// 🔴🔴🔴 END OF casesData PLACEHOLDER 🔴🔴🔴
 
 // --- Image Preloader ---
 const imageUrlsToPreload = [];
@@ -1063,7 +1085,7 @@ const profileElements = {
     emptyInventoryMessage: document.getElementById('empty-inventory-message'),
     disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
     depositAmountInput: document.getElementById('deposit-amount-input'),
-    confirmDepositButton: document.getElementById('confirm-deposit-button'),
+    initiateDepositButton: document.getElementById('initiate-deposit-button'), // Changed from confirmDepositButton
     sellAllButton: document.getElementById('sell-all-button'), 
     sellAllValueSpan: document.getElementById('sell-all-value') 
 };
@@ -1086,6 +1108,23 @@ const inviteElements = {
 
 const leaderboardList = document.getElementById('leaderboard-list');
 
+// --- Deposit Modal DOM Elements ---
+const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
+const depositRecipientAddressInput = document.getElementById('deposit-recipient-address');
+const depositExactAmountInput = document.getElementById('deposit-exact-amount');
+const depositCommentInput = document.getElementById('deposit-comment');
+const copyDepositAddressBtn = document.getElementById('copy-deposit-address');
+const copyDepositAmountBtn = document.getElementById('copy-deposit-amount');
+const copyDepositCommentBtn = document.getElementById('copy-deposit-comment');
+const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button');
+const cancelDepositButton = document.getElementById('cancel-deposit-button');
+const depositExpiryInfo = document.getElementById('deposit-expiry-info');
+const depositStatusMessageEl = document.getElementById('deposit-status-message'); // Renamed to avoid conflict
+const depositLoader = document.getElementById('deposit-loader');
+
+let currentPendingDepositId = null;
+let depositExpiryInterval = null;
+
 // --- TON Connect ---
 const manifestUrl = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json'; 
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -1102,13 +1141,10 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData;
     } else {
         console.warn("Telegram.WebApp.initData not available for API request.");
-        // Для локальной разработки без initData, бэкенд должен быть настроен это учитывать
-        // или возвращать ошибку 401, которую фронтенд должен обработать.
-        // В данном случае, мы все равно отправляем запрос, и пусть бэкенд решает.
     }
 
     const config = {
-        method: method, // Используется переданный метод
+        method: method, 
         headers: headers,
     };
     if (body && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) { 
@@ -1125,7 +1161,6 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
                 errorData = { error: `HTTP error! status: ${response.status}, ${response.statusText}` };
             }
             console.error(`API Error (${endpoint} - ${response.status}):`, errorData);
-            // Показываем ошибку пользователю через кастомную функцию
             showTGNotification(errorData.error || `Request failed: ${response.statusText}`, 'error');
             throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
@@ -1133,9 +1168,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         return await response.json();
     } catch (error) {
         console.error(`Network or API request error (${endpoint}):`, error);
-        // Ошибка уже показана через showTGNotification выше, если это был HTTP error
-        // Если это ошибка сети, то покажем ее здесь.
-        if (!error.message.startsWith("HTTP error!")) { // Чтобы не дублировать
+        if (!error.message.startsWith("HTTP error!")) { 
              showTGNotification(`Network error: ${error.message}`, 'error');
         }
         throw error; 
@@ -1150,7 +1183,6 @@ function updateBalances() {
     if (profileElements.balanceDisplay) {
          profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
     }
-    // No localStorage saving here for balance, backend is the source of truth
 }
 
 function navigateToPage(pageId) {
@@ -1228,7 +1260,7 @@ function updateUIBasedOnWallet(wallet) {
 function renderCases() {
     casesGrid.innerHTML = '';
     if (!casesData || casesData.length === 0) {
-        casesGrid.innerHTML = "<p>Loading cases...</p>"; // Сообщение о загрузке
+        casesGrid.innerHTML = "<p>Loading cases...</p>"; 
         return;
     }
     casesData.forEach(caseItem => {
@@ -1361,7 +1393,7 @@ function populateUpgradeInventorySelect() {
 async function renderLeaderboard() {
     leaderboardList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Loading leaders...</p>'; 
     try {
-        const leaders = await apiRequest('/api/get_leaderboard'); // GET по умолчанию
+        const leaders = await apiRequest('/api/get_leaderboard'); 
         leaderboardList.innerHTML = ''; 
         if (leaders && leaders.length > 0) {
             leaders.forEach(leader => {
@@ -1391,7 +1423,7 @@ function renderInvitePage() {
     const botUsername = (window.Telegram && Telegram.WebApp.initDataUnsafe?.bot?.username) ? Telegram.WebApp.initDataUnsafe.bot.username : 'YourAppBot';
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${botUsername}?start=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} <span class="ton-icon"></span>`;
-    inviteElements.invitedCount.textContent = '-'; // Данные о количестве приглашенных пока не получаем с бэка
+    inviteElements.invitedCount.textContent = '-'; 
 }
 
 // --- Roulette Logic ---
@@ -1582,7 +1614,6 @@ async function spinRoulette() {
 async function convertToTon(inventoryItemId) { 
     if (!inventoryItemId) return;
     try {
-        // inventoryItemId уже должен быть правильным ID из currentUser.inventory
         const result = await apiRequest('/api/convert_to_ton', 'POST', { inventory_item_id: parseInt(inventoryItemId) });
         if (result.status === 'success') {
             currentUser.tonBalance = result.new_balance_ton;
@@ -1607,7 +1638,7 @@ async function handleUpgrade() {
 
     try {
         const result = await apiRequest('/api/upgrade_item', 'POST', {
-            inventory_item_id: parseInt(selectedItemId), // Убедимся, что это число
+            inventory_item_id: parseInt(selectedItemId), 
             multiplier_str: selectedMultiplier.toString() 
         });
 
@@ -1617,7 +1648,6 @@ async function handleUpgrade() {
             if (itemIndex !== -1) {
                 currentUser.inventory[itemIndex].currentValue = upgradedItemData.currentValue;
                 currentUser.inventory[itemIndex].upgradeMultiplier = upgradedItemData.upgradeMultiplier;
-                // Имя может измениться, если бэкенд его меняет (например, добавляет "Upgraded")
                 currentUser.inventory[itemIndex].name = upgradedItemData.name; 
             }
             upgradeElements.upgradeResult.textContent = result.message;
@@ -1641,34 +1671,10 @@ async function handleUpgrade() {
     }
 }
 
-async function handleDeposit() { 
-    const amountText = profileElements.depositAmountInput.value;
-    if (!amountText.trim()) {
-        showTGNotification("Please enter an amount to deposit.", 'warning'); return;
-    }
-    const amount = parseFloat(amountText);
-    if (isNaN(amount) || amount <= 0) {
-        showTGNotification("Please enter a valid positive amount.", 'error'); return;
-    }
-    
-    try {
-        const result = await apiRequest('/api/deposit_ton', 'POST', { amount: amount });
-        if (result.status === 'success') {
-            currentUser.tonBalance = result.new_balance_ton;
-            updateBalances();
-            showTGNotification(result.message, 'success');
-            profileElements.depositAmountInput.value = ''; 
-        } else {
-            showTGNotification(result.error || result.message || 'Deposit failed.', 'error');
-        }
-    } catch (error) { /* Handled in apiRequest */ }
-}
-
 async function sellAllItems() {
     if (currentUser.inventory.length === 0) {
         showTGNotification("Your inventory is empty.", "info"); return;
     }
-    // Используем window.confirm для простоты, можно заменить на кастомное модальное окно
     if (!window.confirm(`Sell all ${currentUser.inventory.length} items? This action cannot be undone.`)) return;
 
     try {
@@ -1732,16 +1738,151 @@ function closeWithdrawModal() {
     withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; 
 }
 
+// --- Deposit Modal Logic ---
+function copyToClipboard(text, elementDescription) {
+    navigator.clipboard.writeText(text).then(() => {
+        showTGNotification(`${elementDescription} copied!`, 'success');
+    }).catch(err => {
+        showTGNotification(`Failed to copy ${elementDescription}.`, 'error');
+        console.error('Failed to copy: ', err);
+    });
+}
+
+async function initiateDepositProcedure() {
+    const amountText = profileElements.depositAmountInput.value;
+    if (!amountText.trim()) {
+        showTGNotification("Please enter an amount to deposit.", 'warning'); return;
+    }
+    const amount = parseFloat(amountText);
+    if (isNaN(amount) || amount <= 0) {
+        showTGNotification("Please enter a valid positive amount.", 'error'); return;
+    }
+    if (amount < 0.1) { 
+        showTGNotification("Minimum deposit is 0.1 TON.", 'error'); return;
+    }
+
+    profileElements.initiateDepositButton.disabled = true;
+    profileElements.initiateDepositButton.textContent = "Initializing...";
+
+    try {
+        const result = await apiRequest('/api/initiate_deposit', 'POST', { amount: amount });
+        profileElements.initiateDepositButton.disabled = false;
+        profileElements.initiateDepositButton.textContent = "Deposit TON";
+
+        if (result.status === 'success') {
+            currentPendingDepositId = result.pending_deposit_id;
+            depositRecipientAddressInput.value = result.recipient_address;
+            depositExactAmountInput.value = result.amount_to_send;
+            depositCommentInput.value = result.comment;
+            
+            startDepositExpiryTimer(result.expires_at);
+
+            depositStatusMessageEl.textContent = '';
+            depositLoader.style.display = 'none';
+            confirmPaymentSentButton.disabled = false;
+            confirmPaymentSentButton.textContent = 'I Have Sent The Funds';
+            depositInstructionsModal.classList.add('active');
+        } else {
+            showTGNotification(result.message || result.error || 'Failed to initiate deposit.', 'error');
+        }
+    } catch (error) {
+        profileElements.initiateDepositButton.disabled = false;
+        profileElements.initiateDepositButton.textContent = "Deposit TON";
+    }
+}
+
+function startDepositExpiryTimer(expiresAtISO) {
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval);
+    const expiryTime = new Date(expiresAtISO).getTime();
+
+    function updateTimer() {
+        const now = new Date().getTime();
+        const distance = expiryTime - now;
+
+        if (distance < 0) {
+            clearInterval(depositExpiryInterval);
+            depositExpiryInfo.textContent = "Deposit request has expired.";
+            if(confirmPaymentSentButton) confirmPaymentSentButton.disabled = true;
+            return;
+        }
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        depositExpiryInfo.textContent = `This request will expire in ${minutes}m ${seconds}s.`;
+    }
+    updateTimer(); 
+    depositExpiryInterval = setInterval(updateTimer, 1000);
+}
+
+async function verifyPaymentSent() {
+    if (!currentPendingDepositId) {
+        showTGNotification("No active deposit to verify.", "error");
+        return;
+    }
+
+    confirmPaymentSentButton.disabled = true;
+    confirmPaymentSentButton.textContent = "Verifying...";
+    depositLoader.style.display = 'block';
+    depositStatusMessageEl.textContent = 'Checking for your transaction... This may take a moment.';
+
+    try {
+        const result = await apiRequest('/api/verify_deposit', 'POST', { 
+            pending_deposit_id: currentPendingDepositId 
+        });
+
+        if (result.status === 'success') {
+            showTGNotification(result.message, 'success');
+            currentUser.tonBalance = result.new_balance_ton;
+            updateBalances(); 
+            renderProfile(); 
+            closeDepositInstructionsModal();
+        } else if (result.status === 'pending') {
+            depositStatusMessageEl.textContent = result.message;
+            confirmPaymentSentButton.disabled = false; 
+            confirmPaymentSentButton.textContent = "Check Again";
+        } else { 
+            showTGNotification(result.message || "Verification failed.", 'error');
+            depositStatusMessageEl.textContent = result.message || "Verification failed.";
+            if (result.status === 'expired') {
+                 // Button remains disabled
+            } else {
+                 confirmPaymentSentButton.disabled = false;
+                 confirmPaymentSentButton.textContent = "Try Verification Again";
+            }
+        }
+    } catch (error) {
+        depositStatusMessageEl.textContent = 'An error occurred. Please try again.';
+        confirmPaymentSentButton.disabled = false;
+        confirmPaymentSentButton.textContent = "Try Verification Again";
+    } finally {
+        // Only hide loader if no specific message set OR if it's not a pending message
+        if (depositLoader.style.display === 'block' && (!depositStatusMessageEl.textContent.includes('Please wait') && !depositStatusMessageEl.textContent.includes('Checking'))) {
+             depositLoader.style.display = 'none';
+        }
+    }
+}
+
+function closeDepositInstructionsModal() {
+    depositInstructionsModal.classList.remove('active');
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval);
+    currentPendingDepositId = null;
+    profileElements.depositAmountInput.value = ''; 
+}
+
+
 // --- Event Listeners ---
 appNavButtons.forEach(button => { button.addEventListener('click', () => navigateToPage(button.dataset.page)); });
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
-profileElements.confirmDepositButton.addEventListener('click', handleDeposit); 
+
 profileElements.disconnectWalletButton.addEventListener('click', () => { tonConnectUI.disconnect(); });
+profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
+
+
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
 withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); });
 withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
+
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedMultiplier = parseFloat(e.target.dataset.multiplier);
@@ -1762,6 +1903,7 @@ if (defaultMultiplierButton) {
     upgradeElements.chanceDisplay.textContent = `${defaultMultiplierButton.dataset.chance}%`;
 }
 upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
+
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value)
         .then(() => showTGNotification("Referral Code copied!", 'success'))
@@ -1786,30 +1928,30 @@ if(profileElements.sellAllButton) {
     profileElements.sellAllButton.addEventListener('click', sellAllItems);
 }
 
+// Event listeners for Deposit Modal
+if(copyDepositAddressBtn) copyDepositAddressBtn.addEventListener('click', () => copyToClipboard(depositRecipientAddressInput.value, 'Recipient Address'));
+if(copyDepositAmountBtn) copyDepositAmountBtn.addEventListener('click', () => copyToClipboard(depositExactAmountInput.value, 'Amount'));
+if(copyDepositCommentBtn) copyDepositCommentBtn.addEventListener('click', () => copyToClipboard(depositCommentInput.value, 'Comment'));
+if(confirmPaymentSentButton) confirmPaymentSentButton.addEventListener('click', verifyPaymentSent);
+if(cancelDepositButton) cancelDepositButton.addEventListener('click', closeDepositInstructionsModal);
+
+
 // --- Initialization ---
 async function fetchInitialUserData() {
-    // Важно: эта функция теперь должна вызываться только ОДИН РАЗ после того,
-    // как и initData, и статус кошелька (если он используется для чего-то до загрузки данных) определены.
-    // Или, если initData достаточно, то только после готовности initData.
-
     if (!Telegram.WebApp.initData) {
         console.warn("No initData, cannot fetch user data from backend.");
-        // Если мы здесь, значит, что-то пошло не так с TG инициализацией
-        // Можно показать сообщение об ошибке или использовать дефолты, если это браузер
-        if (!window.Telegram || !window.Telegram.WebApp) { // Явно браузерный режим
-            // Используем дефолтные/локальные значения
+        if (!window.Telegram || !window.Telegram.WebApp) { 
             updateUIBasedOnWallet(null);
             renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
             navigateToPage('main-page');
         } else {
             showTGNotification("Error: Telegram data not available. Please restart.", "error");
         }
-        return false; // Указываем на неудачу
+        return false; 
     }
 
     console.log("Fetching initial user data from backend...");
     try {
-        // Отправляем POST, так как бэкенд ожидает POST для /api/get_user_data
         const data = await apiRequest('/api/get_user_data', 'POST', {}); 
         
         currentUser.id = data.id;
@@ -1824,12 +1966,12 @@ async function fetchInitialUserData() {
         currentUser.total_won_ton = data.total_won_ton || 0;
         
         console.log("User data fetched and currentUser updated:", currentUser);
-        return true; // Указываем на успех
+        return true; 
 
     } catch (error) {
         console.error("Failed to fetch initial user data:", error);
         showTGNotification("Could not load your profile data. Please try again later.", 'error');
-        return false; // Указываем на неудачу
+        return false; 
     }
 }
 
@@ -1839,38 +1981,32 @@ async function initializeApp() {
 
     let initialDataFetched = false;
 
-    // Подписываемся на изменение статуса кошелька
     tonConnectUI.onStatusChange(async wallet => { 
         console.log("TON Connect status changed. Wallet:", wallet);
         updateUIBasedOnWallet(wallet); 
-        // Если данные еще не загружены и initData доступна, пробуем загрузить
-        // Это нужно, если подключение кошелька происходит после initData
         if (!initialDataFetched && window.Telegram && Telegram.WebApp.initData) {
             if (await fetchInitialUserData()) {
                 initialDataFetched = true;
-                // Обновляем весь UI после успешной загрузки данных
                 renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-                navigateToPage('main-page'); // Убедимся, что правильная страница активна
+                navigateToPage('main-page'); 
             }
         }
     });
 
     if (window.Telegram && window.Telegram.WebApp) {
-        Telegram.WebApp.ready(); // Сообщаем Telegram, что приложение готово
+        Telegram.WebApp.ready(); 
         Telegram.WebApp.expand(); 
         console.log("Telegram WebApp is ready and expanded.");
         
         const tgUser = Telegram.WebApp.initDataUnsafe?.user;
         if (tgUser) {
             console.log("Telegram user data available (unsafe):", tgUser);
-            // Устанавливаем базовые данные пользователя из TG, если они еще не установлены
-            // или если они отличаются от текущих (хотя currentUser на этом этапе скорее всего пуст)
             if (!currentUser.id || currentUser.id !== tgUser.id) {
                 currentUser.id = tgUser.id; 
                 currentUser.username = tgUser.username;
                 currentUser.first_name = tgUser.first_name || 'User';
                 currentUser.last_name = tgUser.last_name;
-                if (!currentUser.referralCode) { // Генерируем реф. код, если его нет
+                if (!currentUser.referralCode) { 
                     currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
                 }
             }
@@ -1878,7 +2014,6 @@ async function initializeApp() {
             console.warn("Telegram.WebApp.initDataUnsafe.user is not available.");
         }
         
-        // Попытка установить цвета темы
         try { 
             const rootStyle = getComputedStyle(document.documentElement);
             const bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
@@ -1891,7 +2026,6 @@ async function initializeApp() {
             console.warn("Could not set Telegram WebApp theme colors.", e);
         }
 
-        // Основная загрузка данных пользователя
         if (Telegram.WebApp.initData) {
             console.log("initData is available, calling fetchInitialUserData.");
             if (await fetchInitialUserData()) {
@@ -1899,36 +2033,30 @@ async function initializeApp() {
             }
         } else { 
             console.warn("Running in Telegram WebApp, but initData is NOT available at this point.");
-            // Это странная ситуация, если мы уже внутри TG. Возможно, SDK еще не полностью инициализировался.
-            // Можно попробовать подождать немного и повторить, но это усложнит логику.
-            // Пока просто обновим UI с тем, что есть (дефолты).
             updateUIBasedOnWallet(null); 
             renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
             navigateToPage('main-page');
         }
 
     } else { 
-        // Браузерный режим (не внутри Telegram)
         console.warn("Telegram WebApp SDK not available. Running in simulated browser mode.");
-        if (!currentUser.referralCode) { // Генерируем реф. код для браузера
+        if (!currentUser.referralCode) { 
             currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
         }
-        initialDataFetched = true; // Считаем, что "загрузка" прошла с дефолтными данными
+        initialDataFetched = true; 
         updateUIBasedOnWallet(null); 
         renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
         navigateToPage('main-page');
     }
 
-    // Финальный рендеринг UI, если данные были успешно загружены
-    // Эта проверка нужна, чтобы избежать ререндеринга, если fetchInitialUserData уже все сделал
     if (initialDataFetched) {
         console.log("Initial data fetched, performing final UI render.");
         renderHeader(); 
-        renderCases(); // <--- Вот здесь должны появиться кейсы
+        renderCases(); 
         renderProfile(); 
         renderLeaderboard(); 
         renderInvitePage();
-        navigateToPage('main-page'); // Убедимся, что главная страница активна
+        navigateToPage('main-page'); 
     } else {
         console.warn("Initial data was NOT successfully fetched. UI might be incomplete.");
     }
