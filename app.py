@@ -19,7 +19,12 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import text # Импортируй text
+from sqlalchemy import text 
+
+# Pytoniq imports
+from pytoniq import LiteBalancer 
+import asyncio
+
 
 load_dotenv()
 
@@ -37,8 +42,6 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
-
-
 
 # --- SQLAlchemy Настройка ---
 if not DATABASE_URL:
@@ -65,6 +68,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
     inventory = relationship("InventoryItem", back_populates="owner", cascade="all, delete-orphan")
+    pending_deposits = relationship("PendingDeposit", back_populates="owner")
+
 
 class NFT(Base):
     __tablename__ = "nfts"
@@ -85,6 +90,19 @@ class InventoryItem(Base):
     owner = relationship("User", back_populates="inventory")
     nft = relationship("NFT")
 
+class PendingDeposit(Base):
+    __tablename__ = "pending_deposits"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    original_amount_ton = Column(Float, nullable=False)
+    unique_identifier_nano_ton = Column(BigInteger, nullable=False)
+    final_amount_nano_ton = Column(BigInteger, nullable=False, index=True)
+    expected_comment = Column(String, nullable=False, default="cpd7r07ud3s")
+    status = Column(String, default="pending", index=True) 
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    owner = relationship("User", back_populates="pending_deposits")
+
 Base.metadata.create_all(bind=engine)
 
 # --- Функция генерации имени файла ---
@@ -96,9 +114,8 @@ def generate_image_filename_from_name(name_str: str) -> str:
     cleaned_name = name_str.replace(' ', '-').replace('&', 'and').replace("'", "")
     return cleaned_name + '.png'
 
-# --- Данные кейсов ---
-# 🔴🔴🔴 ВСТАВЬ СЮДА СВОЙ ПОЛНЫЙ МАССИВ cases_data_backend 🔴🔴🔴
-# ОБЯЗАТЕЛЬНО ЗАПОЛНИ ЭТОТ МАССИВ, ИНАЧЕ ЛОГИКА НЕ БУДЕТ РАБОТАТЬ!
+# --- Данные кейсов (Placeholder) ---
+# 🔴🔴🔴 YOUR FULL cases_data_backend ARRAY SHOULD BE PASTED HERE FROM THE PREVIOUS RESPONSE 🔴🔴🔴
 cases_data_backend = [
     { 
         'id': 'lolpop', 'name': 'Lol Pop Stash', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'priceTON': 0.5,
@@ -267,39 +284,10 @@ cases_data_backend = [
         ]
     },
 ]
-# 🔴🔴🔴 КОНЕЦ СЕКЦИИ ДЛЯ ВСТАВКИ cases_data_backend 🔴🔴🔴
+# 🔴🔴🔴 END OF cases_data_backend PLACEHOLDER 🔴🔴🔴
 
 if not cases_data_backend:
     logger.critical("Массив cases_data_backend ПУСТ! Приложение не сможет корректно функционировать. Заполни его!")
-    # Можно даже завершить приложение, если это критично для старта
-    # exit("CRITICAL: cases_data_backend is empty. Halting application.")
-
-def temp_alter_column_types():
-    db_session = SessionLocal()
-    try:
-        logger.info("Попытка изменить типы столбцов на BIGINT...")
-        
-        # Сначала inventory_items.user_id, так как он ссылается на users.id
-        # Если есть ограничение внешнего ключа, его может потребоваться временно удалить
-        # Но попробуем сначала так, PostgreSQL может быть достаточно умен
-        db_session.execute(text("ALTER TABLE inventory_items ALTER COLUMN user_id TYPE BIGINT;"))
-        logger.info("Тип inventory_items.user_id изменен на BIGINT (если не было ошибки).")
-
-        db_session.execute(text("ALTER TABLE users ALTER COLUMN referred_by_id TYPE BIGINT;"))
-        logger.info("Тип users.referred_by_id изменен на BIGINT (если не было ошибки).")
-        
-        # users.id меняем последним, если другие таблицы на него ссылались старым типом
-        db_session.execute(text("ALTER TABLE users ALTER COLUMN id TYPE BIGINT;"))
-        logger.info("Тип users.id изменен на BIGINT (если не было ошибки).")
-        
-        db_session.commit()
-        logger.info("Изменения типов столбцов успешно применены.")
-    except Exception as e:
-        db_session.rollback()
-        logger.error(f"Ошибка при изменении типов столбцов: {e}")
-        logger.error("ВАЖНО: Если это ошибка внешнего ключа, тебе может потребоваться сначала удалить ограничение, изменить типы, а затем снова добавить ограничение.")
-    finally:
-        db_session.close()
 
 def populate_initial_nfts_from_cases():
     if not cases_data_backend:
@@ -337,18 +325,18 @@ def populate_initial_nfts_from_cases():
 
 populate_initial_nfts_from_cases()
 
+# --- Constants for Deposit ---
+DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR"
+DEPOSIT_COMMENT = "cpd7r07ud3s"
+PENDING_DEPOSIT_EXPIRY_MINUTES = 30 
+
 # --- Flask Приложение ---
 app = Flask(__name__)
-
-# Также, если ты тестируешь локально с Live Server, добавь его origin.
 allowed_origins = [
     "https://vasiliy-katsyka.github.io", 
-    # Если тестируешь локально с разными портами, добавь их:
-    # "http://127.0.0.1:5500", # Пример для Live Server
-    # "http://localhost:5500"  # Пример для Live Server
+    # "http://127.0.0.1:5500", 
+    # "http://localhost:5500"
 ]
-
-# Применяем CORS ко всем маршрутам, начинающимся с /api/
 CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 # --- Telegram Бот ---
@@ -368,6 +356,9 @@ def get_db():
 # --- Валидация Telegram WebApp InitData ---
 def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
     try:
+        if not init_data_str:
+            logger.warning("initData is empty or None.")
+            return None
         parsed_data = dict(parse_qs(init_data_str))
         if 'hash' not in parsed_data or 'user' not in parsed_data or 'auth_date' not in parsed_data:
             logger.warning("initData missing required fields (hash, user, or auth_date).")
@@ -416,7 +407,7 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
 # --- API Эндпоинты ---
 @app.route('/') 
 def index_route(): 
-    return "Flask App (Full Backend - Cases Omitted - BigInt Fix) is running!"
+    return "Flask App (Full Backend - Cases Omitted - Deposit Impl) is running!"
 
 @app.route('/api/get_user_data', methods=['POST'])
 def get_user_data_api():
@@ -443,7 +434,6 @@ def get_user_data_api():
             db.rollback()
             logger.error(f"Error creating user {user_id} via API: {e_commit}")
             return jsonify({"error": "Failed to initialize user data"}), 500
-
 
     inventory_data = []
     for item in user.inventory:
@@ -509,7 +499,7 @@ def open_case_api():
             if rand_val <= current_prob_sum:
                 winner_data = prize_info
                 break
-        if not winner_data: winner_data = random.choice(normalized_prizes) # Fallback
+        if not winner_data: winner_data = random.choice(normalized_prizes) 
     else: 
         return jsonify({"error": "Case prize configuration error"}), 500
     
@@ -520,7 +510,7 @@ def open_case_api():
 
     db_nft = db.query(NFT).filter(NFT.name == winner_data['name']).first()
     if not db_nft:
-        logger.error(f"NFT '{winner_data['name']}' NOT FOUND in DB. This indicates an issue with populate_initial_nfts_from_cases or missing NFT in cases_data_backend.")
+        logger.error(f"NFT '{winner_data['name']}' NOT FOUND in DB. Creating on-the-fly.")
         image_fn_winner = winner_data.get('imageFilename', generate_image_filename_from_name(winner_data['name']))
         db_nft = NFT(name=winner_data['name'], image_filename=image_fn_winner, floor_price=winner_data['floorPrice'])
         db.add(db_nft)
@@ -668,37 +658,196 @@ def sell_all_items_api():
         "new_balance_ton": user.ton_balance
     })
 
-@app.route('/api/deposit_ton', methods=['POST'])
-def deposit_ton_api():
+
+@app.route('/api/initiate_deposit', methods=['POST'])
+def initiate_deposit_api():
     init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
     auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
-    if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
+    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
     user_id = auth_user_data["id"]
 
     data = flask_request.get_json()
-    amount_str = data.get('amount') 
-    if amount_str is None: return jsonify({"error": "amount is required"}), 400
-    try: amount = float(amount_str)
-    except ValueError: return jsonify({"error": "Invalid amount format"}), 400
-    if amount <= 0: return jsonify({"error": "Amount must be positive"}), 400
+    amount_str = data.get('amount')
+    if amount_str is None: return jsonify({"error": "Amount is required"}), 400
+    
+    try:
+        original_amount_ton = float(amount_str)
+    except ValueError:
+        return jsonify({"error": "Invalid amount format"}), 400
+    
+    if original_amount_ton <= 0: 
+        return jsonify({"error": "Amount must be positive"}), 400
+    if original_amount_ton > 10000: 
+        return jsonify({"error": "Maximum deposit amount exceeded"}), 400
 
     db = next(get_db())
     user = db.query(User).filter(User.id == user_id).first()
     if not user: return jsonify({"error": "User not found"}), 404
 
-    user.ton_balance += amount
-    if user.referred_by_id:
-        referrer = db.query(User).filter(User.id == user.referred_by_id).first()
-        if referrer:
-            referral_bonus = round(amount * 0.10, 2) 
-            referrer.referral_earnings_pending += referral_bonus
-            logger.info(f"Начислено {referral_bonus} TON рефереру {referrer.id} от пополнения {user.id}")
+    unique_nano_part = random.randint(10000, 999999) 
+    original_amount_nano_ton = int(original_amount_ton * (10**9))
+    final_amount_nano_ton = original_amount_nano_ton + unique_nano_part
+
+    existing_pending = db.query(PendingDeposit).filter(
+        PendingDeposit.user_id == user_id,
+        PendingDeposit.status == 'pending',
+        PendingDeposit.expires_at > dt.now(timezone.utc)
+    ).first()
+
+    if existing_pending:
+        time_left = existing_pending.expires_at - dt.now(timezone.utc)
+        return jsonify({
+            "error": "You already have an active deposit request.",
+            "message": f"Please complete your previous deposit or wait {int(time_left.total_seconds() / 60)} minutes for it to expire."
+        }), 409
+
+    pending_deposit = PendingDeposit(
+        user_id=user_id,
+        original_amount_ton=original_amount_ton,
+        unique_identifier_nano_ton=unique_nano_part,
+        final_amount_nano_ton=final_amount_nano_ton,
+        expected_comment=DEPOSIT_COMMENT,
+        status='pending',
+        expires_at=dt.now(timezone.utc) + timedelta(minutes=PENDING_DEPOSIT_EXPIRY_MINUTES)
+    )
+    db.add(pending_deposit)
     db.commit()
+    db.refresh(pending_deposit)
+
+    amount_to_send_str = f"{final_amount_nano_ton / (10**9):.9f}".rstrip('0').rstrip('.') 
+
+    logger.info(f"Initiated deposit for user {user_id}: ID {pending_deposit.id}, Amount {amount_to_send_str} TON, Orig {original_amount_ton} TON, UniquePart {unique_nano_part} nanoTON")
+
     return jsonify({
         "status": "success",
-        "message": f"{amount:.2f} TON deposited successfully (Test).",
-        "new_balance_ton": user.ton_balance
+        "pending_deposit_id": pending_deposit.id,
+        "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW,
+        "amount_to_send": amount_to_send_str, 
+        "comment": DEPOSIT_COMMENT,
+        "expires_at": pending_deposit.expires_at.isoformat()
     })
+
+async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_session):
+    logger.info(f"Checking blockchain for pending deposit ID: {pending_deposit.id}, User: {pending_deposit.user_id}, Amount: {pending_deposit.final_amount_nano_ton} nanoTON")
+    
+    provider = LiteBalancer.from_mainnet_config(trust_level=2) 
+    
+    transaction_found_and_processed = False
+    try:
+        await provider.start_up()
+        transactions = await provider.get_transactions(address=DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30) 
+        logger.info(f"Fetched {len(transactions)} transactions for address {DEPOSIT_RECIPIENT_ADDRESS_RAW}")
+
+        for tx in transactions:
+            if not tx.in_msg or not tx.in_msg.is_internal:
+                continue
+
+            tx_value_nano = tx.in_msg.info.value_coins
+            tx_comment_text = None
+
+            if tx.now < int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()):
+                continue
+            
+            if tx.in_msg.body.bits_count >= 32:
+                body_slice = tx.in_msg.body.begin_parse()
+                op_code = body_slice.load_uint(32)
+                if op_code == 0: 
+                    try:
+                        tx_comment_text = body_slice.load_snake_string()
+                    except Exception as e:
+                        logger.debug(f"Could not parse comment from transaction {tx.hash.hex()}: {e}")
+            
+            logger.debug(f"Scanning TX: hash={tx.hash.hex()}, val={tx_value_nano}, cmt='{tx_comment_text}'")
+
+            if tx_value_nano == pending_deposit.final_amount_nano_ton and \
+               tx_comment_text == pending_deposit.expected_comment:
+                
+                logger.info(f"MATCH FOUND for deposit ID {pending_deposit.id}! TX hash: {tx.hash.hex()}")
+                
+                user_to_credit = db_session.query(User).filter(User.id == pending_deposit.user_id).first()
+                if not user_to_credit:
+                    logger.error(f"Critical: User {pending_deposit.user_id} for pending deposit {pending_deposit.id} not found for crediting!")
+                    pending_deposit.status = 'failed' 
+                    db_session.commit()
+                    transaction_found_and_processed = True 
+                    break 
+
+                user_to_credit.ton_balance += pending_deposit.original_amount_ton
+                
+                if user_to_credit.referred_by_id:
+                    referrer = db_session.query(User).filter(User.id == user_to_credit.referred_by_id).first()
+                    if referrer:
+                        referral_bonus = round(pending_deposit.original_amount_ton * 0.10, 2) 
+                        referrer.referral_earnings_pending += referral_bonus
+                        logger.info(f"Referral bonus {referral_bonus:.2f} TON credited to referrer {referrer.id} from deposit by {user_to_credit.id}")
+
+                pending_deposit.status = 'completed'
+                db_session.commit()
+                logger.info(f"Deposit ID {pending_deposit.id} completed for user {user_to_credit.id}. New balance: {user_to_credit.ton_balance:.2f}")
+                transaction_found_and_processed = True
+                return {"status": "success", "message": "Deposit confirmed and balance updated!", "new_balance_ton": user_to_credit.ton_balance}
+        
+        if not transaction_found_and_processed:
+            logger.info(f"No matching transaction found yet for deposit ID {pending_deposit.id}.")
+            # Check if expired during this check
+            if pending_deposit.expires_at <= dt.now(timezone.utc):
+                pending_deposit.status = 'expired'
+                db_session.commit()
+                return {"status": "expired", "message": "This deposit request has expired."}
+            return {"status": "pending", "message": "Transaction not yet confirmed on the blockchain. Please wait a few minutes and try again."}
+
+    except Exception as e:
+        logger.error(f"Error during blockchain check for deposit ID {pending_deposit.id}: {type(e).__name__} - {e}")
+        return {"status": "error", "message": "An error occurred while checking for your transaction. Please try again later."}
+    finally:
+        await provider.close_all()
+        logger.info(f"Blockchain check finished for deposit ID {pending_deposit.id}")
+
+
+@app.route('/api/verify_deposit', methods=['POST'])
+def verify_deposit_api():
+    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
+    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
+    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
+    user_id = auth_user_data["id"]
+
+    data = flask_request.get_json()
+    pending_deposit_id = data.get('pending_deposit_id')
+
+    if not pending_deposit_id:
+        return jsonify({"error": "pending_deposit_id is required"}), 400
+    
+    db = next(get_db())
+    pending_deposit = db.query(PendingDeposit).filter(
+        PendingDeposit.id == pending_deposit_id,
+        PendingDeposit.user_id == user_id 
+    ).first()
+
+    if not pending_deposit:
+        return jsonify({"error": "Pending deposit request not found or does not belong to you."}), 404
+
+    if pending_deposit.status == 'completed':
+        user = db.query(User).filter(User.id == user_id).first()
+        return jsonify({"status": "success", "message": "This deposit has already been confirmed.", "new_balance_ton": user.ton_balance if user else 0})
+    
+    if pending_deposit.status == 'expired' or pending_deposit.expires_at <= dt.now(timezone.utc):
+        if pending_deposit.status == 'pending': 
+            pending_deposit.status = 'expired'
+            db.commit()
+        return jsonify({"status": "expired", "message": "This deposit request has expired. Please initiate a new one."}), 400 # Changed to 400 for client handling
+    
+    # Ensure only one async check runs at a time for a given deposit if needed,
+    # for now, it's simple.
+    # A more robust solution might involve a background task queue for blockchain checks.
+    
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        result = loop.run_until_complete(check_blockchain_for_deposit(pending_deposit, db))
+    finally:
+        loop.close()
+    
+    return jsonify(result)
 
 @app.route('/api/get_leaderboard', methods=['GET'])
 def get_leaderboard_api():
@@ -846,13 +995,17 @@ def run_bot_polling():
         else: logger.warning("infinity_polling завершился. Перезапуск через 15 секунд..."); time.sleep(15)
         if not bot_polling_started: break
 
-
-if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-    bot_polling_thread = threading.Thread(target=run_bot_polling)
-    bot_polling_thread.daemon = True
-    bot_polling_thread.start()
-    logger.info("Поток для polling бота запущен.")
-
 if __name__ == '__main__':
+    # Start bot polling in a separate thread only if not running in Werkzeug's reloader process
+    if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        logger.info("Основной процесс, запуск потока для polling бота.")
+        bot_polling_thread = threading.Thread(target=run_bot_polling)
+        bot_polling_thread.daemon = True
+        bot_polling_thread.start()
+    elif os.environ.get("WERKZEUG_RUN_MAIN") == "true":
+        logger.info("Процесс Werkzeug reloader, polling бота не запускается здесь.")
+    
     logger.info("Запуск Flask development server...")
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=False)
+    # use_reloader=False is important if you manage the bot thread manually
+    # or ensure the bot thread is only started in the main Werkzeug process.
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
