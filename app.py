@@ -10,7 +10,7 @@ import time
 import random
 import hmac
 import hashlib
-from urllib.parse import unquote, parse_qs
+from urllib.parse import unquote, parse_qs, quote # Added quote for comment encoding if needed
 from datetime import datetime as dt, timezone, timedelta 
 import json 
 
@@ -109,182 +109,143 @@ Base.metadata.create_all(bind=engine)
 def generate_image_filename_from_name(name_str: str) -> str: 
     if not name_str: return 'placeholder.png'
     if name_str == "Durov's Cap": return "Durov's-Cap.png"
-    if name_str == "Kissed Frog Happy Pepe": return "Kissed-Frog-Happy-Pepe.png"
+    # Kissed Frog Happy Pepe removed
     if name_str == "Vintage Cigar": return "Vintage-CIgar.png" 
+    # Background cases removed except Black
+    if name_str == "Black": return "Black.png" # Ensure this maps correctly if it's just "Black"
+    if ['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name_str.replace(/-/g,'_')): 
+         return name_str.replace('-','_') + '.png'
+    
     cleaned_name = name_str.replace(' ', '-').replace('&', 'and').replace("'", "")
     return cleaned_name + '.png'
 
 # --- Данные кейсов (Placeholder) ---
-# 🔴🔴🔴 YOUR FULL cases_data_backend ARRAY SHOULD BE PASTED HERE FROM THE PREVIOUS RESPONSE 🔴🔴🔴
+# 🔴🔴🔴 PASTE YOUR MODIFIED cases_data_backend ARRAY HERE 🔴🔴🔴
 cases_data_backend = [
     { 
-        'id': 'lolpop', 'name': 'Lol Pop Stash', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'priceTON': 0.5,
+        'id': 'lolpop', 'name': 'Lol Pop Stash', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'priceTON': 1.5,
         'prizes': [
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.01 },
-            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': 1, 'probability': 0.10 },
-            { 'name': 'B-Day Candle', 'imageFilename': generate_image_filename_from_name('B-Day Candle'), 'floorPrice': 0.7, 'probability': 0.10 },
-            { 'name': 'Homemade Cake', 'imageFilename': generate_image_filename_from_name('Homemade Cake'), 'floorPrice': 1, 'probability': 0.09 },
-            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': 0.7, 'probability': 0.20 },
-            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': 0.7, 'probability': 0.20 },
-            { 'name': 'Desk Calendar', 'imageFilename': generate_image_filename_from_name('Desk Calendar'), 'floorPrice': 0.7, 'probability': 0.10 },
-            { 'name': 'Cookie Heart', 'imageFilename': generate_image_filename_from_name('Cookie Heart'), 'floorPrice': 0.9, 'probability': 0.10 },
-            { 'name': 'Jack-in-the-box', 'imageFilename': generate_image_filename_from_name('Jack-in-the-box'), 'floorPrice': 1, 'probability': 0.08 },
-            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 1.7, 'probability': 0.02 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.001 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.005 },
+            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': 2, 'probability': 0.07 },
+            { 'name': 'Homemade Cake', 'imageFilename': generate_image_filename_from_name('Homemade Cake'), 'floorPrice': 2, 'probability': 0.07 },
+            { 'name': 'Cookie Heart', 'imageFilename': generate_image_filename_from_name('Cookie Heart'), 'floorPrice': 1.8, 'probability': 0.07 },
+            { 'name': 'Jack-in-the-box', 'imageFilename': generate_image_filename_from_name('Jack-in-the-box'), 'floorPrice': 2, 'probability': 0.06 },
+            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 3.4, 'probability': 0.023 },
+            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': 1.4, 'probability': 0.25 },
+            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': 1.4, 'probability': 0.25 },
+            { 'name': 'Desk Calendar', 'imageFilename': generate_image_filename_from_name('Desk Calendar'), 'floorPrice': 1.4, 'probability': 0.10 },
+            { 'name': 'B-Day Candle', 'imageFilename': generate_image_filename_from_name('B-Day Candle'), 'floorPrice': 1.4, 'probability': 0.10 },
         ]
     },
     { 
-        'id': 'recordplayer', 'name': 'Record Player Vault', 'imageFilename': generate_image_filename_from_name('Record Player'), 'priceTON': 3,
+        'id': 'recordplayer', 'name': 'Record Player Vault', 'imageFilename': generate_image_filename_from_name('Record Player'), 'priceTON': 6,
         'prizes': [
-            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 2, 'probability': 0.50 },
-            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': 0.7, 'probability': 0.08 },
-            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': 0.7, 'probability': 0.08 },
-            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': 1, 'probability': 0.08 },
-            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 1.7, 'probability': 0.08 },
-            { 'name': 'Jelly Bunny', 'imageFilename': generate_image_filename_from_name('Jelly Bunny'), 'floorPrice': 1.8, 'probability': 0.08 },
-            { 'name': 'Tama Gadget', 'imageFilename': generate_image_filename_from_name('Tama Gadget'), 'floorPrice': 2, 'probability': 0.05 },
-            { 'name': 'Snow Globe', 'imageFilename': generate_image_filename_from_name('Snow Globe'), 'floorPrice': 2, 'probability': 0.05 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0012 },
+            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 4, 'probability': 0.40 },
+            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': 1.4, 'probability': 0.10 },
+            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': 1.4, 'probability': 0.10 },
+            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': 2, 'probability': 0.10 },
+            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 3.4, 'probability': 0.10 },
+            { 'name': 'Jelly Bunny', 'imageFilename': generate_image_filename_from_name('Jelly Bunny'), 'floorPrice': 3.6, 'probability': 0.0988 },
+            { 'name': 'Tama Gadget', 'imageFilename': generate_image_filename_from_name('Tama Gadget'), 'floorPrice': 4, 'probability': 0.05 },
+            { 'name': 'Snow Globe', 'imageFilename': generate_image_filename_from_name('Snow Globe'), 'floorPrice': 4, 'probability': 0.05 },
         ]
     },
     { 
-        'id': 'swisswatch', 'name': 'Swiss Watch Box', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'priceTON': 5,
+        'id': 'swisswatch', 'name': 'Swiss Watch Box', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'priceTON': 10,
         'prizes': [
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.10 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.20 },
-            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 2, 'probability': 0.10 },
-            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': 2.7, 'probability': 0.15 },
-            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': 3, 'probability': 0.15 },
-            { 'name': 'Voodoo Doll', 'imageFilename': generate_image_filename_from_name('Voodoo Doll'), 'floorPrice': 4.2, 'probability': 0.10 },
-            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': 5.5, 'probability': 0.10 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 6.3, 'probability': 0.05 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 5.7, 'probability': 0.05 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0015 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.08 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.10 },
+            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': 11, 'probability': 0.05 },
+            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 12.6, 'probability': 0.03 },
+            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 11.4, 'probability': 0.0395 },
+            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 4, 'probability': 0.20 },
+            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': 5.4, 'probability': 0.20 },
+            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': 6, 'probability': 0.15 },
+            { 'name': 'Voodoo Doll', 'imageFilename': generate_image_filename_from_name('Voodoo Doll'), 'floorPrice': 8.4, 'probability': 0.149 },
         ]
     },
     { 
-        'id': 'perfumebottle', 'name': 'Perfume Chest', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'priceTON': 10,
+        'id': 'perfumebottle', 'name': 'Perfume Chest', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'priceTON': 20,
         'prizes': [
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 21, 'probability': 0.10 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.15 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.20 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 9.6, 'probability': 0.15 },
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 10, 'probability': 0.10 },
-            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': 9, 'probability': 0.10 },
-            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 12, 'probability': 0.05 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 6.3, 'probability': 0.10 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 5.7, 'probability': 0.05 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0018 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.08 },
+            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 20, 'probability': 0.12 },
+            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 24, 'probability': 0.09946 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.15 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.15 },
+            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 19.2, 'probability': 0.15 },
+            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': 18, 'probability': 0.10 },
+            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 12.6, 'probability': 0.07 },
+            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 11.4, 'probability': 0.07874 },
         ]
     },
     { 
-        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'priceTON': 20,
+        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'priceTON': 40,
         'prizes': [
-            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 13, 'probability': 0.10 },
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 21, 'probability': 0.15 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.20 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.15 },
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 10, 'probability': 0.15 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 9.6, 'probability': 0.10 },
-            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 18, 'probability': 0.08 },
-            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 17, 'probability': 0.07 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.002 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.2994 },
+            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 26, 'probability': 0.12 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.12 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.10 },
+            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 20, 'probability': 0.10 },
+            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 19.2, 'probability': 0.08 },
+            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 36, 'probability': 0.08 },
+            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 34, 'probability': 0.05 },
+            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 15, 'probability': 0.0486 },
         ]
     },
     { 
-        'id': 'astralshard', 'name': 'Astral Shard Relic', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'priceTON': 50,
+        'id': 'astralshard', 'name': 'Astral Shard Relic', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'priceTON': 100,
         'prizes': [
-            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': 60, 'probability': 0.10 },
-            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 13, 'probability': 0.15 },
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 21, 'probability': 0.15 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.10 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.10 },
-            { 'name': 'Precious Peach', 'imageFilename': generate_image_filename_from_name('Precious Peach'), 'floorPrice': 60, 'probability': 0.10 },
-            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 18, 'probability': 0.15 },
-            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 17, 'probability': 0.10 },
-            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 12, 'probability': 0.05 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0025 },
+            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 200, 'probability': 0.09925 },
+            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': 120, 'probability': 0.10 },
+            { 'name': 'Precious Peach', 'imageFilename': generate_image_filename_from_name('Precious Peach'), 'floorPrice': 120, 'probability': 0.10 },
+            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 26, 'probability': 0.12 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.12 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.10 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.08 },
+            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 36, 'probability': 0.10 },
+            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 34, 'probability': 0.08 },
+            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 24, 'probability': 0.05 },
+            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 15, 'probability': 0.04825 },
         ]
     },
     { 
-        'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'priceTON': 100,
+        'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'priceTON': 200,
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 560, 'probability': 0.10 },
-            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 150, 'probability': 0.40 },
-            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': 60, 'probability': 0.50 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.15 },
+            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 200, 'probability': 0.25 },
+            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': 120, 'probability': 0.60 },
         ]
     },
     { 
-        'id': 'happypepe', 'name': 'Happy Pepe Treasure', 'imageFilename': generate_image_filename_from_name('Happy Pepe Kissed Frog'), 'priceTON': 600,
-        'prizes': [
-            { 'name': 'Kissed Frog Happy Pepe', 'imageFilename': generate_image_filename_from_name('Happy Pepe Kissed Frog'), 'floorPrice': 660, 'probability': 0.3636 },
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 560, 'probability': 0.6364 },
-        ]
-    },
-    { 
-        'id': 'amber', 'name': 'Amber Nebula Case', 'isBackgroundCase': True, 'bgImageFilename': 'Amber.png', 'overlayPrizeName': 'Swiss Watch', 'priceTON': 3, 
-        'prizes': [
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.01 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.03 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 6.3, 'probability': 0.05 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 5.7, 'probability': 0.10 },
-            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': 5.5, 'probability': 0.15 },
-            { 'name': 'Voodoo Doll', 'imageFilename': generate_image_filename_from_name('Voodoo Doll'), 'floorPrice': 4.2, 'probability': 0.15 },
-            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': 3, 'probability': 0.15 },
-            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 2, 'probability': 0.08 },
-            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': 2.7, 'probability': 0.08 },
-            { 'name': 'Sakura Flower', 'imageFilename': generate_image_filename_from_name('Sakura Flower'), 'floorPrice': 2, 'probability': 0.08 },
-            { 'name': 'Jelly Bunny', 'imageFilename': generate_image_filename_from_name('Jelly Bunny'), 'floorPrice': 1.8, 'probability': 0.06 },
-            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 1.7, 'probability': 0.06 },
-        ]
-    },
-    { 
-        'id': 'midnightblue', 'name': 'Midnight Blue Comet', 'isBackgroundCase': True, 'bgImageFilename': 'Midnight_Blue.png', 'overlayPrizeName': 'Precious Peach', 'priceTON': 3, 
+        'id': 'black', 'name': 'BLACK Singularity', 
+        'isBackgroundCase': True, 'bgImageFilename': 'Black.png', 'overlayPrizeName': 'Neko Helmet', 
+        'priceTON': 30, 
         'prizes': [ 
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 9.6, 'probability': 0.01 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.03 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.06 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 6.3, 'probability': 0.10 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 5.7, 'probability': 0.15 },
-            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': 5.5, 'probability': 0.15 },
-            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': 3, 'probability': 0.15 },
-            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': 2.7, 'probability': 0.08 },
-            { 'name': 'Tama Gadget', 'imageFilename': generate_image_filename_from_name('Tama Gadget'), 'floorPrice': 2, 'probability': 0.08 },
-            { 'name': 'Snow Globe', 'imageFilename': generate_image_filename_from_name('Snow Globe'), 'floorPrice': 2, 'probability': 0.08 },
-            { 'name': 'Sleigh Bell', 'imageFilename': generate_image_filename_from_name('Sleigh Bell'), 'floorPrice': 2, 'probability': 0.06 },
-            { 'name': 'Candy Cane', 'imageFilename': generate_image_filename_from_name('Candy Cane'), 'floorPrice': 0.9, 'probability': 0.05 },
-        ]
-    },
-    { 
-        'id': 'onyxblack', 'name': 'Onyx Black Hole', 'isBackgroundCase': True, 'bgImageFilename': 'Onyx_Black.png', 'overlayPrizeName': 'Perfume Bottle', 'priceTON': 5, 
-        'prizes': [ 
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 10, 'probability': 0.01 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 9.6, 'probability': 0.03 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.05 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.10 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 6.3, 'probability': 0.15 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 5.7, 'probability': 0.15 },
-            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': 5.5, 'probability': 0.15 },
-            { 'name': 'Voodoo Doll', 'imageFilename': generate_image_filename_from_name('Voodoo Doll'), 'floorPrice': 4.2, 'probability': 0.10 },
-            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': 3, 'probability': 0.08 },
-            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 5.2, 'probability': 0.08 },
-            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': 2.7, 'probability': 0.05 },
-            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 2, 'probability': 0.05 },
-        ]
-    },
-    { 
-        'id': 'black', 'name': 'BLACK Singularity', 'isBackgroundCase': True, 'bgImageFilename': 'Black.png', 'overlayPrizeName': 'Neko Helmet', 'priceTON': 15, 
-        'prizes': [ 
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 21, 'probability': 0.01 },
-            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 18, 'probability': 0.03 },
-            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 17, 'probability': 0.05 },
-            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 13, 'probability': 0.10 },
-            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 12, 'probability': 0.15 },
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 10, 'probability': 0.15 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 9.6, 'probability': 0.15 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 9, 'probability': 0.10 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 7.5, 'probability': 0.10 },
-            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': 9, 'probability': 0.08 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 6.3, 'probability': 0.05 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 5.7, 'probability': 0.03 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0022 },
+            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 200, 'probability': 0.04934 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.10 },
+            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 36, 'probability': 0.08 },
+            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 34, 'probability': 0.07 },
+            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 26, 'probability': 0.08 },
+            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 24, 'probability': 0.08 },
+            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 20, 'probability': 0.08 },
+            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 19.2, 'probability': 0.08 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.07 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.07 },
+            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': 18, 'probability': 0.07 },
+            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 12.6, 'probability': 0.05 },
+            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 11.4, 'probability': 0.05 },
+            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 15, 'probability': 0.06846 },
         ]
     },
 ]
-# 🔴🔴🔴 END OF cases_data_backend PLACEHOLDER 🔴🔴🔴
+# 🔴🔴🔴 END OF cases_data_backend (Updated for Python) 🔴🔴🔴
 
 if not cases_data_backend:
     logger.critical("Массив cases_data_backend ПУСТ! Приложение не сможет корректно функционировать. Заполни его!")
@@ -326,8 +287,8 @@ def populate_initial_nfts_from_cases():
 populate_initial_nfts_from_cases()
 
 # --- Constants for Deposit ---
-DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR"
-DEPOSIT_COMMENT = "cpd7r07ud3s"
+DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR" # Replace with your actual deposit address
+DEPOSIT_COMMENT = "cpd7r07ud3s" # Replace with your desired fixed comment
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30 
 
 # --- Flask Приложение ---
@@ -407,7 +368,7 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
 # --- API Эндпоинты ---
 @app.route('/') 
 def index_route(): 
-    return "Flask App (Full Backend - Cases Omitted - Deposit Impl) is running!"
+    return "Pusik Gifts Flask App is running!"
 
 @app.route('/api/get_user_data', methods=['POST'])
 def get_user_data_api():
@@ -686,7 +647,7 @@ def initiate_deposit_api():
 
     unique_nano_part = random.randint(10000, 999999) 
     original_amount_nano_ton = int(original_amount_ton * (10**9))
-    final_amount_nano_ton = original_amount_nano_ton + unique_nano_part
+    final_amount_nano_ton_for_link_and_check = original_amount_nano_ton + unique_nano_part
 
     existing_pending = db.query(PendingDeposit).filter(
         PendingDeposit.user_id == user_id,
@@ -705,7 +666,7 @@ def initiate_deposit_api():
         user_id=user_id,
         original_amount_ton=original_amount_ton,
         unique_identifier_nano_ton=unique_nano_part,
-        final_amount_nano_ton=final_amount_nano_ton,
+        final_amount_nano_ton=final_amount_nano_ton_for_link_and_check, # Store the exact nanoTON amount
         expected_comment=DEPOSIT_COMMENT,
         status='pending',
         expires_at=dt.now(timezone.utc) + timedelta(minutes=PENDING_DEPOSIT_EXPIRY_MINUTES)
@@ -714,23 +675,23 @@ def initiate_deposit_api():
     db.commit()
     db.refresh(pending_deposit)
 
-    amount_to_send_str = f"{final_amount_nano_ton / (10**9):.9f}".rstrip('0').rstrip('.') 
+    amount_to_send_str_display = f"{final_amount_nano_ton_for_link_and_check / (10**9):.9f}".rstrip('0').rstrip('.') 
 
-    logger.info(f"Initiated deposit for user {user_id}: ID {pending_deposit.id}, Amount {amount_to_send_str} TON, Orig {original_amount_ton} TON, UniquePart {unique_nano_part} nanoTON")
+    logger.info(f"Initiated deposit for user {user_id}: ID {pending_deposit.id}, AmountForLink {final_amount_nano_ton_for_link_and_check} nanoTON, Orig {original_amount_ton} TON")
 
     return jsonify({
         "status": "success",
         "pending_deposit_id": pending_deposit.id,
         "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW,
-        "amount_to_send": amount_to_send_str, 
-        "comment": DEPOSIT_COMMENT,
+        "amount_to_send": amount_to_send_str_display, # For display if needed, but link uses nanoTON
+        "final_amount_nano_ton": final_amount_nano_ton_for_link_and_check, # Crucial for ton:// link
+        "comment": DEPOSIT_COMMENT, # URL encoded by frontend if necessary
         "expires_at": pending_deposit.expires_at.isoformat()
     })
 
 async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_session):
     logger.info(f"Checking blockchain for pending deposit ID: {pending_deposit.id}, User: {pending_deposit.user_id}, Amount: {pending_deposit.final_amount_nano_ton} nanoTON")
     
-    # Initialize provider to None so we can check if it was successfully created
     provider = None
     transaction_found_and_processed = False
 
@@ -748,9 +709,7 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
 
             tx_value_nano = tx_data.in_msg.info.value_coins
             tx_comment_text = None
-            
-            # Get transaction hash correctly
-            tx_hash_hex = tx_data.cell.hash.hex() # <--- CORRECTED HASH ACCESS
+            tx_hash_hex = tx_data.cell.hash.hex() 
 
             if tx_data.now < int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()):
                 continue
@@ -767,7 +726,7 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
             else:
                 logger.debug(f"Transaction {tx_hash_hex} body too short for op_code.")
             
-            logger.debug(f"Scanning TX: hash={tx_hash_hex}, val={tx_value_nano}, cmt='{tx_comment_text}'") # Use tx_hash_hex
+            logger.debug(f"Scanning TX: hash={tx_hash_hex}, val={tx_value_nano}, cmt='{tx_comment_text}'")
 
             if tx_value_nano == pending_deposit.final_amount_nano_ton and \
                tx_comment_text == pending_deposit.expected_comment:
@@ -811,7 +770,7 @@ async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_sessi
         logger.error(f"Error during blockchain check for deposit ID {pending_deposit.id}: {type(e).__name__} - {e}", exc_info=True)
         return {"status": "error", "message": "An error occurred while checking for your transaction. Please try again later."}
     finally:
-        if provider: # Check if provider was initialized
+        if provider: 
             try:
                 await provider.close_all()
                 logger.info(f"LiteBalancer closed for deposit check {pending_deposit.id}")
@@ -852,11 +811,7 @@ def verify_deposit_api():
         if pending_deposit.status == 'pending': 
             pending_deposit.status = 'expired'
             db.commit()
-        return jsonify({"status": "expired", "message": "This deposit request has expired. Please initiate a new one."}), 400 # Changed to 400 for client handling
-    
-    # Ensure only one async check runs at a time for a given deposit if needed,
-    # for now, it's simple.
-    # A more robust solution might involve a background task queue for blockchain checks.
+        return jsonify({"status": "expired", "message": "This deposit request has expired. Please initiate a new one."}), 400
     
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -961,11 +916,11 @@ def send_welcome(message):
     
     try:
         web_app_info = types.WebAppInfo(url=MINI_APP_URL) 
-        app_button = types.InlineKeyboardButton(text="🎮 Открыть Игру-Рулетку", web_app=web_app_info)
+        app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info) # Updated button text
         markup.add(app_button)
         bot.send_message(
             message.chat.id,
-            "Добро пожаловать в TON Gift Universe! 🎁\n\n"
+            "Добро пожаловать в Pusik Gifts! 🎁\n\n" # Updated welcome message
             "Нажмите кнопку ниже, чтобы открыть рулетку и испытать свою удачу!",
             reply_markup=markup
         )
@@ -979,7 +934,7 @@ def send_welcome(message):
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     logger.info(f"Получено сообщение от {message.chat.id}: {message.text}")
-    bot.reply_to(message, "Нажмите /start, чтобы открыть игру.")
+    bot.reply_to(message, "Нажмите /start, чтобы открыть Pusik Gifts.") # Updated reply
 
 # --- Polling ---
 bot_polling_started = False
@@ -1014,7 +969,6 @@ def run_bot_polling():
         if not bot_polling_started: break
 
 if __name__ == '__main__':
-    # Start bot polling in a separate thread only if not running in Werkzeug's reloader process
     if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         logger.info("Основной процесс, запуск потока для polling бота.")
         bot_polling_thread = threading.Thread(target=run_bot_polling)
@@ -1024,6 +978,4 @@ if __name__ == '__main__':
         logger.info("Процесс Werkzeug reloader, polling бота не запускается здесь.")
     
     logger.info("Запуск Flask development server...")
-    # use_reloader=False is important if you manage the bot thread manually
-    # or ensure the bot thread is only started in the main Werkzeug process.
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
