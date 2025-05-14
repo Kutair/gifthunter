@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TON Gift Universe - Polished</title>
+    <title>Pusik Gifts - Polished</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect SDK -->
@@ -15,27 +15,27 @@
 
     <style>
         :root {
-            --bg-gradient-start: #1A1D2B; 
-            --bg-gradient-mid: #2C2F40;  
-            --bg-gradient-end: #121212;   
-            --surface-color: #232633; 
-            --surface-hover-color: #2E3243;
-            --primary-color: #0A84FF; 
-            --primary-gradient-start: #0A84FF;
-            --primary-gradient-end: #34C7F8;   
-            --secondary-color: #FF9F0A; 
-            --text-primary: #FFFFFF;
-            --text-secondary: #AEAEB2; 
-            --text-placeholder: #636366;
-            --text-price-color: #BDC3C7; 
-            --border-color: rgba(84, 84, 88, 0.35); 
+            --bg-gradient-start: #181A25; /* Slightly darker base */
+            --bg-gradient-mid: #202333;  
+            --bg-gradient-end: #12141D;   
+            --surface-color: #282B3D; /* Slightly lighter surface */
+            --surface-hover-color: #31354A;
+            --primary-color: #007AFF; /* Standard Apple Blue */
+            --primary-gradient-start: #007AFF;
+            --primary-gradient-end: #34AADC; /* Slightly different blue for gradient */  
+            --secondary-color: #FF9500; /* Apple Orange */
+            --text-primary: #F5F5F7; /* Off-white for less harshness */
+            --text-secondary: #AEB4C0; /* Lighter secondary */
+            --text-placeholder: #7A7F8F;
+            --text-price-color: #C7CDD6; 
+            --border-color: rgba(120, 120, 128, 0.25); /* Lighter, more subtle border */
             --border-highlight: var(--primary-color);
-            --danger-color: #FF453A;  
-            --success-color: #30D158; 
+            --danger-color: #FF3B30;  /* Apple Red */
+            --success-color: #30D158; /* Apple Green */
             --font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --main-border-radius: 14px; 
-            --button-border-radius: 10px;
-            --soft-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+            --main-border-radius: 16px; /* Slightly more rounded */
+            --button-border-radius: 12px;
+            --soft-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25);
             --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); 
         }
 
@@ -75,27 +75,37 @@
 
         /* Header */
         #app-header {
-            padding: 14px 18px; 
+            padding: 12px 16px; /* Adjusted padding */
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: linear-gradient(to right, rgba(30,33,50,0.85), rgba(40,43,60,0.85));
-            backdrop-filter: blur(15px) saturate(180%);
-            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            background: linear-gradient(to right, rgba(30, 33, 50, 0.88), rgba(40, 43, 60, 0.92)); /* Slightly adjusted alpha */
+            backdrop-filter: blur(18px) saturate(180%); /* Increased blur */
+            -webkit-backdrop-filter: blur(18px) saturate(180%);
             border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2); /* Refined shadow */
+        }
+        #app-header .app-title-container {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Space between logo and title */
+        }
+        #app-header .app-logo {
+            width: 32px; /* Adjust size as needed */
+            height: 32px;
+            border-radius: 6px; /* Optional: if you want rounded corners for logo */
         }
         #app-header .app-title {
-            font-size: 1.4em; 
-            font-weight: 800; 
-            background: linear-gradient(45deg, var(--primary-gradient-end), var(--text-primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-             flex-shrink: 0; 
-             margin-right: 10px;
+            font-size: 1.5em; /* Slightly larger */
+            font-weight: 700; /* Bolder */
+            /* Removed gradient text for better readability with logo */
+            color: var(--text-primary);
+            letter-spacing: -0.5px; /* Tighter spacing for modern look */
+            flex-shrink: 0; 
+            margin-right: 10px;
         }
         #app-header .wallet-info { 
             display: flex; 
@@ -103,16 +113,16 @@
             gap: 8px; 
             flex-shrink: 1; 
             min-width: 0; 
-         }
+        }
         #ton-connect-button {
-             display: inline-block; 
-             flex-shrink: 0; 
+            display: inline-block; 
+            flex-shrink: 0; 
         }
         #wallet-address-display, #balance {
             background-color: var(--surface-hover-color); 
-            padding: 7px 10px; 
+            padding: 8px 12px; /* Increased padding */
             border-radius: var(--button-border-radius);
-            font-size: 0.85em; 
+            font-size: 0.875em; 
             font-weight: 600;
             border: 1px solid var(--border-color);
             white-space: nowrap; 
@@ -120,25 +130,29 @@
             text-overflow: ellipsis;
             max-width: 150px; 
             display: none; /* Initially hidden */
+            transition: background-color 0.2s;
         }
-         #wallet-address-display.connected, #balance.connected { 
-             display: block; 
-         }
-         #ton-connect-button.connected { 
-             display: none; 
-         }
+        #wallet-address-display:hover, #balance:hover {
+             background-color: var(--surface-color);
+        }
+        #wallet-address-display.connected, #balance.connected { 
+            display: block; 
+        }
+        #ton-connect-button.connected { 
+            display: none; 
+        }
         #app-header .ton-icon {
-            width: 16px; height: 16px; 
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%230A84FF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
-            background-size: contain; margin-left: 5px; vertical-align: middle;
+            width: 18px; height: 18px; /* Slightly larger */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%23007AFF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
+            background-size: contain; margin-left: 6px; vertical-align: middle; /* Adjusted margin */
         }
 
         /* Content Area */
-        #app-content { flex-grow: 1; padding: 20px 16px; overflow-y: auto; padding-bottom: 80px; }
+        #app-content { flex-grow: 1; padding: 24px 18px; overflow-y: auto; padding-bottom: 80px; } /* Increased padding */
         .page { display: none; }
         .page.active { display: block; animation: pageFadeInMinimal 0.3s ease-out; }
         @keyframes pageFadeInMinimal {
-            from { opacity: 0; transform: translateY(5px);} 
+            from { opacity: 0; transform: translateY(8px);} 
             to { opacity: 1; transform: translateY(0px);}
         }
 
@@ -146,33 +160,38 @@
         #app-nav {
             display: flex;
             justify-content: space-around;
-            align-items: center; 
-            background-color: rgba(28, 28, 30, 0.92); 
-            backdrop-filter: blur(15px) saturate(180%);
-            -webkit-backdrop-filter: blur(15px) saturate(180%);
+            align-items: stretch; /* Make buttons fill height */
+            background-color: rgba(28, 28, 30, 0.95); /* More opaque */
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
             border-top: 1px solid var(--border-color);
-            padding: 6px 0 8px 0; 
+            padding: 0; /* Remove padding, rely on button padding */
             position: sticky; bottom: 0; z-index: 1000;
-            min-height: 60px; 
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
+            min-height: 65px; /* Increased height */
+            box-shadow: 0 -3px 15px rgba(0,0,0,0.15); 
         }
         .nav-button {
             background: none; border: none;
             color: var(--text-secondary);
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; /* Center content */
             font-size: 11px; 
             font-weight: 500;
-            cursor: pointer; padding: 5px; 
-            border-radius: var(--button-border-radius);
-            transition: color 0.2s, transform 0.1s ease-out;
+            cursor: pointer; padding: 8px 5px; /* Adjusted padding */
+            border-radius: 0; /* Remove individual radius for seamless look */
+            transition: color 0.2s, background-color 0.2s, transform 0.1s ease-out;
             flex: 1; text-align: center;
             line-height: 1.3; 
         }
-        .nav-button:active { transform: scale(0.95); }
-        .nav-button.active { color: var(--primary-color); font-weight: 600; }
+        .nav-button:hover { background-color: rgba(255,255,255,0.05); }
+        .nav-button:active { transform: scale(0.96); }
+        .nav-button.active { 
+            color: var(--primary-color); 
+            font-weight: 600; 
+            /* background-color: rgba(0, 122, 255, 0.1); Optional subtle active background */
+        }
         .nav-button svg {
-            width: 26px; height: 26px; 
-            margin-bottom: 3px; 
+            width: 28px; height: 28px; /* Larger icons */
+            margin-bottom: 4px; 
             fill: currentColor;
         }
         .nav-button.active svg { fill: var(--primary-color); }
@@ -182,19 +201,19 @@
         .button {
             background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
             color: var(--text-primary);
-            border: none; padding: 13px 22px; 
+            border: none; padding: 14px 24px; /* Adjusted padding */
             border-radius: var(--button-border-radius);
-            font-size: 1.05em; 
+            font-size: 1.0em; /* Standardized font size */
             font-weight: 600;
             cursor: pointer;
-            transition: filter 0.15s ease-out, transform 0.1s ease-out;
+            transition: filter 0.2s ease-out, transform 0.15s ease-out, box-shadow 0.2s ease-out;
             text-align: center;
             display: block; 
             width: 100%;
-            box-shadow: 0 2px 5px rgba(0,122,255,0.2);
+            box-shadow: 0 3px 8px rgba(0,122,255,0.25); /* Refined shadow */
         }
-        .button:hover { filter: brightness(1.1); }
-        .button:active { transform: scale(0.97); filter: brightness(0.9); }
+        .button:hover { filter: brightness(1.15); box-shadow: 0 4px 12px rgba(0,122,255,0.3); }
+        .button:active { transform: scale(0.97); filter: brightness(0.9); box-shadow: 0 2px 5px rgba(0,122,255,0.2); }
         .button-secondary {
             background-color: var(--surface-hover-color); 
             color: var(--text-secondary); 
@@ -205,6 +224,7 @@
         .button-secondary:hover { 
             background-color: var(--surface-color); 
             color: var(--text-primary); 
+            border-color: rgba(120,120,128,0.5);
         }
         .button-secondary:active {
              background-color: var(--surface-hover-color);
@@ -212,60 +232,62 @@
         }
 
         h2 {
-            margin-top: 0; font-size: 1.85em; 
+            margin-top: 0; font-size: 2.0em; /* Slightly larger */
             font-weight: 700;
             color: var(--text-primary);
-            padding-bottom: 8px; margin-bottom: 24px;
+            padding-bottom: 10px; margin-bottom: 28px; /* Increased margin */
+            letter-spacing: -0.5px;
         }
         h3 { 
-            font-size: 1.1em; 
+            font-size: 1.15em; 
             font-weight: 600;
             color: var(--text-secondary);
-            margin-top: 20px;
-            margin-bottom: 12px;
+            margin-top: 24px; /* Increased margin */
+            margin-bottom: 14px;
             text-transform: uppercase; 
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px; /* Wider spacing */
         }
         .content-card { 
             background-color: var(--surface-color);
-            padding: 18px; 
+            padding: 20px; /* Increased padding */
             border-radius: var(--main-border-radius);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color); /* Subtle border for cards */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Soft shadow for cards */
         }
 
 
         /* Main Page - Cases */
         .cases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 18px; 
+            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); /* Slightly larger minmax */
+            gap: 20px; /* Increased gap */
         }
         .case-card {
-            background-image: var(--case-grad-default); /* Default subtle gradient */
+            background-image: var(--case-grad-default);
             border-radius: var(--main-border-radius);
-            padding: 18px;
+            padding: 20px; /* Increased padding */
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease; /* Smoother transition */
             border: 1px solid var(--border-color); 
             overflow: hidden; 
             position: relative;
         }
-        /* Убраны специфичные градиенты для .case-card[data-case-id="..."] */
 
         .case-card:hover {
-            filter: brightness(1.1); /* Общий эффект для всех кейсов */
-            transform: translateY(-5px);
+            filter: brightness(1.12);
+            transform: translateY(-6px) scale(1.02); /* Enhanced hover effect */
             box-shadow: var(--soft-shadow);
         }
         .case-card .case-image-display { 
-            width: 80px; height: 80px;
-            margin: 0 auto 15px auto;
-            background-color: rgba(255, 255, 255, 0.05); /* Еще более прозрачный фон для картинок */
+            width: 85px; height: 85px; /* Slightly larger */
+            margin: 0 auto 18px auto; /* Increased margin */
+            background-color: rgba(255, 255, 255, 0.04); 
             border-radius: var(--button-border-radius);
             overflow: hidden;
             position: relative; 
-            border: 1px solid rgba(255, 255, 255, 0.08); 
+            border: 1px solid rgba(255, 255, 255, 0.07); 
         }
         .case-card .case-image-display img {
             display: block;
@@ -281,117 +303,121 @@
              transform: translate(-50%, -50%);
              object-fit: contain; 
              pointer-events: none; 
-             filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3)); 
+             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); /* Enhanced shadow */
          }
 
         .case-card .case-name {
-            font-weight: 600; /* Сделаем чуть менее жирным, чтобы не конфликтовать с отсутствием ярких фонов */
-            font-size: 1em; margin-bottom: 6px;
-            color: var(--text-primary); /* Единый цвет для названий */
-            min-height: 2.4em; 
+            font-weight: 600;
+            font-size: 1.05em; margin-bottom: 8px; /* Increased font size and margin */
+            color: var(--text-primary); 
+            min-height: 2.5em; /* Adjusted height */
             display: flex; align-items: center; justify-content: center;
-            text-shadow: none; /* Убрана тень */
         }
         .case-card .case-price {
             font-size: 0.9em; font-weight: 500;
-            color: var(--text-price-color); /* Новый единый цвет для цен */
-            text-shadow: none; /* Убрана тень */
+            color: var(--text-price-color);
         }
 
         /* --- Modal Base --- */
         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); 
-            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(10, 10, 20, 0.75); /* Darker, bluer tint */
+            backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
             overflow-y: auto; 
             align-items: flex-start; 
             padding-top: 5vh; 
             padding-bottom: 5vh;
         }
-        .modal.active { display: flex; animation: modalFadeInMinimal 0.25s ease-out; }
+        .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; } /* Smoother animation */
         .modal-content {
             background-color: var(--surface-color);
-            padding: 24px;
+            padding: 28px; /* Increased padding */
             border-radius: var(--main-border-radius);
-            width: 100%; max-width: 400px; 
+            width: 100%; max-width: 420px; /* Slightly wider */
             text-align: center;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4); /* Stronger shadow */
             border: 1px solid var(--border-color);
             display: flex; flex-direction: column;
             margin: auto; 
         }
          .modal-content h3 { 
-            margin-top: 0; margin-bottom: 16px;
-            font-size: 1.35em; font-weight: 700;
+            margin-top: 0; margin-bottom: 20px; /* Increased margin */
+            font-size: 1.4em; font-weight: 700;
             color: var(--text-primary);
-             flex-shrink: 0; 
+            flex-shrink: 0; 
         }
-        .modal-actions { margin-bottom: 16px; display: flex; flex-direction: column; gap: 12px;  flex-shrink: 0; }
+        .modal-actions { margin-bottom: 18px; display: flex; flex-direction: column; gap: 14px;  flex-shrink: 0; }
         .modal-body { 
             overflow-y: auto; 
             flex-grow: 1; 
             -webkit-overflow-scrolling: touch; 
-            margin-top: 10px; 
+            margin-top: 12px; 
         }
 
 
         /* --- Roulette Modal Specifics --- */
         #roulette-wheel-container { width: 100%;  flex-shrink: 0; }
         #roulette-wheel {
-            height: 270px; 
+            height: 280px; /* Slightly taller */
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
-            background-color: var(--bg-color); 
-            margin: 16px 0 20px 0; 
+            background-color: var(--bg-gradient-end); /* Darker background */
+            margin: 18px 0 22px 0; 
         }
         #roulette-wheel::before { 
             content: '';
             position: absolute;
             left: 10px; right: 10px; top: 50%;
-            height: 2px; 
+            height: 3px; /* Thicker line */
             background-color: var(--primary-color);
-            opacity: 0.8; transform: translateY(-50%);
+            opacity: 0.9; transform: translateY(-50%);
             z-index: 2; pointer-events: none; 
+            border-radius: 2px; /* Rounded indicator */
         }
         #roulette-spinner {
             display: flex; flex-direction: column;
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 90px; 
+            height: 92px; /* Adjusted height */
             display: flex; align-items: center; justify-content: center; 
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
             overflow: hidden; 
+            opacity: 0.7; /* Non-winning items slightly faded */
+            transition: opacity 0.3s;
         }
         .roulette-item:last-child { border-bottom: none; }
         .roulette-item img { 
-            max-width: 90%; max-height: 75px; object-fit: contain;
+            max-width: 90%; max-height: 78px; object-fit: contain; /* Adjusted size */
+        }
+        .roulette-item.is-winning {
+            opacity: 1;
         }
         .roulette-item.is-winning img { 
-             filter: drop-shadow(0 0 6px var(--primary-color)); 
+             filter: drop-shadow(0 0 8px var(--primary-color)) drop-shadow(0 0 12px var(--primary-gradient-end)); /* Stronger glow */
         }
         #possible-prizes-display {
             padding-right: 0px; 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 10px;
-             flex-shrink: 0; 
-             margin-top: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Responsive columns */
+            gap: 12px; /* Increased gap */
+            flex-shrink: 0; 
+            margin-top: 12px;
         }
         .prize-card {
             background-color: var(--surface-hover-color);
-            border-radius: var(--button-border-radius); padding: 8px;
+            border-radius: var(--button-border-radius); padding: 10px; /* Increased padding */
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; position: relative; 
             border: 1px solid var(--border-color);
-            text-align: center; min-height: 100px; 
+            text-align: center; min-height: 110px; /* Adjusted height */
         }
         .prize-card-image-placeholder { 
-            width: 50px; height: 50px; background-color: var(--bg-color);
-            border-radius: 6px; margin-bottom: 6px; 
+            width: 55px; height: 55px; background-color: var(--bg-gradient-end); /* Darker placeholder */
+            border-radius: 8px; margin-bottom: 8px; 
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
@@ -400,118 +426,131 @@
          }
         .prize-card-name {
             font-size: 0.8em; font-weight: 500; color: var(--text-secondary);
-            line-height: 1.2; width: 100%; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap; 
+            line-height: 1.25; width: 100%; 
+            /* Allow 2 lines for name */
+            overflow: hidden; text-overflow: ellipsis; 
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            white-space: normal; 
         }
         .prize-card-probability {
-            position: absolute; top: 4px; right: 4px; 
+            position: absolute; top: 5px; right: 5px; 
             background-color: var(--primary-color); color: var(--text-primary);
-            font-size: 0.65em; font-weight: 600; padding: 1px 4px;
-            border-radius: 4px; line-height: 1;
+            font-size: 0.7em; font-weight: 600; padding: 2px 5px;
+            border-radius: 5px; line-height: 1;
         }
         #prize-display { 
-            margin-top: 16px; font-size: 1.2em; font-weight: 600;
+            margin-top: 18px; font-size: 1.25em; font-weight: 600;
             color: var(--success-color);
-             flex-shrink: 0;
+            flex-shrink: 0;
         }
         #prize-display.hidden { display: none; }
         #roulette-modal hr { 
-             border: none; border-top: 1px solid var(--border-color); margin: 16px 0;
+             border: none; border-top: 1px solid var(--border-color); margin: 18px 0;
               flex-shrink: 0;
          }
          #roulette-modal h4 { 
-             font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px; 
+             font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px; 
              font-weight: 500;
               flex-shrink: 0;
          }
         
         /* --- Withdraw Modal Specifics --- */
-         #withdraw-modal .modal-step { display: none; }
+        #withdraw-modal .modal-step { display: none; }
         #withdraw-modal .modal-step.active { display: block; }
-        #withdraw-modal p { color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5;}
+        #withdraw-modal p { color: var(--text-secondary); margin-bottom: 18px; line-height: 1.55;}
         #withdraw-modal strong { color: var(--text-primary); font-weight: 600; }
         #withdraw-modal a.button { 
-            margin-bottom: 10px; text-decoration: none;
+            margin-bottom: 12px; text-decoration: none;
         }
         .loader { 
             border: 4px solid var(--surface-hover-color);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 40px; height: 40px;
+            width: 45px; height: 45px; /* Slightly larger */
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 22px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
         /* Input fields */
         input[type="text"], input[type="number"], select {
-            width: 100%; padding: 12px 14px; margin-bottom: 12px;
+            width: 100%; padding: 13px 15px; /* Adjusted padding */
+            margin-bottom: 14px;
             border-radius: var(--button-border-radius);
             background-color: var(--surface-hover-color);
             color: var(--text-primary); border: 1px solid var(--border-color);
             font-size: 1em; font-weight: 500; box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-placeholder); }
         input[type="text"]:focus, input[type="number"]:focus, select:focus {
             outline: none; border-color: var(--border-highlight);
-            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); 
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.25); 
         }
 
         /* Profile Page Specifics */
-         .profile-header { text-align: center; margin-bottom: 24px; padding-top: 10px;}
+        .profile-header { text-align: center; margin-bottom: 28px; padding-top: 12px;}
         .profile-avatar-placeholder {
-            width: 80px; height: 80px; border-radius: 50%;
+            width: 88px; height: 88px; border-radius: 50%; /* Larger avatar */
             background-color: var(--surface-hover-color);
             display: flex; align-items: center; justify-content: center;
-            font-size: 2.5em; font-weight: 600; color: var(--text-secondary);
-            margin: 0 auto 12px auto; border: 2px solid var(--border-color);
+            font-size: 2.8em; font-weight: 600; color: var(--text-secondary);
+            margin: 0 auto 14px auto; border: 3px solid var(--border-color); /* Thicker border */
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
-        .profile-info .username { font-size: 1.4em; font-weight: 600; margin-bottom: 4px;}
+        .profile-info .username { font-size: 1.5em; font-weight: 600; margin-bottom: 5px;}
         .profile-info .userid { font-size: 0.9em; color: var(--text-secondary); }
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); 
-            gap: 10px; 
+            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
+            gap: 12px; 
         }
         .inventory-item {
             background-color: var(--surface-hover-color);
             border-radius: var(--button-border-radius);
-            padding: 10px; 
+            padding: 12px; 
              text-align: center;
              display: flex; 
              flex-direction: column;
              justify-content: space-between; 
+             border: 1px solid var(--border-color);
+             transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .inventory-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
         }
          .inventory-item .item-image-display { 
-             width: 60px; 
-             height: 60px;
-             margin: 0 auto 8px auto;
-             background-color: var(--bg-color);
-             border-radius: 6px;
+             width: 65px; 
+             height: 65px;
+             margin: 0 auto 10px auto;
+             background-color: var(--bg-gradient-end);
+             border-radius: 8px;
              overflow: hidden;
              display: flex; align-items: center; justify-content: center;
          }
          .inventory-item .item-image-display img {
              display: block; width: 100%; height: 100%; object-fit: contain;
          }
-        .inventory-item-name { font-size: 0.85em; font-weight: 500; margin-bottom: 4px; line-height: 1.3; }
-        .inventory-item-value { font-size: 0.75em; color: var(--secondary-color); font-weight: 500; margin-bottom: 8px;}
-        .inventory-item-actions { display: flex; flex-direction: column; gap: 5px; margin-top: auto; } 
+        .inventory-item-name { font-size: 0.88em; font-weight: 500; margin-bottom: 5px; line-height: 1.35; }
+        .inventory-item-value { font-size: 0.78em; color: var(--secondary-color); font-weight: 500; margin-bottom: 10px;}
+        .inventory-item-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; } 
         .inventory-item-actions .button { 
-            font-size: 0.75em; padding: 5px 8px; margin: 0; width: 100%; 
+            font-size: 0.78em; padding: 6px 9px; margin: 0; width: 100%; 
         }
          
         #sell-all-button {
-            margin-top: 15px;
+            margin-top: 18px;
             background-color: var(--danger-color); 
             color: white;
              background-image: none; 
-             box-shadow: 0 2px 5px rgba(255, 59, 48, 0.3);
+             box-shadow: 0 3px 8px rgba(255, 59, 48, 0.35);
         }
          #sell-all-button:hover {
-              filter: brightness(1.1);
+              filter: brightness(1.15);
               background-color: var(--danger-color);
+              box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
          }
          #sell-all-button:active {
              filter: brightness(0.9);
@@ -520,61 +559,124 @@
         
         /* Upgrade Page */
          #upgrade-chance-display {
-            font-size: 2.5em; font-weight: 700; color: var(--text-primary);
-            text-align:center; margin: 20px auto; padding: 15px;
+            font-size: 2.8em; font-weight: 700; color: var(--text-primary); /* Larger font */
+            text-align:center; margin: 24px auto; padding: 18px; /* Increased margin/padding */
             background-color: var(--surface-hover-color);
-            border-radius: 50%; width:100px; height:100px; line-height: 70px;
-            border: 3px solid var(--primary-color);
+            border-radius: 50%; width:110px; height:110px; line-height: 74px; /* Larger circle */
+            border: 4px solid var(--primary-color); /* Thicker border */
+            box-shadow: 0 0 15px rgba(0,122,255,0.2); /* Added shadow */
         }
-        .multiplier-buttons { display: flex; justify-content: center; gap: 8px; margin: 20px 0; flex-wrap: wrap; }
-        .multiplier-buttons button { width: auto; flex-grow: 1; padding: 10px; font-size: 0.9em;}
+        .multiplier-buttons { display: flex; justify-content: center; gap: 10px; margin: 24px 0; flex-wrap: wrap; }
+        .multiplier-buttons button { width: auto; flex-grow: 1; padding: 11px; font-size: 0.9em;}
         .multiplier-buttons button.active-multiplier {
             background: var(--primary-color); 
             color: var(--text-primary);
+            box-shadow: 0 2px 6px rgba(0,122,255,0.3);
         }
         
         /* Invite Page */
-         .stats-box { display: flex; justify-content: space-around; margin: 20px 0; gap: 12px; }
+         .stats-box { display: flex; justify-content: space-around; margin: 24px 0; gap: 14px; }
         .stat-item {
             background-color: var(--surface-hover-color);
-            padding: 12px; border-radius: var(--button-border-radius);
+            padding: 14px; border-radius: var(--button-border-radius);
             flex: 1; text-align: center;
+            border: 1px solid var(--border-color);
         }
-        .stat-item .value { font-size: 1.5em; font-weight: 600; color: var(--primary-color); }
-        .stat-item .label { font-size: 0.8em; color: var(--text-secondary); margin-top: 4px; }
-        .invited-users-list div { padding: 8px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em;}
+        .stat-item .value { font-size: 1.6em; font-weight: 600; color: var(--primary-color); }
+        .stat-item .label { font-size: 0.8em; color: var(--text-secondary); margin-top: 5px; }
+        .invited-users-list div { padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em;}
         .invited-users-list div:last-child { border-bottom: none; }
 
         /* Leaderboard Page */
         .leaderboard-list .leader-entry {
-            display: flex; align-items: center; padding: 12px 0;
+            display: flex; align-items: center; padding: 14px 0;
             border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+        .leaderboard-list .leader-entry:hover {
+            background-color: rgba(255,255,255,0.03);
         }
         .leaderboard-list .leader-entry:last-child { border-bottom: none; }
         .leader-entry .rank {
             font-weight: 600; font-size: 1em;
-            min-width: 30px; text-align: left; color: var(--text-secondary);
+            min-width: 35px; text-align: left; color: var(--text-secondary);
         }
         .leader-entry .avatar-placeholder { 
-            width: 36px; height: 36px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%; /* Larger avatar */
             background-color: var(--surface-hover-color); color: var(--text-secondary);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1em; font-weight: 600; margin: 0 12px;
+            font-size: 1.1em; font-weight: 600; margin: 0 14px;
         }
-        .leader-entry .info .name { font-weight: 500; font-size: 1em; }
-        .leader-entry .info .details { font-size: 0.8em; color: var(--text-secondary); }
+        .leader-entry .info .name { font-weight: 500; font-size: 1.05em; }
+        .leader-entry .info .details { font-size: 0.82em; color: var(--text-secondary); }
         .leader-entry .score {
             margin-left: auto; font-weight: 600; font-size: 1em;
             color: var(--text-primary);
         }
          .leader-entry.current-user-entry .info .name {
              color: var(--primary-color);
+             font-weight: 700; /* Bolder for current user */
         }
+         .leader-entry.current-user-entry {
+             background-color: rgba(0, 122, 255, 0.08); /* Subtle highlight for current user */
+         }
+
+        /* --- Deposit Instructions Modal Styling --- */
+        #deposit-instructions-modal .modal-body p {
+            color: var(--text-secondary);
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+        #deposit-instructions-modal .modal-body strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        #deposit-instructions-modal .info-block {
+            background-color: var(--surface-hover-color);
+            padding: 15px;
+            border-radius: var(--button-border-radius);
+            margin-bottom: 18px;
+            border: 1px solid var(--border-color);
+        }
+        #deposit-instructions-modal .info-block-title {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #deposit-instructions-modal .info-block-value {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: var(--text-primary);
+            word-break: break-all;
+            margin-bottom: 8px;
+        }
+        #deposit-instructions-modal #ton-transfer-link {
+            margin-top: 10px;
+            margin-bottom: 20px;
+            display: flex; /* For icon alignment */
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+         #deposit-instructions-modal #ton-transfer-link svg {
+            width: 20px; height: 20px; fill: currentColor;
+         }
+        #deposit-status-message, #deposit-expiry-info {
+            text-align: center;
+        }
+
     </style>
+</head>
 <body>
      <div id="app-container">
          <header id="app-header">
-            <div class="app-title">Gift Universe</div>
+            <div class="app-title-container">
+                <img src="https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png" alt="Pusik Gifts Logo" class="app-logo">
+                <div class="app-title">Pusik Gifts</div>
+            </div>
             <div class="wallet-info">
                 <div id="wallet-address-display">Connected: ...</div> 
                 <div id="balance">
@@ -725,8 +827,8 @@
             <div id="prize-display" class="hidden"> 
                 You got: <span id="won-prize-name"></span>!
             </div>
-             <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
-             <h4 style="font-size: 0.9em; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500;">Possible Prizes:</h4>
+             <hr>
+             <h4>Possible Prizes:</h4>
             <div id="possible-prizes-display">
                  <!-- Possible prize cards will be dynamically inserted here -->
             </div>
@@ -767,31 +869,18 @@
         <div class="modal-content">
             <h3>Complete Your TON Deposit</h3>
             <div class="modal-body" style="text-align: left;">
-                <p>To complete your deposit, please send the exact amount of TON to the specified address with the correct comment.</p>
+                <p>To complete your deposit, please click the link below to open your TON wallet. The transaction details will be pre-filled.</p>
                 
-                <div style="margin-bottom: 15px;">
-                    <strong>Recipient Address:</strong>
-                    <input type="text" id="deposit-recipient-address" readonly style="margin-top:5px; margin-bottom: 2px;">
-                    <button id="copy-deposit-address" class="button button-secondary" style="font-size:0.8em; padding: 6px 10px; width:auto;">Copy</button>
-                </div>
-
-                <div style="margin-bottom: 15px;">
-                    <strong>Exact Amount to Send (TON):</strong>
-                    <input type="text" id="deposit-exact-amount" readonly style="margin-top:5px; margin-bottom: 2px;">
-                    <button id="copy-deposit-amount" class="button button-secondary" style="font-size:0.8em; padding: 6px 10px; width:auto;">Copy</button>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <strong>Comment (Memo):</strong>
-                    <input type="text" id="deposit-comment" readonly style="margin-top:5px; margin-bottom: 2px;">
-                    <button id="copy-deposit-comment" class="button button-secondary" style="font-size:0.8em; padding: 6px 10px; width:auto;">Copy</button>
-                </div>
+                <a id="ton-transfer-link" href="#" target="_blank" class="button">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path><path d="M12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"></path></svg>
+                    Open Wallet & Pay
+                </a>
 
                 <p id="deposit-expiry-info" style="font-size:0.9em; color:var(--text-secondary); margin-bottom:15px;"></p>
                 <p id="deposit-status-message" style="font-weight: 500; text-align:center; margin-bottom:15px;"></p>
                 <div id="deposit-loader" class="loader" style="display:none; margin: 10px auto;"></div>
 
-                <button id="confirm-payment-sent-button" class="button">I Have Sent The Funds</button>
+                <button id="confirm-payment-sent-button" class="button button-secondary">I Have Sent The Funds</button>
                 <button id="cancel-deposit-button" class="button button-secondary" style="margin-top: 10px;">Cancel</button>
             </div>
         </div>
@@ -829,7 +918,7 @@ const upgradeChances = {
 function generateImageFilename(name) {
     if (!name) return 'placeholder.png'; 
     if (name === "Durov's Cap") return "Durov's-Cap.png"; 
-    if (name === "Kissed Frog Happy Pepe") return "Kissed-Frog-Happy-Pepe.png"; 
+    // Removed Kissed Frog Happy Pepe as per instructions
     if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
     if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) { 
          return name.replace('-','_') + '.png'; 
@@ -837,185 +926,132 @@ function generateImageFilename(name) {
     return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; 
 }
 
-// --- casesData (Placeholder - to be filled) ---
+// --- casesData (Updated for JavaScript Frontend) ---
 const casesData = [
     { 
-        id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 0.5,
+        id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5,
         prizes: [
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.01 },
-            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: 1, probability: 0.10 },
-            { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: 0.7, probability: 0.10 },
-            { name: 'Homemade Cake', imageFilename: generateImageFilename('Homemade Cake'), floorPrice: 1, probability: 0.09 },
-            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: 0.7, probability: 0.20 },
-            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: 0.7, probability: 0.20 },
-            { name: 'Desk Calendar', imageFilename: generateImageFilename('Desk Calendar'), floorPrice: 0.7, probability: 0.10 },
-            { name: 'Cookie Heart', imageFilename: generateImageFilename('Cookie Heart'), floorPrice: 0.9, probability: 0.10 },
-            { name: 'Jack-in-the-box', imageFilename: generateImageFilename('Jack-in-the-box'), floorPrice: 1, probability: 0.08 },
-            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 1.7, probability: 0.02 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.001 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.005 },
+            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: 2, probability: 0.07 },
+            { name: 'Homemade Cake', imageFilename: generateImageFilename('Homemade Cake'), floorPrice: 2, probability: 0.07 },
+            { name: 'Cookie Heart', imageFilename: generateImageFilename('Cookie Heart'), floorPrice: 1.8, probability: 0.07 },
+            { name: 'Jack-in-the-box', imageFilename: generateImageFilename('Jack-in-the-box'), floorPrice: 2, probability: 0.06 },
+            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 3.4, probability: 0.023 },
+            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: 1.4, probability: 0.25 },
+            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: 1.4, probability: 0.25 },
+            { name: 'Desk Calendar', imageFilename: generateImageFilename('Desk Calendar'), floorPrice: 1.4, probability: 0.10 },
+            { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: 1.4, probability: 0.10 },
         ]
     },
     { 
-        id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 3,
+        id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6,
         prizes: [
-            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.50 },
-            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: 0.7, probability: 0.08 },
-            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: 0.7, probability: 0.08 },
-            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: 1, probability: 0.08 },
-            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 1.7, probability: 0.08 },
-            { name: 'Jelly Bunny', imageFilename: generateImageFilename('Jelly Bunny'), floorPrice: 1.8, probability: 0.08 },
-            { name: 'Tama Gadget', imageFilename: generateImageFilename('Tama Gadget'), floorPrice: 2, probability: 0.05 },
-            { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 2, probability: 0.05 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0012 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 4, probability: 0.40 },
+            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: 1.4, probability: 0.10 },
+            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: 1.4, probability: 0.10 },
+            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: 2, probability: 0.10 },
+            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 3.4, probability: 0.10 },
+            { name: 'Jelly Bunny', imageFilename: generateImageFilename('Jelly Bunny'), floorPrice: 3.6, probability: 0.0988 },
+            { name: 'Tama Gadget', imageFilename: generateImageFilename('Tama Gadget'), floorPrice: 4, probability: 0.05 },
+            { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 4, probability: 0.05 },
         ]
     },
     { 
-        id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 5,
+        id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10,
         prizes: [
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.10 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.20 },
-            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.10 },
-            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.15 },
-            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.15 },
-            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 4.2, probability: 0.10 },
-            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.10 },
-            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.05 },
-            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.05 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0015 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.08 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.10 },
+            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 11, probability: 0.05 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.03 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.0395 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 4, probability: 0.20 },
+            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 5.4, probability: 0.20 },
+            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 6, probability: 0.15 },
+            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 8.4, probability: 0.149 },
         ]
     },
     { 
-        id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 10,
+        id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 20,
         prizes: [
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.10 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.15 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.20 },
-            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.15 },
-            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.10 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 9, probability: 0.10 },
-            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 12, probability: 0.05 },
-            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.10 },
-            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.05 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0018 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.08 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 20, probability: 0.12 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 24, probability: 0.09946 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.15 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.15 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.15 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 }, 
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.07 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.07874 },
         ]
     },
     { 
-        id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 20,
+        id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 40,
         prizes: [
-            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 13, probability: 0.10 },
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.15 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.20 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.15 },
-            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.15 },
-            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.10 },
-            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.08 },
-            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.07 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.002 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 }, // Adjusted to make space for Pepe but keep total ~1
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.12 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.10 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 20, probability: 0.10 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.08 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.08 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.05 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.0486 },
         ]
     },
     { 
-        id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 50,
+        id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 100,
         prizes: [
-            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 60, probability: 0.10 },
-            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 13, probability: 0.15 },
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.15 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.10 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.10 },
-            { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: 60, probability: 0.10 },
-            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.15 },
-            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.10 },
-            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 12, probability: 0.05 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0025 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 }, // Adjusted
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.10 },
+            { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: 120, probability: 0.10 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.12 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.10 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.08 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.10 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.08 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 24, probability: 0.05 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 }, // Adjusted
         ]
     },
     { 
-        id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 100,
+        id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200,
         prizes: [
-            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 560, probability: 0.10 },
-             // Swapped probabilities for Astral Shard and Durov's Cap
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 150, probability: 0.40 }, 
-            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 60, probability: 0.50 },
-        ]
-    },
-    { 
-        id: 'happypepe', name: 'Happy Pepe Treasure', imageFilename: generateImageFilename('Happy Pepe Kissed Frog'), priceTON: 600,
-        prizes: [
-            { name: 'Kissed Frog Happy Pepe', imageFilename: generateImageFilename('Happy Pepe Kissed Frog'), floorPrice: 660, probability: 0.3636 },
-            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 560, probability: 0.6364 },
-        ]
-    },
-    { 
-        id: 'amber', name: 'Amber Nebula Case', 
-        isBackgroundCase: true, bgImageFilename: 'Amber.png', overlayPrizeName: 'Swiss Watch', 
-        priceTON: 3, 
-        prizes: [
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.01 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.03 },
-            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.05 },
-            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.10 },
-            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.15 },
-            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 4.2, probability: 0.15 },
-            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.15 },
-            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.08 },
-            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.08 },
-            { name: 'Sakura Flower', imageFilename: generateImageFilename('Sakura Flower'), floorPrice: 2, probability: 0.08 },
-            { name: 'Jelly Bunny', imageFilename: generateImageFilename('Jelly Bunny'), floorPrice: 1.8, probability: 0.06 },
-            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: 1.7, probability: 0.06 },
-        ]
-    },
-    { 
-        id: 'midnightblue', name: 'Midnight Blue Comet', 
-        isBackgroundCase: true, bgImageFilename: 'Midnight_Blue.png', overlayPrizeName: 'Precious Peach', 
-        priceTON: 3, 
-        prizes: [ 
-            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.01 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.03 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.06 },
-            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.10 },
-            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.15 },
-            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.15 },
-            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.15 },
-            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.08 },
-            { name: 'Tama Gadget', imageFilename: generateImageFilename('Tama Gadget'), floorPrice: 2, probability: 0.08 },
-            { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 2, probability: 0.08 },
-            { name: 'Sleigh Bell', imageFilename: generateImageFilename('Sleigh Bell'), floorPrice: 2, probability: 0.06 },
-            { name: 'Candy Cane', imageFilename: generateImageFilename('Candy Cane'), floorPrice: 0.9, probability: 0.05 },
-        ]
-    },
-    { 
-        id: 'onyxblack', name: 'Onyx Black Hole', 
-        isBackgroundCase: true, bgImageFilename: 'Onyx_Black.png', overlayPrizeName: 'Perfume Bottle', 
-        priceTON: 5, 
-        prizes: [ 
-            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.01 },
-            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.03 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.05 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.10 },
-            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.15 },
-            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.15 },
-            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: 5.5, probability: 0.15 },
-            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 4.2, probability: 0.10 },
-            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: 3, probability: 0.08 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 5.2, probability: 0.08 },
-            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: 2.7, probability: 0.05 },
-            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: 2, probability: 0.05 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 }, // Higher chance as it's the "Pepe" case
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.25 },
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.60 },
         ]
     },
     { 
         id: 'black', name: 'BLACK Singularity', 
         isBackgroundCase: true, bgImageFilename: 'Black.png', overlayPrizeName: 'Neko Helmet', 
-        priceTON: 15, 
+        priceTON: 30, 
         prizes: [ 
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 21, probability: 0.01 },
-            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 18, probability: 0.03 },
-            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 17, probability: 0.05 },
-            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 13, probability: 0.10 },
-            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 12, probability: 0.15 },
-            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 10, probability: 0.15 },
-            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 9.6, probability: 0.15 },
-            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 9, probability: 0.10 },
-            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 7.5, probability: 0.10 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 9, probability: 0.08 },
-            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 6.3, probability: 0.05 },
-            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 5.7, probability: 0.03 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0022 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 }, // Adjusted
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.10 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.08 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.07 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.08 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 24, probability: 0.08 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: 20, probability: 0.08 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.08 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.07 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.07 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 }, 
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.05 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.05 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 }, // Adjusted
         ]
     },
 ];
-// 🔴🔴🔴 END OF casesData PLACEHOLDER 🔴🔴🔴
+
 
 // --- Image Preloader ---
 const imageUrlsToPreload = [];
@@ -1085,7 +1121,7 @@ const profileElements = {
     emptyInventoryMessage: document.getElementById('empty-inventory-message'),
     disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
     depositAmountInput: document.getElementById('deposit-amount-input'),
-    initiateDepositButton: document.getElementById('initiate-deposit-button'), // Changed from confirmDepositButton
+    initiateDepositButton: document.getElementById('initiate-deposit-button'),
     sellAllButton: document.getElementById('sell-all-button'), 
     sellAllValueSpan: document.getElementById('sell-all-value') 
 };
@@ -1110,20 +1146,17 @@ const leaderboardList = document.getElementById('leaderboard-list');
 
 // --- Deposit Modal DOM Elements ---
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
-const depositRecipientAddressInput = document.getElementById('deposit-recipient-address');
-const depositExactAmountInput = document.getElementById('deposit-exact-amount');
-const depositCommentInput = document.getElementById('deposit-comment');
-const copyDepositAddressBtn = document.getElementById('copy-deposit-address');
-const copyDepositAmountBtn = document.getElementById('copy-deposit-amount');
-const copyDepositCommentBtn = document.getElementById('copy-deposit-comment');
+const tonTransferLink = document.getElementById('ton-transfer-link'); // New link element
 const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button');
 const cancelDepositButton = document.getElementById('cancel-deposit-button');
 const depositExpiryInfo = document.getElementById('deposit-expiry-info');
-const depositStatusMessageEl = document.getElementById('deposit-status-message'); // Renamed to avoid conflict
+const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
 
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
+let depositRecipientAddressRaw = ''; // Store this globally if needed for link
+let depositCommentText = '';       // Store this globally if needed for link
 
 // --- TON Connect ---
 const manifestUrl = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json'; 
@@ -1230,7 +1263,7 @@ function updateUIBasedOnWallet(wallet) {
         }
         if(headerElements.balanceDisplay) {
              headerElements.balanceDisplay.classList.add('connected');
-             headerElements.balanceDisplay.style.display = 'block'; 
+             headerElements.balanceDisplay.style.display = 'flex'; /* Use flex for icon alignment */
         }
         if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'none'; 
         
@@ -1263,7 +1296,14 @@ function renderCases() {
         casesGrid.innerHTML = "<p>Loading cases...</p>"; 
         return;
     }
-    casesData.forEach(caseItem => {
+    // Filter cases based on ID (ensure this logic aligns with your updated casesData)
+    const filteredCases = casesData.filter(caseItem => {
+        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack']; // Cases to exclude
+        return !removedCaseIds.includes(caseItem.id);
+    });
+
+
+    filteredCases.forEach(caseItem => {
         const card = document.createElement('div');
         card.className = 'case-card';
         card.dataset.caseId = caseItem.id; 
@@ -1423,8 +1463,15 @@ function renderInvitePage() {
     const botUsername = (window.Telegram && Telegram.WebApp.initDataUnsafe?.bot?.username) ? Telegram.WebApp.initDataUnsafe.bot.username : 'YourAppBot';
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${botUsername}?start=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} <span class="ton-icon"></span>`;
-    inviteElements.invitedCount.textContent = '-'; 
+    // Placeholder for invited count, replace with actual data if available
+    const invitedUsersList = document.querySelector('#invite-page .invited-users-list');
+    if (invitedUsersList) { // Example: Count demo items or fetch real count
+        inviteElements.invitedCount.textContent = invitedUsersList.children.length;
+    } else {
+        inviteElements.invitedCount.textContent = '0';
+    }
 }
+
 
 // --- Roulette Logic ---
 function openRouletteModal(caseItem) {
@@ -1490,7 +1537,7 @@ function openRouletteModal(caseItem) {
         imgContainer.appendChild(img);
 
         prizeCard.innerHTML = `
-            <span class="prize-card-probability">${(probability * 100).toFixed(probability < 0.01 ? 3 : (probability < 0.1 ? 2 : 1) )}%</span> 
+            <span class="prize-card-probability">${(probability * 100).toFixed(probability < 0.001 ? 3 : (probability < 0.01 ? 2 : 1) )}%</span> 
             <span class="prize-card-name">${name}</span>
         `; 
         prizeCard.insertBefore(imgContainer, prizeCard.firstChild); 
@@ -1526,6 +1573,9 @@ async function spinRoulette() {
 
             let spinnerItemsForSpin = [];
             const availablePrizes = currentOpenCase.prizes.filter(p => p && p.imageFilename);
+            if (availablePrizes.length === 0) {
+                 throw new Error("No available prizes with images in this case.");
+            }
             for (let i = 0; i < 70; i++) { 
                 spinnerItemsForSpin.push(availablePrizes[Math.floor(Math.random() * availablePrizes.length)]);
             }
@@ -1605,10 +1655,13 @@ async function spinRoulette() {
             spinButton.textContent = 'Spin';
         }
     } catch (error) {
+        console.error("Error in spinRoulette:", error);
+        showTGNotification(`Error: ${error.message || 'Failed to open case.'}`, 'error');
         spinButton.disabled = false;
         spinButton.textContent = 'Spin';
     }
 }
+
 
 // --- Other Page Logic --- 
 async function convertToTon(inventoryItemId) { 
@@ -1675,9 +1728,17 @@ async function sellAllItems() {
     if (currentUser.inventory.length === 0) {
         showTGNotification("Your inventory is empty.", "info"); return;
     }
-    if (!window.confirm(`Sell all ${currentUser.inventory.length} items? This action cannot be undone.`)) return;
+    if (window.Telegram && Telegram.WebApp.showConfirm) {
+        Telegram.WebApp.showConfirm(`Sell all ${currentUser.inventory.length} items? This action cannot be undone.`, async (confirmed) => {
+            if (confirmed) await doSellAll();
+        });
+    } else if (confirm(`Sell all ${currentUser.inventory.length} items? This action cannot be undone.`)) {
+        await doSellAll();
+    }
+}
 
-    try {
+async function doSellAll() {
+     try {
         const result = await apiRequest('/api/sell_all_items', 'POST');
         if (result.status === 'success') {
             currentUser.tonBalance = result.new_balance_ton;
@@ -1739,15 +1800,6 @@ function closeWithdrawModal() {
 }
 
 // --- Deposit Modal Logic ---
-function copyToClipboard(text, elementDescription) {
-    navigator.clipboard.writeText(text).then(() => {
-        showTGNotification(`${elementDescription} copied!`, 'success');
-    }).catch(err => {
-        showTGNotification(`Failed to copy ${elementDescription}.`, 'error');
-        console.error('Failed to copy: ', err);
-    });
-}
-
 async function initiateDepositProcedure() {
     const amountText = profileElements.depositAmountInput.value;
     if (!amountText.trim()) {
@@ -1771,9 +1823,28 @@ async function initiateDepositProcedure() {
 
         if (result.status === 'success') {
             currentPendingDepositId = result.pending_deposit_id;
-            depositRecipientAddressInput.value = result.recipient_address;
-            depositExactAmountInput.value = result.amount_to_send;
-            depositCommentInput.value = result.comment;
+            depositRecipientAddressRaw = result.recipient_address; // Store for link
+            depositCommentText = result.comment; // Store for link
+            
+            // The 'amount_to_send' from backend is already the final amount in TON string (e.g., "1.000012345")
+            // For ton:// link, amount is in nanoTON.
+            // Backend returns `amount_to_send` (string representation of final amount in TON)
+            // and the backend's `final_amount_nano_ton` is what we need for the link.
+            // Let's assume backend will add `final_amount_nano_ton` to the response.
+            // If not, we need to parse `amount_to_send` back to nanoTON.
+            // For simplicity, assuming backend sends `final_amount_nano_ton_for_link`
+            
+            let finalNanoAmountForLink;
+            if (result.final_amount_nano_ton) { // Ideal: backend sends this directly
+                finalNanoAmountForLink = result.final_amount_nano_ton;
+            } else { // Fallback: parse from amount_to_send string
+                 // amount_to_send is already a string like "0.500001234"
+                finalNanoAmountForLink = Math.round(parseFloat(result.amount_to_send) * 1e9);
+            }
+
+
+            const transferUrl = `ton://transfer/${depositRecipientAddressRaw}?amount=${finalNanoAmountForLink}&text=${encodeURIComponent(depositCommentText)}`;
+            tonTransferLink.href = transferUrl;
             
             startDepositExpiryTimer(result.expires_at);
 
@@ -1803,11 +1874,13 @@ function startDepositExpiryTimer(expiresAtISO) {
             clearInterval(depositExpiryInterval);
             depositExpiryInfo.textContent = "Deposit request has expired.";
             if(confirmPaymentSentButton) confirmPaymentSentButton.disabled = true;
+            if(tonTransferLink) tonTransferLink.classList.add('button-secondary'); // Visually disable
             return;
         }
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
         depositExpiryInfo.textContent = `This request will expire in ${minutes}m ${seconds}s.`;
+         if(tonTransferLink) tonTransferLink.classList.remove('button-secondary');
     }
     updateTimer(); 
     depositExpiryInterval = setInterval(updateTimer, 1000);
@@ -1844,6 +1917,7 @@ async function verifyPaymentSent() {
             depositStatusMessageEl.textContent = result.message || "Verification failed.";
             if (result.status === 'expired') {
                  // Button remains disabled
+                 if(tonTransferLink) tonTransferLink.classList.add('button-secondary');
             } else {
                  confirmPaymentSentButton.disabled = false;
                  confirmPaymentSentButton.textContent = "Try Verification Again";
@@ -1854,7 +1928,6 @@ async function verifyPaymentSent() {
         confirmPaymentSentButton.disabled = false;
         confirmPaymentSentButton.textContent = "Try Verification Again";
     } finally {
-        // Only hide loader if no specific message set OR if it's not a pending message
         if (depositLoader.style.display === 'block' && (!depositStatusMessageEl.textContent.includes('Please wait') && !depositStatusMessageEl.textContent.includes('Checking'))) {
              depositLoader.style.display = 'none';
         }
@@ -1866,6 +1939,7 @@ function closeDepositInstructionsModal() {
     if (depositExpiryInterval) clearInterval(depositExpiryInterval);
     currentPendingDepositId = null;
     profileElements.depositAmountInput.value = ''; 
+    if (tonTransferLink) tonTransferLink.href = '#'; // Clear the link
 }
 
 
@@ -1929,9 +2003,6 @@ if(profileElements.sellAllButton) {
 }
 
 // Event listeners for Deposit Modal
-if(copyDepositAddressBtn) copyDepositAddressBtn.addEventListener('click', () => copyToClipboard(depositRecipientAddressInput.value, 'Recipient Address'));
-if(copyDepositAmountBtn) copyDepositAmountBtn.addEventListener('click', () => copyToClipboard(depositExactAmountInput.value, 'Amount'));
-if(copyDepositCommentBtn) copyDepositCommentBtn.addEventListener('click', () => copyToClipboard(depositCommentInput.value, 'Comment'));
 if(confirmPaymentSentButton) confirmPaymentSentButton.addEventListener('click', verifyPaymentSent);
 if(cancelDepositButton) cancelDepositButton.addEventListener('click', closeDepositInstructionsModal);
 
@@ -1996,6 +2067,7 @@ async function initializeApp() {
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready(); 
         Telegram.WebApp.expand(); 
+        Telegram.WebApp.enableClosingConfirmation();
         console.log("Telegram WebApp is ready and expanded.");
         
         const tgUser = Telegram.WebApp.initDataUnsafe?.user;
@@ -2016,11 +2088,14 @@ async function initializeApp() {
         
         try { 
             const rootStyle = getComputedStyle(document.documentElement);
-            const bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
+            let bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
+            if (!bgColor || bgColor === "initial" || bgColor === "inherit") { // Fallback if CSS var not immediately ready
+                bgColor = '#181A25'; 
+            }
             if (bgColor) { 
                  Telegram.WebApp.setHeaderColor(bgColor);
                  Telegram.WebApp.setBackgroundColor(bgColor);
-                 console.log("Telegram theme colors set.");
+                 console.log("Telegram theme colors set to:", bgColor);
             }
         } catch (e) { 
             console.warn("Could not set Telegram WebApp theme colors.", e);
