@@ -101,7 +101,6 @@
         #app-header .app-title {
             font-size: 1.5em; /* Slightly larger */
             font-weight: 700; /* Bolder */
-            /* Removed gradient text for better readability with logo */
             color: var(--text-primary);
             letter-spacing: -0.5px; /* Tighter spacing for modern look */
             flex-shrink: 0; 
@@ -138,14 +137,14 @@
         #wallet-address-display.connected, #balance.connected { 
             display: block; 
         }
+        #balance.connected {
+            display: flex; /* For alignment if an icon was there */
+            align-items: center;
+        }
         #ton-connect-button.connected { 
             display: none; 
         }
-        #app-header .ton-icon {
-            width: 18px; height: 18px; /* Slightly larger */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%23007AFF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
-            background-size: contain; margin-left: 6px; vertical-align: middle; /* Adjusted margin */
-        }
+        /* Removed .ton-icon styles */
 
         /* Content Area */
         #app-content { flex-grow: 1; padding: 24px 18px; overflow-y: auto; padding-bottom: 80px; } /* Increased padding */
@@ -187,7 +186,6 @@
         .nav-button.active { 
             color: var(--primary-color); 
             font-weight: 600; 
-            /* background-color: rgba(0, 122, 255, 0.1); Optional subtle active background */
         }
         .nav-button svg {
             width: 28px; height: 28px; /* Larger icons */
@@ -260,16 +258,18 @@
         /* Main Page - Cases */
         .cases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); /* Slightly larger minmax */
-            gap: 20px; /* Increased gap */
+            /* Adjusted to typically show 2 columns on mobile by making min width larger */
+            grid-template-columns: repeat(auto-fill, minmax(max(150px, calc(50% - 10px - 1px)), 1fr)); 
+            /* gap is 20px, so 10px from each side. 1px for potential borders. */
+            gap: 20px; 
         }
         .case-card {
             background-image: var(--case-grad-default);
             border-radius: var(--main-border-radius);
-            padding: 20px; /* Increased padding */
+            padding: 20px; 
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease; /* Smoother transition */
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease; 
             border: 1px solid var(--border-color); 
             overflow: hidden; 
             position: relative;
@@ -277,17 +277,18 @@
 
         .case-card:hover {
             filter: brightness(1.12);
-            transform: translateY(-6px) scale(1.02); /* Enhanced hover effect */
+            transform: translateY(-6px) scale(1.02); 
             box-shadow: var(--soft-shadow);
         }
         .case-card .case-image-display { 
-            width: 85px; height: 85px; /* Slightly larger */
-            margin: 0 auto 18px auto; /* Increased margin */
-            background-color: rgba(255, 255, 255, 0.04); 
+            width: 85px; height: 85px; 
+            margin: 0 auto 18px auto; 
+            /* background-color: rgba(255, 255, 255, 0.04); REMOVED */
+            background-color: transparent; 
             border-radius: var(--button-border-radius);
             overflow: hidden;
             position: relative; 
-            border: 1px solid rgba(255, 255, 255, 0.07); 
+            /* border: 1px solid rgba(255, 255, 255, 0.07);  Optional: can be removed if images are well-defined */
         }
         .case-card .case-image-display img {
             display: block;
@@ -303,14 +304,14 @@
              transform: translate(-50%, -50%);
              object-fit: contain; 
              pointer-events: none; 
-             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); /* Enhanced shadow */
+             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); 
          }
 
         .case-card .case-name {
             font-weight: 600;
-            font-size: 1.05em; margin-bottom: 8px; /* Increased font size and margin */
+            font-size: 1.05em; margin-bottom: 8px; 
             color: var(--text-primary); 
-            min-height: 2.5em; /* Adjusted height */
+            min-height: 2.5em; 
             display: flex; align-items: center; justify-content: center;
         }
         .case-card .case-price {
@@ -322,27 +323,27 @@
         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(10, 10, 20, 0.75); /* Darker, bluer tint */
+            background-color: rgba(10, 10, 20, 0.75); 
             backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
             overflow-y: auto; 
             align-items: flex-start; 
             padding-top: 5vh; 
             padding-bottom: 5vh;
         }
-        .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; } /* Smoother animation */
+        .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; } 
         .modal-content {
             background-color: var(--surface-color);
-            padding: 28px; /* Increased padding */
+            padding: 28px; 
             border-radius: var(--main-border-radius);
-            width: 100%; max-width: 420px; /* Slightly wider */
+            width: 100%; max-width: 420px; 
             text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4); /* Stronger shadow */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4); 
             border: 1px solid var(--border-color);
             display: flex; flex-direction: column;
             margin: auto; 
         }
          .modal-content h3 { 
-            margin-top: 0; margin-bottom: 20px; /* Increased margin */
+            margin-top: 0; margin-bottom: 20px; 
             font-size: 1.4em; font-weight: 700;
             color: var(--text-primary);
             flex-shrink: 0; 
@@ -359,64 +360,66 @@
         /* --- Roulette Modal Specifics --- */
         #roulette-wheel-container { width: 100%;  flex-shrink: 0; }
         #roulette-wheel {
-            height: 280px; /* Slightly taller */
+            height: 280px; 
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
-            background-color: var(--bg-gradient-end); /* Darker background */
+            background-color: var(--surface-color); /* Changed from var(--bg-gradient-end) */
             margin: 18px 0 22px 0; 
         }
         #roulette-wheel::before { 
             content: '';
             position: absolute;
             left: 10px; right: 10px; top: 50%;
-            height: 3px; /* Thicker line */
+            height: 3px; 
             background-color: var(--primary-color);
             opacity: 0.9; transform: translateY(-50%);
             z-index: 2; pointer-events: none; 
-            border-radius: 2px; /* Rounded indicator */
+            border-radius: 2px; 
         }
         #roulette-spinner {
             display: flex; flex-direction: column;
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 92px; /* Adjusted height */
+            height: 92px; 
             display: flex; align-items: center; justify-content: center; 
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
             overflow: hidden; 
-            opacity: 0.7; /* Non-winning items slightly faded */
-            transition: opacity 0.3s;
+            /* opacity: 0.7; REMOVED - items no longer faded by default */
+            transition: opacity 0.3s; /* Kept for potential future use or selective fading */
         }
         .roulette-item:last-child { border-bottom: none; }
         .roulette-item img { 
-            max-width: 90%; max-height: 78px; object-fit: contain; /* Adjusted size */
+            max-width: 90%; max-height: 78px; object-fit: contain; 
         }
         .roulette-item.is-winning {
-            opacity: 1;
+            /* opacity: 1; No longer needed as default is 1 */
         }
         .roulette-item.is-winning img { 
-             filter: drop-shadow(0 0 8px var(--primary-color)) drop-shadow(0 0 12px var(--primary-gradient-end)); /* Stronger glow */
+             filter: drop-shadow(0 0 8px var(--primary-color)) drop-shadow(0 0 12px var(--primary-gradient-end)); 
         }
         #possible-prizes-display {
             padding-right: 0px; 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Responsive columns */
-            gap: 12px; /* Increased gap */
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); 
+            gap: 12px; 
             flex-shrink: 0; 
             margin-top: 12px;
         }
         .prize-card {
             background-color: var(--surface-hover-color);
-            border-radius: var(--button-border-radius); padding: 10px; /* Increased padding */
+            border-radius: var(--button-border-radius); padding: 10px; 
             display: flex; flex-direction: column; align-items: center;
             justify-content: center; position: relative; 
             border: 1px solid var(--border-color);
-            text-align: center; min-height: 110px; /* Adjusted height */
+            text-align: center; min-height: 110px; 
         }
         .prize-card-image-placeholder { 
-            width: 55px; height: 55px; background-color: var(--bg-gradient-end); /* Darker placeholder */
+            width: 55px; height: 55px; 
+            /* background-color: var(--bg-gradient-end); REMOVED */
+            background-color: transparent;
             border-radius: 8px; margin-bottom: 8px; 
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
@@ -427,7 +430,6 @@
         .prize-card-name {
             font-size: 0.8em; font-weight: 500; color: var(--text-secondary);
             line-height: 1.25; width: 100%; 
-            /* Allow 2 lines for name */
             overflow: hidden; text-overflow: ellipsis; 
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
             white-space: normal; 
@@ -466,7 +468,7 @@
             border: 4px solid var(--surface-hover-color);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 45px; height: 45px; /* Slightly larger */
+            width: 45px; height: 45px; 
             animation: spin 1s linear infinite;
             margin: 22px auto;
         }
@@ -474,7 +476,7 @@
 
         /* Input fields */
         input[type="text"], input[type="number"], select {
-            width: 100%; padding: 13px 15px; /* Adjusted padding */
+            width: 100%; padding: 13px 15px; 
             margin-bottom: 14px;
             border-radius: var(--button-border-radius);
             background-color: var(--surface-hover-color);
@@ -491,11 +493,11 @@
         /* Profile Page Specifics */
         .profile-header { text-align: center; margin-bottom: 28px; padding-top: 12px;}
         .profile-avatar-placeholder {
-            width: 88px; height: 88px; border-radius: 50%; /* Larger avatar */
+            width: 88px; height: 88px; border-radius: 50%; 
             background-color: var(--surface-hover-color);
             display: flex; align-items: center; justify-content: center;
             font-size: 2.8em; font-weight: 600; color: var(--text-secondary);
-            margin: 0 auto 14px auto; border: 3px solid var(--border-color); /* Thicker border */
+            margin: 0 auto 14px auto; border: 3px solid var(--border-color); 
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
         }
         .profile-info .username { font-size: 1.5em; font-weight: 600; margin-bottom: 5px;}
@@ -525,7 +527,8 @@
              width: 65px; 
              height: 65px;
              margin: 0 auto 10px auto;
-             background-color: var(--bg-gradient-end);
+             /* background-color: var(--bg-gradient-end); REMOVED */
+             background-color: transparent;
              border-radius: 8px;
              overflow: hidden;
              display: flex; align-items: center; justify-content: center;
@@ -559,12 +562,12 @@
         
         /* Upgrade Page */
          #upgrade-chance-display {
-            font-size: 2.8em; font-weight: 700; color: var(--text-primary); /* Larger font */
-            text-align:center; margin: 24px auto; padding: 18px; /* Increased margin/padding */
+            font-size: 2.8em; font-weight: 700; color: var(--text-primary); 
+            text-align:center; margin: 24px auto; padding: 18px; 
             background-color: var(--surface-hover-color);
-            border-radius: 50%; width:110px; height:110px; line-height: 74px; /* Larger circle */
-            border: 4px solid var(--primary-color); /* Thicker border */
-            box-shadow: 0 0 15px rgba(0,122,255,0.2); /* Added shadow */
+            border-radius: 50%; width:110px; height:110px; line-height: 74px; 
+            border: 4px solid var(--primary-color); 
+            box-shadow: 0 0 15px rgba(0,122,255,0.2); 
         }
         .multiplier-buttons { display: flex; justify-content: center; gap: 10px; margin: 24px 0; flex-wrap: wrap; }
         .multiplier-buttons button { width: auto; flex-grow: 1; padding: 11px; font-size: 0.9em;}
@@ -602,7 +605,7 @@
             min-width: 35px; text-align: left; color: var(--text-secondary);
         }
         .leader-entry .avatar-placeholder { 
-            width: 40px; height: 40px; border-radius: 50%; /* Larger avatar */
+            width: 40px; height: 40px; border-radius: 50%; 
             background-color: var(--surface-hover-color); color: var(--text-secondary);
             display: flex; align-items: center; justify-content: center;
             font-size: 1.1em; font-weight: 600; margin: 0 14px;
@@ -615,10 +618,10 @@
         }
          .leader-entry.current-user-entry .info .name {
              color: var(--primary-color);
-             font-weight: 700; /* Bolder for current user */
-        }
+             font-weight: 700; 
+         }
          .leader-entry.current-user-entry {
-             background-color: rgba(0, 122, 255, 0.08); /* Subtle highlight for current user */
+             background-color: rgba(0, 122, 255, 0.08); 
          }
 
         /* --- Deposit Instructions Modal Styling --- */
@@ -656,7 +659,7 @@
         #deposit-instructions-modal #ton-transfer-link {
             margin-top: 10px;
             margin-bottom: 20px;
-            display: flex; /* For icon alignment */
+            display: flex; 
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -680,7 +683,7 @@
             <div class="wallet-info">
                 <div id="wallet-address-display">Connected: ...</div> 
                 <div id="balance">
-                    <span id="ton-balance">0.00</span> <span class="ton-icon"></span>
+                    <span id="ton-balance">0.00</span> <!-- Removed TON icon -->
                 </div>
                 <div id="ton-connect-button"></div>
             </div>
@@ -725,7 +728,7 @@
                     
                     <div class="stats-box" style="margin-bottom: 20px;">
                         <div class="stat-item">
-                            <div id="referral-balance" class="value">0.00 <span class="ton-icon"></span></div>
+                            <div id="referral-balance" class="value">0.00 TON</div> <!-- Removed TON icon -->
                             <div class="label">Referral Earnings</div>
                         </div>
                         <div class="stat-item">
@@ -763,7 +766,7 @@
 
                 <div class="content-card">
                     <h3>Balance</h3>
-                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 <span class="ton-icon"></span></div>
+                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 TON</div> <!-- Removed TON icon -->
                     <input type="number" id="deposit-amount-input" placeholder="Amount in TON (e.g., 1.5)" style="margin-bottom: 10px;">
                     <button id="initiate-deposit-button" class="button">Deposit TON</button>
                 </div>
@@ -861,6 +864,7 @@
                 </div>
 
             </div>
+             <button id="close-withdraw-modal-button" class="button button-secondary" style="margin-top: 15px;">Close Window</button>
         </div>
     </div>
 
@@ -918,7 +922,6 @@ const upgradeChances = {
 function generateImageFilename(name) {
     if (!name) return 'placeholder.png'; 
     if (name === "Durov's Cap") return "Durov's-Cap.png"; 
-    // Removed Kissed Frog Happy Pepe as per instructions
     if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
     if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) { 
          return name.replace('-','_') + '.png'; 
@@ -1109,6 +1112,8 @@ const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
 const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
 const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close');
 const withdrawStatusMessage = document.getElementById('withdraw-status-message');
+const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
+
 
 const profileElements = {
     avatar: document.getElementById('profile-avatar'),
@@ -1144,9 +1149,8 @@ const inviteElements = {
 
 const leaderboardList = document.getElementById('leaderboard-list');
 
-// --- Deposit Modal DOM Elements ---
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
-const tonTransferLink = document.getElementById('ton-transfer-link'); // New link element
+const tonTransferLink = document.getElementById('ton-transfer-link'); 
 const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button');
 const cancelDepositButton = document.getElementById('cancel-deposit-button');
 const depositExpiryInfo = document.getElementById('deposit-expiry-info');
@@ -1155,8 +1159,8 @@ const depositLoader = document.getElementById('deposit-loader');
 
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
-let depositRecipientAddressRaw = ''; // Store this globally if needed for link
-let depositCommentText = '';       // Store this globally if needed for link
+let depositRecipientAddressRaw = ''; 
+let depositCommentText = '';       
 
 // --- TON Connect ---
 const manifestUrl = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json'; 
@@ -1164,6 +1168,63 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     manifestUrl: manifestUrl,
     buttonRootId: 'ton-connect-button' 
 });
+
+// --- Telegram BackButton Handler ---
+let tgBackButton = null;
+const backButtonHandlerStack = [];
+
+function _updateTgBackButton() {
+    if (!tgBackButton) return;
+    // Ensure previous onClick is cleared. SDK might handle this, but being explicit is safer.
+    // The `offClick` method typically requires the specific handler function to remove.
+    // However, for simplicity, we assume subsequent `onClick` overrides or that SDK handles it.
+    // If issues arise, a more complex `offClick(previousHandler)` logic would be needed.
+    // For now, we rely on the new onClick call replacing the old one.
+    // tgBackButton.offClick(); // This might not work as intended if it expects a specific callback.
+    
+    if (backButtonHandlerStack.length > 0) {
+        const currentHandler = backButtonHandlerStack[backButtonHandlerStack.length - 1];
+        tgBackButton.onClick(currentHandler); // Set the new handler
+        tgBackButton.show();
+    } else {
+        tgBackButton.hide();
+    }
+}
+
+function pushTgBackButtonHandler(handler) {
+    if (!tgBackButton) return;
+    backButtonHandlerStack.push(handler);
+    _updateTgBackButton();
+}
+
+function popTgBackButtonHandler() {
+    if (!tgBackButton) return;
+    if (backButtonHandlerStack.length > 0) {
+        const poppedHandler = backButtonHandlerStack.pop();
+        // Explicitly remove the handler that was just popped
+        // This requires the handler function to be the same instance.
+        tgBackButton.offClick(poppedHandler); 
+    }
+    _updateTgBackButton(); // This will set the new top handler or hide the button
+}
+
+function clearTgBackButtonStack() {
+    if (!tgBackButton) return;
+    // Remove handlers from stack before clearing
+    while(backButtonHandlerStack.length > 0) {
+        const handler = backButtonHandlerStack.pop();
+        tgBackButton.offClick(handler);
+    }
+    // backButtonHandlerStack.length = 0; // Cleared by popping
+    _updateTgBackButton(); // Hides button
+}
+
+// Specific handlers for BackButton
+function navigateBackToMainPage() { navigateToPage('main-page'); }
+function closeRouletteModalWithBackButton() { closeRouletteModal(); }
+function closeWithdrawModalWithBackButton() { closeWithdrawModal(); }
+function closeDepositModalWithBackButton() { closeDepositInstructionsModal(); }
+
 
 // --- API Helper ---
 async function apiRequest(endpoint, method = 'GET', body = null) {
@@ -1211,10 +1272,10 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 // --- Utility Functions ---
 function updateBalances() {
     if (headerElements.tonBalanceSpan) {
-        headerElements.tonBalanceSpan.textContent = currentUser.tonBalance.toFixed(2);
+        headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)} TON`;
     }
     if (profileElements.balanceDisplay) {
-         profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
+         profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
     }
 }
 
@@ -1227,6 +1288,24 @@ function navigateToPage(pageId) {
     appNavButtons.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.page === pageId);
     });
+
+    if (tgBackButton) {
+        if (pageId === 'main-page') {
+            clearTgBackButtonStack(); // Hides button if stack becomes empty
+        } else {
+            // If navigating to a sub-page, ensure the base is page navigation
+            // Pop modal handlers until we hit a page handler or empty stack
+            while(backButtonHandlerStack.length > 0 &&
+                  backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) {
+                popTgBackButtonHandler(); // This also calls _updateTgBackButton
+            }
+            // If stack is now empty, or was already empty, push the main page nav
+            if (backButtonHandlerStack.length === 0) {
+                pushTgBackButtonHandler(navigateBackToMainPage);
+            }
+            // If the top was already navigateBackToMainPage, _updateTgBackButton in pop did its job
+        }
+    }
     window.scrollTo(0, 0); 
 }
 
@@ -1263,7 +1342,7 @@ function updateUIBasedOnWallet(wallet) {
         }
         if(headerElements.balanceDisplay) {
              headerElements.balanceDisplay.classList.add('connected');
-             headerElements.balanceDisplay.style.display = 'flex'; /* Use flex for icon alignment */
+             headerElements.balanceDisplay.style.display = 'flex'; 
         }
         if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'none'; 
         
@@ -1296,9 +1375,8 @@ function renderCases() {
         casesGrid.innerHTML = "<p>Loading cases...</p>"; 
         return;
     }
-    // Filter cases based on ID (ensure this logic aligns with your updated casesData)
     const filteredCases = casesData.filter(caseItem => {
-        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack']; // Cases to exclude
+        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack']; 
         return !removedCaseIds.includes(caseItem.id);
     });
 
@@ -1447,7 +1525,7 @@ async function renderLeaderboard() {
                         <div class="name">${leader.name}</div>
                         <div class="details">Total Won: ${(leader.income || 0).toFixed(2)} TON</div>
                     </div>
-                    <div class="score">${(leader.income || 0).toFixed(1)} <span class="ton-icon"></span></div>
+                    <div class="score">${(leader.income || 0).toFixed(1)} TON</div> <!-- Removed TON icon -->
                 `;
                 leaderboardList.appendChild(entry);
             });
@@ -1462,10 +1540,9 @@ async function renderLeaderboard() {
 function renderInvitePage() {
     const botUsername = (window.Telegram && Telegram.WebApp.initDataUnsafe?.bot?.username) ? Telegram.WebApp.initDataUnsafe.bot.username : 'YourAppBot';
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${botUsername}?start=${currentUser.referralCode}` : 'Loading...';
-    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} <span class="ton-icon"></span>`;
-    // Placeholder for invited count, replace with actual data if available
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`; // Removed TON icon
     const invitedUsersList = document.querySelector('#invite-page .invited-users-list');
-    if (invitedUsersList) { // Example: Count demo items or fetch real count
+    if (invitedUsersList) { 
         inviteElements.invitedCount.textContent = invitedUsersList.children.length;
     } else {
         inviteElements.invitedCount.textContent = '0';
@@ -1545,10 +1622,12 @@ function openRouletteModal(caseItem) {
     });
 
     rouletteModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
     if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
 }
 
 function closeRouletteModal() {
+    if (tgBackButton) popTgBackButtonHandler();
     rouletteModal.classList.remove('active');
     currentOpenCase = null;
 }
@@ -1768,6 +1847,7 @@ function startWithdrawalProcess(itemId) {
     withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`; 
     showWithdrawStep(1);
     withdrawModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
 }
 
 async function completeWithdrawal() { 
@@ -1793,6 +1873,7 @@ async function completeWithdrawal() {
 }
 
 function closeWithdrawModal() {
+    if (tgBackButton) popTgBackButtonHandler();
     withdrawModal.classList.remove('active');
     itemToWithdraw = null;
     showWithdrawStep(1); 
@@ -1823,25 +1904,15 @@ async function initiateDepositProcedure() {
 
         if (result.status === 'success') {
             currentPendingDepositId = result.pending_deposit_id;
-            depositRecipientAddressRaw = result.recipient_address; // Store for link
-            depositCommentText = result.comment; // Store for link
-            
-            // The 'amount_to_send' from backend is already the final amount in TON string (e.g., "1.000012345")
-            // For ton:// link, amount is in nanoTON.
-            // Backend returns `amount_to_send` (string representation of final amount in TON)
-            // and the backend's `final_amount_nano_ton` is what we need for the link.
-            // Let's assume backend will add `final_amount_nano_ton` to the response.
-            // If not, we need to parse `amount_to_send` back to nanoTON.
-            // For simplicity, assuming backend sends `final_amount_nano_ton_for_link`
+            depositRecipientAddressRaw = result.recipient_address; 
+            depositCommentText = result.comment; 
             
             let finalNanoAmountForLink;
-            if (result.final_amount_nano_ton) { // Ideal: backend sends this directly
+            if (result.final_amount_nano_ton) { 
                 finalNanoAmountForLink = result.final_amount_nano_ton;
-            } else { // Fallback: parse from amount_to_send string
-                 // amount_to_send is already a string like "0.500001234"
+            } else { 
                 finalNanoAmountForLink = Math.round(parseFloat(result.amount_to_send) * 1e9);
             }
-
 
             const transferUrl = `ton://transfer/${depositRecipientAddressRaw}?amount=${finalNanoAmountForLink}&text=${encodeURIComponent(depositCommentText)}`;
             tonTransferLink.href = transferUrl;
@@ -1853,6 +1924,7 @@ async function initiateDepositProcedure() {
             confirmPaymentSentButton.disabled = false;
             confirmPaymentSentButton.textContent = 'I Have Sent The Funds';
             depositInstructionsModal.classList.add('active');
+            if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
         } else {
             showTGNotification(result.message || result.error || 'Failed to initiate deposit.', 'error');
         }
@@ -1874,7 +1946,7 @@ function startDepositExpiryTimer(expiresAtISO) {
             clearInterval(depositExpiryInterval);
             depositExpiryInfo.textContent = "Deposit request has expired.";
             if(confirmPaymentSentButton) confirmPaymentSentButton.disabled = true;
-            if(tonTransferLink) tonTransferLink.classList.add('button-secondary'); // Visually disable
+            if(tonTransferLink) tonTransferLink.classList.add('button-secondary'); 
             return;
         }
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -1907,7 +1979,7 @@ async function verifyPaymentSent() {
             currentUser.tonBalance = result.new_balance_ton;
             updateBalances(); 
             renderProfile(); 
-            closeDepositInstructionsModal();
+            closeDepositInstructionsModal(); // This will also pop TG BackButton
         } else if (result.status === 'pending') {
             depositStatusMessageEl.textContent = result.message;
             confirmPaymentSentButton.disabled = false; 
@@ -1916,7 +1988,6 @@ async function verifyPaymentSent() {
             showTGNotification(result.message || "Verification failed.", 'error');
             depositStatusMessageEl.textContent = result.message || "Verification failed.";
             if (result.status === 'expired') {
-                 // Button remains disabled
                  if(tonTransferLink) tonTransferLink.classList.add('button-secondary');
             } else {
                  confirmPaymentSentButton.disabled = false;
@@ -1935,11 +2006,12 @@ async function verifyPaymentSent() {
 }
 
 function closeDepositInstructionsModal() {
+    if (tgBackButton) popTgBackButtonHandler();
     depositInstructionsModal.classList.remove('active');
     if (depositExpiryInterval) clearInterval(depositExpiryInterval);
     currentPendingDepositId = null;
     profileElements.depositAmountInput.value = ''; 
-    if (tonTransferLink) tonTransferLink.href = '#'; // Clear the link
+    if (tonTransferLink) tonTransferLink.href = '#'; 
 }
 
 
@@ -1955,7 +2027,9 @@ profileElements.initiateDepositButton.addEventListener('click', initiateDepositP
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
 withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); });
-withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
+withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal); // This is the "Close" after simulation
+if (closeWithdrawModalButton) closeWithdrawModalButton.addEventListener('click', closeWithdrawModal); // Main modal close button
+
 
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -2002,7 +2076,6 @@ if(profileElements.sellAllButton) {
     profileElements.sellAllButton.addEventListener('click', sellAllItems);
 }
 
-// Event listeners for Deposit Modal
 if(confirmPaymentSentButton) confirmPaymentSentButton.addEventListener('click', verifyPaymentSent);
 if(cancelDepositButton) cancelDepositButton.addEventListener('click', closeDepositInstructionsModal);
 
@@ -2050,6 +2123,10 @@ async function initializeApp() {
     console.log("initializeApp started");
     preloadImages(imageUrlsToPreload); 
 
+    if (window.Telegram && Telegram.WebApp && Telegram.WebApp.BackButton) {
+        tgBackButton = Telegram.WebApp.BackButton;
+    }
+
     let initialDataFetched = false;
 
     tonConnectUI.onStatusChange(async wallet => { 
@@ -2089,7 +2166,7 @@ async function initializeApp() {
         try { 
             const rootStyle = getComputedStyle(document.documentElement);
             let bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
-            if (!bgColor || bgColor === "initial" || bgColor === "inherit") { // Fallback if CSS var not immediately ready
+            if (!bgColor || bgColor === "initial" || bgColor === "inherit") { 
                 bgColor = '#181A25'; 
             }
             if (bgColor) { 
