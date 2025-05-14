@@ -106,17 +106,37 @@ class PendingDeposit(Base):
 Base.metadata.create_all(bind=engine)
 
 # --- Функция генерации имени файла ---
-def generate_image_filename_from_name(name_str: str) -> str: 
+def generate_image_filename_from_name(name_str: str) -> str:
     if not name_str: return 'placeholder.png'
     if name_str == "Durov's Cap": return "Durov's-Cap.png"
     # Kissed Frog Happy Pepe removed
-    if name_str == "Vintage Cigar": return "Vintage-CIgar.png" 
+    if name_str == "Vintage Cigar": return "Vintage-CIgar.png"
     # Background cases removed except Black
     if name_str == "Black": return "Black.png" # Ensure this maps correctly if it's just "Black"
-    if ['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name_str.replace(/-/g,'_')): 
-         return name_str.replace('-','_') + '.png'
+
+    # Corrected Python syntax for checking list membership and string replacement
+    # Use 'in' operator and re.sub for global replace (like /g in JS)
+    # Or chain multiple .replace() if you only need to replace literal hyphens
+    # For this specific case, a simple .replace('-', '_') is likely sufficient as you're replacing all hyphens
+    name_str_replaced_hyphens = name_str.replace('-', '_')
+    if name_str_replaced_hyphens in ['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black']:
+         return name_str_replaced_hyphens + '.png'
+
+    # For replacing multiple spaces with a single hyphen, you can use split and join
+    # or a more robust regex if needed.
+    # cleaned_name = name_str.replace(' ', '-').replace('&', 'and').replace("'", "") # Original
     
-    cleaned_name = name_str.replace(' ', '-').replace('&', 'and').replace("'", "")
+    # Improved cleaning:
+    # 1. Replace '&' with 'and'
+    # 2. Remove apostrophes
+    # 3. Replace sequences of whitespace with a single hyphen
+    # 4. Remove any characters that are not alphanumeric or hyphens (optional, but good for filenames)
+    cleaned_name = name_str.replace('&', 'and')
+    cleaned_name = cleaned_name.replace("'", "")
+    cleaned_name = re.sub(r'\s+', '-', cleaned_name) # Replace one or more whitespace characters with a single hyphen
+    # Optional: remove any non-alphanumeric characters except hyphens
+    # cleaned_name = re.sub(r'[^a-zA-Z0-9-]', '', cleaned_name)
+
     return cleaned_name + '.png'
 
 # --- Данные кейсов (Placeholder) ---
