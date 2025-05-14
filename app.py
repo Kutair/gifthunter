@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import threading
 import time
 import random
+import re
 import hmac
 import hashlib
 from urllib.parse import unquote, parse_qs, quote # Added quote for comment encoding if needed
