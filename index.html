@@ -7,7 +7,7 @@
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect SDK -->
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script> 
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <!-- TON Connect UI (зависит от SDK) -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <!-- Lottie-Web Player from CDN (optional) -->
@@ -16,18 +16,18 @@
     <style>
         :root {
             --bg-gradient-start: #181A25; /* Slightly darker base */
-            --bg-gradient-mid: #202333;  
-            --bg-gradient-end: #12141D;   
+            --bg-gradient-mid: #202333;
+            --bg-gradient-end: #12141D;
             --surface-color: #282B3D; /* Slightly lighter surface */
             --surface-hover-color: #31354A;
             --primary-color: #007AFF; /* Standard Apple Blue */
             --primary-gradient-start: #007AFF;
-            --primary-gradient-end: #34AADC; /* Slightly different blue for gradient */  
+            --primary-gradient-end: #34AADC; /* Slightly different blue for gradient */
             --secondary-color: #FF9500; /* Apple Orange */
             --text-primary: #F5F5F7; /* Off-white for less harshness */
             --text-secondary: #AEB4C0; /* Lighter secondary */
             --text-placeholder: #7A7F8F;
-            --text-price-color: #C7CDD6; 
+            --text-price-color: #C7CDD6;
             --border-color: rgba(120, 120, 128, 0.25); /* Lighter, more subtle border */
             --border-highlight: var(--primary-color);
             --danger-color: #FF3B30;  /* Apple Red */
@@ -36,7 +36,7 @@
             --main-border-radius: 16px; /* Slightly more rounded */
             --button-border-radius: 12px;
             --soft-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25);
-            --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color)); 
+            --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color));
         }
 
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -71,127 +71,130 @@
             display: flex;
             flex-direction: column;
             flex-grow: 1;
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
         }
 
         /* Header */
         #app-header {
-            padding: 12px 16px; /* Adjusted padding */
+            padding: 12px 16px;
+            padding-top: calc(12px + env(safe-area-inset-top)); /* Safe Area */
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: linear-gradient(to right, rgba(30, 33, 50, 0.88), rgba(40, 43, 60, 0.92)); /* Slightly adjusted alpha */
-            backdrop-filter: blur(18px) saturate(180%); /* Increased blur */
+            background: linear-gradient(to right, rgba(30, 33, 50, 0.88), rgba(40, 43, 60, 0.92));
+            backdrop-filter: blur(18px) saturate(180%);
             -webkit-backdrop-filter: blur(18px) saturate(180%);
             border-bottom: 1px solid var(--border-color);
-            box-shadow: 0 2px 12px rgba(0,0,0,0.2); /* Refined shadow */
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
         }
         #app-header .app-title-container {
             display: flex;
             align-items: center;
-            gap: 8px; /* Space between logo and title */
+            gap: 8px;
         }
         #app-header .app-logo {
-            width: 32px; /* Adjust size as needed */
+            width: 32px;
             height: 32px;
-            border-radius: 6px; /* Optional: if you want rounded corners for logo */
+            border-radius: 6px;
         }
         #app-header .app-title {
-            font-size: 1.5em; /* Slightly larger */
-            font-weight: 700; /* Bolder */
-            /* Removed gradient text for better readability with logo */
+            font-size: 1.5em;
+            font-weight: 700;
             color: var(--text-primary);
-            letter-spacing: -0.5px; /* Tighter spacing for modern look */
-            flex-shrink: 0; 
+            letter-spacing: -0.5px;
+            flex-shrink: 0;
             margin-right: 10px;
         }
-        #app-header .wallet-info { 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            flex-shrink: 1; 
-            min-width: 0; 
+        #app-header .wallet-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 1;
+            min-width: 0;
         }
         #ton-connect-button {
-            display: inline-block; 
-            flex-shrink: 0; 
+            display: inline-block;
+            flex-shrink: 0;
         }
         #wallet-address-display, #balance {
-            background-color: var(--surface-hover-color); 
-            padding: 8px 12px; /* Increased padding */
+            background-color: var(--surface-hover-color);
+            padding: 8px 12px;
             border-radius: var(--button-border-radius);
-            font-size: 0.875em; 
+            font-size: 0.875em;
             font-weight: 600;
             border: 1px solid var(--border-color);
-            white-space: nowrap; 
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 150px; 
+            max-width: 150px;
             display: none; /* Initially hidden */
             transition: background-color 0.2s;
         }
         #wallet-address-display:hover, #balance:hover {
              background-color: var(--surface-color);
         }
-        #wallet-address-display.connected, #balance.connected { 
-            display: block; 
+        #wallet-address-display.connected, #balance.connected {
+            display: block;
         }
-        #ton-connect-button.connected { 
-            display: none; 
+        #ton-connect-button.connected { /* When wallet connected, hide TON Connect own button */
+            display: none;
         }
-        #app-header .ton-icon {
-            width: 18px; height: 18px; /* Slightly larger */
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z' fill='%23007AFF'/%3E%3Cpath d='M9.62988 7.51001L8.06988 8.66001C7.82988 8.83001 7.80988 9.17001 8.00988 9.37001L11.6399 13.11C11.8399 13.31 12.1599 13.31 12.3599 13.11L15.9899 9.37001C16.1899 9.17001 16.1699 8.83001 15.9299 8.66001L14.3699 7.51001C14.1499 7.35001 13.8199 7.42001 13.6699 7.63001L12.4299 9.40001C12.1999 9.71001 11.7999 9.71001 11.5699 9.40001L10.3299 7.63001C10.1799 7.42001 9.84988 7.35001 9.62988 7.51001Z' fill='white'/%3E%3Cpath d='M8.00989 14.63L9.75989 16.38C9.93989 16.57 10.2499 16.57 10.4299 16.38L11.5699 15.24C11.7999 15.01 12.1999 15.01 12.4299 15.24L13.5699 16.38C13.7499 16.57 14.0599 16.57 14.2399 16.38L15.9899 14.63C16.1699 14.45 16.1699 14.15 15.9899 13.96L12.4199 10.31C12.1899 10.07 11.7899 10.07 11.5599 10.31L8.00989 13.96C7.80989 14.15 7.80989 14.45 8.00989 14.63Z' fill='white'/%3E%3C/svg%3E");
-            background-size: contain; margin-left: 6px; vertical-align: middle; /* Adjusted margin */
-        }
+        /* Removed .ton-icon CSS rule */
 
         /* Content Area */
-        #app-content { flex-grow: 1; padding: 24px 18px; overflow-y: auto; padding-bottom: 80px; } /* Increased padding */
+        #app-content {
+            flex-grow: 1;
+            padding: 24px 18px;
+            overflow-y: auto;
+            padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* Safe Area + Nav height */
+        }
         .page { display: none; }
         .page.active { display: block; animation: pageFadeInMinimal 0.3s ease-out; }
         @keyframes pageFadeInMinimal {
-            from { opacity: 0; transform: translateY(8px);} 
+            from { opacity: 0; transform: translateY(8px);}
             to { opacity: 1; transform: translateY(0px);}
         }
 
-        /* Navigation Bar - Updated */
+        /* Navigation Bar */
         #app-nav {
             display: flex;
             justify-content: space-around;
-            align-items: stretch; /* Make buttons fill height */
-            background-color: rgba(28, 28, 30, 0.95); /* More opaque */
+            align-items: stretch;
+            background-color: rgba(28, 28, 30, 0.95);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border-top: 1px solid var(--border-color);
-            padding: 0; /* Remove padding, rely on button padding */
+            padding: 0;
+            padding-bottom: env(safe-area-inset-bottom); /* Safe Area */
             position: sticky; bottom: 0; z-index: 1000;
-            min-height: 65px; /* Increased height */
-            box-shadow: 0 -3px 15px rgba(0,0,0,0.15); 
+            min-height: calc(65px + env(safe-area-inset-bottom)); /* Safe Area */
+            box-shadow: 0 -3px 15px rgba(0,0,0,0.15);
         }
         .nav-button {
             background: none; border: none;
             color: var(--text-secondary);
-            display: flex; flex-direction: column; align-items: center; justify-content: center; /* Center content */
-            font-size: 11px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 11px;
             font-weight: 500;
-            cursor: pointer; padding: 8px 5px; /* Adjusted padding */
-            border-radius: 0; /* Remove individual radius for seamless look */
+            cursor: pointer; padding: 8px 5px;
+            border-radius: 0;
             transition: color 0.2s, background-color 0.2s, transform 0.1s ease-out;
             flex: 1; text-align: center;
-            line-height: 1.3; 
+            line-height: 1.3;
         }
         .nav-button:hover { background-color: rgba(255,255,255,0.05); }
         .nav-button:active { transform: scale(0.96); }
-        .nav-button.active { 
-            color: var(--primary-color); 
-            font-weight: 600; 
-            /* background-color: rgba(0, 122, 255, 0.1); Optional subtle active background */
+        .nav-button.active {
+            color: var(--primary-color);
+            font-weight: 600;
         }
         .nav-button svg {
-            width: 28px; height: 28px; /* Larger icons */
-            margin-bottom: 4px; 
+            width: 28px; height: 28px;
+            margin-bottom: 4px;
             fill: currentColor;
         }
         .nav-button.active svg { fill: var(--primary-color); }
@@ -201,29 +204,31 @@
         .button {
             background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
             color: var(--text-primary);
-            border: none; padding: 14px 24px; /* Adjusted padding */
+            border: none; padding: 14px 24px;
             border-radius: var(--button-border-radius);
-            font-size: 1.0em; /* Standardized font size */
+            font-size: 1.0em;
             font-weight: 600;
             cursor: pointer;
             transition: filter 0.2s ease-out, transform 0.15s ease-out, box-shadow 0.2s ease-out;
             text-align: center;
-            display: block; 
+            display: block;
             width: 100%;
-            box-shadow: 0 3px 8px rgba(0,122,255,0.25); /* Refined shadow */
+            box-shadow: 0 3px 8px rgba(0,122,255,0.25);
         }
+        .button.hidden-by-mainbutton { display: none !important; } /* To hide when MainButton is active */
+
         .button:hover { filter: brightness(1.15); box-shadow: 0 4px 12px rgba(0,122,255,0.3); }
         .button:active { transform: scale(0.97); filter: brightness(0.9); box-shadow: 0 2px 5px rgba(0,122,255,0.2); }
         .button-secondary {
-            background-color: var(--surface-hover-color); 
-            color: var(--text-secondary); 
-            border: 1px solid var(--border-color); 
+            background-color: var(--surface-hover-color);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
             box-shadow: none;
-            background-image: none; 
+            background-image: none;
         }
-        .button-secondary:hover { 
-            background-color: var(--surface-color); 
-            color: var(--text-primary); 
+        .button-secondary:hover {
+            background-color: var(--surface-color);
+            color: var(--text-primary);
             border-color: rgba(120,120,128,0.5);
         }
         .button-secondary:active {
@@ -232,85 +237,85 @@
         }
 
         h2 {
-            margin-top: 0; font-size: 2.0em; /* Slightly larger */
+            margin-top: 0; font-size: 2.0em;
             font-weight: 700;
             color: var(--text-primary);
-            padding-bottom: 10px; margin-bottom: 28px; /* Increased margin */
+            padding-bottom: 10px; margin-bottom: 28px;
             letter-spacing: -0.5px;
         }
-        h3 { 
-            font-size: 1.15em; 
+        h3 {
+            font-size: 1.15em;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-top: 24px; /* Increased margin */
+            margin-top: 24px;
             margin-bottom: 14px;
-            text-transform: uppercase; 
-            letter-spacing: 0.8px; /* Wider spacing */
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
         }
-        .content-card { 
+        .content-card {
             background-color: var(--surface-color);
-            padding: 20px; /* Increased padding */
+            padding: 20px;
             border-radius: var(--main-border-radius);
             margin-bottom: 20px;
-            border: 1px solid var(--border-color); /* Subtle border for cards */
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Soft shadow for cards */
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
 
         /* Main Page - Cases */
         .cases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); /* Slightly larger minmax */
-            gap: 20px; /* Increased gap */
+            grid-template-columns: repeat(2, 1fr); /* Fixed 2 columns */
+            gap: 18px;
         }
         .case-card {
             background-image: var(--case-grad-default);
             border-radius: var(--main-border-radius);
-            padding: 20px; /* Increased padding */
+            padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease; /* Smoother transition */
-            border: 1px solid var(--border-color); 
-            overflow: hidden; 
+            transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.25s ease;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
             position: relative;
         }
 
         .case-card:hover {
             filter: brightness(1.12);
-            transform: translateY(-6px) scale(1.02); /* Enhanced hover effect */
+            transform: translateY(-6px) scale(1.02);
             box-shadow: var(--soft-shadow);
         }
-        .case-card .case-image-display { 
-            width: 85px; height: 85px; /* Slightly larger */
-            margin: 0 auto 18px auto; /* Increased margin */
-            background-color: rgba(255, 255, 255, 0.04); 
+        .case-card .case-image-display {
+            width: 85px; height: 85px;
+            margin: 0 auto 18px auto;
+            /* background-color: rgba(255, 255, 255, 0.04); Removed */
             border-radius: var(--button-border-radius);
             overflow: hidden;
-            position: relative; 
-            border: 1px solid rgba(255, 255, 255, 0.07); 
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.07);
         }
         .case-card .case-image-display img {
             display: block;
             width: 100%; height: 100%;
-            object-fit: cover; 
+            object-fit: cover;
         }
-         .case-card .case-image-display .overlay-image { 
+         .case-card .case-image-display .overlay-image {
              position: absolute;
-             width: 70%; 
+             width: 70%;
              height: 70%;
              top: 50%;
              left: 50%;
              transform: translate(-50%, -50%);
-             object-fit: contain; 
-             pointer-events: none; 
-             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); /* Enhanced shadow */
+             object-fit: contain;
+             pointer-events: none;
+             filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35));
          }
 
         .case-card .case-name {
             font-weight: 600;
-            font-size: 1.05em; margin-bottom: 8px; /* Increased font size and margin */
-            color: var(--text-primary); 
-            min-height: 2.5em; /* Adjusted height */
+            font-size: 1.05em; margin-bottom: 8px;
+            color: var(--text-primary);
+            min-height: 2.5em;
             display: flex; align-items: center; justify-content: center;
         }
         .case-card .case-price {
@@ -322,102 +327,112 @@
         .modal {
             display: none; position: fixed; z-index: 2000;
             left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(10, 10, 20, 0.75); /* Darker, bluer tint */
+            background-color: rgba(10, 10, 20, 0.75);
             backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
-            overflow-y: auto; 
-            align-items: flex-start; 
-            padding-top: 5vh; 
-            padding-bottom: 5vh;
+            overflow-y: auto;
+            align-items: center; /* Changed to center vertically */
+            justify-content: center; /* Center horizontally */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
-        .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; } /* Smoother animation */
+        .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; }
         .modal-content {
             background-color: var(--surface-color);
-            padding: 28px; /* Increased padding */
+            padding: 28px;
             border-radius: var(--main-border-radius);
-            width: 100%; max-width: 420px; /* Slightly wider */
+            width: 100%; max-width: 420px;
             text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4); /* Stronger shadow */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
             border: 1px solid var(--border-color);
             display: flex; flex-direction: column;
-            margin: auto; 
+            margin: 20px; /* Add some margin for smaller screens */
         }
-         .modal-content h3 { 
-            margin-top: 0; margin-bottom: 20px; /* Increased margin */
+         .modal-content h3 {
+            margin-top: 0; margin-bottom: 20px;
             font-size: 1.4em; font-weight: 700;
             color: var(--text-primary);
-            flex-shrink: 0; 
+            flex-shrink: 0;
         }
-        .modal-actions { margin-bottom: 18px; display: flex; flex-direction: column; gap: 14px;  flex-shrink: 0; }
-        .modal-body { 
-            overflow-y: auto; 
-            flex-grow: 1; 
-            -webkit-overflow-scrolling: touch; 
-            margin-top: 12px; 
+        .modal-actions { margin-top:12px; margin-bottom: 18px; display: flex; flex-direction: column; gap: 14px;  flex-shrink: 0; }
+        .modal-body {
+            overflow-y: auto;
+            flex-grow: 1;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 12px;
         }
+        .modal-fullscreen-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 5px;
+            z-index: 10;
+        }
+        .modal-fullscreen-toggle svg { width: 22px; height: 22px; fill: currentColor; }
 
 
         /* --- Roulette Modal Specifics --- */
         #roulette-wheel-container { width: 100%;  flex-shrink: 0; }
         #roulette-wheel {
-            height: 280px; /* Slightly taller */
+            height: 280px;
             border: 1px solid var(--border-color);
             border-radius: var(--button-border-radius);
             overflow: hidden; position: relative;
-            background-color: var(--bg-gradient-end); /* Darker background */
-            margin: 18px 0 22px 0; 
+            /* background-color: var(--bg-gradient-end); Removed */
+            margin: 18px 0 22px 0;
         }
-        #roulette-wheel::before { 
+        #roulette-wheel::before {
             content: '';
             position: absolute;
             left: 10px; right: 10px; top: 50%;
-            height: 3px; /* Thicker line */
+            height: 3px;
             background-color: var(--primary-color);
             opacity: 0.9; transform: translateY(-50%);
-            z-index: 2; pointer-events: none; 
-            border-radius: 2px; /* Rounded indicator */
+            z-index: 2; pointer-events: none;
+            border-radius: 2px;
         }
         #roulette-spinner {
             display: flex; flex-direction: column;
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 92px; /* Adjusted height */
-            display: flex; align-items: center; justify-content: center; 
+            height: 92px;
+            display: flex; align-items: center; justify-content: center;
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
-            overflow: hidden; 
-            opacity: 0.7; /* Non-winning items slightly faded */
+            overflow: hidden;
+            opacity: 1; /* Changed from 0.7 */
             transition: opacity 0.3s;
         }
         .roulette-item:last-child { border-bottom: none; }
-        .roulette-item img { 
-            max-width: 90%; max-height: 78px; object-fit: contain; /* Adjusted size */
+        .roulette-item img {
+            max-width: 90%; max-height: 78px; object-fit: contain;
         }
-        .roulette-item.is-winning {
-            opacity: 1;
-        }
-        .roulette-item.is-winning img { 
-             filter: drop-shadow(0 0 8px var(--primary-color)) drop-shadow(0 0 12px var(--primary-gradient-end)); /* Stronger glow */
+        .roulette-item.is-winning img {
+             filter: drop-shadow(0 0 8px var(--primary-color)) drop-shadow(0 0 12px var(--primary-gradient-end));
         }
         #possible-prizes-display {
-            padding-right: 0px; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); /* Responsive columns */
-            gap: 12px; /* Increased gap */
-            flex-shrink: 0; 
+            padding-right: 0px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 12px;
+            flex-shrink: 0;
             margin-top: 12px;
         }
         .prize-card {
             background-color: var(--surface-hover-color);
-            border-radius: var(--button-border-radius); padding: 10px; /* Increased padding */
+            border-radius: var(--button-border-radius); padding: 10px;
             display: flex; flex-direction: column; align-items: center;
-            justify-content: center; position: relative; 
+            justify-content: center; position: relative;
             border: 1px solid var(--border-color);
-            text-align: center; min-height: 110px; /* Adjusted height */
+            text-align: center; min-height: 110px;
         }
-        .prize-card-image-placeholder { 
-            width: 55px; height: 55px; background-color: var(--bg-gradient-end); /* Darker placeholder */
-            border-radius: 8px; margin-bottom: 8px; 
+        .prize-card-image-placeholder {
+            width: 55px; height: 55px;
+            /* background-color: var(--bg-gradient-end); Removed */
+            border-radius: 8px; margin-bottom: 8px;
             display: flex; align-items: center; justify-content: center;
             overflow: hidden;
         }
@@ -426,47 +441,46 @@
          }
         .prize-card-name {
             font-size: 0.8em; font-weight: 500; color: var(--text-secondary);
-            line-height: 1.25; width: 100%; 
-            /* Allow 2 lines for name */
-            overflow: hidden; text-overflow: ellipsis; 
+            line-height: 1.25; width: 100%;
+            overflow: hidden; text-overflow: ellipsis;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-            white-space: normal; 
+            white-space: normal;
         }
         .prize-card-probability {
-            position: absolute; top: 5px; right: 5px; 
+            position: absolute; top: 5px; right: 5px;
             background-color: var(--primary-color); color: var(--text-primary);
             font-size: 0.7em; font-weight: 600; padding: 2px 5px;
             border-radius: 5px; line-height: 1;
         }
-        #prize-display { 
+        #prize-display {
             margin-top: 18px; font-size: 1.25em; font-weight: 600;
             color: var(--success-color);
             flex-shrink: 0;
         }
         #prize-display.hidden { display: none; }
-        #roulette-modal hr { 
+        #roulette-modal hr {
              border: none; border-top: 1px solid var(--border-color); margin: 18px 0;
               flex-shrink: 0;
          }
-         #roulette-modal h4 { 
-             font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px; 
+         #roulette-modal h4 {
+             font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px;
              font-weight: 500;
               flex-shrink: 0;
          }
-        
+
         /* --- Withdraw Modal Specifics --- */
         #withdraw-modal .modal-step { display: none; }
         #withdraw-modal .modal-step.active { display: block; }
         #withdraw-modal p { color: var(--text-secondary); margin-bottom: 18px; line-height: 1.55;}
         #withdraw-modal strong { color: var(--text-primary); font-weight: 600; }
-        #withdraw-modal a.button { 
+        #withdraw-modal a.button {
             margin-bottom: 12px; text-decoration: none;
         }
-        .loader { 
+        .loader {
             border: 4px solid var(--surface-hover-color);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
-            width: 45px; height: 45px; /* Slightly larger */
+            width: 45px; height: 45px;
             animation: spin 1s linear infinite;
             margin: 22px auto;
         }
@@ -474,7 +488,7 @@
 
         /* Input fields */
         input[type="text"], input[type="number"], select {
-            width: 100%; padding: 13px 15px; /* Adjusted padding */
+            width: 100%; padding: 13px 15px;
             margin-bottom: 14px;
             border-radius: var(--button-border-radius);
             background-color: var(--surface-hover-color);
@@ -485,35 +499,36 @@
         input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-placeholder); }
         input[type="text"]:focus, input[type="number"]:focus, select:focus {
             outline: none; border-color: var(--border-highlight);
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.25); 
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.25);
         }
 
         /* Profile Page Specifics */
         .profile-header { text-align: center; margin-bottom: 28px; padding-top: 12px;}
         .profile-avatar-placeholder {
-            width: 88px; height: 88px; border-radius: 50%; /* Larger avatar */
+            width: 88px; height: 88px; border-radius: 50%;
             background-color: var(--surface-hover-color);
             display: flex; align-items: center; justify-content: center;
             font-size: 2.8em; font-weight: 600; color: var(--text-secondary);
-            margin: 0 auto 14px auto; border: 3px solid var(--border-color); /* Thicker border */
+            margin: 0 auto 14px auto; border: 3px solid var(--border-color);
             box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            overflow: hidden; /* For image */
         }
         .profile-info .username { font-size: 1.5em; font-weight: 600; margin-bottom: 5px;}
         .profile-info .userid { font-size: 0.9em; color: var(--text-secondary); }
 
         .inventory-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); 
-            gap: 12px; 
+            grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+            gap: 12px;
         }
         .inventory-item {
             background-color: var(--surface-hover-color);
             border-radius: var(--button-border-radius);
-            padding: 12px; 
+            padding: 12px;
              text-align: center;
-             display: flex; 
+             display: flex;
              flex-direction: column;
-             justify-content: space-between; 
+             justify-content: space-between;
              border: 1px solid var(--border-color);
              transition: transform 0.2s, box-shadow 0.2s;
         }
@@ -521,11 +536,11 @@
             transform: translateY(-3px);
             box-shadow: 0 3px 10px rgba(0,0,0,0.15);
         }
-         .inventory-item .item-image-display { 
-             width: 65px; 
+         .inventory-item .item-image-display {
+             width: 65px;
              height: 65px;
              margin: 0 auto 10px auto;
-             background-color: var(--bg-gradient-end);
+             /* background-color: var(--bg-gradient-end); Removed */
              border-radius: 8px;
              overflow: hidden;
              display: flex; align-items: center; justify-content: center;
@@ -535,16 +550,16 @@
          }
         .inventory-item-name { font-size: 0.88em; font-weight: 500; margin-bottom: 5px; line-height: 1.35; }
         .inventory-item-value { font-size: 0.78em; color: var(--secondary-color); font-weight: 500; margin-bottom: 10px;}
-        .inventory-item-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; } 
-        .inventory-item-actions .button { 
-            font-size: 0.78em; padding: 6px 9px; margin: 0; width: 100%; 
+        .inventory-item-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+        .inventory-item-actions .button {
+            font-size: 0.78em; padding: 6px 9px; margin: 0; width: 100%;
         }
-         
+
         #sell-all-button {
             margin-top: 18px;
-            background-color: var(--danger-color); 
+            background-color: var(--danger-color);
             color: white;
-             background-image: none; 
+             background-image: none;
              box-shadow: 0 3px 8px rgba(255, 59, 48, 0.35);
         }
          #sell-all-button:hover {
@@ -556,24 +571,24 @@
              filter: brightness(0.9);
               transform: scale(0.97);
          }
-        
+
         /* Upgrade Page */
          #upgrade-chance-display {
-            font-size: 2.8em; font-weight: 700; color: var(--text-primary); /* Larger font */
-            text-align:center; margin: 24px auto; padding: 18px; /* Increased margin/padding */
+            font-size: 2.8em; font-weight: 700; color: var(--text-primary);
+            text-align:center; margin: 24px auto; padding: 18px;
             background-color: var(--surface-hover-color);
-            border-radius: 50%; width:110px; height:110px; line-height: 74px; /* Larger circle */
-            border: 4px solid var(--primary-color); /* Thicker border */
-            box-shadow: 0 0 15px rgba(0,122,255,0.2); /* Added shadow */
+            border-radius: 50%; width:110px; height:110px; line-height: 74px;
+            border: 4px solid var(--primary-color);
+            box-shadow: 0 0 15px rgba(0,122,255,0.2);
         }
         .multiplier-buttons { display: flex; justify-content: center; gap: 10px; margin: 24px 0; flex-wrap: wrap; }
         .multiplier-buttons button { width: auto; flex-grow: 1; padding: 11px; font-size: 0.9em;}
         .multiplier-buttons button.active-multiplier {
-            background: var(--primary-color); 
+            background: var(--primary-color);
             color: var(--text-primary);
             box-shadow: 0 2px 6px rgba(0,122,255,0.3);
         }
-        
+
         /* Invite Page */
          .stats-box { display: flex; justify-content: space-around; margin: 24px 0; gap: 14px; }
         .stat-item {
@@ -601,12 +616,14 @@
             font-weight: 600; font-size: 1em;
             min-width: 35px; text-align: left; color: var(--text-secondary);
         }
-        .leader-entry .avatar-placeholder { 
-            width: 40px; height: 40px; border-radius: 50%; /* Larger avatar */
+        .leader-entry .avatar-placeholder {
+            width: 40px; height: 40px; border-radius: 50%;
             background-color: var(--surface-hover-color); color: var(--text-secondary);
             display: flex; align-items: center; justify-content: center;
             font-size: 1.1em; font-weight: 600; margin: 0 14px;
+            overflow: hidden; /* For image */
         }
+        .leader-entry .avatar-placeholder img { width:100%; height:100%; object-fit:cover; }
         .leader-entry .info .name { font-weight: 500; font-size: 1.05em; }
         .leader-entry .info .details { font-size: 0.82em; color: var(--text-secondary); }
         .leader-entry .score {
@@ -615,10 +632,10 @@
         }
          .leader-entry.current-user-entry .info .name {
              color: var(--primary-color);
-             font-weight: 700; /* Bolder for current user */
+             font-weight: 700;
         }
          .leader-entry.current-user-entry {
-             background-color: rgba(0, 122, 255, 0.08); /* Subtle highlight for current user */
+             background-color: rgba(0, 122, 255, 0.08);
          }
 
         /* --- Deposit Instructions Modal Styling --- */
@@ -656,7 +673,7 @@
         #deposit-instructions-modal #ton-transfer-link {
             margin-top: 10px;
             margin-bottom: 20px;
-            display: flex; /* For icon alignment */
+            display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
@@ -667,7 +684,6 @@
         #deposit-status-message, #deposit-expiry-info {
             text-align: center;
         }
-
     </style>
 </head>
 <body>
@@ -678,9 +694,9 @@
                 <div class="app-title">Pusik Gifts</div>
             </div>
             <div class="wallet-info">
-                <div id="wallet-address-display">Connected: ...</div> 
+                <div id="wallet-address-display">Connected: ...</div>
                 <div id="balance">
-                    <span id="ton-balance">0.00</span> <span class="ton-icon"></span>
+                    <span id="ton-balance">0.00</span> TON
                 </div>
                 <div id="ton-connect-button"></div>
             </div>
@@ -695,13 +711,13 @@
             </div>
 
              <div id="upgrade-page" class="page">
-                <h2>Upgrade Item</h2> 
+                <h2>Upgrade Item</h2>
                 <div class="content-card">
                     <p style="text-align:center; margin-bottom:15px; color: var(--text-secondary);">Select an item from your collection:</p>
                     <select id="upgrade-inventory-select">
                         <option value="">-- Choose Item --</option>
                     </select>
-                    <div id="upgrade-chance-display">50%</div> 
+                    <div id="upgrade-chance-display">50%</div>
                      <p style="text-align:center; margin-bottom:10px; color: var(--text-secondary);">Multiplier:</p>
                     <div id="multiplier-buttons" class="multiplier-buttons">
                         <button class="button button-secondary" data-multiplier="1.5" data-chance="50">x1.5</button>
@@ -722,10 +738,10 @@
                     <p style="font-size: 1em; margin-bottom: 15px; text-align:center; color:var(--text-secondary);">Invite friends and earn <strong>10%</strong> of their deposits!</p>
                     <input type="text" id="referral-link" value="https://t.me/YourAppBot?start=ref_USER123" readonly>
                     <button id="copy-ref-link-button" class="button" style="margin-bottom: 20px;">Copy Referral Code</button>
-                    
+
                     <div class="stats-box" style="margin-bottom: 20px;">
                         <div class="stat-item">
-                            <div id="referral-balance" class="value">0.00 <span class="ton-icon"></span></div>
+                            <div id="referral-balance" class="value">0.00 TON</div>
                             <div class="label">Referral Earnings</div>
                         </div>
                         <div class="stat-item">
@@ -763,7 +779,7 @@
 
                 <div class="content-card">
                     <h3>Balance</h3>
-                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 <span class="ton-icon"></span></div>
+                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 TON</div>
                     <input type="number" id="deposit-amount-input" placeholder="Amount in TON (e.g., 1.5)" style="margin-bottom: 10px;">
                     <button id="initiate-deposit-button" class="button">Deposit TON</button>
                 </div>
@@ -792,7 +808,7 @@
             </button>
             <button class="nav-button" data-page="upgrade-page">
                  <svg viewBox="0 0 24 24"><path d="M9.48 5.55L6.91 8.12L5.5 6.71L9.48 2.73L13.47 6.71L12.06 8.12L9.48 5.55M9.48 5.55V13.75C9.48 14.15 9.15 14.48 8.75 14.48C8.35 14.48 8.02 14.15 8.02 13.75V5.55L5.45 8.12L4.04 6.71L8.02 2.73L12.01 6.71L10.6 8.12L8.02 5.55M15.25 10.25C14.85 10.25 14.52 10.58 14.52 10.98V19.18L11.95 16.61L10.54 18L14.52 21.99L18.5 18L17.09 16.61L14.52 19.18V10.98C14.52 10.58 14.19 10.25 13.79 10.25H15.25Z"/></svg>
-                Upgrade 
+                Upgrade
             </button>
             <button class="nav-button" data-page="invite-page">
                  <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
@@ -812,6 +828,10 @@
     <!-- Roulette Modal -->
     <div id="roulette-modal" class="modal">
         <div class="modal-content">
+            <button class="modal-fullscreen-toggle" id="roulette-fullscreen-toggle" title="Toggle Fullscreen">
+                <svg viewBox="0 0 24 24" id="fullscreen-icon-open"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                <svg viewBox="0 0 24 24" id="fullscreen-icon-exit" style="display:none;"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+            </button>
             <h3 id="roulette-case-name">Opening Case...</h3>
             <div id="roulette-wheel-container">
                 <div id="roulette-wheel">
@@ -820,11 +840,12 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-actions"> 
+            <div class="modal-actions">
                 <button id="spin-button" class="button">Spin</button>
                 <button id="close-roulette-button" class="button button-secondary">Close</button>
+                <button class="button button-secondary modal-back-button" data-modal-id="roulette-modal" style="margin-top: 8px;">Back</button>
             </div>
-            <div id="prize-display" class="hidden"> 
+            <div id="prize-display" class="hidden">
                 You got: <span id="won-prize-name"></span>!
             </div>
              <hr>
@@ -840,7 +861,7 @@
         <div class="modal-content">
             <h3>Withdraw Gift</h3>
             <div class="modal-body">
-                
+
                 <div id="withdraw-step-1" class="modal-step active">
                     <p>To withdraw your gift via Tonnel Market, you first need to open their Mini App once to register.</p>
                     <a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel Market</a>
@@ -850,7 +871,7 @@
                 <div id="withdraw-step-2" class="modal-step">
                     <p>Great! Now, please send <strong>any message</strong> to the <a href="tg://resolve?domain=giftrelayer" style="color: var(--primary-color)">@giftrelayer</a> bot in Telegram. This allows the system to send the gift to you.</p>
                     <button id="withdraw-step2-next" class="button button-secondary">I've sent the message</button>
-                     <button id="withdraw-step2-back" class="button button-secondary" style="margin-top: 10px;">Back</button>
+                     <button id="withdraw-step2-back" class="button button-secondary" style="margin-top: 10px;">Back (Previous Step)</button>
                 </div>
 
                 <div id="withdraw-step-3" class="modal-step">
@@ -859,8 +880,8 @@
                     <p id="withdraw-status-message" style="font-size: 0.9em; color: var(--text-secondary);"></p>
                     <button id="withdraw-step3-close" class="button button-secondary" style="margin-top: 15px;">Close</button>
                 </div>
-
             </div>
+             <button class="button button-secondary modal-back-button" data-modal-id="withdraw-modal" style="margin-top: 15px;">Cancel Withdrawal</button>
         </div>
     </div>
 
@@ -870,9 +891,9 @@
             <h3>Complete Your TON Deposit</h3>
             <div class="modal-body" style="text-align: left;">
                 <p>To complete your deposit, please click the link below to open your TON wallet. The transaction details will be pre-filled.</p>
-                
+
                 <a id="ton-transfer-link" href="#" target="_blank" class="button">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"></path><path d="M12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"></path></svg>
+                    <svg viewBox="0 0 24 24" style="width: 20px; height: 20px; fill: currentColor; margin-right: 8px;"><path d="M12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"></path><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"></path></svg>
                     Open Wallet & Pay
                 </a>
 
@@ -883,6 +904,7 @@
                 <button id="confirm-payment-sent-button" class="button button-secondary">I Have Sent The Funds</button>
                 <button id="cancel-deposit-button" class="button button-secondary" style="margin-top: 10px;">Cancel</button>
             </div>
+            <button class="button button-secondary modal-back-button" data-modal-id="deposit-instructions-modal" style="margin-top:15px;">Back</button>
         </div>
     </div>
 
@@ -890,45 +912,44 @@
 // --- Constants and Global State ---
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/';
-const API_BASE_URL = 'https://case-v48j.onrender.com'; 
+const API_BASE_URL = 'https://case-v48j.onrender.com';
 
 const currentUser = {
-    id: null, 
+    id: null,
     username: null,
-    first_name: 'User', 
+    first_name: 'User',
     last_name: null,
-    walletAddress: null, 
+    photo_url: null,
+    walletAddress: null,
     walletAddressRaw: null,
-    tonBalance: 0.00, 
+    tonBalance: 0.00,
     starBalance: 0,
-    inventory: [], 
-    referralCode: null, 
+    inventory: [],
+    referralCode: null,
     referralEarningsPending: 0,
     total_won_ton: 0,
 };
 
 let currentOpenCase = null;
 let selectedMultiplier = 1.5;
-let itemToWithdraw = null; 
+let itemToWithdraw = null;
 
-const upgradeChances = { 
+const upgradeChances = {
     1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
 };
 
 function generateImageFilename(name) {
-    if (!name) return 'placeholder.png'; 
-    if (name === "Durov's Cap") return "Durov's-Cap.png"; 
-    // Removed Kissed Frog Happy Pepe as per instructions
-    if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
-    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) { 
-         return name.replace('-','_') + '.png'; 
+    if (!name) return 'placeholder.png';
+    if (name === "Durov's Cap") return "Durov's-Cap.png";
+    if (name === "Vintage Cigar") return "Vintage-CIgar.png";
+    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) {
+         return name.replace('-','_') + '.png';
     }
-    return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; 
+    return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png';
 }
 
-// --- casesData (Updated for JavaScript Frontend) ---
 const casesData = [
-    { 
+    {
         id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.001 },
@@ -944,7 +965,7 @@ const casesData = [
             { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: 1.4, probability: 0.10 },
         ]
     },
-    { 
+    {
         id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0012 },
@@ -958,7 +979,7 @@ const casesData = [
             { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 4, probability: 0.05 },
         ]
     },
-    { 
+    {
         id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0015 },
@@ -973,7 +994,7 @@ const casesData = [
             { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 8.4, probability: 0.149 },
         ]
     },
-    { 
+    {
         id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 20,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0018 },
@@ -983,16 +1004,16 @@ const casesData = [
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.15 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.15 },
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.15 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 }, 
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 },
             { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.07 },
             { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.07874 },
         ]
     },
-    { 
+    {
         id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 40,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.002 },
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 }, // Adjusted to make space for Pepe but keep total ~1
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 },
             { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.12 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.10 },
@@ -1003,11 +1024,11 @@ const casesData = [
             { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.0486 },
         ]
     },
-    { 
+    {
         id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 100,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0025 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 }, // Adjusted
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 },
             { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.10 },
             { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: 120, probability: 0.10 },
             { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
@@ -1017,24 +1038,24 @@ const casesData = [
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.10 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.08 },
             { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 24, probability: 0.05 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 }, // Adjusted
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 },
         ]
     },
-    { 
+    {
         id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200,
         prizes: [
-            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 }, // Higher chance as it's the "Pepe" case
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 },
             { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.25 },
             { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.60 },
         ]
     },
-    { 
-        id: 'black', name: 'BLACK Singularity', 
-        isBackgroundCase: true, bgImageFilename: 'Black.png', overlayPrizeName: 'Neko Helmet', 
-        priceTON: 30, 
-        prizes: [ 
+    {
+        id: 'black', name: 'BLACK Singularity',
+        isBackgroundCase: true, bgImageFilename: 'Black.png', overlayPrizeName: 'Neko Helmet',
+        priceTON: 30,
+        prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0022 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 }, // Adjusted
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 },
             { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.10 },
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.08 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.07 },
@@ -1044,10 +1065,10 @@ const casesData = [
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.08 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.07 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.07 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 }, 
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 },
             { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.05 },
             { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.05 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 }, // Adjusted
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 },
         ]
     },
 ];
@@ -1079,8 +1100,8 @@ if (Array.isArray(casesData)) {
 }
 function preloadImages(urls) { urls.forEach(url => { const img = new Image(); img.src = url; }); }
 
-// --- DOM Elements --- 
-const headerElements = { 
+// --- DOM Elements ---
+const headerElements = {
     title: document.querySelector('#app-header .app-title'),
     walletInfo: document.querySelector('#app-header .wallet-info'),
     tonConnectButton: document.getElementById('ton-connect-button'),
@@ -1100,9 +1121,12 @@ const prizeDisplay = document.getElementById('prize-display');
 const wonPrizeName = document.getElementById('won-prize-name');
 const spinButton = document.getElementById('spin-button');
 const closeRouletteButton = document.getElementById('close-roulette-button');
-const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); 
+const possiblePrizesDisplay = document.getElementById('possible-prizes-display');
+const rouletteFullscreenToggle = document.getElementById('roulette-fullscreen-toggle');
+const fullscreenIconOpen = document.getElementById('fullscreen-icon-open');
+const fullscreenIconExit = document.getElementById('fullscreen-icon-exit');
 
-const withdrawModal = document.getElementById('withdraw-modal'); 
+const withdrawModal = document.getElementById('withdraw-modal');
 const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
 const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
 const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
@@ -1115,15 +1139,15 @@ const profileElements = {
     username: document.getElementById('profile-username'),
     userid: document.getElementById('profile-userid'),
     balanceDisplay: document.getElementById('profile-balance-display'),
-    walletAddress: document.getElementById('profile-wallet-address'), 
+    walletAddress: document.getElementById('profile-wallet-address'),
     inventoryGrid: document.getElementById('inventory-grid'),
     inventoryCount: document.getElementById('inventory-count'),
     emptyInventoryMessage: document.getElementById('empty-inventory-message'),
     disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
     depositAmountInput: document.getElementById('deposit-amount-input'),
     initiateDepositButton: document.getElementById('initiate-deposit-button'),
-    sellAllButton: document.getElementById('sell-all-button'), 
-    sellAllValueSpan: document.getElementById('sell-all-value') 
+    sellAllButton: document.getElementById('sell-all-button'),
+    sellAllValueSpan: document.getElementById('sell-all-value')
 };
 
 const upgradeElements = {
@@ -1131,7 +1155,7 @@ const upgradeElements = {
     multiplierButtons: document.getElementById('multiplier-buttons'),
     doUpgradeButton: document.getElementById('do-upgrade-button'),
     upgradeResult: document.getElementById('upgrade-result'),
-    chanceDisplay: document.getElementById('upgrade-chance-display') 
+    chanceDisplay: document.getElementById('upgrade-chance-display')
 };
 
 const inviteElements = {
@@ -1144,25 +1168,26 @@ const inviteElements = {
 
 const leaderboardList = document.getElementById('leaderboard-list');
 
-// --- Deposit Modal DOM Elements ---
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
-const tonTransferLink = document.getElementById('ton-transfer-link'); // New link element
+const tonTransferLink = document.getElementById('ton-transfer-link');
 const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button');
 const cancelDepositButton = document.getElementById('cancel-deposit-button');
 const depositExpiryInfo = document.getElementById('deposit-expiry-info');
 const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
+const modalBackButtons = document.querySelectorAll('.modal-back-button');
+
 
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
-let depositRecipientAddressRaw = ''; // Store this globally if needed for link
-let depositCommentText = '';       // Store this globally if needed for link
+let depositRecipientAddressRaw = '';
+let depositCommentText = '';
 
 // --- TON Connect ---
-const manifestUrl = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json'; 
+const manifestUrl = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json';
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
     manifestUrl: manifestUrl,
-    buttonRootId: 'ton-connect-button' 
+    buttonRootId: 'ton-connect-button'
 });
 
 // --- API Helper ---
@@ -1177,10 +1202,10 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
     }
 
     const config = {
-        method: method, 
+        method: method,
         headers: headers,
     };
-    if (body && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) { 
+    if (body && (method.toUpperCase() === 'POST' || method.toUpperCase() === 'PUT')) {
         config.body = JSON.stringify(body);
     }
 
@@ -1201,10 +1226,10 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         return await response.json();
     } catch (error) {
         console.error(`Network or API request error (${endpoint}):`, error);
-        if (!error.message.startsWith("HTTP error!")) { 
+        if (!error.message.startsWith("HTTP error!")) {
              showTGNotification(`Network error: ${error.message}`, 'error');
         }
-        throw error; 
+        throw error;
     }
 }
 
@@ -1214,27 +1239,15 @@ function updateBalances() {
         headerElements.tonBalanceSpan.textContent = currentUser.tonBalance.toFixed(2);
     }
     if (profileElements.balanceDisplay) {
-         profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} <span class="ton-icon"></span>`;
+         profileElements.balanceDisplay.textContent = `${currentUser.tonBalance.toFixed(2)} TON`;
     }
 }
 
-function navigateToPage(pageId) {
-    pages.forEach(page => page.classList.remove('active'));
-    const targetPage = document.getElementById(pageId);
-    if (targetPage) {
-        targetPage.classList.add('active');
-    }
-    appNavButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.page === pageId);
-    });
-    window.scrollTo(0, 0); 
-}
-
-function showTGNotification(message, type = 'info') { 
+function showTGNotification(message, type = 'info') {
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
         Telegram.WebApp.showAlert(message);
     } else {
-        alert(message); 
+        alert(message);
     }
     if (window.Telegram && Telegram.WebApp.HapticFeedback) {
         if (type === 'success') Telegram.WebApp.HapticFeedback.notificationOccurred('success');
@@ -1243,62 +1256,146 @@ function showTGNotification(message, type = 'info') {
     }
 }
 
+// Telegram MainButton (BottomButton) Helper
+const TGMainButton = window.Telegram?.WebApp?.MainButton;
+let currentMainButtonCallback = null; // To store the current callback for removal
+
+function setupMainButton(text, onClickCallback, options = {}) {
+    if (!TGMainButton) return;
+
+    if (currentMainButtonCallback) {
+        TGMainButton.offClick(currentMainButtonCallback); // Remove previous listener
+    }
+    currentMainButtonCallback = onClickCallback; // Store new listener
+
+    TGMainButton.setText(text);
+    TGMainButton.onClick(onClickCallback);
+
+    const params = {
+        color: options.color || Telegram.WebApp.themeParams.button_color || getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim(),
+        text_color: options.textColor || Telegram.WebApp.themeParams.button_text_color || '#ffffff',
+        is_active: options.isActive !== undefined ? options.isActive : true,
+        is_visible: options.isVisible !== undefined ? options.isVisible : true,
+    };
+    TGMainButton.setParams(params);
+
+    if (params.is_visible) TGMainButton.show(); else TGMainButton.hide();
+    if (params.is_active) TGMainButton.enable(); else TGMainButton.disable();
+}
+
+function hideMainButton() {
+    if (!TGMainButton) return;
+    TGMainButton.hide();
+    if (currentMainButtonCallback) {
+      TGMainButton.offClick(currentMainButtonCallback);
+      currentMainButtonCallback = null;
+    }
+}
+
+
+function navigateToPage(pageId) {
+    pages.forEach(page => page.classList.remove('active'));
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
+    appNavButtons.forEach(btn => {
+        const isActivePage = btn.dataset.page === pageId;
+        btn.classList.toggle('active', isActivePage);
+        if(isActivePage && Telegram.WebApp.HapticFeedback) {
+            Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
+    });
+    window.scrollTo(0, 0);
+    hideMainButton(); // Hide main button by default when navigating
+
+
+    const doUpgradeButtonHTML = document.getElementById('do-upgrade-button');
+    const copyRefLinkButtonHTML = document.getElementById('copy-ref-link-button');
+
+    if (doUpgradeButtonHTML) doUpgradeButtonHTML.classList.remove('hidden-by-mainbutton');
+    if (copyRefLinkButtonHTML) copyRefLinkButtonHTML.classList.remove('hidden-by-mainbutton');
+
+
+    if (pageId === 'upgrade-page') {
+        if (doUpgradeButtonHTML) doUpgradeButtonHTML.classList.add('hidden-by-mainbutton');
+        setupMainButton("Attempt Upgrade", handleUpgrade, { isVisible: true, isActive: false });
+        upgradeElements.inventorySelect.addEventListener('change', updateUpgradeMainButtonState);
+        upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => btn.addEventListener('click', updateUpgradeMainButtonState));
+        updateUpgradeMainButtonState(); // Initial check
+    } else if (pageId === 'invite-page') {
+        if (copyRefLinkButtonHTML) copyRefLinkButtonHTML.classList.add('hidden-by-mainbutton');
+        if (Telegram.WebApp.isVersionAtLeast('6.1')) { // openTelegramLink exists
+            setupMainButton("Share Link", handleShareReferral, { isVisible: true });
+        } else {
+            setupMainButton("Copy Code", handleCopyReferral, { isVisible: true });
+        }
+    }
+}
+
+function updateUpgradeMainButtonState() {
+    if (document.getElementById('upgrade-page').classList.contains('active')) {
+        const itemSelected = upgradeElements.inventorySelect.value !== "";
+        const multiplierSelected = !!selectedMultiplier; // Check if a multiplier is set
+        setupMainButton("Attempt Upgrade", handleUpgrade, { isVisible: true, isActive: itemSelected && multiplierSelected });
+    }
+}
+
 // --- Rendering Functions ---
 function renderHeader() {
-     updateBalances(); 
+     updateBalances();
 }
 
 function updateUIBasedOnWallet(wallet) {
-     const connected = !!wallet; 
+     const connected = !!wallet;
      if (connected) {
         const address = wallet.account.address;
-        currentUser.walletAddressRaw = address; 
+        currentUser.walletAddressRaw = address;
         const userFriendlyAddress = TonConnectSDK.toUserFriendlyAddress(address, wallet.account.chain === TonConnectSDK.CHAIN.TESTNET);
         currentUser.walletAddress = userFriendlyAddress;
 
         if (headerElements.walletAddressDisplay) {
             headerElements.walletAddressDisplay.textContent = userFriendlyAddress.substring(0, 5) + '...' + userFriendlyAddress.substring(userFriendlyAddress.length - 4);
             headerElements.walletAddressDisplay.classList.add('connected');
-            headerElements.walletAddressDisplay.style.display = 'block'; 
+            headerElements.walletAddressDisplay.style.display = 'block';
         }
         if(headerElements.balanceDisplay) {
              headerElements.balanceDisplay.classList.add('connected');
-             headerElements.balanceDisplay.style.display = 'flex'; /* Use flex for icon alignment */
+             headerElements.balanceDisplay.style.display = 'flex';
         }
-        if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'none'; 
-        
+        if(headerElements.tonConnectButton) headerElements.tonConnectButton.classList.add('connected'); // This hides TON Connect's default button
+
         if(profileElements.walletAddress) profileElements.walletAddress.textContent = userFriendlyAddress;
         if(profileElements.disconnectWalletButton) profileElements.disconnectWalletButton.style.display = 'block';
 
     } else {
         currentUser.walletAddress = null;
-        currentUser.walletAddressRaw = null; 
+        currentUser.walletAddressRaw = null;
         if (headerElements.walletAddressDisplay) {
-            headerElements.walletAddressDisplay.textContent = ''; 
+            headerElements.walletAddressDisplay.textContent = '';
             headerElements.walletAddressDisplay.classList.remove('connected');
-             headerElements.walletAddressDisplay.style.display = 'none'; 
+             headerElements.walletAddressDisplay.style.display = 'none';
         }
         if(headerElements.balanceDisplay) {
              headerElements.balanceDisplay.classList.remove('connected');
-             headerElements.balanceDisplay.style.display = 'none'; 
+             headerElements.balanceDisplay.style.display = 'none';
         }
-        if(headerElements.tonConnectButton) headerElements.tonConnectButton.style.display = 'block'; 
-        
+        if(headerElements.tonConnectButton) headerElements.tonConnectButton.classList.remove('connected');
+
         if(profileElements.walletAddress) profileElements.walletAddress.textContent = 'Not Connected';
         if(profileElements.disconnectWalletButton) profileElements.disconnectWalletButton.style.display = 'none';
     }
-    updateBalances(); 
+    updateBalances();
 }
 
 function renderCases() {
     casesGrid.innerHTML = '';
     if (!casesData || casesData.length === 0) {
-        casesGrid.innerHTML = "<p>Loading cases...</p>"; 
+        casesGrid.innerHTML = "<p>Loading cases...</p>";
         return;
     }
-    // Filter cases based on ID (ensure this logic aligns with your updated casesData)
     const filteredCases = casesData.filter(caseItem => {
-        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack']; // Cases to exclude
+        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack'];
         return !removedCaseIds.includes(caseItem.id);
     });
 
@@ -1306,19 +1403,19 @@ function renderCases() {
     filteredCases.forEach(caseItem => {
         const card = document.createElement('div');
         card.className = 'case-card';
-        card.dataset.caseId = caseItem.id; 
+        card.dataset.caseId = caseItem.id;
         card.onclick = () => openRouletteModal(caseItem);
 
         const imageContainer = document.createElement('div');
         imageContainer.className = 'case-image-display';
-        
-        const img = document.createElement('img'); 
-        img.loading = 'lazy'; 
+
+        const img = document.createElement('img');
+        img.loading = 'lazy';
         img.alt = caseItem.name;
-        img.onerror = (e) => { 
-            e.target.style.display='none'; 
-            imageContainer.textContent = '❓'; 
-            imageContainer.style.fontSize='2.5em'; 
+        img.onerror = (e) => {
+            e.target.style.display='none';
+            imageContainer.textContent = '❓';
+            imageContainer.style.fontSize='2.5em';
             imageContainer.style.display='flex';
             imageContainer.style.alignItems='center';
             imageContainer.style.justifyContent='center';
@@ -1326,7 +1423,7 @@ function renderCases() {
 
         if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
             img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
-            img.style.objectFit = 'cover'; 
+            img.style.objectFit = 'cover';
             imageContainer.appendChild(img);
              if(caseItem.overlayPrizeName){
                  const overlayImg = document.createElement('img');
@@ -1334,17 +1431,17 @@ function renderCases() {
                  overlayImg.src = overlayFilename ? IMAGE_BASE_URL + overlayFilename : '';
                  overlayImg.alt = caseItem.overlayPrizeName;
                  overlayImg.loading = 'lazy';
-                 overlayImg.className = 'overlay-image'; 
-                 overlayImg.onerror = (e) => { e.target.style.display = 'none'; } 
+                 overlayImg.className = 'overlay-image';
+                 overlayImg.onerror = (e) => { e.target.style.display = 'none'; }
                  imageContainer.appendChild(overlayImg);
              }
-        } else if (caseItem.imageFilename) { 
+        } else if (caseItem.imageFilename) {
             img.src = IMAGE_BASE_URL + caseItem.imageFilename;
-            img.style.objectFit = 'contain'; 
+            img.style.objectFit = 'contain';
             imageContainer.appendChild(img);
-        } else { 
-              imageContainer.textContent = '🎁'; 
-              imageContainer.style.fontSize='2.5em'; 
+        } else {
+              imageContainer.textContent = '🎁';
+              imageContainer.style.fontSize='2.5em';
               imageContainer.style.display='flex';
               imageContainer.style.alignItems='center';
               imageContainer.style.justifyContent='center';
@@ -1352,7 +1449,7 @@ function renderCases() {
 
         const name = document.createElement('div');
         name.className = 'case-name';
-        name.textContent = caseItem.name; 
+        name.textContent = caseItem.name;
 
         const price = document.createElement('div');
         price.className = 'case-price';
@@ -1369,9 +1466,13 @@ function renderCases() {
 }
 
 function renderProfile() {
-    profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
-    profileElements.username.textContent = 
-        (currentUser.first_name || currentUser.last_name) 
+    if (currentUser.photo_url) {
+        profileElements.avatar.innerHTML = `<img src="${currentUser.photo_url}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
+    } else {
+        profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
+    }
+    profileElements.username.textContent =
+        (currentUser.first_name || currentUser.last_name)
             ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim()
             : currentUser.username || 'User';
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
@@ -1389,24 +1490,24 @@ function renderInventory() {
     } else {
         profileElements.emptyInventoryMessage.style.display = 'none';
         currentUser.inventory.forEach(item => {
-            totalValue += item.currentValue || item.floorPrice; 
+            totalValue += item.currentValue || item.floorPrice;
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
-            
+
             const imgContainer = document.createElement('div');
             imgContainer.className = 'item-image-display';
             const img = document.createElement('img');
             img.src = item.imageFilename ? IMAGE_BASE_URL + item.imageFilename : '';
             img.alt = item.name;
             img.loading = 'lazy';
-            img.onerror = (e) => { e.target.style.display='none'; imgContainer.textContent = '?';} 
+            img.onerror = (e) => { e.target.style.display='none'; imgContainer.textContent = '?';}
             imgContainer.appendChild(img);
 
             itemDiv.innerHTML = `
                 <div class="inventory-item-name" title="${item.name}">${item.name}</div>
                 <div class="inventory-item-value">${(item.currentValue || item.floorPrice).toFixed(2)} TON</div>
                 <div class="inventory-item-actions">
-                     <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess('${item.id}')">Withdraw</button> 
+                     <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess('${item.id}')">Withdraw</button>
                     <button class="button button-secondary" onclick="convertToTon('${item.id}')">Convert</button>
                 </div>
             `;
@@ -1424,31 +1525,44 @@ function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.forEach(item => {
         const option = document.createElement('option');
-        option.value = item.id; 
+        option.value = item.id;
         option.textContent = `${item.name} (${(item.currentValue || item.floorPrice).toFixed(2)} TON)`;
         upgradeElements.inventorySelect.appendChild(option);
     });
 }
 
 async function renderLeaderboard() {
-    leaderboardList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Loading leaders...</p>'; 
+    leaderboardList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Loading leaders...</p>';
     try {
-        const leaders = await apiRequest('/api/get_leaderboard'); 
-        leaderboardList.innerHTML = ''; 
+        const leaders = await apiRequest('/api/get_leaderboard');
+        leaderboardList.innerHTML = '';
         if (leaders && leaders.length > 0) {
             leaders.forEach(leader => {
                 const entry = document.createElement('div');
                 entry.className = 'leader-entry';
                 if (leader.user_id === currentUser.id) entry.classList.add('current-user-entry');
+
+                let avatarContent = (leader.avatarChar || 'U');
+                // Here you could potentially use leader.photo_url if backend sends it
+                // For now, sticking with char or a placeholder image.
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'avatar-placeholder';
+                if (leader.photo_url) { // Assuming backend might provide this
+                    avatarDiv.innerHTML = `<img src="${leader.photo_url}" alt="Avatar">`;
+                } else {
+                    avatarDiv.textContent = avatarContent;
+                }
+
                 entry.innerHTML = `
                     <div class="rank">#${leader.rank}</div>
-                    <div class="avatar-placeholder">${leader.avatarChar}</div>
+                    <!-- Avatar placeholder will be prepended -->
                     <div class="info">
                         <div class="name">${leader.name}</div>
                         <div class="details">Total Won: ${(leader.income || 0).toFixed(2)} TON</div>
                     </div>
-                    <div class="score">${(leader.income || 0).toFixed(1)} <span class="ton-icon"></span></div>
+                    <div class="score">${(leader.income || 0).toFixed(1)} TON</div>
                 `;
+                entry.insertBefore(avatarDiv, entry.children[1]); // Insert avatar after rank
                 leaderboardList.appendChild(entry);
             });
         } else {
@@ -1462,11 +1576,10 @@ async function renderLeaderboard() {
 function renderInvitePage() {
     const botUsername = (window.Telegram && Telegram.WebApp.initDataUnsafe?.bot?.username) ? Telegram.WebApp.initDataUnsafe.bot.username : 'YourAppBot';
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${botUsername}?start=${currentUser.referralCode}` : 'Loading...';
-    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} <span class="ton-icon"></span>`;
-    // Placeholder for invited count, replace with actual data if available
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
     const invitedUsersList = document.querySelector('#invite-page .invited-users-list');
-    if (invitedUsersList) { // Example: Count demo items or fetch real count
-        inviteElements.invitedCount.textContent = invitedUsersList.children.length;
+    if (invitedUsersList) {
+        inviteElements.invitedCount.textContent = invitedUsersList.children.length; // Demo count
     } else {
         inviteElements.invitedCount.textContent = '0';
     }
@@ -1481,28 +1594,28 @@ function openRouletteModal(caseItem) {
         return;
     }
 
-    rouletteCaseName.textContent = caseItem.name; 
-    spinButton.textContent = `Spin (${caseItem.priceTON ? caseItem.priceTON.toFixed(1) + ' TON' : ''} ${caseItem.priceStars && caseItem.priceTON ? '/' : ''} ${caseItem.priceStars ? caseItem.priceStars + ' ✨' : ''})`;
-    spinButton.disabled = false;
+    rouletteCaseName.textContent = caseItem.name;
+    // spinButton.textContent is now handled by MainButton setup
+    spinButton.disabled = false; // HTML button is hidden, but keep this for potential fallback
     prizeDisplay.classList.add('hidden');
     wonPrizeName.textContent = '';
-    rouletteSpinner.innerHTML = ''; 
-    rouletteSpinner.style.transition = 'none'; 
-    rouletteSpinner.style.top = '0px'; 
+    rouletteSpinner.innerHTML = '';
+    rouletteSpinner.style.transition = 'none';
+    rouletteSpinner.style.top = '0px';
 
     let spinnerItemsContent = [];
-    for (let i = 0; i < 80; i++) { 
+    for (let i = 0; i < 80; i++) {
         spinnerItemsContent.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
     }
     spinnerItemsContent.forEach(prize => {
-        if (!prize || !prize.imageFilename) return; 
+        if (!prize || !prize.imageFilename) return;
         const itemEl = document.createElement('div');
         itemEl.className = 'roulette-item';
         const img = document.createElement('img');
         img.src = IMAGE_BASE_URL + prize.imageFilename;
         img.alt = prize.name || 'Prize';
         img.loading = 'lazy';
-        img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
+        img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; }
         itemEl.appendChild(img);
         rouletteSpinner.appendChild(itemEl);
     });
@@ -1510,88 +1623,100 @@ function openRouletteModal(caseItem) {
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
     currentOpenCase.prizes.forEach(p => {
-        if(!p || !p.name) return; 
+        if(!p || !p.name) return;
         if (prizeMap.has(p.name)) {
-            prizeMap.set(p.name, { 
-                ...prizeMap.get(p.name), 
-                probability: prizeMap.get(p.name).probability + p.probability 
+            prizeMap.set(p.name, {
+                ...prizeMap.get(p.name),
+                probability: prizeMap.get(p.name).probability + p.probability
             });
         } else {
-            prizeMap.set(p.name, { ...p }); 
+            prizeMap.set(p.name, { ...p });
         }
     });
 
     prizeMap.forEach((prizeData, name) => {
-        if (!prizeData || !prizeData.imageFilename) return; 
-        const probability = prizeData.probability || 0; 
+        if (!prizeData || !prizeData.imageFilename) return;
+        const probability = prizeData.probability || 0;
         const prizeCard = document.createElement('div');
         prizeCard.className = 'prize-card';
-        
+
         const imgContainer = document.createElement('div');
         imgContainer.className = 'prize-card-image-placeholder';
         const img = document.createElement('img');
         img.src = IMAGE_BASE_URL + prizeData.imageFilename;
         img.alt = name;
         img.loading = 'lazy';
-        img.onerror = (e) => { e.target.style.display='none'; imgContainer.textContent = '?';} 
+        img.onerror = (e) => { e.target.style.display='none'; imgContainer.textContent = '?';}
         imgContainer.appendChild(img);
 
         prizeCard.innerHTML = `
-            <span class="prize-card-probability">${(probability * 100).toFixed(probability < 0.001 ? 3 : (probability < 0.01 ? 2 : 1) )}%</span> 
+            <span class="prize-card-probability">${(probability * 100).toFixed(probability < 0.001 ? 3 : (probability < 0.01 ? 2 : 1) )}%</span>
             <span class="prize-card-name">${name}</span>
-        `; 
-        prizeCard.insertBefore(imgContainer, prizeCard.firstChild); 
+        `;
+        prizeCard.insertBefore(imgContainer, prizeCard.firstChild);
         possiblePrizesDisplay.appendChild(prizeCard);
     });
 
     rouletteModal.classList.add('active');
-    if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
+    if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
+
+    const spinButtonText = `Spin (${caseItem.priceTON ? caseItem.priceTON.toFixed(1) + ' TON' : ''} ${caseItem.priceStars && caseItem.priceTON ? '/' : ''} ${caseItem.priceStars ? caseItem.priceStars + ' ✨' : ''})`;
+    setupMainButton(spinButtonText, spinRoulette, {isVisible: true, isActive: true});
+    if (spinButton) spinButton.classList.add('hidden-by-mainbutton');
+    if (closeRouletteButton) closeRouletteButton.classList.remove('hidden-by-mainbutton');
+
+    updateFullscreenToggleIcon();
 }
 
 function closeRouletteModal() {
     rouletteModal.classList.remove('active');
     currentOpenCase = null;
+    hideMainButton();
+    if (spinButton) spinButton.classList.remove('hidden-by-mainbutton');
+
+    if (Telegram.WebApp.isVersionAtLeast('8.0') && Telegram.WebApp.isFullscreen) {
+        Telegram.WebApp.exitFullscreen();
+    }
 }
 
-let spinAnimationTimeout; 
+let spinAnimationTimeout;
 
-async function spinRoulette() { 
+async function spinRoulette() {
     if (!currentOpenCase) return;
-    clearTimeout(spinAnimationTimeout); 
+    clearTimeout(spinAnimationTimeout);
 
-    spinButton.disabled = true;
-    spinButton.textContent = 'Spinning...';
+    setupMainButton('Spinning...', spinRoulette, {isVisible: true, isActive: false}); // Disable MainButton
     prizeDisplay.classList.add('hidden');
 
     try {
         const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCase.id });
-        
+
         if (result.status === 'success') {
             const winner = result.won_prize;
             currentUser.tonBalance = result.new_balance_ton;
-            updateBalances(); 
+            updateBalances();
 
             let spinnerItemsForSpin = [];
             const availablePrizes = currentOpenCase.prizes.filter(p => p && p.imageFilename);
             if (availablePrizes.length === 0) {
                  throw new Error("No available prizes with images in this case.");
             }
-            for (let i = 0; i < 70; i++) { 
+            for (let i = 0; i < 70; i++) {
                 spinnerItemsForSpin.push(availablePrizes[Math.floor(Math.random() * availablePrizes.length)]);
             }
-            const winnerVisualIndex = Math.floor(spinnerItemsForSpin.length * 0.85); 
-            spinnerItemsForSpin[winnerVisualIndex] = winner; 
+            const winnerVisualIndex = Math.floor(spinnerItemsForSpin.length * 0.85);
+            spinnerItemsForSpin[winnerVisualIndex] = winner;
 
-            rouletteSpinner.innerHTML = ''; 
+            rouletteSpinner.innerHTML = '';
             spinnerItemsForSpin.forEach(prize => {
-                 if (!prize || !prize.imageFilename) return; 
+                 if (!prize || !prize.imageFilename) return;
                  const itemEl = document.createElement('div');
                  itemEl.className = 'roulette-item';
                  const img = document.createElement('img');
                  img.src = IMAGE_BASE_URL + prize.imageFilename;
                  img.alt = prize.name || 'Prize';
                  img.loading = 'lazy';
-                 img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
+                 img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; }
                  itemEl.appendChild(img);
                  rouletteSpinner.appendChild(itemEl);
              });
@@ -1599,39 +1724,40 @@ async function spinRoulette() {
             const allItemsInSpinner = rouletteSpinner.querySelectorAll('.roulette-item');
             if (allItemsInSpinner.length === 0) { throw new Error("Spinner items not rendered"); }
 
-            const itemHeight = allItemsInSpinner[0].offsetHeight; 
-            const rouletteWheelVisibleHeight = rouletteWheel.clientHeight; 
-            const randomOffset = (Math.random() - 0.5) * (itemHeight * 0.6); 
+            const itemHeight = allItemsInSpinner[0].offsetHeight;
+            const rouletteWheelVisibleHeight = rouletteWheel.clientHeight;
+            const randomOffset = (Math.random() - 0.5) * (itemHeight * 0.6);
             const landingPosition = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2) + randomOffset;
 
-            rouletteSpinner.style.transition = 'none'; 
+            rouletteSpinner.style.transition = 'none';
             rouletteSpinner.style.top = '0px';
-            void rouletteSpinner.offsetWidth;
+            void rouletteSpinner.offsetWidth; // Force reflow
 
-            rouletteSpinner.style.transition = 'top 6s cubic-bezier(0.25, 0.1, 0.2, 1)'; 
+            rouletteSpinner.style.transition = 'top 6s cubic-bezier(0.25, 0.1, 0.2, 1)';
             rouletteSpinner.style.top = `-${landingPosition}px`;
-            
-            if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
+
+            if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
 
             spinAnimationTimeout = setTimeout(() => {
-                wonPrizeName.textContent = winner.name; 
+                wonPrizeName.textContent = winner.name;
                 prizeDisplay.classList.remove('hidden');
-                spinButton.disabled = false; 
-                spinButton.textContent = 'Spin Again'; 
-                
-                const newItemForInventory = { 
-                     id: result.won_prize.id, 
-                     name: winner.name, 
-                     imageFilename: winner.imageFilename, 
-                     floorPrice: winner.floorPrice, 
-                     currentValue: result.won_prize.currentValue, 
-                     upgradeMultiplier: 1.0, 
-                     obtained_at: Date.now() / 1000 
+                // Setup MainButton for "Spin Again"
+                setupMainButton('Spin Again', spinRoulette, {isVisible: true, isActive: true});
+
+
+                const newItemForInventory = {
+                     id: result.won_prize.id,
+                     name: winner.name,
+                     imageFilename: winner.imageFilename,
+                     floorPrice: winner.floorPrice,
+                     currentValue: result.won_prize.currentValue,
+                     upgradeMultiplier: 1.0,
+                     obtained_at: Date.now() / 1000
                 };
                 currentUser.inventory.push(newItemForInventory);
-                renderInventory(); 
-                showTGNotification(`You got: ${winner.name}!`, 'success'); 
-                
+                renderInventory();
+                showTGNotification(`You got: ${winner.name}!`, 'success');
+
                  const finalScrollTop = Math.abs(parseFloat(rouletteSpinner.style.top) || 0);
                  const centerLine = finalScrollTop + rouletteWheelVisibleHeight / 2;
                  let closestItemIndex = 0;
@@ -1648,23 +1774,23 @@ async function spinRoulette() {
                       allItemsInSpinner.forEach(el => el.classList.remove('is-winning'));
                       allItemsInSpinner[closestItemIndex].classList.add('is-winning');
                  }
-            }, 6100); 
+            }, 6100);
         } else {
             showTGNotification(result.error || 'Failed to open case.', 'error');
-            spinButton.disabled = false;
-            spinButton.textContent = 'Spin';
+            const spinButtonTextOriginal = `Spin (${currentOpenCase.priceTON ? currentOpenCase.priceTON.toFixed(1) + ' TON' : ''} ${currentOpenCase.priceStars && currentOpenCase.priceTON ? '/' : ''} ${currentOpenCase.priceStars ? currentOpenCase.priceStars + ' ✨' : ''})`;
+            setupMainButton(spinButtonTextOriginal, spinRoulette, {isVisible: true, isActive: true});
         }
     } catch (error) {
         console.error("Error in spinRoulette:", error);
         showTGNotification(`Error: ${error.message || 'Failed to open case.'}`, 'error');
-        spinButton.disabled = false;
-        spinButton.textContent = 'Spin';
+        const spinButtonTextOriginal = `Spin (${currentOpenCase?.priceTON ? currentOpenCase.priceTON.toFixed(1) + ' TON' : 'Spin'} ${currentOpenCase?.priceStars && currentOpenCase?.priceTON ? '/' : ''} ${currentOpenCase?.priceStars ? currentOpenCase.priceStars + ' ✨' : ''})`;
+        setupMainButton(spinButtonTextOriginal, spinRoulette, {isVisible: true, isActive: true});
     }
 }
 
 
-// --- Other Page Logic --- 
-async function convertToTon(inventoryItemId) { 
+// --- Other Page Logic ---
+async function convertToTon(inventoryItemId) {
     if (!inventoryItemId) return;
     try {
         const result = await apiRequest('/api/convert_to_ton', 'POST', { inventory_item_id: parseInt(inventoryItemId) });
@@ -1680,19 +1806,20 @@ async function convertToTon(inventoryItemId) {
     } catch (error) { /* Handled in apiRequest */ }
 }
 
-async function handleUpgrade() { 
+async function handleUpgrade() {
     const selectedItemId = upgradeElements.inventorySelect.value;
     if (!selectedItemId) {
         showTGNotification("Please select an item to upgrade.", 'error'); return;
     }
 
     upgradeElements.upgradeResult.textContent = "Attempting upgrade...";
-    upgradeElements.doUpgradeButton.disabled = true;
+    setupMainButton("Attempting...", handleUpgrade, { isVisible: true, isActive: false });
+
 
     try {
         const result = await apiRequest('/api/upgrade_item', 'POST', {
-            inventory_item_id: parseInt(selectedItemId), 
-            multiplier_str: selectedMultiplier.toString() 
+            inventory_item_id: parseInt(selectedItemId),
+            multiplier_str: selectedMultiplier.toString()
         });
 
         if (result.status === 'success') {
@@ -1701,7 +1828,7 @@ async function handleUpgrade() {
             if (itemIndex !== -1) {
                 currentUser.inventory[itemIndex].currentValue = upgradedItemData.currentValue;
                 currentUser.inventory[itemIndex].upgradeMultiplier = upgradedItemData.upgradeMultiplier;
-                currentUser.inventory[itemIndex].name = upgradedItemData.name; 
+                currentUser.inventory[itemIndex].name = upgradedItemData.name;
             }
             upgradeElements.upgradeResult.textContent = result.message;
             upgradeElements.upgradeResult.style.color = 'var(--success-color)';
@@ -1714,13 +1841,15 @@ async function handleUpgrade() {
             upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
             showTGNotification("Upgrade failed.", 'error');
         }
-        renderInventory(); 
-        upgradeElements.doUpgradeButton.disabled = false;
-        upgradeElements.inventorySelect.value = ''; 
+        renderInventory();
+        upgradeElements.inventorySelect.value = '';
+        // Re-enable or reset MainButton for next attempt
+        setupMainButton("Attempt Upgrade", handleUpgrade, { isVisible: true, isActive: false });
+
     } catch (error) {
         upgradeElements.upgradeResult.textContent = "Error during upgrade.";
         upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
-        upgradeElements.doUpgradeButton.disabled = false;
+        setupMainButton("Attempt Upgrade", handleUpgrade, { isVisible: true, isActive: true }); // Re-enable if error
     }
 }
 
@@ -1742,7 +1871,7 @@ async function doSellAll() {
         const result = await apiRequest('/api/sell_all_items', 'POST');
         if (result.status === 'success') {
             currentUser.tonBalance = result.new_balance_ton;
-            currentUser.inventory = []; 
+            currentUser.inventory = [];
             updateBalances();
             renderInventory();
             showTGNotification(result.message, "success");
@@ -1752,6 +1881,28 @@ async function doSellAll() {
     } catch (error) { /* Handled in apiRequest */ }
 }
 
+function handleCopyReferral() {
+    navigator.clipboard.writeText(inviteElements.referralLink.value)
+        .then(() => {
+            showTGNotification("Referral Code copied!", 'success');
+            if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        })
+        .catch(err => showTGNotification("Failed to copy code.", 'error'));
+}
+
+function handleShareReferral() {
+    const link = inviteElements.referralLink.value;
+    const text = `Join Pusik Gifts and win cool prizes! Check it out:`;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`;
+    if (Telegram.WebApp.openTelegramLink) {
+        Telegram.WebApp.openTelegramLink(shareUrl);
+        if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+    } else {
+        handleCopyReferral(); // Fallback
+    }
+}
+
+
 // --- Withdraw Flow Logic ---
 function showWithdrawStep(stepNumber) {
     withdrawSteps.forEach((step, index) => {
@@ -1760,43 +1911,43 @@ function showWithdrawStep(stepNumber) {
 }
 
 function startWithdrawalProcess(itemId) {
-    const item = currentUser.inventory.find(i => i.id === parseInt(itemId));  
+    const item = currentUser.inventory.find(i => i.id === parseInt(itemId));
     if (!item) {
         showTGNotification("Item not found for withdrawal.", "error"); return;
     }
-    itemToWithdraw = item.id; 
-    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`; 
+    itemToWithdraw = item.id;
+    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
     showWithdrawStep(1);
     withdrawModal.classList.add('active');
 }
 
-async function completeWithdrawal() { 
-    withdrawStatusMessage.textContent = "Simulating withdrawal process..."; 
-    withdrawStatusMessage.style.color = 'var(--text-secondary)'; 
-    const loader = withdrawModal.querySelector('.loader'); 
+async function completeWithdrawal() {
+    withdrawStatusMessage.textContent = "Simulating withdrawal process...";
+    withdrawStatusMessage.style.color = 'var(--text-secondary)';
+    const loader = withdrawModal.querySelector('.loader');
     if(loader) loader.style.display = 'block';
-    await new Promise(resolve => setTimeout(resolve, 2500)); 
+    await new Promise(resolve => setTimeout(resolve, 2500));
     const itemIndex = currentUser.inventory.findIndex(item => item.id === itemToWithdraw);
     if (itemIndex !== -1) {
          const itemName = currentUser.inventory[itemIndex].name;
-         currentUser.inventory.splice(itemIndex, 1); 
-         renderInventory(); 
-         withdrawStatusMessage.textContent = "Gift withdrawal simulated!"; 
+         currentUser.inventory.splice(itemIndex, 1);
+         renderInventory();
+         withdrawStatusMessage.textContent = "Gift withdrawal simulated!";
          withdrawStatusMessage.style.color = 'var(--success-color)';
          showTGNotification(`${itemName} withdrawal simulated!`, 'success');
     } else {
-         withdrawStatusMessage.textContent = "Error: Item not found locally."; 
+         withdrawStatusMessage.textContent = "Error: Item not found locally.";
          withdrawStatusMessage.style.color = 'var(--danger-color)';
          showTGNotification("Error withdrawing item.", 'error');
     }
-     if(loader) loader.style.display = 'none'; 
+     if(loader) loader.style.display = 'none';
 }
 
 function closeWithdrawModal() {
     withdrawModal.classList.remove('active');
     itemToWithdraw = null;
-    showWithdrawStep(1); 
-    withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; 
+    showWithdrawStep(1);
+    withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
 }
 
 // --- Deposit Modal Logic ---
@@ -1809,7 +1960,7 @@ async function initiateDepositProcedure() {
     if (isNaN(amount) || amount <= 0) {
         showTGNotification("Please enter a valid positive amount.", 'error'); return;
     }
-    if (amount < 0.1) { 
+    if (amount < 0.1) {
         showTGNotification("Minimum deposit is 0.1 TON.", 'error'); return;
     }
 
@@ -1823,29 +1974,19 @@ async function initiateDepositProcedure() {
 
         if (result.status === 'success') {
             currentPendingDepositId = result.pending_deposit_id;
-            depositRecipientAddressRaw = result.recipient_address; // Store for link
-            depositCommentText = result.comment; // Store for link
-            
-            // The 'amount_to_send' from backend is already the final amount in TON string (e.g., "1.000012345")
-            // For ton:// link, amount is in nanoTON.
-            // Backend returns `amount_to_send` (string representation of final amount in TON)
-            // and the backend's `final_amount_nano_ton` is what we need for the link.
-            // Let's assume backend will add `final_amount_nano_ton` to the response.
-            // If not, we need to parse `amount_to_send` back to nanoTON.
-            // For simplicity, assuming backend sends `final_amount_nano_ton_for_link`
-            
+            depositRecipientAddressRaw = result.recipient_address;
+            depositCommentText = result.comment;
+
             let finalNanoAmountForLink;
-            if (result.final_amount_nano_ton) { // Ideal: backend sends this directly
+            if (result.final_amount_nano_ton) {
                 finalNanoAmountForLink = result.final_amount_nano_ton;
-            } else { // Fallback: parse from amount_to_send string
-                 // amount_to_send is already a string like "0.500001234"
+            } else {
                 finalNanoAmountForLink = Math.round(parseFloat(result.amount_to_send) * 1e9);
             }
 
-
             const transferUrl = `ton://transfer/${depositRecipientAddressRaw}?amount=${finalNanoAmountForLink}&text=${encodeURIComponent(depositCommentText)}`;
             tonTransferLink.href = transferUrl;
-            
+
             startDepositExpiryTimer(result.expires_at);
 
             depositStatusMessageEl.textContent = '';
@@ -1874,7 +2015,7 @@ function startDepositExpiryTimer(expiresAtISO) {
             clearInterval(depositExpiryInterval);
             depositExpiryInfo.textContent = "Deposit request has expired.";
             if(confirmPaymentSentButton) confirmPaymentSentButton.disabled = true;
-            if(tonTransferLink) tonTransferLink.classList.add('button-secondary'); // Visually disable
+            if(tonTransferLink) tonTransferLink.classList.add('button-secondary');
             return;
         }
         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -1882,7 +2023,7 @@ function startDepositExpiryTimer(expiresAtISO) {
         depositExpiryInfo.textContent = `This request will expire in ${minutes}m ${seconds}s.`;
          if(tonTransferLink) tonTransferLink.classList.remove('button-secondary');
     }
-    updateTimer(); 
+    updateTimer();
     depositExpiryInterval = setInterval(updateTimer, 1000);
 }
 
@@ -1898,25 +2039,24 @@ async function verifyPaymentSent() {
     depositStatusMessageEl.textContent = 'Checking for your transaction... This may take a moment.';
 
     try {
-        const result = await apiRequest('/api/verify_deposit', 'POST', { 
-            pending_deposit_id: currentPendingDepositId 
+        const result = await apiRequest('/api/verify_deposit', 'POST', {
+            pending_deposit_id: currentPendingDepositId
         });
 
         if (result.status === 'success') {
             showTGNotification(result.message, 'success');
             currentUser.tonBalance = result.new_balance_ton;
-            updateBalances(); 
-            renderProfile(); 
+            updateBalances();
+            renderProfile();
             closeDepositInstructionsModal();
         } else if (result.status === 'pending') {
             depositStatusMessageEl.textContent = result.message;
-            confirmPaymentSentButton.disabled = false; 
+            confirmPaymentSentButton.disabled = false;
             confirmPaymentSentButton.textContent = "Check Again";
-        } else { 
+        } else {
             showTGNotification(result.message || "Verification failed.", 'error');
             depositStatusMessageEl.textContent = result.message || "Verification failed.";
             if (result.status === 'expired') {
-                 // Button remains disabled
                  if(tonTransferLink) tonTransferLink.classList.add('button-secondary');
             } else {
                  confirmPaymentSentButton.disabled = false;
@@ -1938,14 +2078,14 @@ function closeDepositInstructionsModal() {
     depositInstructionsModal.classList.remove('active');
     if (depositExpiryInterval) clearInterval(depositExpiryInterval);
     currentPendingDepositId = null;
-    profileElements.depositAmountInput.value = ''; 
-    if (tonTransferLink) tonTransferLink.href = '#'; // Clear the link
+    profileElements.depositAmountInput.value = '';
+    if (tonTransferLink) tonTransferLink.href = '#';
 }
 
 
 // --- Event Listeners ---
 appNavButtons.forEach(button => { button.addEventListener('click', () => navigateToPage(button.dataset.page)); });
-spinButton.addEventListener('click', spinRoulette);
+// spinButton's click is handled by MainButton setup in openRouletteModal
 closeRouletteButton.addEventListener('click', closeRouletteModal);
 
 profileElements.disconnectWalletButton.addEventListener('click', () => { tonConnectUI.disconnect(); });
@@ -1961,28 +2101,23 @@ upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
     button.addEventListener('click', (e) => {
         selectedMultiplier = parseFloat(e.target.dataset.multiplier);
         const chance = parseFloat(e.target.dataset.chance);
-        upgradeElements.chanceDisplay.textContent = `${chance}%`; 
+        upgradeElements.chanceDisplay.textContent = `${chance}%`;
         upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
-            btn.classList.remove('active-multiplier'); 
+            btn.classList.remove('active-multiplier');
             if(!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
         });
         e.target.classList.add('active-multiplier');
         if(e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary');
+        updateUpgradeMainButtonState(); // Update MainButton state on multiplier change
     });
 });
 const defaultMultiplierButton = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="${selectedMultiplier}"]`);
 if (defaultMultiplierButton) {
-    defaultMultiplierButton.classList.add('active-multiplier');
-    if(defaultMultiplierButton.classList.contains('button-secondary')) defaultMultiplierButton.classList.remove('button-secondary');
-    upgradeElements.chanceDisplay.textContent = `${defaultMultiplierButton.dataset.chance}%`;
+    defaultMultiplierButton.click(); // Simulate click to set initial state and chance
 }
-upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
+// doUpgradeButton's click is handled by MainButton setup in navigateToPage
 
-inviteElements.copyRefLinkButton.addEventListener('click', () => {
-    navigator.clipboard.writeText(inviteElements.referralLink.value)
-        .then(() => showTGNotification("Referral Code copied!", 'success'))
-        .catch(err => showTGNotification("Failed to copy code.", 'error'));
-});
+// inviteElements.copyRefLinkButton's click is handled by MainButton setup in navigateToPage
 inviteElements.withdrawReferralButton.addEventListener('click', async () => {
     try {
         const result = await apiRequest('/api/withdraw_referral_earnings', 'POST');
@@ -1990,7 +2125,7 @@ inviteElements.withdrawReferralButton.addEventListener('click', async () => {
             currentUser.tonBalance = result.new_balance_ton;
             currentUser.referralEarningsPending = result.new_referral_earnings_pending;
             updateBalances();
-            renderInvitePage(); 
+            renderInvitePage();
             showTGNotification(result.message, 'success');
         } else {
             showTGNotification(result.message || "Failed to withdraw earnings.", 'error');
@@ -2002,144 +2137,186 @@ if(profileElements.sellAllButton) {
     profileElements.sellAllButton.addEventListener('click', sellAllItems);
 }
 
-// Event listeners for Deposit Modal
 if(confirmPaymentSentButton) confirmPaymentSentButton.addEventListener('click', verifyPaymentSent);
 if(cancelDepositButton) cancelDepositButton.addEventListener('click', closeDepositInstructionsModal);
 
+modalBackButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const modalId = button.dataset.modalId;
+        const modalToClose = document.getElementById(modalId);
+        if (modalToClose) {
+            modalToClose.classList.remove('active');
+            if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            if (modalId === 'roulette-modal') {
+                 closeRouletteModal();
+            } else if (modalId === 'withdraw-modal') {
+                 closeWithdrawModal();
+            } else if (modalId === 'deposit-instructions-modal') {
+                 closeDepositInstructionsModal();
+            } else {
+                 hideMainButton();
+            }
+        }
+    });
+});
+
+if (rouletteFullscreenToggle) {
+    rouletteFullscreenToggle.addEventListener('click', () => {
+        if (Telegram.WebApp.isVersionAtLeast('8.0')) {
+            if (Telegram.WebApp.isFullscreen) {
+                Telegram.WebApp.exitFullscreen();
+            } else {
+                Telegram.WebApp.requestFullscreen();
+            }
+            if (Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+        } else {
+            showTGNotification("Fullscreen mode is not supported on your Telegram version.", "info");
+        }
+    });
+}
+
+function updateFullscreenToggleIcon() {
+    if (!Telegram.WebApp.isVersionAtLeast('8.0') || !rouletteFullscreenToggle) {
+        if(rouletteFullscreenToggle) rouletteFullscreenToggle.style.display = 'none';
+        return;
+    }
+    rouletteFullscreenToggle.style.display = 'block';
+    if (Telegram.WebApp.isFullscreen) {
+        if(fullscreenIconOpen) fullscreenIconOpen.style.display = 'none';
+        if(fullscreenIconExit) fullscreenIconExit.style.display = 'block';
+    } else {
+        if(fullscreenIconOpen) fullscreenIconOpen.style.display = 'block';
+        if(fullscreenIconExit) fullscreenIconExit.style.display = 'none';
+    }
+}
 
 // --- Initialization ---
 async function fetchInitialUserData() {
     if (!Telegram.WebApp.initData) {
         console.warn("No initData, cannot fetch user data from backend.");
-        if (!window.Telegram || !window.Telegram.WebApp) { 
+        if (!window.Telegram || !window.Telegram.WebApp) {
             updateUIBasedOnWallet(null);
             renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
             navigateToPage('main-page');
         } else {
             showTGNotification("Error: Telegram data not available. Please restart.", "error");
         }
-        return false; 
+        return false;
     }
 
     console.log("Fetching initial user data from backend...");
     try {
-        const data = await apiRequest('/api/get_user_data', 'POST', {}); 
-        
+        const data = await apiRequest('/api/get_user_data', 'POST', {});
+
         currentUser.id = data.id;
         currentUser.username = data.username;
         currentUser.first_name = data.first_name || 'User';
         currentUser.last_name = data.last_name;
+        currentUser.photo_url = data.photo_url || currentUser.photo_url; // Update if backend provides, else keep from initDataUnsafe
         currentUser.tonBalance = data.tonBalance;
         currentUser.starBalance = data.starBalance || 0;
         currentUser.inventory = data.inventory || [];
         currentUser.referralCode = data.referralCode;
         currentUser.referralEarningsPending = data.referralEarningsPending || 0;
         currentUser.total_won_ton = data.total_won_ton || 0;
-        
+
         console.log("User data fetched and currentUser updated:", currentUser);
-        return true; 
+        return true;
 
     } catch (error) {
         console.error("Failed to fetch initial user data:", error);
         showTGNotification("Could not load your profile data. Please try again later.", 'error');
-        return false; 
+        return false;
     }
 }
 
 async function initializeApp() {
     console.log("initializeApp started");
-    preloadImages(imageUrlsToPreload); 
+    Telegram.WebApp.ready();
+    Telegram.WebApp.expand();
+    Telegram.WebApp.enableClosingConfirmation();
+    if (Telegram.WebApp.isVersionAtLeast('8.0')) {
+         Telegram.WebApp.onEvent('fullscreenChanged', updateFullscreenToggleIcon);
+    }
+
+    try {
+        const rootStyle = getComputedStyle(document.documentElement);
+        let bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
+        if (!bgColor || bgColor === "initial" || bgColor === "inherit") {
+            bgColor = '#181A25';
+        }
+        Telegram.WebApp.setHeaderColor(bgColor);
+        Telegram.WebApp.setBackgroundColor(bgColor);
+        console.log("Telegram theme colors set to:", bgColor);
+    } catch (e) {
+        console.warn("Could not set Telegram WebApp theme colors.", e);
+    }
+
+    preloadImages(imageUrlsToPreload);
 
     let initialDataFetched = false;
 
-    tonConnectUI.onStatusChange(async wallet => { 
+    tonConnectUI.onStatusChange(async wallet => {
         console.log("TON Connect status changed. Wallet:", wallet);
-        updateUIBasedOnWallet(wallet); 
-        if (!initialDataFetched && window.Telegram && Telegram.WebApp.initData) {
+        updateUIBasedOnWallet(wallet);
+        // Fetch user data *after* wallet status change AND if initData is present
+        // This ensures we have the wallet context if needed for backend auth linked to wallet,
+        // but primarily we use initData for user identification with the backend.
+        if (!initialDataFetched && Telegram.WebApp.initData) {
             if (await fetchInitialUserData()) {
                 initialDataFetched = true;
-                renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-                navigateToPage('main-page'); 
+                // Initial render calls are now consolidated after potential data fetch attempts
             }
+        }
+        // If initial data was already fetched, and wallet status changes, re-render profile parts that depend on wallet
+        if (initialDataFetched) {
+            renderProfile(); // Or more targeted updates
         }
     });
 
-    if (window.Telegram && window.Telegram.WebApp) {
-        Telegram.WebApp.ready(); 
-        Telegram.WebApp.expand(); 
-        Telegram.WebApp.enableClosingConfirmation();
-        console.log("Telegram WebApp is ready and expanded.");
-        
-        const tgUser = Telegram.WebApp.initDataUnsafe?.user;
-        if (tgUser) {
-            console.log("Telegram user data available (unsafe):", tgUser);
-            if (!currentUser.id || currentUser.id !== tgUser.id) {
-                currentUser.id = tgUser.id; 
-                currentUser.username = tgUser.username;
-                currentUser.first_name = tgUser.first_name || 'User';
-                currentUser.last_name = tgUser.last_name;
-                if (!currentUser.referralCode) { 
-                    currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
-                }
-            }
-        } else {
-            console.warn("Telegram.WebApp.initDataUnsafe.user is not available.");
+    // Populate currentUser with unsafe data for immediate UI responsiveness for new users
+    const tgUserUnsafe = Telegram.WebApp.initDataUnsafe?.user;
+    if (tgUserUnsafe) {
+        console.log("Telegram user data available (unsafe):", tgUserUnsafe);
+        currentUser.id = currentUser.id || tgUserUnsafe.id; // Prioritize existing if already set
+        currentUser.username = currentUser.username || tgUserUnsafe.username;
+        // Only update first/last name if they are defaults, allowing backend to override
+        currentUser.first_name = (currentUser.first_name === 'User' && tgUserUnsafe.first_name) ? tgUserUnsafe.first_name : (currentUser.first_name || 'User');
+        currentUser.last_name = currentUser.last_name || tgUserUnsafe.last_name;
+        currentUser.photo_url = tgUserUnsafe.photo_url; // Store photo_url
+        if (!currentUser.referralCode) {
+             currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
         }
-        
-        try { 
-            const rootStyle = getComputedStyle(document.documentElement);
-            let bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
-            if (!bgColor || bgColor === "initial" || bgColor === "inherit") { // Fallback if CSS var not immediately ready
-                bgColor = '#181A25'; 
-            }
-            if (bgColor) { 
-                 Telegram.WebApp.setHeaderColor(bgColor);
-                 Telegram.WebApp.setBackgroundColor(bgColor);
-                 console.log("Telegram theme colors set to:", bgColor);
-            }
-        } catch (e) { 
-            console.warn("Could not set Telegram WebApp theme colors.", e);
-        }
-
-        if (Telegram.WebApp.initData) {
-            console.log("initData is available, calling fetchInitialUserData.");
-            if (await fetchInitialUserData()) {
-                initialDataFetched = true;
-            }
-        } else { 
-            console.warn("Running in Telegram WebApp, but initData is NOT available at this point.");
-            updateUIBasedOnWallet(null); 
-            renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-            navigateToPage('main-page');
-        }
-
-    } else { 
-        console.warn("Telegram WebApp SDK not available. Running in simulated browser mode.");
-        if (!currentUser.referralCode) { 
-            currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
-        }
-        initialDataFetched = true; 
-        updateUIBasedOnWallet(null); 
-        renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-        navigateToPage('main-page');
-    }
-
-    if (initialDataFetched) {
-        console.log("Initial data fetched, performing final UI render.");
-        renderHeader(); 
-        renderCases(); 
-        renderProfile(); 
-        renderLeaderboard(); 
-        renderInvitePage();
-        navigateToPage('main-page'); 
     } else {
-        console.warn("Initial data was NOT successfully fetched. UI might be incomplete.");
+        console.warn("Telegram.WebApp.initDataUnsafe.user is not available.");
     }
-     console.log("initializeApp finished.");
+
+
+    if (Telegram.WebApp.initData) {
+        console.log("initData is available, calling fetchInitialUserData.");
+        if (await fetchInitialUserData()) {
+            initialDataFetched = true;
+        }
+    } else {
+        console.warn("Running in Telegram WebApp, but initData is NOT available at this point.");
+        updateUIBasedOnWallet(null);
+        initialDataFetched = true; // Consider it "fetched" in terms of proceeding with rendering
+    }
+
+    // Consolidate rendering calls here, after all data fetching attempts
+    console.log("Performing final UI render. Initial data fetched status:", initialDataFetched);
+    renderHeader();
+    renderCases();
+    renderProfile();
+    renderLeaderboard();
+    renderInvitePage();
+    navigateToPage('main-page'); // Ensure initial page is set
+
+    console.log("initializeApp finished.");
 }
 
 document.addEventListener('DOMContentLoaded', initializeApp);
-    
+
 </script>
 </body>
 </html>
