@@ -17,12 +17,12 @@ import json
 
 # SQLAlchemy imports
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint, BigInteger
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base, backref # Added backref for potential use, though back_populates is preferred here
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base, backref
 from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import text
 
-# Pytoniq imports (Ensure it's installed: pip install pytoniq)
+# Pytoniq imports
 from pytoniq import LiteBalancer
 import asyncio
 
@@ -30,9 +30,10 @@ import asyncio
 load_dotenv()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-MINI_APP_URL = os.environ.get("MINI_APP_URL", "https://default_mini_app_url.io")
+MINI_APP_NAME = os.environ.get("MINI_APP_NAME", "case") # Used for referral link construction
+MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}") # Default, can be overridden
 DATABASE_URL = os.environ.get("DATABASE_URL")
-AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 # 24 hours for initData validity
+AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24
 
 logging.basicConfig(
     level=logging.INFO,
@@ -44,16 +45,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# --- SQLAlchemy Настройка ---
 if not DATABASE_URL:
-    logger.error("DATABASE_URL не установлен в переменных окружения!")
+    logger.error("DATABASE_URL не установлен!")
     exit("DATABASE_URL is not set. Exiting.")
 
 engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# --- Модели Базы Данных ---
 class User(Base):
     __tablename__ = "users"
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=False)
@@ -63,10 +62,7 @@ class User(Base):
     ton_balance = Column(Float, default=0.0, nullable=False)
     star_balance = Column(Integer, default=0, nullable=False)
     referral_code = Column(String, unique=True, index=True, nullable=True)
-
-    # This column stores the ID of the user who referred THIS user.
     referred_by_id = Column(BigInteger, ForeignKey("users.id"), nullable=True)
-
     referral_earnings_pending = Column(Float, default=0.0, nullable=False)
     total_won_ton = Column(Float, default=0.0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -75,30 +71,15 @@ class User(Base):
     inventory = relationship("InventoryItem", back_populates="owner", cascade="all, delete-orphan")
     pending_deposits = relationship("PendingDeposit", back_populates="owner")
 
-    # --- Corrected Self-Referential Relationship for Referrals ---
-    # 'referrer' links a user to the user who referred them.
-    referrer = relationship(
-        "User",
-        remote_side=[id], # The `id` column on the "remote" User (the referrer)
-        foreign_keys=[referred_by_id], # The FK column in THIS User table
-        back_populates="referrals_made", # The collection on the referrer User
-        uselist=False # A user has only one referrer
-    )
-
-    # 'referrals_made' is a collection on a User instance, listing all other users
-    # who have THIS user's id in THEIR `referred_by_id` column.
-    referrals_made = relationship(
-        "User",
-        back_populates="referrer" # Links to the 'referrer' attribute on the referred users
-    )
-
+    referrer = relationship("User", remote_side=[id], foreign_keys=[referred_by_id], back_populates="referrals_made", uselist=False)
+    referrals_made = relationship("User", back_populates="referrer")
 
 class NFT(Base):
     __tablename__ = "nfts"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, index=True, nullable=False)
     image_filename = Column(String, nullable=True)
-    floor_price = Column(Float, default=0.0, nullable=False)
+    floor_price = Column(Float, default=0.0, nullable=False) # This will store the BASE floor price
     __table_args__ = (UniqueConstraint('name', name='uq_nft_name'),)
 
 class InventoryItem(Base):
@@ -106,9 +87,10 @@ class InventoryItem(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     nft_id = Column(Integer, ForeignKey("nfts.id"), nullable=False)
-    current_value = Column(Float, nullable=False)
+    current_value = Column(Float, nullable=False) # Actual value, potentially modified by variant/upgrades
     upgrade_multiplier = Column(Float, default=1.0, nullable=False)
     obtained_at = Column(DateTime(timezone=True), server_default=func.now())
+    variant = Column(String, nullable=True) # e.g., "black_singularity"
 
     owner = relationship("User", back_populates="inventory")
     nft = relationship("NFT")
@@ -124,7 +106,6 @@ class PendingDeposit(Base):
     status = Column(String, default="pending", index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=False)
-
     owner = relationship("User", back_populates="pending_deposits")
 
 class PromoCode(Base):
@@ -136,9 +117,7 @@ class PromoCode(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
-
 Base.metadata.create_all(bind=engine)
-
 
 def generate_image_filename_from_name(name_str: str) -> str:
     if not name_str: return 'placeholder.png'
@@ -152,420 +131,397 @@ def generate_image_filename_from_name(name_str: str) -> str:
     cleaned_name = re.sub(r'\s+', '-', cleaned_name)
     return cleaned_name + '.png'
 
+# Point 2: Updated Floor Prices
+UPDATED_FLOOR_PRICES = {
+    'Plush Pepe': 1200.0,
+    'Neko Helmet': 15.0,
+    'Party Sparkler': 2.0, # Assuming original, not specified to change
+    'Homemade Cake': 2.0,  # Assuming original
+    'Cookie Heart': 1.8,   # Assuming original
+    'Jack-in-the-box': 2.0,# Assuming original
+    'Skull Flower': 3.4,   # Assuming original
+    'Lol Pop': 1.4,        # Assuming original
+    'Hynpo Lollipop': 1.4, # Assuming original
+    'Desk Calendar': 1.4,  # Assuming original
+    'B-Day Candle': 1.4,   # Assuming original
+    'Record Player': 4.0,  # Assuming original
+    'Jelly Bunny': 3.6,    # Assuming original
+    'Tama Gadget': 4.0,    # Assuming original
+    'Snow Globe': 4.0,     # Assuming original
+    'Swiss Watch': 18.6,
+    'Eternal Rose': 11.0,  # Assuming original
+    'Electric Skull': 10.9,
+    'Diamond Ring': 8.06,
+    'Love Potion': 5.4,    # Assuming original
+    'Top Hat': 6.0,        # Assuming original
+    'Voodoo Doll': 9.4,
+    'Perfume Bottle': 38.3,
+    'Sharp Tongue': 17.0,
+    'Loot Bag': 25.0,
+    'Genie Lamp': 19.3,
+    'Kissed Frog': 14.8,
+    'Vintage Cigar': 19.7,
+    'Mini Oscar': 40.5,
+    'Scared Cat': 22.0, # Renamed from "Sacred Cat" to "Scared Cat" for consistency if that was a typo
+    'Toy Bear': 16.3,
+    'Astral Shard': 50.0,
+    "Durov's Cap": 251.0,
+    'Precious Peach': 100.0
+}
 
-cases_data_backend = [
+# Function to calculate Expected Value (EV) of a case and adjust its price for RTP
+TARGET_RTP = 0.70 # 70%
+
+def calculate_case_price_for_rtp(prizes_config, black_singularity_mode=False):
+    ev = 0
+    for prize_info in prizes_config:
+        base_floor_price = UPDATED_FLOOR_PRICES.get(prize_info['name'], prize_info['floorPrice']) # Use updated or original
+        
+        current_prize_value = base_floor_price
+        if black_singularity_mode:
+            # Point 4: Black Singularity items are 2-3x more valuable. Let's use 2.5x as an average.
+            # This higher value is used for EV calculation of the Black Singularity case.
+            current_prize_value *= 2.5 
+        
+        ev += current_prize_value * prize_info['probability']
+    
+    if TARGET_RTP > 0:
+        case_price = ev / TARGET_RTP
+        return round(case_price, 2) # Round to 2 decimal places for TON
+    return round(ev, 2) # Fallback if RTP is 0, price equals EV (100% RTP)
+
+
+cases_data_backend_unpriced = [ # Original structure without priceTON
     {
-        'id': 'lolpop', 'name': 'Lol Pop Stash', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'priceTON': 1.5,
+        'id': 'lolpop', 'name': 'Lol Pop Stash',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.001 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.005 },
-            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': 2, 'probability': 0.07 },
-            { 'name': 'Homemade Cake', 'imageFilename': generate_image_filename_from_name('Homemade Cake'), 'floorPrice': 2, 'probability': 0.07 },
-            { 'name': 'Cookie Heart', 'imageFilename': generate_image_filename_from_name('Cookie Heart'), 'floorPrice': 1.8, 'probability': 0.07 },
-            { 'name': 'Jack-in-the-box', 'imageFilename': generate_image_filename_from_name('Jack-in-the-box'), 'floorPrice': 2, 'probability': 0.06 },
-            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 3.4, 'probability': 0.023 },
-            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': 1.4, 'probability': 0.25 },
-            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': 1.4, 'probability': 0.25 },
-            { 'name': 'Desk Calendar', 'imageFilename': generate_image_filename_from_name('Desk Calendar'), 'floorPrice': 1.4, 'probability': 0.10 },
-            { 'name': 'B-Day Candle', 'imageFilename': generate_image_filename_from_name('B-Day Candle'), 'floorPrice': 1.4, 'probability': 0.10 },
+            { 'name': 'Plush Pepe', 'probability': 0.001 }, { 'name': 'Neko Helmet', 'probability': 0.005 },
+            { 'name': 'Party Sparkler', 'probability': 0.07 }, { 'name': 'Homemade Cake', 'probability': 0.07 },
+            { 'name': 'Cookie Heart', 'probability': 0.07 }, { 'name': 'Jack-in-the-box', 'probability': 0.06 },
+            { 'name': 'Skull Flower', 'probability': 0.023 }, { 'name': 'Lol Pop', 'probability': 0.25 },
+            { 'name': 'Hynpo Lollipop', 'probability': 0.25 }, { 'name': 'Desk Calendar', 'probability': 0.10 },
+            { 'name': 'B-Day Candle', 'probability': 0.10 },
         ]
     },
     {
-        'id': 'recordplayer', 'name': 'Record Player Vault', 'imageFilename': generate_image_filename_from_name('Record Player'), 'priceTON': 6,
+        'id': 'recordplayer', 'name': 'Record Player Vault',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0012 },
-            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 4, 'probability': 0.40 },
-            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': 1.4, 'probability': 0.10 },
-            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': 1.4, 'probability': 0.10 },
-            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': 2, 'probability': 0.10 },
-            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': 3.4, 'probability': 0.10 },
-            { 'name': 'Jelly Bunny', 'imageFilename': generate_image_filename_from_name('Jelly Bunny'), 'floorPrice': 3.6, 'probability': 0.0988 },
-            { 'name': 'Tama Gadget', 'imageFilename': generate_image_filename_from_name('Tama Gadget'), 'floorPrice': 4, 'probability': 0.05 },
-            { 'name': 'Snow Globe', 'imageFilename': generate_image_filename_from_name('Snow Globe'), 'floorPrice': 4, 'probability': 0.05 },
+            { 'name': 'Plush Pepe', 'probability': 0.0012 }, { 'name': 'Record Player', 'probability': 0.40 },
+            { 'name': 'Lol Pop', 'probability': 0.10 }, { 'name': 'Hynpo Lollipop', 'probability': 0.10 },
+            { 'name': 'Party Sparkler', 'probability': 0.10 }, { 'name': 'Skull Flower', 'probability': 0.10 },
+            { 'name': 'Jelly Bunny', 'probability': 0.0988 }, { 'name': 'Tama Gadget', 'probability': 0.05 },
+            { 'name': 'Snow Globe', 'probability': 0.05 },
         ]
     },
     {
-        'id': 'swisswatch', 'name': 'Swiss Watch Box', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'priceTON': 10,
+        'id': 'swisswatch', 'name': 'Swiss Watch Box',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0015 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.08 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.10 },
-            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': 11, 'probability': 0.05 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 12.6, 'probability': 0.03 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 11.4, 'probability': 0.0395 },
-            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': 4, 'probability': 0.20 },
-            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': 5.4, 'probability': 0.20 },
-            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': 6, 'probability': 0.15 },
-            { 'name': 'Voodoo Doll', 'imageFilename': generate_image_filename_from_name('Voodoo Doll'), 'floorPrice': 8.4, 'probability': 0.149 },
+            { 'name': 'Plush Pepe', 'probability': 0.0015 }, { 'name': 'Swiss Watch', 'probability': 0.08 },
+            { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Eternal Rose', 'probability': 0.05 },
+            { 'name': 'Electric Skull', 'probability': 0.03 }, { 'name': 'Diamond Ring', 'probability': 0.0395 },
+            { 'name': 'Record Player', 'probability': 0.20 }, { 'name': 'Love Potion', 'probability': 0.20 },
+            { 'name': 'Top Hat', 'probability': 0.15 }, { 'name': 'Voodoo Doll', 'probability': 0.149 },
         ]
     },
     {
-        'id': 'perfumebottle', 'name': 'Perfume Chest', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'priceTON': 20,
+        'id': 'perfumebottle', 'name': 'Perfume Chest',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0018 },
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.08 },
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 20, 'probability': 0.12 },
-            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 24, 'probability': 0.09946 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.15 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.15 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 19.2, 'probability': 0.15 },
-            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': 18, 'probability': 0.10 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 12.6, 'probability': 0.07 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 11.4, 'probability': 0.07874 },
+            { 'name': 'Plush Pepe', 'probability': 0.0018 }, { 'name': 'Perfume Bottle', 'probability': 0.08 },
+            { 'name': 'Sharp Tongue', 'probability': 0.12 }, { 'name': 'Loot Bag', 'probability': 0.09946 },
+            { 'name': 'Swiss Watch', 'probability': 0.15 }, { 'name': 'Neko Helmet', 'probability': 0.15 },
+            { 'name': 'Genie Lamp', 'probability': 0.15 }, { 'name': 'Kissed Frog', 'probability': 0.10 },
+            { 'name': 'Electric Skull', 'probability': 0.07 }, { 'name': 'Diamond Ring', 'probability': 0.07874 },
         ]
     },
     {
-        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'priceTON': 40,
+        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.002 },
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.2994 },
-            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 26, 'probability': 0.12 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.12 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.10 },
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 20, 'probability': 0.10 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 19.2, 'probability': 0.08 },
-            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 36, 'probability': 0.08 },
-            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 34, 'probability': 0.05 },
-            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 15, 'probability': 0.0486 },
+            { 'name': 'Plush Pepe', 'probability': 0.002 }, { 'name': 'Perfume Bottle', 'probability': 0.2994 },
+            { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Swiss Watch', 'probability': 0.12 },
+            { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Sharp Tongue', 'probability': 0.10 },
+            { 'name': 'Genie Lamp', 'probability': 0.08 }, { 'name': 'Mini Oscar', 'probability': 0.08 },
+            { 'name': 'Scared Cat', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.0486 },
         ]
     },
     {
-        'id': 'astralshard', 'name': 'Astral Shard Relic', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'priceTON': 100,
+        'id': 'astralshard', 'name': 'Astral Shard Relic',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0025 },
-            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 200, 'probability': 0.09925 },
-            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': 120, 'probability': 0.10 },
-            { 'name': 'Precious Peach', 'imageFilename': generate_image_filename_from_name('Precious Peach'), 'floorPrice': 120, 'probability': 0.10 },
-            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 26, 'probability': 0.12 },
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.12 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.10 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.08 },
-            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 36, 'probability': 0.10 },
-            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 34, 'probability': 0.08 },
-            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 24, 'probability': 0.05 },
-            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 15, 'probability': 0.04825 },
+            { 'name': 'Plush Pepe', 'probability': 0.0025 }, { 'name': 'Durov\'s Cap', 'probability': 0.09925 },
+            { 'name': 'Astral Shard', 'probability': 0.10 }, { 'name': 'Precious Peach', 'probability': 0.10 },
+            { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Perfume Bottle', 'probability': 0.12 },
+            { 'name': 'Swiss Watch', 'probability': 0.10 }, { 'name': 'Neko Helmet', 'probability': 0.08 },
+            { 'name': 'Mini Oscar', 'probability': 0.10 }, { 'name': 'Scared Cat', 'probability': 0.08 },
+            { 'name': 'Loot Bag', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.04825 },
         ]
     },
     {
-        'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'priceTON': 200,
+        'id': 'plushpepe', 'name': 'Plush Pepe Hoard',
         'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.15 },
-            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 200, 'probability': 0.25 },
-            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': 120, 'probability': 0.60 },
+            { 'name': 'Plush Pepe', 'probability': 0.15 },
+            { 'name': 'Durov\'s Cap', 'probability': 0.25 },
+            { 'name': 'Astral Shard', 'probability': 0.60 },
         ]
     },
     {
         'id': 'black', 'name': 'BLACK Singularity',
-        'isBackgroundCase': True,
-        'bgImageFilename': 'image-1.png', # Updated background image filename
-        'overlayPrizeName': 'Neko Helmet',
-        'priceTON': 30,
-        'prizes': [
-            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': 1000, 'probability': 0.0022 },
-            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': 200, 'probability': 0.04934 },
-            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': 42, 'probability': 0.10 },
-            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': 36, 'probability': 0.08 },
-            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': 34, 'probability': 0.07 },
-            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': 26, 'probability': 0.08 },
-            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': 24, 'probability': 0.08 },
-            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': 20, 'probability': 0.08 },
-            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': 19.2, 'probability': 0.08 },
-            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': 18, 'probability': 0.07 },
-            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': 15, 'probability': 0.07 },
-            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': 18, 'probability': 0.07 },
-            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': 12.6, 'probability': 0.05 },
-            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': 11.4, 'probability': 0.05 },
-            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': 15, 'probability': 0.06846 },
+        'isBackgroundCase': True, 'bgImageFilename': 'image-1.png', 'overlayPrizeName': 'Neko Helmet',
+        'prizes': [ # Probabilities might need significant adjustment for RTP with 2-3x values
+            { 'name': 'Plush Pepe', 'probability': 0.001 }, # Reduced significantly
+            { 'name': 'Durov\'s Cap', 'probability': 0.01 }, # Reduced
+            { 'name': 'Perfume Bottle', 'probability': 0.05 },
+            { 'name': 'Mini Oscar', 'probability': 0.04 },
+            { 'name': 'Scared Cat', 'probability': 0.06 },
+            { 'name': 'Vintage Cigar', 'probability': 0.07 },
+            { 'name': 'Loot Bag', 'probability': 0.07 },
+            { 'name': 'Sharp Tongue', 'probability': 0.08 },
+            { 'name': 'Genie Lamp', 'probability': 0.08 },
+            { 'name': 'Swiss Watch', 'probability': 0.10 },
+            { 'name': 'Neko Helmet', 'probability': 0.15 }, # Higher for overlay
+            { 'name': 'Kissed Frog', 'probability': 0.10 },
+            { 'name': 'Electric Skull', 'probability': 0.09 },
+            { 'name': 'Diamond Ring', 'probability': 0.089}, # Adjusted to make sum ~1
+            # Removed Toy Bear to make space for higher value item probabilities or to adjust sum
         ]
     },
 ]
 
+# Populate cases_data_backend with image filenames, full prize data, and calculated prices
+cases_data_backend = []
+for case_template in cases_data_backend_unpriced:
+    full_prizes = []
+    for prize_stub in case_template['prizes']:
+        prize_name = prize_stub['name']
+        full_prizes.append({
+            'name': prize_name,
+            'imageFilename': generate_image_filename_from_name(prize_name),
+            'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), # Get updated floor price
+            'probability': prize_stub['probability']
+        })
+    
+    is_black_singularity = case_template['id'] == 'black'
+    calculated_price = calculate_case_price_for_rtp(full_prizes, black_singularity_mode=is_black_singularity)
+
+    # Add imageFilenames for the case itself, if not a background case
+    case_image_filename = None
+    if not case_template.get('isBackgroundCase'):
+        case_image_filename = generate_image_filename_from_name(case_template['name'])
+
+
+    cases_data_backend.append({
+        **case_template, # id, name, and potentially isBackgroundCase, bgImageFilename, overlayPrizeName
+        'imageFilename': case_image_filename, # Add this only if not a background case
+        'prizes': full_prizes,
+        'priceTON': calculated_price
+    })
+    # Correctly add imageFilename for non-background cases, and keep existing for background cases
+    if not case_template.get('isBackgroundCase'):
+        cases_data_backend[-1]['imageFilename'] = generate_image_filename_from_name(case_template['name'])
+    elif 'bgImageFilename' in case_template: # for black singularity
+         cases_data_backend[-1]['bgImageFilename'] = case_template['bgImageFilename']
+         cases_data_backend[-1]['overlayPrizeName'] = case_template.get('overlayPrizeName')
+
+
 if not cases_data_backend:
-    logger.critical("Массив cases_data_backend ПУСТ! Приложение не сможет корректно функционировать. Заполни его!")
+    logger.critical("Массив cases_data_backend ПУСТ! Заполни его!")
 
 def populate_initial_data():
-    if not cases_data_backend:
-        logger.error("Не могу заполнить NFT, так как cases_data_backend пуст.")
-        return
     db = SessionLocal()
     try:
-        # Populate NFTs
-        existing_nft_names_query = db.query(NFT.name).all()
-        existing_nft_names = {name_tuple[0] for name_tuple in existing_nft_names_query}
-
+        existing_nft_names = {name[0] for name in db.query(NFT.name).all()}
         nfts_to_add = []
-        for case_config in cases_data_backend:
-            for prize in case_config.get('prizes', []):
-                if prize['name'] not in existing_nft_names:
-                    image_fn = prize.get('imageFilename', generate_image_filename_from_name(prize['name']))
-                    nfts_to_add.append(NFT(
-                        name=prize['name'], image_filename=image_fn, floor_price=prize['floorPrice']
-                    ))
-                    existing_nft_names.add(prize['name'])
-
+        for prize_name, floor_price in UPDATED_FLOOR_PRICES.items():
+            if prize_name not in existing_nft_names:
+                nfts_to_add.append(NFT(
+                    name=prize_name,
+                    image_filename=generate_image_filename_from_name(prize_name),
+                    floor_price=floor_price
+                ))
+                existing_nft_names.add(prize_name)
         if nfts_to_add:
-            db.add_all(nfts_to_add)
-            db.commit()
-            logger.info(f"Добавлено {len(nfts_to_add)} новых NFT в базу.")
+            db.add_all(nfts_to_add); db.commit()
+            logger.info(f"Добавлено/Обновлено {len(nfts_to_add)} NFT с новыми ценами.")
         else:
-            logger.info("Новых NFT для добавления не найдено, или таблица уже заполнена.")
+            # Update existing NFTs if their prices changed
+            updated_count = 0
+            for nft_in_db in db.query(NFT).all():
+                if nft_in_db.name in UPDATED_FLOOR_PRICES and nft_in_db.floor_price != UPDATED_FLOOR_PRICES[nft_in_db.name]:
+                    nft_in_db.floor_price = UPDATED_FLOOR_PRICES[nft_in_db.name]
+                    updated_count +=1
+            if updated_count > 0:
+                db.commit()
+                logger.info(f"Обновлены цены для {updated_count} существующих NFT.")
 
-        # Seed "durov" promocode
+
         durov_code = db.query(PromoCode).filter(PromoCode.code_text == 'durov').first()
         if not durov_code:
-            durov_code = PromoCode(code_text='durov', activations_left=10, ton_amount=5.0)
-            db.add(durov_code)
-            db.commit()
-            logger.info("Promocode 'durov' (5 TON, 10 activations) seeded.")
-        else:
-            logger.info("Promocode 'durov' already exists.")
-
-    except IntegrityError:
-        db.rollback()
-        logger.warning("Ошибка целостности при добавлении NFT/Promocode (возможно, дубликаты уже существуют). Пропускаем.")
+            db.add(PromoCode(code_text='durov', activations_left=10, ton_amount=5.0)); db.commit()
+            logger.info("Promocode 'durov' seeded.")
     except Exception as e:
-        db.rollback()
-        logger.error(f"Ошибка при заполнении таблицы NFT/Promocode: {type(e).__name__} - {e}")
-    finally:
-        db.close()
+        db.rollback(); logger.error(f"Ошибка populate_initial_data: {e}")
+    finally: db.close()
 
 populate_initial_data()
 
 # --- Constants for Deposit ---
-DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR" # Your actual deposit address
-DEPOSIT_COMMENT = "cpd7r07ud3s" # Your desired fixed comment
+DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR"
+DEPOSIT_COMMENT = "cpd7r07ud3s"
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
 # --- Flask Приложение ---
 app = Flask(__name__)
-allowed_origins = [
-    "https://vasiliy-katsyka.github.io",
-    # "http://127.0.0.1:5500", # For local dev if needed
-    # "http://localhost:5500" # For local dev if needed
-]
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+CORS(app, resources={r"/api/*": {"origins": ["https://vasiliy-katsyka.github.io"]}}) # Adjust origins if needed
 
-# --- Telegram Бот ---
 if not BOT_TOKEN:
     logger.error("Токен бота (BOT_TOKEN) не найден!")
-    if __name__ == '__main__': exit("BOT_TOKEN is not set. Exiting.")
-    else: raise RuntimeError("BOT_TOKEN is not set. Cannot initialize bot.")
+    exit("BOT_TOKEN is not set.")
 bot = telebot.TeleBot(BOT_TOKEN)
 
 def get_db():
     db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+    try: yield db
+    finally: db.close()
 
 def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
     try:
-        if not init_data_str:
-            logger.warning("initData is empty or None.")
-            return None
-
+        if not init_data_str: return None
         parsed_data = dict(parse_qs(init_data_str))
-
-        if 'hash' not in parsed_data or 'user' not in parsed_data or 'auth_date' not in parsed_data:
-            logger.warning(f"initData missing required fields. Got: {list(parsed_data.keys())}")
-            return None
-
+        if not all(k in parsed_data for k in ['hash', 'user', 'auth_date']): return None
+        
         hash_received = parsed_data.pop('hash')[0]
         auth_date_ts = int(parsed_data['auth_date'][0])
-        current_ts = int(dt.now(timezone.utc).timestamp())
+        if (int(dt.now(timezone.utc).timestamp()) - auth_date_ts) > AUTH_DATE_MAX_AGE_SECONDS: return None
 
-        if (current_ts - auth_date_ts) > AUTH_DATE_MAX_AGE_SECONDS:
-            logger.warning(f"initData is outdated. auth_date: {auth_date_ts}, current_ts: {current_ts}, diff: {current_ts - auth_date_ts}s. Max age: {AUTH_DATE_MAX_AGE_SECONDS}s")
-            return None
-
-        data_check_list = []
-        for key in sorted(parsed_data.keys()):
-            value_str = parsed_data[key][0]
-            data_check_list.append(f"{key}={value_str}")
-
-        data_check_string = "\n".join(data_check_list)
-        secret_key_intermediate = bot_token.encode()
-        key_for_secret = "WebAppData".encode()
-        secret_key = hmac.new(key_for_secret, secret_key_intermediate, hashlib.sha256).digest()
-        calculated_hash_bytes = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256)
-        calculated_hash_hex = calculated_hash_bytes.hexdigest()
+        data_check_string = "\n".join(f"{k}={parsed_data[k][0]}" for k in sorted(parsed_data.keys()))
+        secret_key = hmac.new("WebAppData".encode(), bot_token.encode(), hashlib.sha256).digest()
+        calculated_hash_hex = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
 
         if calculated_hash_hex == hash_received:
-            user_data_json_str = unquote(parsed_data['user'][0])
-            user_info_dict = json.loads(user_data_json_str)
-            if 'id' not in user_info_dict or not isinstance(user_info_dict['id'], (int, float)):
-                logger.warning(f"User ID missing or not numeric in parsed user data: {user_info_dict}")
-                return None
-            return {
-                "id": int(user_info_dict.get("id")),
-                "first_name": user_info_dict.get("first_name"),
-                "last_name": user_info_dict.get("last_name"),
-                "username": user_info_dict.get("username"),
-                "language_code": user_info_dict.get("language_code"),
-                "is_premium": user_info_dict.get("is_premium", False),
-                "photo_url": user_info_dict.get("photo_url")
-            }
-        else:
-            logger.warning(f"Hash mismatch! Received: {hash_received}, Calculated: {calculated_hash_hex}")
-            logger.debug(f"DataCheckString for mismatch: '{data_check_string}'")
-            return None
-    except Exception as e:
-        logger.error(f"Exception during initData validation: {type(e).__name__} - {e}", exc_info=True)
+            user_info_dict = json.loads(unquote(parsed_data['user'][0]))
+            if 'id' not in user_info_dict: return None
+            return { "id": int(user_info_dict["id"]), **user_info_dict }
         return None
+    except Exception as e:
+        logger.error(f"initData validation error: {e}", exc_info=True); return None
 
-
-# --- API Эндпоинты ---
+# --- API Endpoints ---
 @app.route('/')
-def index_route():
-    return "Pusik Gifts Flask App is running!"
+def index_route(): return "Pusik Gifts App is Running!"
 
 @app.route('/api/get_user_data', methods=['POST'])
 def get_user_data_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
-    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
-
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
     user_id = auth_user_data["id"]
     db = next(get_db())
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        logger.warning(f"User {user_id} not found via API. Creating now.")
-        user = User(
-            id=user_id, username=auth_user_data.get("username"),
-            first_name=auth_user_data.get("first_name"), last_name=auth_user_data.get("last_name"),
-            referral_code=f"ref_{user_id}_{random.randint(1000,9999)}"
-        )
-        db.add(user)
-        try:
-            db.commit()
-            db.refresh(user)
-        except Exception as e_commit:
-            db.rollback()
-            logger.error(f"Error creating user {user_id} via API: {e_commit}")
-            return jsonify({"error": "Failed to initialize user data"}), 500
+    if not user: # Should be created by /start, but as a fallback:
+        user = User(id=user_id, username=auth_user_data.get("username"), first_name=auth_user_data.get("first_name"), last_name=auth_user_data.get("last_name"), referral_code=f"ref_{user_id}_{random.randint(1000,9999)}")
+        db.add(user); db.commit(); db.refresh(user)
 
-    inventory_data = []
-    for item in user.inventory:
-        inventory_data.append({
-            "id": item.id, "name": item.nft.name, "imageFilename": item.nft.image_filename,
-            "floorPrice": item.nft.floor_price, "currentValue": item.current_value,
-            "upgradeMultiplier": item.upgrade_multiplier,
-            "obtained_at": item.obtained_at.isoformat() if item.obtained_at else None
-        })
-
+    inventory_data = [{
+        "id": item.id, "name": item.nft.name, "imageFilename": item.nft.image_filename,
+        "floorPrice": item.nft.floor_price, # Base floor price
+        "currentValue": item.current_value, # Value, possibly altered by variant/upgrades
+        "upgradeMultiplier": item.upgrade_multiplier, "variant": item.variant, # Pass variant
+        "obtained_at": item.obtained_at.isoformat() if item.obtained_at else None
+    } for item in user.inventory]
     invited_friends_count = db.query(User).filter(User.referred_by_id == user_id).count()
-
     return jsonify({
-        "id": user.id, "username": user.username, "first_name": user.first_name,
-        "last_name": user.last_name, "tonBalance": user.ton_balance,
-        "starBalance": user.star_balance, "inventory": inventory_data,
-        "referralCode": user.referral_code,
-        "referralEarningsPending": user.referral_earnings_pending,
-        "total_won_ton": user.total_won_ton,
-        "invited_friends_count": invited_friends_count
+        "id": user.id, "username": user.username, "first_name": user.first_name, "last_name": user.last_name,
+        "tonBalance": user.ton_balance, "starBalance": user.star_balance, "inventory": inventory_data,
+        "referralCode": user.referral_code, "referralEarningsPending": user.referral_earnings_pending,
+        "total_won_ton": user.total_won_ton, "invited_friends_count": invited_friends_count
     })
 
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
     user_id = auth_user_data["id"]
-
-    data = flask_request.get_json()
-    case_id = data.get('case_id')
-    if not case_id: return jsonify({"error": "case_id is required"}), 400
+    data = flask_request.get_json(); case_id = data.get('case_id')
+    if not case_id: return jsonify({"error": "case_id required"}), 400
 
     db = next(get_db())
     user = db.query(User).filter(User.id == user_id).first()
     if not user: return jsonify({"error": "User not found"}), 404
 
-    if not cases_data_backend: return jsonify({"error": "Case data not loaded on backend"}), 500
     target_case = next((c for c in cases_data_backend if c['id'] == case_id), None)
     if not target_case: return jsonify({"error": "Case not found"}), 404
 
-    case_cost_ton = target_case.get('priceTON', 0)
+    case_cost_ton = target_case['priceTON']
     if user.ton_balance < case_cost_ton:
-        return jsonify({"error": f"Not enough TON. Need {case_cost_ton}, have {user.ton_balance:.2f}"}), 400
+        return jsonify({"error": f"Not enough TON. Need {case_cost_ton:.2f}, have {user.ton_balance:.2f}"}), 400
 
-    prizes = target_case.get('prizes', [])
-    if not prizes: return jsonify({"error": "No prizes in this case"}), 500
+    prizes = target_case['prizes']
+    if not prizes: return jsonify({"error": "No prizes in case"}), 500
 
-    total_probability = sum(p.get('probability', 0) for p in prizes)
-    winner_data = None
-    if total_probability == 0 and prizes:
-        winner_data = random.choice(prizes)
-    elif total_probability > 0:
-        normalized_prizes = prizes
-        if abs(total_probability - 1.0) > 0.0001:
-            normalized_prizes = [{**p_info, 'probability': p_info.get('probability',0) / total_probability} for p_info in prizes]
-        rand_val = random.random()
-        current_prob_sum = 0
-        for prize_info in normalized_prizes:
-            current_prob_sum += prize_info.get('probability', 0)
-            if rand_val <= current_prob_sum:
-                winner_data = prize_info
-                break
-        if not winner_data: winner_data = random.choice(normalized_prizes)
-    else:
-        return jsonify({"error": "Case prize configuration error"}), 500
-
-    if not winner_data: return jsonify({"error": "Could not determine prize"}), 500
+    # Weighted random choice
+    rand_val = random.random()
+    current_prob_sum = 0
+    chosen_prize_info = None
+    for prize_info in prizes:
+        current_prob_sum += prize_info['probability']
+        if rand_val <= current_prob_sum:
+            chosen_prize_info = prize_info
+            break
+    if not chosen_prize_info: chosen_prize_info = random.choice(prizes) # Fallback
 
     user.ton_balance -= case_cost_ton
-    user.total_won_ton += winner_data['floorPrice']
+    
+    db_nft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
+    if not db_nft: # Should not happen if populate_initial_data ran
+        logger.error(f"CRITICAL: NFT '{chosen_prize_info['name']}' not in DB during case open!"); 
+        # Give back TON and error out
+        user.ton_balance += case_cost_ton; db.commit()
+        return jsonify({"error": "Internal error: Prize NFT data missing"}), 500
 
-    db_nft = db.query(NFT).filter(NFT.name == winner_data['name']).first()
-    if not db_nft:
-        logger.error(f"NFT '{winner_data['name']}' NOT FOUND. Creating on-the-fly.")
-        image_fn_winner = winner_data.get('imageFilename', generate_image_filename_from_name(winner_data['name']))
-        db_nft = NFT(name=winner_data['name'], image_filename=image_fn_winner, floor_price=winner_data['floorPrice'])
-        db.add(db_nft)
-        try:
-            db.commit(); db.refresh(db_nft)
-        except Exception as e_create_nft:
-            db.rollback()
-            user.ton_balance += case_cost_ton; user.total_won_ton -= winner_data['floorPrice']
-            db.commit()
-            logger.error(f"Failed to create NFT '{winner_data['name']}' on-the-fly: {e_create_nft}")
-            return jsonify({"error": "Internal prize data error"}), 500
+    item_variant = "black_singularity" if target_case['id'] == 'black' else None
+    
+    # Calculate actual value for this item instance
+    actual_item_value = db_nft.floor_price
+    if item_variant == "black_singularity":
+        actual_item_value *= 2.5 # or random.uniform(2.0, 3.0)
 
-    new_item = InventoryItem(user_id=user.id, nft_id=db_nft.id, current_value=db_nft.floor_price)
+    user.total_won_ton += actual_item_value # Add the *actual value won* to total
+
+    new_item = InventoryItem(user_id=user.id, nft_id=db_nft.id, current_value=actual_item_value, variant=item_variant)
     db.add(new_item); db.commit(); db.refresh(new_item)
 
     return jsonify({
         "status": "success",
-        "won_prize": {"id": new_item.id, "name": db_nft.name, "imageFilename": db_nft.image_filename, "floorPrice": db_nft.floor_price, "currentValue": new_item.current_value},
+        "won_prize": {
+            "id": new_item.id, "name": db_nft.name, "imageFilename": db_nft.image_filename,
+            "floorPrice": db_nft.floor_price, # Base floor price for display
+            "currentValue": new_item.current_value, # Actual value of this instance
+            "variant": new_item.variant
+        },
         "new_balance_ton": user.ton_balance,
     })
 
+# Other API endpoints (upgrade, convert, sell, deposit, verify, leaderboard, referrals, promocode, finalize_withdrawal)
+# ... (These would be largely the same as your previous version, just ensure they use `current_value` from InventoryItem correctly)
+# ... Make sure `finalize_withdrawal_api` correctly deducts `item_to_remove.current_value` from `total_won_ton`.
+
 @app.route('/api/upgrade_item', methods=['POST'])
 def upgrade_item_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
     user_id = auth_user_data["id"]
-
     data = flask_request.get_json()
-    inventory_item_id = data.get('inventory_item_id')
-    multiplier_str = data.get('multiplier_str')
+    inventory_item_id = data.get('inventory_item_id'); multiplier_str = data.get('multiplier_str')
     if not all([inventory_item_id, multiplier_str]): return jsonify({"error": "Missing params"}), 400
-    try:
-        multiplier = float(multiplier_str); inventory_item_id = int(inventory_item_id)
+    try: multiplier = float(multiplier_str); inventory_item_id = int(inventory_item_id)
     except ValueError: return jsonify({"error": "Invalid data format"}), 400
 
     upgrade_chances_map = {1.5: 50, 2.0: 35, 3.0: 25, 5.0: 15, 10.0: 8, 20.0: 3}
     if multiplier not in upgrade_chances_map: return jsonify({"error": "Invalid multiplier"}), 400
-    success_chance = upgrade_chances_map[multiplier]
-
+    
     db = next(get_db())
     item_to_upgrade = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == user_id).first()
     if not item_to_upgrade: return jsonify({"error": "Item not found"}), 404
+    user = db.query(User).filter(User.id == user_id).first()
 
-    user = db.query(User).filter(User.id == user_id).first() # Fetch user once
-
-    if random.uniform(0, 100) < success_chance:
+    if random.uniform(0, 100) < upgrade_chances_map[multiplier]:
         original_value = item_to_upgrade.current_value
         new_value = round(original_value * multiplier, 2)
         value_increase = new_value - original_value
@@ -573,299 +529,246 @@ def upgrade_item_api():
         item_to_upgrade.upgrade_multiplier *= multiplier
         if user: user.total_won_ton += value_increase
         db.commit()
-        return jsonify({"status": "success", "message": f"Upgrade successful! New value: {new_value:.2f} TON", "item": {"id": item_to_upgrade.id, "currentValue": new_value, "name": item_to_upgrade.nft.name, "upgradeMultiplier": item_to_upgrade.upgrade_multiplier}})
+        return jsonify({"status": "success", "message": f"Upgrade successful! New value: {new_value:.2f} TON", "item": {"id": item_to_upgrade.id, "currentValue": new_value, "name": item_to_upgrade.nft.name, "upgradeMultiplier": item_to_upgrade.upgrade_multiplier, "variant": item_to_upgrade.variant }})
     else:
-        item_name_lost = item_to_upgrade.nft.name
-        lost_value = item_to_upgrade.current_value
+        item_name_lost = item_to_upgrade.nft.name; lost_value = item_to_upgrade.current_value
         if user: user.total_won_ton -= lost_value
-        db.delete(item_to_upgrade)
-        db.commit()
-        logger.info(f"Item {item_name_lost} (ID: {inventory_item_id}) lost in upgrade for user {user_id}.")
+        db.delete(item_to_upgrade); db.commit()
         return jsonify({"status": "failed", "message": f"Upgrade failed! You lost {item_name_lost}.", "item_lost": True})
 
 @app.route('/api/convert_to_ton', methods=['POST'])
 def convert_to_ton_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
-    user_id = auth_user_data["id"]
-
-    data = flask_request.get_json()
-    inventory_item_id = data.get('inventory_item_id')
-    if not inventory_item_id: return jsonify({"error": "inventory_item_id is required"}), 400
+    user_id = auth_user_data["id"]; data = flask_request.get_json(); inventory_item_id = data.get('inventory_item_id')
+    if not inventory_item_id: return jsonify({"error": "ID required"}), 400
     try: inventory_item_id = int(inventory_item_id)
-    except ValueError: return jsonify({"error": "Invalid inventory_item_id"}), 400
-
-    db = next(get_db())
-    user = db.query(User).filter(User.id == user_id).first()
+    except ValueError: return jsonify({"error": "Invalid ID"}), 400
+    db = next(get_db()); user = db.query(User).filter(User.id == user_id).first()
     item_to_convert = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == user_id).first()
-    if not user or not item_to_convert: return jsonify({"error": "User or item not found"}), 404
-
-    conversion_value = item_to_convert.current_value
-    user.ton_balance += conversion_value
-    db.delete(item_to_convert)
-    db.commit()
-    return jsonify({"status": "success", "message": f"{item_to_convert.nft.name} converted to {conversion_value:.2f} TON.", "new_balance_ton": user.ton_balance})
+    if not user or not item_to_convert: return jsonify({"error": "User/item not found"}), 404
+    conversion_value = item_to_convert.current_value; user.ton_balance += conversion_value
+    db.delete(item_to_convert); db.commit()
+    return jsonify({"status": "success", "message": f"{item_to_convert.nft.name} converted for {conversion_value:.2f} TON.", "new_balance_ton": user.ton_balance})
 
 @app.route('/api/sell_all_items', methods=['POST'])
 def sell_all_items_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
-    user_id = auth_user_data["id"]
-
-    db = next(get_db())
-    user = db.query(User).filter(User.id == user_id).first()
+    user_id = auth_user_data["id"]; db = next(get_db()); user = db.query(User).filter(User.id == user_id).first()
     if not user: return jsonify({"error": "User not found"}), 404
-    if not user.inventory: return jsonify({"status": "no_items", "message": "Inventory is empty."})
-
+    if not user.inventory: return jsonify({"status": "no_items", "message": "Inventory empty."})
     total_sell_value = sum(item.current_value for item in user.inventory)
     user.ton_balance += total_sell_value
-    for item in list(user.inventory): db.delete(item) # Iterate over a copy for safe deletion
+    for item in list(user.inventory): db.delete(item)
     db.commit()
-    return jsonify({"status": "success", "message": f"All items sold for {total_sell_value:.2f} TON.", "new_balance_ton": user.ton_balance})
+    return jsonify({"status": "success", "message": f"All sold for {total_sell_value:.2f} TON.", "new_balance_ton": user.ton_balance})
 
 @app.route('/api/initiate_deposit', methods=['POST'])
 def initiate_deposit_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
-    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
-    user_id = auth_user_data["id"]
-
-    data = flask_request.get_json()
-    amount_str = data.get('amount')
-    if amount_str is None: return jsonify({"error": "Amount is required"}), 400
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
+    user_id = auth_user_data["id"]; data = flask_request.get_json(); amount_str = data.get('amount')
+    if amount_str is None: return jsonify({"error": "Amount required"}), 400
     try: original_amount_ton = float(amount_str)
-    except ValueError: return jsonify({"error": "Invalid amount format"}), 400
-    if original_amount_ton <= 0 or original_amount_ton > 10000: return jsonify({"error": "Invalid amount range"}), 400
-
-    db = next(get_db())
-    user = db.query(User).filter(User.id == user_id).first()
+    except ValueError: return jsonify({"error": "Invalid amount"}), 400
+    if not (0 < original_amount_ton <= 10000): return jsonify({"error": "Amount out of range"}), 400
+    db = next(get_db()); user = db.query(User).filter(User.id == user_id).first()
     if not user: return jsonify({"error": "User not found"}), 404
-
-    unique_nano_part = random.randint(10000, 999999)
-    final_amount_nano_ton_for_link_and_check = int(original_amount_ton * (10**9)) + unique_nano_part
-
-    existing_pending = db.query(PendingDeposit).filter(PendingDeposit.user_id == user_id, PendingDeposit.status == 'pending', PendingDeposit.expires_at > dt.now(timezone.utc)).first()
-    if existing_pending:
-        time_left = existing_pending.expires_at - dt.now(timezone.utc)
-        return jsonify({"error": "Active deposit request exists.", "message": f"Wait {int(time_left.total_seconds()/60)} min."}), 409
-
-    pending_deposit = PendingDeposit(user_id=user_id, original_amount_ton=original_amount_ton, unique_identifier_nano_ton=unique_nano_part, final_amount_nano_ton=final_amount_nano_ton_for_link_and_check, expected_comment=DEPOSIT_COMMENT, expires_at=dt.now(timezone.utc) + timedelta(minutes=PENDING_DEPOSIT_EXPIRY_MINUTES))
-    db.add(pending_deposit); db.commit(); db.refresh(pending_deposit)
-    amount_to_send_str_display = f"{final_amount_nano_ton_for_link_and_check / (10**9):.9f}".rstrip('0').rstrip('.')
-    return jsonify({"status": "success", "pending_deposit_id": pending_deposit.id, "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW, "amount_to_send": amount_to_send_str_display, "final_amount_nano_ton": final_amount_nano_ton_for_link_and_check, "comment": DEPOSIT_COMMENT, "expires_at": pending_deposit.expires_at.isoformat()})
+    unique_nano = random.randint(10000, 999999); final_nano = int(original_amount_ton * 1e9) + unique_nano
+    if db.query(PendingDeposit).filter(PendingDeposit.user_id == user_id, PendingDeposit.status == 'pending', PendingDeposit.expires_at > dt.now(timezone.utc)).first():
+        return jsonify({"error": "Active deposit exists."}), 409
+    pending = PendingDeposit(user_id=user_id, original_amount_ton=original_amount_ton, unique_identifier_nano_ton=unique_nano, final_amount_nano_ton=final_nano, expected_comment=DEPOSIT_COMMENT, expires_at=dt.now(timezone.utc) + timedelta(minutes=PENDING_DEPOSIT_EXPIRY_MINUTES))
+    db.add(pending); db.commit(); db.refresh(pending)
+    display_amount = f"{final_nano / 1e9:.9f}".rstrip('0').rstrip('.')
+    return jsonify({"status": "success", "pending_deposit_id": pending.id, "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW, "amount_to_send": display_amount, "final_amount_nano_ton": final_nano, "comment": DEPOSIT_COMMENT, "expires_at": pending.expires_at.isoformat()})
 
 async def check_blockchain_for_deposit(pending_deposit: PendingDeposit, db_session):
-    logger.info(f"Checking blockchain for deposit ID: {pending_deposit.id}, User: {pending_deposit.user_id}, Amount: {pending_deposit.final_amount_nano_ton} nanoTON")
-    provider = None; transaction_found_and_processed = False
+    provider = None
     try:
         provider = LiteBalancer.from_mainnet_config(trust_level=2); await provider.start_up()
-        transactions = await provider.get_transactions(address=DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30)
-        for tx_data in transactions:
-            if not tx_data.in_msg or not tx_data.in_msg.is_internal: continue
-            tx_value_nano = tx_data.in_msg.info.value_coins; tx_comment_text = None
-            if tx_data.now < int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()): continue
-            body_cell_slice = tx_data.in_msg.body.begin_parse()
-            if body_cell_slice.remaining_bits >= 32:
-                if body_cell_slice.load_uint(32) == 0:
-                    try: tx_comment_text = body_cell_slice.load_snake_string()
-                    except: pass
-            if tx_value_nano == pending_deposit.final_amount_nano_ton and tx_comment_text == pending_deposit.expected_comment:
-                user_to_credit = db_session.query(User).filter(User.id == pending_deposit.user_id).first()
-                if not user_to_credit:
-                    pending_deposit.status = 'failed'; db_session.commit(); transaction_found_and_processed = True; break
-                user_to_credit.ton_balance += pending_deposit.original_amount_ton
-                if user_to_credit.referred_by_id:
-                    referrer = db_session.query(User).filter(User.id == user_to_credit.referred_by_id).first()
-                    if referrer:
-                        referral_bonus = round(pending_deposit.original_amount_ton * 0.10, 2)
-                        referrer.referral_earnings_pending += referral_bonus
-                pending_deposit.status = 'completed'; db_session.commit()
-                return {"status": "success", "message": "Deposit confirmed!", "new_balance_ton": user_to_credit.ton_balance}
-        if not transaction_found_and_processed:
-            if pending_deposit.expires_at <= dt.now(timezone.utc):
-                if pending_deposit.status == 'pending': pending_deposit.status = 'expired'; db_session.commit()
-                return {"status": "expired", "message": "Deposit request expired."}
-            return {"status": "pending", "message": "Transaction not yet confirmed."}
-    except Exception as e:
-        logger.error(f"Blockchain check error for deposit {pending_deposit.id}: {e}", exc_info=True)
-        return {"status": "error", "message": "Error checking transaction."}
+        txs = await provider.get_transactions(DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30)
+        for tx in txs:
+            if tx.in_msg and tx.in_msg.is_internal and \
+               tx.in_msg.info.value_coins == pending_deposit.final_amount_nano_ton and \
+               tx.now > int((pending_deposit.created_at - timedelta(minutes=5)).timestamp()):
+                comment_slice = tx.in_msg.body.begin_parse()
+                if comment_slice.remaining_bits >= 32 and comment_slice.load_uint(32) == 0:
+                    try:
+                        if comment_slice.load_snake_string() == pending_deposit.expected_comment:
+                            user = db_session.query(User).filter(User.id == pending_deposit.user_id).first()
+                            if not user: pending_deposit.status = 'failed'; db_session.commit(); return {"status": "error", "message": "User vanished"}
+                            user.ton_balance += pending_deposit.original_amount_ton
+                            if user.referred_by_id:
+                                referrer = db_session.query(User).filter(User.id == user.referred_by_id).first()
+                                if referrer: referrer.referral_earnings_pending += round(pending_deposit.original_amount_ton * 0.10, 2)
+                            pending_deposit.status = 'completed'; db_session.commit()
+                            return {"status": "success", "message": "Deposit confirmed!", "new_balance_ton": user.ton_balance}
+                    except: pass # Comment parse failed or mismatch
+        if pending_deposit.expires_at <= dt.now(timezone.utc) and pending_deposit.status == 'pending':
+            pending_deposit.status = 'expired'; db_session.commit()
+            return {"status": "expired", "message": "Deposit expired."}
+        return {"status": "pending", "message": "Transaction not confirmed."}
+    except Exception as e: logger.error(f"Blockchain check error: {e}", exc_info=True); return {"status": "error", "message": "Error checking transaction."}
     finally:
         if provider: await provider.close_all()
 
 @app.route('/api/verify_deposit', methods=['POST'])
 def verify_deposit_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
-    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
-    user_id = auth_user_data["id"]
-    data = flask_request.get_json(); pending_deposit_id = data.get('pending_deposit_id')
-    if not pending_deposit_id: return jsonify({"error": "pending_deposit_id is required"}), 400
-    db = next(get_db())
-    pending_deposit = db.query(PendingDeposit).filter(PendingDeposit.id == pending_deposit_id, PendingDeposit.user_id == user_id).first()
-    if not pending_deposit: return jsonify({"error": "Pending deposit not found."}), 404
-    if pending_deposit.status == 'completed':
-        user = db.query(User).filter(User.id == user_id).first()
-        return jsonify({"status": "success", "message": "Deposit already confirmed.", "new_balance_ton": user.ton_balance if user else 0})
-    if pending_deposit.status == 'expired' or pending_deposit.expires_at <= dt.now(timezone.utc):
-        if pending_deposit.status == 'pending': pending_deposit.status = 'expired'; db.commit()
-        return jsonify({"status": "expired", "message": "Deposit request has expired."}), 400
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
+    user_id = auth_user_data["id"]; data = flask_request.get_json(); pending_id = data.get('pending_deposit_id')
+    if not pending_id: return jsonify({"error": "ID required"}), 400
+    db = next(get_db()); pending = db.query(PendingDeposit).filter(PendingDeposit.id == pending_id, PendingDeposit.user_id == user_id).first()
+    if not pending: return jsonify({"error": "Deposit not found"}), 404
+    if pending.status == 'completed': user = db.query(User).filter(User.id == user_id).first(); return jsonify({"status": "success", "message": "Already confirmed.", "new_balance_ton": user.ton_balance if user else 0})
+    if pending.status == 'expired' or pending.expires_at <= dt.now(timezone.utc):
+        if pending.status == 'pending': pending.status = 'expired'; db.commit()
+        return jsonify({"status": "expired", "message": "Deposit expired."}), 400
     loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
-    try: result = loop.run_until_complete(check_blockchain_for_deposit(pending_deposit, db))
+    try: result = loop.run_until_complete(check_blockchain_for_deposit(pending, db))
     finally: loop.close()
     return jsonify(result)
 
 @app.route('/api/get_leaderboard', methods=['GET'])
 def get_leaderboard_api():
-    db = next(get_db())
-    leaders_query = db.query(User).order_by(User.total_won_ton.desc()).limit(100).all()
-    leaderboard_data = []
-    for rank, user_leader in enumerate(leaders_query, 1):
-        display_name = user_leader.first_name or user_leader.username or f"User_{str(user_leader.id)[:6]}"
-        avatar_char = (display_name[0] if display_name else "U").upper()
-        leaderboard_data.append({"rank": rank, "name": display_name, "avatarChar": avatar_char, "income": user_leader.total_won_ton, "user_id": user_leader.id})
-    return jsonify(leaderboard_data)
+    db = next(get_db()); leaders = db.query(User).order_by(User.total_won_ton.desc()).limit(100).all()
+    return jsonify([{"rank": r+1, "name": u.first_name or u.username or f"User_{str(u.id)[:6]}", "avatarChar": (u.first_name or u.username or "U")[0].upper(), "income": u.total_won_ton, "user_id": u.id} for r, u in enumerate(leaders)])
 
 @app.route('/api/withdraw_referral_earnings', methods=['POST'])
 def withdraw_referral_earnings_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
-    user_id = auth_user_data["id"]
-    db = next(get_db())
-    user = db.query(User).filter(User.id == user_id).first()
+    user_id = auth_user_data["id"]; db = next(get_db()); user = db.query(User).filter(User.id == user_id).first()
     if not user: return jsonify({"error": "User not found"}), 404
     if user.referral_earnings_pending > 0:
-        amount_withdrawn = user.referral_earnings_pending
-        user.ton_balance += amount_withdrawn
-        user.referral_earnings_pending = 0.0
-        db.commit()
-        return jsonify({"status": "success", "message": f"{amount_withdrawn:.2f} TON withdrawn.", "new_balance_ton": user.ton_balance, "new_referral_earnings_pending": user.referral_earnings_pending})
-    else:
-        return jsonify({"status": "no_earnings", "message": "No referral earnings."})
+        withdrawn = user.referral_earnings_pending; user.ton_balance += withdrawn; user.referral_earnings_pending = 0.0; db.commit()
+        return jsonify({"status": "success", "message": f"{withdrawn:.2f} TON withdrawn.", "new_balance_ton": user.ton_balance, "new_referral_earnings_pending": 0.0})
+    return jsonify({"status": "no_earnings", "message": "No earnings."})
 
 @app.route('/api/redeem_promocode', methods=['POST'])
 def redeem_promocode_api():
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
-    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
-    user_id = auth_user_data["id"]
-    data = flask_request.get_json(); promocode_text = data.get('promocode_text', "").strip()
-    if not promocode_text: return jsonify({"status": "error", "message": "Promocode empty."}), 400
-    db = next(get_db())
-    user = db.query(User).filter(User.id == user_id).first()
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
+    user_id = auth_user_data["id"]; data = flask_request.get_json(); code_txt = data.get('promocode_text', "").strip()
+    if not code_txt: return jsonify({"status": "error", "message": "Code empty."}), 400
+    db = next(get_db()); user = db.query(User).filter(User.id == user_id).first(); promo = db.query(PromoCode).filter(PromoCode.code_text == code_txt).first()
     if not user: return jsonify({"status": "error", "message": "User not found."}), 404
-    promo_code_entry = db.query(PromoCode).filter(PromoCode.code_text == promocode_text).first()
-    if not promo_code_entry: return jsonify({"status": "error", "message": "Invalid promocode."}), 404
-    if promo_code_entry.activations_left <= 0: return jsonify({"status": "error", "message": "Promocode expired."}), 400
-    promo_code_entry.activations_left -= 1
-    user.ton_balance += promo_code_entry.ton_amount
-    try:
-        db.commit()
-        return jsonify({"status": "success", "message": f"Promocode '{promocode_text}' redeemed! +{promo_code_entry.ton_amount:.2f} TON.", "new_balance_ton": user.ton_balance})
-    except SQLAlchemyError as e:
-        db.rollback(); logger.error(f"DB error redeeming promocode: {e}")
-        return jsonify({"status": "error", "message": "DB error."}), 500
+    if not promo: return jsonify({"status": "error", "message": "Invalid code."}), 404
+    if promo.activations_left <= 0: return jsonify({"status": "error", "message": "Code expired."}), 400
+    promo.activations_left -= 1; user.ton_balance += promo.ton_amount
+    try: db.commit(); return jsonify({"status": "success", "message": f"Code '{code_txt}' redeemed! +{promo.ton_amount:.2f} TON.", "new_balance_ton": user.ton_balance})
+    except SQLAlchemyError: db.rollback(); return jsonify({"status": "error", "message": "DB error."}), 500
 
 @app.route('/api/finalize_withdrawal/<int:inventory_item_id>', methods=['POST'])
 def finalize_withdrawal_api(inventory_item_id):
-    init_data_str = flask_request.headers.get('X-Telegram-Init-Data')
-    auth_user_data = validate_init_data(init_data_str, BOT_TOKEN)
-    if not auth_user_data: return jsonify({"error": "Authentication failed"}), 401
-    user_id = auth_user_data["id"]
-    db = next(get_db())
-    item_to_remove = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == user_id).first()
-    if not item_to_remove: return jsonify({"status": "error", "message": "Item not found or already withdrawn."}), 404
-    item_name = item_to_remove.nft.name; item_value = item_to_remove.current_value
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data: return jsonify({"error": "Auth failed"}), 401
+    user_id = auth_user_data["id"]; db = next(get_db())
+    item = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == user_id).first()
+    if not item: return jsonify({"status": "error", "message": "Item not found."}), 404
+    name = item.nft.name; value = item.current_value
     user = db.query(User).filter(User.id == user_id).first()
-    if user:
-        user.total_won_ton -= item_value
-        user.total_won_ton = max(0, user.total_won_ton)
-    db.delete(item_to_remove)
-    try:
-        db.commit()
-        return jsonify({"status": "success", "message": f"Withdrawal of '{item_name}' confirmed."})
-    except SQLAlchemyError as e:
-        db.rollback(); logger.error(f"DB error finalizing withdrawal: {e}")
-        return jsonify({"status": "error", "message": "DB error during withdrawal."}), 500
+    if user: user.total_won_ton = max(0, user.total_won_ton - value) # Deduct actual current value
+    db.delete(item)
+    try: db.commit(); return jsonify({"status": "success", "message": f"Withdrawal of '{name}' confirmed."})
+    except SQLAlchemyError: db.rollback(); return jsonify({"status": "error", "message": "DB error."}), 500
 
-# --- Команды бота ---
+# --- Telegram Bot Commands ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    logger.info(f"Command /start from chat_id: {message.chat.id} ({message.from_user.username or 'N/A'})")
+    logger.info(f"/start from {message.chat.id} ({message.from_user.username}) with text: '{message.text}'")
     db = next(get_db())
-    user = db.query(User).filter(User.id == message.chat.id).first()
+    user_id = message.chat.id
+    tg_user_obj = message.from_user
+    user = db.query(User).filter(User.id == user_id).first()
     created_now = False
+
     if not user:
         created_now = True
-        user = User(id=message.chat.id, username=message.from_user.username, first_name=message.from_user.first_name, last_name=message.from_user.last_name, referral_code=f"ref_{message.chat.id}_{random.randint(1000,9999)}")
+        user = User(id=user_id, username=tg_user_obj.username, first_name=tg_user_obj.first_name, last_name=tg_user_obj.last_name, referral_code=f"ref_{user_id}_{random.randint(1000,9999)}")
         db.add(user)
+        logger.info(f"New user created: {user_id}")
+    
+    # Process referral from start parameter
     try:
-        start_param = message.text.split(' ')
-        if len(start_param) > 1 and start_param[1].startswith('ref_'):
-            referrer_code_param = start_param[1]
-            if created_now and not user.referred_by_id:
-                referrer = db.query(User).filter(User.referral_code == referrer_code_param).first()
-                if referrer and referrer.id != user.id:
-                    user.referred_by_id = referrer.id
-                    logger.info(f"User {user.id} referred by {referrer.id} via code {referrer_code_param}")
-                    try: bot.send_message(referrer.id, f"🎉 {user.first_name or user.username or user.id} joined via your link!")
-                    except Exception as e_notify: logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
-    except Exception as e: logger.error(f"Error processing referral for {user.id}: {e}")
+        command_parts = message.text.split(' ')
+        if len(command_parts) > 1 and command_parts[1].startswith('startapp='):
+            start_param_value = command_parts[1].split('=')[1]
+            if start_param_value.startswith('ref_'):
+                referrer_code = start_param_value
+                if (created_now or not user.referred_by_id): # Apply only if new or no previous referrer
+                    referrer = db.query(User).filter(User.referral_code == referrer_code).first()
+                    if referrer and referrer.id != user.id:
+                        user.referred_by_id = referrer.id
+                        logger.info(f"User {user_id} referred by {referrer.id} via deep link.")
+                        try: bot.send_message(referrer.id, f"🎉 {user.first_name or user.username or user.id} joined via your Mini App link!")
+                        except Exception as e_notify: logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
+                    elif not referrer:
+                         logger.warning(f"Referral code {referrer_code} not found for user {user_id}.")
+                    elif referrer.id == user.id:
+                         logger.info(f"User {user_id} attempted to refer self.")
+    except Exception as e:
+        logger.error(f"Error processing start parameter for {user_id}: {e}")
 
-    changed_in_db = False
-    if user.username != message.from_user.username: user.username = message.from_user.username; changed_in_db=True
-    if user.first_name != message.from_user.first_name: user.first_name = message.from_user.first_name; changed_in_db=True
-    if user.last_name != message.from_user.last_name: user.last_name = message.from_user.last_name; changed_in_db=True
-    if created_now or changed_in_db:
+    # Update user info if changed
+    updated_fields = False
+    if user.username != tg_user_obj.username: user.username = tg_user_obj.username; updated_fields = True
+    if user.first_name != tg_user_obj.first_name: user.first_name = tg_user_obj.first_name; updated_fields = True
+    if user.last_name != tg_user_obj.last_name: user.last_name = tg_user_obj.last_name; updated_fields = True
+    
+    if created_now or updated_fields:
         try: db.commit()
-        except Exception as e_commit: db.rollback(); logger.error(f"Error saving user {message.chat.id}: {e_commit}")
+        except Exception as e_commit: db.rollback(); logger.error(f"Error saving user {user_id}: {e_commit}")
+
+    # Point 5: Use MINI_APP_NAME for the button URL
+    # The MINI_APP_URL should be the direct link to the Mini App, not just the bot.
+    # The Mini App itself handles the "startapp" parameter when launched.
+    # The bot's role here is just to provide the button to launch the app.
+    
+    # The MINI_APP_URL should be set like: https://t.me/YourBotUsername/YourMiniAppName
+    # If MINI_APP_NAME is "case", and bot username is "caseKviBot", then
+    # MINI_APP_URL becomes "https://t.me/caseKviBot/case"
+    
+    current_mini_app_url_for_button = f"https://t.me/{bot.get_me().username}/{MINI_APP_NAME}"
+    # If your MINI_APP_URL env var is already this full URL, you can use it directly.
+    # current_mini_app_url_for_button = MINI_APP_URL 
+
 
     markup = types.InlineKeyboardMarkup()
-    if not MINI_APP_URL: logger.error("MINI_APP_URL not set!"); bot.send_message(message.chat.id, "Config error: Mini App URL missing."); return
-    try:
-        web_app_info = types.WebAppInfo(url=MINI_APP_URL)
-        app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info)
-        markup.add(app_button)
-        bot.send_message(message.chat.id, "Добро пожаловать в Pusik Gifts! 🎁\n\nНажмите кнопку ниже!", reply_markup=markup)
-    except Exception as e: logger.error(f"Error sending /start to {message.chat.id}: {e}"); bot.send_message(message.chat.id, "Error opening game.")
+    web_app_info = types.WebAppInfo(url=current_mini_app_url_for_button) # Url to launch the Mini App directly
+    app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info)
+    markup.add(app_button)
+    bot.send_message(message.chat.id, "Добро пожаловать в Pusik Gifts! 🎁\n\nНажмите кнопку ниже!", reply_markup=markup)
+
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message):
     bot.reply_to(message, "Нажмите /start, чтобы открыть Pusik Gifts.")
 
 # --- Polling ---
-bot_polling_started = False
-bot_polling_thread = None
+bot_polling_started = False; bot_polling_thread = None
 def run_bot_polling():
     global bot_polling_started
-    if bot_polling_started: logger.info("Polling already running."); return
+    if bot_polling_started: return
     bot_polling_started = True; logger.info("Starting bot polling...")
     for i in range(3):
         try: bot.remove_webhook(); logger.info("Webhook removed."); break
         except Exception as e: logger.warning(f"Webhook removal attempt {i+1} failed: {e}"); time.sleep(2)
     while bot_polling_started:
         try:
-            logger.info("Starting infinity_polling...")
             bot.infinity_polling(logger_level=logging.INFO, skip_pending=True, timeout=60, long_polling_timeout=30)
-            logger.info("infinity_polling finished cleanly.") # Should not happen if bot_polling_started is True
         except telebot.apihelper.ApiTelegramException as e:
-            logger.error(f"Telegram API Exception in polling: {e} (Code: {e.error_code})")
-            if e.error_code in [401, 409]: bot_polling_started = False; logger.error("Critical API error. Polling stopped."); break
-            time.sleep(30)
-        except ConnectionError as e: logger.error(f"Connection error: {e}. Retrying in 60s."); time.sleep(60)
-        except Exception as e: logger.error(f"Critical polling error: {e}. Retrying in 60s.", exc_info=True); time.sleep(60)
-        if not bot_polling_started: logger.info("Polling loop terminating."); break
-        time.sleep(15) # Small delay before restarting loop if it exited for other reasons
+            if e.error_code in [401, 409]: bot_polling_started = False; logger.error(f"Critical API error {e.error_code}. Polling stopped."); break
+            logger.error(f"Telegram API Exception: {e}", exc_info=True); time.sleep(30)
+        except Exception as e: logger.error(f"Critical polling error: {e}", exc_info=True); time.sleep(60)
+        if not bot_polling_started: break # Check before explicit sleep
+        time.sleep(15) # If infinity_polling exits without critical error
+    logger.info("Bot polling loop terminated.")
+
 
 if __name__ == '__main__':
     if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        logger.info("Main process, starting bot polling thread.")
-        bot_polling_thread = threading.Thread(target=run_bot_polling)
-        bot_polling_thread.daemon = True
+        bot_polling_thread = threading.Thread(target=run_bot_polling, daemon=True)
         bot_polling_thread.start()
-    elif os.environ.get("WERKZEUG_RUN_MAIN") == "true":
-        logger.info("Werkzeug reloader process, not starting polling here.")
-    logger.info("Запуск Flask development server...")
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
