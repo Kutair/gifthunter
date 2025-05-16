@@ -211,13 +211,6 @@
         }
         .button:hover { filter: brightness(1.15); box-shadow: 0 4px 12px rgba(0,122,255,0.3); }
         .button:active { transform: scale(0.97); filter: brightness(0.9); box-shadow: 0 2px 5px rgba(0,122,255,0.2); }
-        .button:disabled {
-            background: var(--surface-hover-color);
-            color: var(--text-placeholder);
-            cursor: not-allowed;
-            box-shadow: none;
-            filter: grayscale(0.5);
-        }
         .button-secondary {
             background-color: var(--surface-hover-color); 
             color: var(--text-secondary); 
@@ -234,14 +227,6 @@
              background-color: var(--surface-hover-color);
              filter: brightness(0.9);
         }
-        .button-secondary:disabled {
-            background: var(--surface-color); /* Slightly different disabled for secondary */
-            color: var(--text-placeholder);
-             border-color: var(--border-color);
-            cursor: not-allowed;
-            filter: grayscale(0.3);
-        }
-
 
         h2 {
             margin-top: 0; font-size: 2.0em; /* Slightly larger */
@@ -336,8 +321,7 @@
             background-color: rgba(10, 10, 20, 0.75); 
             backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%);
             overflow-y: auto; 
-            align-items: flex-start; /* Changed from center to start for better scroll */
-            justify-content: center; /* Center horizontally */
+            align-items: flex-start; 
             padding-top: 5vh; 
             padding-bottom: 5vh;
         }
@@ -351,7 +335,7 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.4); 
             border: 1px solid var(--border-color);
             display: flex; flex-direction: column;
-            margin: auto; /* This helps with centering when content overflows vertically */
+            margin: auto; 
         }
          .modal-content h3 { 
             margin-top: 0; margin-bottom: 20px; 
@@ -365,7 +349,6 @@
             flex-grow: 1; 
             -webkit-overflow-scrolling: touch; 
             margin-top: 12px; 
-            max-height: 60vh; /* Limit modal body height if content is too long */
         }
 
 
@@ -379,10 +362,10 @@
             background-color: var(--surface-color); 
             margin: 18px 0 22px 0; 
         }
-        #roulette-wheel::before { /* The blue marker line */
+        #roulette-wheel::before { 
             content: '';
             position: absolute;
-            left: 10px; right: 10px; top: 50%; /* Centered vertically */
+            left: 10px; right: 10px; top: 50%;
             height: 3px; 
             background-color: var(--primary-color);
             opacity: 0.9; transform: translateY(-50%);
@@ -394,7 +377,7 @@
             position: absolute; left: 0; width: 100%;
         }
         .roulette-item {
-            height: 92px; /* approx 1/3 of roulette-wheel height */
+            height: 92px; 
             display: flex; align-items: center; justify-content: center; 
             padding: 0 10px; box-sizing: border-box;
             border-bottom: 1px solid var(--border-color);
@@ -462,15 +445,6 @@
              font-weight: 500;
               flex-shrink: 0;
          }
-        /* Style for Black Singularity prize items */
-        #possible-prizes-display.black-singularity-style .prize-card-image-placeholder {
-            background-color: rgba(10,10,10,0.9); /* Dark grey, almost black */
-             border: 1px solid rgba(50,50,50,0.7);
-        }
-         #possible-prizes-display.black-singularity-style .prize-card {
-             background-color: #1A1C2A; /* Slightly darker surface for the card itself */
-         }
-
         
         /* --- Withdraw Modal Specifics --- */
         #withdraw-modal .modal-step { display: none; }
@@ -733,21 +707,6 @@
         #deposit-status-message, #deposit-expiry-info {
             text-align: center;
         }
-         .promocode-input-group {
-             display: flex;
-             gap: 10px;
-             align-items: center;
-             margin-bottom: 10px;
-         }
-         .promocode-input-group input {
-             flex-grow: 1;
-             margin-bottom: 0; /* Remove bottom margin from input when in group */
-         }
-         .promocode-input-group button {
-             flex-shrink: 0;
-             padding: 13px 18px; /* Match input height */
-             width: auto; /* Don't make button full width in group */
-         }
     </style>
 </head>
 <body>
@@ -760,7 +719,7 @@
             <div class="wallet-info">
                 <div id="wallet-address-display">Connected: ...</div> 
                 <div id="balance">
-                    <span id="ton-balance">0.00</span> TON
+                    <span id="ton-balance">0.00</span> <!-- Removed TON icon -->
                 </div>
                 <div id="ton-connect-button"></div>
             </div>
@@ -800,12 +759,12 @@
                 <h2>Referrals</h2>
                  <div class="content-card">
                     <p style="font-size: 1em; margin-bottom: 15px; text-align:center; color:var(--text-secondary);">Invite friends and earn <strong>10%</strong> of their deposits!</p>
-                    <input type="text" id="referral-link" value="Loading..." readonly>
+                    <input type="text" id="referral-link" value="https://t.me/YourAppBot?start=ref_USER123" readonly>
                     <button id="copy-ref-link-button" class="button" style="margin-bottom: 20px;">Copy Referral Code</button>
                     
                     <div class="stats-box" style="margin-bottom: 20px;">
                         <div class="stat-item">
-                            <div id="referral-balance" class="value">0.00 TON</div>
+                            <div id="referral-balance" class="value">0.00 TON</div> <!-- Removed TON icon -->
                             <div class="label">Referral Earnings</div>
                         </div>
                         <div class="stat-item">
@@ -817,9 +776,9 @@
                 </div>
                 <div class="content-card">
                     <h3>Invited Friends (Demo)</h3>
-                    <div id="invited-users-list-display" class="invited-users-list">
-                        <!-- Example, will be populated or show empty message -->
-                         <p style="text-align:center; color:var(--text-placeholder);">No friends invited yet.</p> 
+                    <div class="invited-users-list">
+                        <div>User_Alpha7 - Profit: 1.5 TON</div>
+                        <div>User_BetaMax - Profit: 0.5 TON</div>
                     </div>
                 </div>
             </div>
@@ -843,17 +802,9 @@
 
                 <div class="content-card">
                     <h3>Balance</h3>
-                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 TON</div>
+                    <div id="profile-balance-display" style="font-size:1.6em; font-weight:600; margin-bottom:10px;">0.00 TON</div> <!-- Removed TON icon -->
                     <input type="number" id="deposit-amount-input" placeholder="Amount in TON (e.g., 1.5)" style="margin-bottom: 10px;">
                     <button id="initiate-deposit-button" class="button">Deposit TON</button>
-                </div>
-                
-                <div class="content-card">
-                    <h3>Promocode</h3>
-                    <div class="promocode-input-group">
-                        <input type="text" id="promocode-input" placeholder="Enter promocode">
-                        <button id="redeem-promocode-button" class="button button-secondary">Redeem</button>
-                    </div>
                 </div>
 
                 <div class="content-card">
@@ -879,7 +830,7 @@
                 Cases
             </button>
             <button class="nav-button" data-page="upgrade-page">
-                 <svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg> <!-- Updated Icon -->
+                 <svg viewBox="0 0 24 24"><path d="M9.48 5.55L6.91 8.12L5.5 6.71L9.48 2.73L13.47 6.71L12.06 8.12L9.48 5.55M9.48 5.55V13.75C9.48 14.15 9.15 14.48 8.75 14.48C8.35 14.48 8.02 14.15 8.02 13.75V5.55L5.45 8.12L4.04 6.71L8.02 2.73L12.01 6.71L10.6 8.12L8.02 5.55M15.25 10.25C14.85 10.25 14.52 10.58 14.52 10.98V19.18L11.95 16.61L10.54 18L14.52 21.99L18.5 18L17.09 16.61L14.52 19.18V10.98C14.52 10.58 14.19 10.25 13.79 10.25H15.25Z"/></svg>
                 Upgrade 
             </button>
             <button class="nav-button" data-page="invite-page">
@@ -936,13 +887,13 @@
                 </div>
 
                 <div id="withdraw-step-2" class="modal-step">
-                    <p>Great! Now, please send <strong>any message</strong> to the <a href="https://t.me/giftrelayer" target="_blank" style="color: var(--primary-color)">@giftrelayer</a> bot in Telegram. This allows the system to send the gift to you.</p> {/* Link Updated */}
+                    <p>Great! Now, please send <strong>any message</strong> to the <a href="tg://resolve?domain=giftrelayer" style="color: var(--primary-color)">@giftrelayer</a> bot in Telegram. This allows the system to send the gift to you.</p>
                     <button id="withdraw-step2-next" class="button button-secondary">I've sent the message</button>
                      <button id="withdraw-step2-back" class="button button-secondary" style="margin-top: 10px;">Back</button>
                 </div>
 
                 <div id="withdraw-step-3" class="modal-step">
-                     <p>Finalizing withdrawal...</p>
+                     <p>Initiating withdrawal via Tonnel Network...</p>
                     <div class="loader"></div>
                     <p id="withdraw-status-message" style="font-size: 0.9em; color: var(--text-secondary);"></p>
                     <button id="withdraw-step3-close" class="button button-secondary" style="margin-top: 15px;">Close</button>
@@ -980,7 +931,6 @@
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/';
 const API_BASE_URL = 'https://case-v48j.onrender.com'; 
-const BOT_USERNAME = 'caseKviBot'; // Point 1: Updated bot username
 
 const currentUser = {
     id: null, 
@@ -995,19 +945,16 @@ const currentUser = {
     referralCode: null, 
     referralEarningsPending: 0,
     total_won_ton: 0,
-    invited_friends_count: 0, // For display on invite page
-    // invited_friends_list: [], // If you want to display a list
 };
 
 let currentOpenCase = null;
 let selectedMultiplier = 1.5;
-let itemToWithdraw = null; // Stores the ID of the item being withdrawn
+let itemToWithdraw = null; 
 
 const upgradeChances = { 
     1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3
 };
 
-// 🔴🔴🔴 PASTE YOUR `generateImageFilename` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 function generateImageFilename(name) {
     if (!name) return 'placeholder.png'; 
     if (name === "Durov's Cap") return "Durov's-Cap.png"; 
@@ -1018,21 +965,9 @@ function generateImageFilename(name) {
     return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; 
 }
 
-// 🔴🔴🔴 PASTE YOUR `casesData` ARRAY HERE (BUT UPDATE 'black' CASE's bgImageFilename) 🔴🔴🔴
-// Example of how to update 'black' case within your casesData array:
-// { 
-//    id: 'black', name: 'BLACK Singularity', 
-//    isBackgroundCase: true, 
-//    bgImageFilename: 'image-1.png', // POINT 5: Updated Background Image
-//    overlayPrizeName: 'Neko Helmet', 
-//    priceTON: 30, 
-//    prizes: [ /* ... your prizes ... */ ]
-// },
-// 🔴🔴🔴 PASTE THIS INTO YOUR JS `casesData` VARIABLE 🔴🔴🔴
-// 🔴🔴🔴 PASTE THIS INTO YOUR JS `casesData` VARIABLE 🔴🔴🔴
-// Make sure your `generateImageFilename` function is defined before this const 
-casesData = [
-    {
+// --- casesData (Updated for JavaScript Frontend) ---
+const casesData = [
+    { 
         id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.001 },
@@ -1048,7 +983,7 @@ casesData = [
             { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: 1.4, probability: 0.10 },
         ]
     },
-    {
+    { 
         id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0012 },
@@ -1062,7 +997,7 @@ casesData = [
             { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 4, probability: 0.05 },
         ]
     },
-    {
+    { 
         id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0015 },
@@ -1077,7 +1012,7 @@ casesData = [
             { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 8.4, probability: 0.149 },
         ]
     },
-    {
+    { 
         id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 20,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0018 },
@@ -1087,16 +1022,16 @@ casesData = [
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.15 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.15 },
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.15 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 }, 
             { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.07 },
             { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.07874 },
         ]
     },
-    {
+    { 
         id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 40,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.002 },
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 }, // Adjusted to make space for Pepe but keep total ~1
             { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.12 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.10 },
@@ -1107,11 +1042,11 @@ casesData = [
             { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.0486 },
         ]
     },
-    {
+    { 
         id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 100,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0025 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 }, // Adjusted
             { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.10 },
             { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: 120, probability: 0.10 },
             { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
@@ -1121,27 +1056,24 @@ casesData = [
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.10 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.08 },
             { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 24, probability: 0.05 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 }, // Adjusted
         ]
     },
-    {
+    { 
         id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200,
         prizes: [
-            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 },
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 }, // Higher chance as it's the "Pepe" case
             { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.25 },
             { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.60 },
         ]
     },
-    {
-        id: 'black', name: 'BLACK Singularity',
-        isBackgroundCase: true,
-        bgImageFilename: 'image-1.png', // This will be used by renderCases if it's not a direct URL
-                                        // The special handling in renderCases for id 'black' will use the i.ibb.co URL
-        overlayPrizeName: 'Neko Helmet',
-        priceTON: 30,
-        prizes: [
+    { 
+        id: 'black', name: 'BLACK Singularity', 
+        isBackgroundCase: true, bgImageFilename: 'Black.png', overlayPrizeName: 'Neko Helmet', 
+        priceTON: 30, 
+        prizes: [ 
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0022 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 }, // Adjusted
             { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.10 },
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.08 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.07 },
@@ -1151,10 +1083,10 @@ casesData = [
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.08 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.07 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.07 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 }, 
             { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.05 },
             { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.05 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 }, // Adjusted
         ]
     },
 ];
@@ -1164,14 +1096,11 @@ casesData = [
 const imageUrlsToPreload = [];
 if (Array.isArray(casesData)) {
     casesData.forEach(caseItem => {
-        if (caseItem.id === 'black' && caseItem.isBackgroundCase) { // Point 5: Special handling for new bg
-            imageUrlsToPreload.push('https://i.ibb.co/JR1nWpdn/image-1.png');
-        } else if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
+        if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
             imageUrlsToPreload.push(CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename);
         } else if (caseItem.imageFilename) {
              imageUrlsToPreload.push(IMAGE_BASE_URL + caseItem.imageFilename);
         }
-
         if(caseItem.isBackgroundCase && caseItem.overlayPrizeName){
             const overlayFilename = generateImageFilename(caseItem.overlayPrizeName);
              if (overlayFilename && !imageUrlsToPreload.includes(IMAGE_BASE_URL + overlayFilename)) {
@@ -1235,9 +1164,7 @@ const profileElements = {
     depositAmountInput: document.getElementById('deposit-amount-input'),
     initiateDepositButton: document.getElementById('initiate-deposit-button'),
     sellAllButton: document.getElementById('sell-all-button'), 
-    sellAllValueSpan: document.getElementById('sell-all-value'),
-    promocodeInput: document.getElementById('promocode-input'), // Point 2
-    redeemPromocodeButton: document.getElementById('redeem-promocode-button') // Point 2
+    sellAllValueSpan: document.getElementById('sell-all-value') 
 };
 
 const upgradeElements = {
@@ -1253,8 +1180,7 @@ const inviteElements = {
     copyRefLinkButton: document.getElementById('copy-ref-link-button'),
     referralBalance: document.getElementById('referral-balance'),
     invitedCount: document.getElementById('invited-count'),
-    withdrawReferralButton: document.getElementById('withdraw-referral-button'),
-    invitedUsersListDisplay: document.getElementById('invited-users-list-display')
+    withdrawReferralButton: document.getElementById('withdraw-referral-button')
 };
 
 const leaderboardList = document.getElementById('leaderboard-list');
@@ -1280,39 +1206,56 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 
 // --- Telegram BackButton Handler ---
-// 🔴🔴🔴 PASTE YOUR Telegram BackButton Handler CODE HERE (UNCHANGED) 🔴🔴🔴
 let tgBackButton = null;
 const backButtonHandlerStack = [];
 
 function _updateTgBackButton() {
     if (!tgBackButton) return;
+    // Ensure previous onClick is cleared. SDK might handle this, but being explicit is safer.
+    // The `offClick` method typically requires the specific handler function to remove.
+    // However, for simplicity, we assume subsequent `onClick` overrides or that SDK handles it.
+    // If issues arise, a more complex `offClick(previousHandler)` logic would be needed.
+    // For now, we rely on the new onClick call replacing the old one.
+    // tgBackButton.offClick(); // This might not work as intended if it expects a specific callback.
+    
     if (backButtonHandlerStack.length > 0) {
         const currentHandler = backButtonHandlerStack[backButtonHandlerStack.length - 1];
-        tgBackButton.offClick(); // Remove previous, if any
-        tgBackButton.onClick(currentHandler);
+        tgBackButton.onClick(currentHandler); // Set the new handler
         tgBackButton.show();
     } else {
         tgBackButton.hide();
-        tgBackButton.offClick(); // Ensure it's cleared
     }
 }
+
 function pushTgBackButtonHandler(handler) {
     if (!tgBackButton) return;
     backButtonHandlerStack.push(handler);
     _updateTgBackButton();
 }
+
 function popTgBackButtonHandler() {
     if (!tgBackButton) return;
     if (backButtonHandlerStack.length > 0) {
-        backButtonHandlerStack.pop();
+        const poppedHandler = backButtonHandlerStack.pop();
+        // Explicitly remove the handler that was just popped
+        // This requires the handler function to be the same instance.
+        tgBackButton.offClick(poppedHandler); 
     }
-    _updateTgBackButton();
+    _updateTgBackButton(); // This will set the new top handler or hide the button
 }
+
 function clearTgBackButtonStack() {
     if (!tgBackButton) return;
-    backButtonHandlerStack.length = 0;
-    _updateTgBackButton();
+    // Remove handlers from stack before clearing
+    while(backButtonHandlerStack.length > 0) {
+        const handler = backButtonHandlerStack.pop();
+        tgBackButton.offClick(handler);
+    }
+    // backButtonHandlerStack.length = 0; // Cleared by popping
+    _updateTgBackButton(); // Hides button
 }
+
+// Specific handlers for BackButton
 function navigateBackToMainPage() { navigateToPage('main-page'); }
 function closeRouletteModalWithBackButton() { closeRouletteModal(); }
 function closeWithdrawModalWithBackButton() { closeWithdrawModal(); }
@@ -1320,7 +1263,6 @@ function closeDepositModalWithBackButton() { closeDepositInstructionsModal(); }
 
 
 // --- API Helper ---
-// 🔴🔴🔴 PASTE YOUR `apiRequest` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 async function apiRequest(endpoint, method = 'GET', body = null) {
     const headers = {
         'Content-Type': 'application/json',
@@ -1329,8 +1271,6 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData;
     } else {
         console.warn("Telegram.WebApp.initData not available for API request.");
-        // For dev, you might want to simulate or allow calls without it
-        // but for prod, this often means an unauthenticated request.
     }
 
     const config = {
@@ -1348,39 +1288,33 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
             try {
                 errorData = await response.json();
             } catch (e) {
-                // If response is not JSON, use status text
                 errorData = { error: `HTTP error! status: ${response.status}, ${response.statusText}` };
             }
             console.error(`API Error (${endpoint} - ${response.status}):`, errorData);
-            showTGNotification(errorData.error || errorData.message || `Request failed: ${response.statusText}`, 'error');
-            throw new Error(errorData.error || errorData.message || `HTTP error! status: ${response.status}`);
+            showTGNotification(errorData.error || `Request failed: ${response.statusText}`, 'error');
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
-        if (response.status === 204) { // No Content
-            return null;
-        }
+        if (response.status === 204) { return null; }
         return await response.json();
     } catch (error) {
         console.error(`Network or API request error (${endpoint}):`, error);
-        // Avoid double-notifying if showTGNotification was already called for HTTP errors
-        if (!(error.message.startsWith("HTTP error!") || (error.message.includes("Request failed") && error.message.includes("status")) )) { 
+        if (!error.message.startsWith("HTTP error!")) { 
              showTGNotification(`Network error: ${error.message}`, 'error');
         }
-        throw error; // Re-throw to be caught by calling function if needed
+        throw error; 
     }
 }
-
 
 // --- Utility Functions ---
 function updateBalances() {
     if (headerElements.tonBalanceSpan) {
-        headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`; // Removed " TON" as it's outside span
+        headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)} TON`;
     }
     if (profileElements.balanceDisplay) {
          profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
     }
 }
 
-// 🔴🔴🔴 PASTE YOUR `navigateToPage` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 function navigateToPage(pageId) {
     pages.forEach(page => page.classList.remove('active'));
     const targetPage = document.getElementById(pageId);
@@ -1393,43 +1327,42 @@ function navigateToPage(pageId) {
 
     if (tgBackButton) {
         if (pageId === 'main-page') {
-            clearTgBackButtonStack(); 
+            clearTgBackButtonStack(); // Hides button if stack becomes empty
         } else {
+            // If navigating to a sub-page, ensure the base is page navigation
+            // Pop modal handlers until we hit a page handler or empty stack
             while(backButtonHandlerStack.length > 0 &&
                   backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) {
-                popTgBackButtonHandler(); 
+                popTgBackButtonHandler(); // This also calls _updateTgBackButton
             }
+            // If stack is now empty, or was already empty, push the main page nav
             if (backButtonHandlerStack.length === 0) {
                 pushTgBackButtonHandler(navigateBackToMainPage);
             }
+            // If the top was already navigateBackToMainPage, _updateTgBackButton in pop did its job
         }
     }
     window.scrollTo(0, 0); 
 }
 
-// 🔴🔴🔴 PASTE YOUR `showTGNotification` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 function showTGNotification(message, type = 'info') { 
     if (window.Telegram && Telegram.WebApp && Telegram.WebApp.showAlert) {
         Telegram.WebApp.showAlert(message);
     } else {
-        alert(message); // Fallback for browsers
+        alert(message); 
     }
-    // Haptic feedback based on type
     if (window.Telegram && Telegram.WebApp.HapticFeedback) {
         if (type === 'success') Telegram.WebApp.HapticFeedback.notificationOccurred('success');
         else if (type === 'error') Telegram.WebApp.HapticFeedback.notificationOccurred('error');
         else if (type === 'warning') Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
-        // else Telegram.WebApp.HapticFeedback.impactOccurred('light'); // For general info
     }
 }
-
 
 // --- Rendering Functions ---
 function renderHeader() {
      updateBalances(); 
 }
 
-// 🔴🔴🔴 PASTE YOUR `updateUIBasedOnWallet` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 function updateUIBasedOnWallet(wallet) {
      const connected = !!wallet; 
      if (connected) {
@@ -1472,7 +1405,6 @@ function updateUIBasedOnWallet(wallet) {
     updateBalances(); 
 }
 
-
 function renderCases() {
     casesGrid.innerHTML = '';
     if (!casesData || casesData.length === 0) {
@@ -1480,9 +1412,10 @@ function renderCases() {
         return;
     }
     const filteredCases = casesData.filter(caseItem => {
-        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack']; // Keep this if you still want to filter
+        const removedCaseIds = ['happypepe', 'amber', 'midnightblue', 'onyxblack']; 
         return !removedCaseIds.includes(caseItem.id);
     });
+
 
     filteredCases.forEach(caseItem => {
         const card = document.createElement('div');
@@ -1505,21 +1438,7 @@ function renderCases() {
             imageContainer.style.justifyContent='center';
         };
 
-        if (caseItem.id === 'black' && caseItem.isBackgroundCase) { // Point 5: Use new direct URL for black case bg
-             img.src = 'https://i.ibb.co/JR1nWpdn/image-1.png';
-             img.style.objectFit = 'cover'; 
-             imageContainer.appendChild(img);
-             if(caseItem.overlayPrizeName){ // Keep overlay logic
-                 const overlayImg = document.createElement('img');
-                 const overlayFilename = generateImageFilename(caseItem.overlayPrizeName);
-                 overlayImg.src = overlayFilename ? IMAGE_BASE_URL + overlayFilename : '';
-                 overlayImg.alt = caseItem.overlayPrizeName;
-                 overlayImg.loading = 'lazy';
-                 overlayImg.className = 'overlay-image'; 
-                 overlayImg.onerror = (eO) => { eO.target.style.display = 'none'; } 
-                 imageContainer.appendChild(overlayImg);
-             }
-        } else if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
+        if (caseItem.isBackgroundCase && caseItem.bgImageFilename) {
             img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename;
             img.style.objectFit = 'cover'; 
             imageContainer.appendChild(img);
@@ -1530,7 +1449,7 @@ function renderCases() {
                  overlayImg.alt = caseItem.overlayPrizeName;
                  overlayImg.loading = 'lazy';
                  overlayImg.className = 'overlay-image'; 
-                 overlayImg.onerror = (eO) => { eO.target.style.display = 'none'; } 
+                 overlayImg.onerror = (e) => { e.target.style.display = 'none'; } 
                  imageContainer.appendChild(overlayImg);
              }
         } else if (caseItem.imageFilename) { 
@@ -1601,32 +1520,30 @@ function renderInventory() {
                 <div class="inventory-item-name" title="${item.name}">${item.name}</div>
                 <div class="inventory-item-value">${(item.currentValue || item.floorPrice).toFixed(2)} TON</div>
                 <div class="inventory-item-actions">
-                     <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button> 
-                    <button class="button button-secondary" onclick="convertToTon(${item.id})">Convert</button>
+                     <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess('${item.id}')">Withdraw</button> 
+                    <button class="button button-secondary" onclick="convertToTon('${item.id}')">Convert</button>
                 </div>
             `;
              itemDiv.insertBefore(imgContainer, itemDiv.firstChild);
             profileElements.inventoryGrid.appendChild(itemDiv);
         });
         profileElements.sellAllButton.style.display = 'block';
-        profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2); // This updates the display for "Sell All" button
+        profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
     }
     profileElements.inventoryCount.textContent = currentUser.inventory.length;
     populateUpgradeInventorySelect();
 }
 
-// 🔴🔴🔴 PASTE YOUR `populateUpgradeInventorySelect` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.forEach(item => {
         const option = document.createElement('option');
-        option.value = item.id; // Assuming item.id is the unique inventory item ID
+        option.value = item.id; 
         option.textContent = `${item.name} (${(item.currentValue || item.floorPrice).toFixed(2)} TON)`;
         upgradeElements.inventorySelect.appendChild(option);
     });
 }
 
-// 🔴🔴🔴 PASTE YOUR `renderLeaderboard` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 async function renderLeaderboard() {
     leaderboardList.innerHTML = '<p style="text-align:center; color: var(--text-secondary);">Loading leaders...</p>'; 
     try {
@@ -1644,7 +1561,7 @@ async function renderLeaderboard() {
                         <div class="name">${leader.name}</div>
                         <div class="details">Total Won: ${(leader.income || 0).toFixed(2)} TON</div>
                     </div>
-                    <div class="score">${(leader.income || 0).toFixed(1)} TON</div>
+                    <div class="score">${(leader.income || 0).toFixed(1)} TON</div> <!-- Removed TON icon -->
                 `;
                 leaderboardList.appendChild(entry);
             });
@@ -1656,24 +1573,16 @@ async function renderLeaderboard() {
     }
 }
 
-
 function renderInvitePage() {
-    // Point 1: Use BOT_USERNAME constant
-    inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}?start=${currentUser.referralCode}` : 'Loading...';
-    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
-    inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0; // Use data from backend if available
-
-    // For invited_friends_list, if you fetch it:
-    // if (currentUser.invited_friends_list && currentUser.invited_friends_list.length > 0) {
-    //     inviteElements.invitedUsersListDisplay.innerHTML = '';
-    //     currentUser.invited_friends_list.forEach(friend => {
-    //         const div = document.createElement('div');
-    //         div.textContent = `${friend.name} - Profit: ${friend.profit_generated.toFixed(2)} TON`;
-    //         inviteElements.invitedUsersListDisplay.appendChild(div);
-    //     });
-    // } else {
-    //    inviteElements.invitedUsersListDisplay.innerHTML = '<p style="text-align:center; color:var(--text-placeholder);">No friends invited yet.</p>';
-    // }
+    const botUsername = (window.Telegram && Telegram.WebApp.initDataUnsafe?.bot?.username) ? Telegram.WebApp.initDataUnsafe.bot.username : 'YourAppBot';
+    inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${botUsername}?start=${currentUser.referralCode}` : 'Loading...';
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`; // Removed TON icon
+    const invitedUsersList = document.querySelector('#invite-page .invited-users-list');
+    if (invitedUsersList) { 
+        inviteElements.invitedCount.textContent = invitedUsersList.children.length;
+    } else {
+        inviteElements.invitedCount.textContent = '0';
+    }
 }
 
 
@@ -1695,14 +1604,8 @@ function openRouletteModal(caseItem) {
     rouletteSpinner.style.top = '0px'; 
 
     let spinnerItemsContent = [];
-    // Populate with more items than visible for smooth scrolling illusion
-    for (let i = 0; i < 80; i++) { // Needs ~3x visible items + buffer
-        const randomPrize = currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)];
-        spinnerItemsContent.push({ // Store full prize data for bias calculation
-            name: randomPrize.name,
-            imageFilename: randomPrize.imageFilename,
-            floorPrice: randomPrize.floorPrice
-        });
+    for (let i = 0; i < 80; i++) { 
+        spinnerItemsContent.push(currentOpenCase.prizes[Math.floor(Math.random() * currentOpenCase.prizes.length)]);
     }
     spinnerItemsContent.forEach(prize => {
         if (!prize || !prize.imageFilename) return; 
@@ -1718,13 +1621,6 @@ function openRouletteModal(caseItem) {
     });
 
     possiblePrizesDisplay.innerHTML = '';
-    // Point 5: Add class for Black Singularity case
-    if (caseItem.id === 'black') {
-        possiblePrizesDisplay.classList.add('black-singularity-style');
-    } else {
-        possiblePrizesDisplay.classList.remove('black-singularity-style');
-    }
-
     const prizeMap = new Map();
     currentOpenCase.prizes.forEach(p => {
         if(!p || !p.name) return; 
@@ -1786,40 +1682,29 @@ async function spinRoulette() {
         const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCase.id });
         
         if (result.status === 'success') {
-            const winner = result.won_prize; // This is the actual determined winner
+            const winner = result.won_prize;
             currentUser.tonBalance = result.new_balance_ton;
             updateBalances(); 
 
-            let spinnerItemsForSpin = []; // Array to hold prize data for the visual spin
+            let spinnerItemsForSpin = [];
             const availablePrizes = currentOpenCase.prizes.filter(p => p && p.imageFilename);
             if (availablePrizes.length === 0) {
                  throw new Error("No available prizes with images in this case.");
             }
-            // Populate spinnerItemsForSpin with prize data (including floorPrice)
-            for (let i = 0; i < 70; i++) { // Number of items in roulette reel, e.g., 70-100
-                const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-                spinnerItemsForSpin.push({
-                    name: randomPrize.name,
-                    imageFilename: randomPrize.imageFilename,
-                    floorPrice: randomPrize.floorPrice
-                });
+            for (let i = 0; i < 70; i++) { 
+                spinnerItemsForSpin.push(availablePrizes[Math.floor(Math.random() * availablePrizes.length)]);
             }
-            // Replace one item with the actual winner, ensuring it's visually in the reel
-            const winnerVisualIndex = Math.floor(spinnerItemsForSpin.length * 0.85); // Place winner towards the end
-            spinnerItemsForSpin[winnerVisualIndex] = {
-                name: winner.name,
-                imageFilename: winner.imageFilename,
-                floorPrice: winner.floorPrice
-            };
+            const winnerVisualIndex = Math.floor(spinnerItemsForSpin.length * 0.85); 
+            spinnerItemsForSpin[winnerVisualIndex] = winner; 
 
             rouletteSpinner.innerHTML = ''; 
-            spinnerItemsForSpin.forEach(prizeData => {
-                 if (!prizeData || !prizeData.imageFilename) return; 
+            spinnerItemsForSpin.forEach(prize => {
+                 if (!prize || !prize.imageFilename) return; 
                  const itemEl = document.createElement('div');
                  itemEl.className = 'roulette-item';
                  const img = document.createElement('img');
-                 img.src = IMAGE_BASE_URL + prizeData.imageFilename;
-                 img.alt = prizeData.name || 'Prize';
+                 img.src = IMAGE_BASE_URL + prize.imageFilename;
+                 img.alt = prize.name || 'Prize';
                  img.loading = 'lazy';
                  img.onerror = (e) => { e.target.style.display='none'; itemEl.textContent = '?'; itemEl.style.fontSize='2em'; } 
                  itemEl.appendChild(img);
@@ -1831,37 +1716,15 @@ async function spinRoulette() {
 
             const itemHeight = allItemsInSpinner[0].offsetHeight; 
             const rouletteWheelVisibleHeight = rouletteWheel.clientHeight; 
-
-            // Point 6: Roulette Line Stop Visual Bias Logic
-            const winningItemData = spinnerItemsForSpin[winnerVisualIndex];
-            const itemAboveData = winnerVisualIndex > 0 ? spinnerItemsForSpin[winnerVisualIndex - 1] : null;
-            const itemBelowData = winnerVisualIndex < spinnerItemsForSpin.length - 1 ? spinnerItemsForSpin[winnerVisualIndex + 1] : null;
-
-            let visualBiasOffsetPx = 0; // This is the pixel shift of the winning item from true center of the line
-            const BIAS_PERCENTAGE = 0.25; // e.g., shift by 25% of item height towards expensive neighbor
-
-            if (itemAboveData && itemAboveData.floorPrice > winningItemData.floorPrice * 1.5) { 
-                visualBiasOffsetPx = itemHeight * BIAS_PERCENTAGE; // Shift winner visually DOWN (marker looks higher on it)
-            } else if (itemBelowData && itemBelowData.floorPrice > winningItemData.floorPrice * 1.5) {
-                visualBiasOffsetPx = -itemHeight * BIAS_PERCENTAGE; // Shift winner visually UP (marker looks lower on it)
-            }
-            
-            // Calculate the scroll distance needed to center the *visually adjusted* position of the winning item
-            // 1. Base position to center the winner item:
-            let scrollDistanceToCenterWinner = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2);
-            // 2. Apply visual bias: If visualBiasOffsetPx is positive, winner moves down, so spinner scrolls UP less.
-            let finalScrollDistance = scrollDistanceToCenterWinner - visualBiasOffsetPx;
-            // 3. Add a smaller random jitter so it's not always perfectly biased
-            const smallerRandomJitter = (Math.random() - 0.5) * (itemHeight * 0.10); // Reduced random jitter
-            finalScrollDistance += smallerRandomJitter;
-
+            const randomOffset = (Math.random() - 0.5) * (itemHeight * 0.6); 
+            const landingPosition = (winnerVisualIndex * itemHeight) + (itemHeight / 2) - (rouletteWheelVisibleHeight / 2) + randomOffset;
 
             rouletteSpinner.style.transition = 'none'; 
             rouletteSpinner.style.top = '0px';
-            void rouletteSpinner.offsetWidth; // Force reflow
+            void rouletteSpinner.offsetWidth;
 
             rouletteSpinner.style.transition = 'top 6s cubic-bezier(0.25, 0.1, 0.2, 1)'; 
-            rouletteSpinner.style.top = `-${finalScrollDistance}px`;
+            rouletteSpinner.style.top = `-${landingPosition}px`;
             
             if (window.Telegram && Telegram.WebApp.HapticFeedback) Telegram.WebApp.HapticFeedback.impactOccurred('heavy');
 
@@ -1872,7 +1735,7 @@ async function spinRoulette() {
                 spinButton.textContent = 'Spin Again'; 
                 
                 const newItemForInventory = { 
-                     id: result.won_prize.id, // Use the actual ID from backend
+                     id: result.won_prize.id, 
                      name: winner.name, 
                      imageFilename: winner.imageFilename, 
                      floorPrice: winner.floorPrice, 
@@ -1884,34 +1747,31 @@ async function spinRoulette() {
                 renderInventory(); 
                 showTGNotification(`You got: ${winner.name}!`, 'success'); 
                 
-                // Highlight the actual winning item in the spinner (closest to the line after anim)
-                 const finalSpinnerTopValue = parseFloat(rouletteSpinner.style.top) || 0;
-                 const centerLineY = Math.abs(finalSpinnerTopValue) + rouletteWheelVisibleHeight / 2;
+                 const finalScrollTop = Math.abs(parseFloat(rouletteSpinner.style.top) || 0);
+                 const centerLine = finalScrollTop + rouletteWheelVisibleHeight / 2;
                  let closestItemIndex = 0;
                  let minDistance = Infinity;
-
                  allItemsInSpinner.forEach((item, index) => {
-                     const itemCenterY = (index * itemHeight) + (itemHeight / 2);
-                     const distance = Math.abs(itemCenterY - centerLineY);
+                     const itemCenter = (index * itemHeight) + (itemHeight / 2);
+                     const distance = Math.abs(itemCenter - centerLine);
                      if (distance < minDistance) {
                          minDistance = distance;
                          closestItemIndex = index;
                      }
                  });
-
                  if (allItemsInSpinner[closestItemIndex]) {
                       allItemsInSpinner.forEach(el => el.classList.remove('is-winning'));
                       allItemsInSpinner[closestItemIndex].classList.add('is-winning');
                  }
             }, 6100); 
         } else {
-            showTGNotification(result.error || result.message || 'Failed to open case.', 'error');
+            showTGNotification(result.error || 'Failed to open case.', 'error');
             spinButton.disabled = false;
             spinButton.textContent = 'Spin';
         }
     } catch (error) {
         console.error("Error in spinRoulette:", error);
-        // showTGNotification is likely called by apiRequest already
+        showTGNotification(`Error: ${error.message || 'Failed to open case.'}`, 'error');
         spinButton.disabled = false;
         spinButton.textContent = 'Spin';
     }
@@ -1919,7 +1779,6 @@ async function spinRoulette() {
 
 
 // --- Other Page Logic --- 
-// 🔴🔴🔴 PASTE YOUR `convertToTon` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 async function convertToTon(inventoryItemId) { 
     if (!inventoryItemId) return;
     try {
@@ -1936,11 +1795,10 @@ async function convertToTon(inventoryItemId) {
     } catch (error) { /* Handled in apiRequest */ }
 }
 
-// 🔴🔴🔴 PASTE YOUR `handleUpgrade` FUNCTION HERE (UNCHANGED) 🔴🔴🔴
 async function handleUpgrade() { 
     const selectedItemId = upgradeElements.inventorySelect.value;
     if (!selectedItemId) {
-        showTGNotification("Please select an item to upgrade.", 'warning'); return;
+        showTGNotification("Please select an item to upgrade.", 'error'); return;
     }
 
     upgradeElements.upgradeResult.textContent = "Attempting upgrade...";
@@ -1953,68 +1811,61 @@ async function handleUpgrade() {
         });
 
         if (result.status === 'success') {
-            const upgradedItemData = result.item; // Expecting {id, currentValue, name, upgradeMultiplier}
+            const upgradedItemData = result.item;
             const itemIndex = currentUser.inventory.findIndex(item => item.id === upgradedItemData.id);
             if (itemIndex !== -1) {
                 currentUser.inventory[itemIndex].currentValue = upgradedItemData.currentValue;
                 currentUser.inventory[itemIndex].upgradeMultiplier = upgradedItemData.upgradeMultiplier;
-                currentUser.inventory[itemIndex].name = upgradedItemData.name; // Name might change if it reflects multiplier
+                currentUser.inventory[itemIndex].name = upgradedItemData.name; 
             }
             upgradeElements.upgradeResult.textContent = result.message;
             upgradeElements.upgradeResult.style.color = 'var(--success-color)';
             showTGNotification("Upgrade successful!", 'success');
-        } else { // Failed upgrade (item lost or other error)
-            if (result.message && (result.message.includes("lost") || result.item_lost === true)) {
+        } else {
+            if (result.message && result.message.includes("lost")) {
                  currentUser.inventory = currentUser.inventory.filter(item => item.id !== parseInt(selectedItemId));
             }
             upgradeElements.upgradeResult.textContent = result.message;
             upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
-            showTGNotification(result.message || "Upgrade failed.", 'error');
+            showTGNotification("Upgrade failed.", 'error');
         }
-        renderInventory(); // Re-render inventory and sell-all value
-        updateBalances(); // If balance was affected (though not typical for upgrade itself)
+        renderInventory(); 
         upgradeElements.doUpgradeButton.disabled = false;
-        upgradeElements.inventorySelect.value = ''; // Reset select
-        upgradeElements.chanceDisplay.textContent = `${upgradeChances[selectedMultiplier]}%`; // Reset chance display
+        upgradeElements.inventorySelect.value = ''; 
     } catch (error) {
-        // apiRequest should handle showing notification
         upgradeElements.upgradeResult.textContent = "Error during upgrade.";
         upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
         upgradeElements.doUpgradeButton.disabled = false;
     }
 }
 
-// 🔴🔴🔴 PASTE YOUR `sellAllItems` and `doSellAll` FUNCTIONS HERE (UNCHANGED) 🔴🔴🔴
 async function sellAllItems() {
     if (currentUser.inventory.length === 0) {
         showTGNotification("Your inventory is empty.", "info"); return;
     }
-    const totalSellValue = parseFloat(profileElements.sellAllValueSpan.textContent); // Get current displayed value
-
     if (window.Telegram && Telegram.WebApp.showConfirm) {
-        Telegram.WebApp.showConfirm(`Sell all ${currentUser.inventory.length} items for approximately ${totalSellValue.toFixed(2)} TON? This action cannot be undone.`, async (confirmed) => {
+        Telegram.WebApp.showConfirm(`Sell all ${currentUser.inventory.length} items? This action cannot be undone.`, async (confirmed) => {
             if (confirmed) await doSellAll();
         });
-    } else if (confirm(`Sell all ${currentUser.inventory.length} items for approximately ${totalSellValue.toFixed(2)} TON? This action cannot be undone.`)) {
+    } else if (confirm(`Sell all ${currentUser.inventory.length} items? This action cannot be undone.`)) {
         await doSellAll();
     }
 }
+
 async function doSellAll() {
      try {
-        // The backend will calculate the sum based on its current DB state of the inventory.
         const result = await apiRequest('/api/sell_all_items', 'POST');
         if (result.status === 'success') {
             currentUser.tonBalance = result.new_balance_ton;
-            currentUser.inventory = []; // Clear client-side inventory
+            currentUser.inventory = []; 
             updateBalances();
-            renderInventory(); // This will update the "Sell All" button display (hide it, reset value)
+            renderInventory();
             showTGNotification(result.message, "success");
         } else {
             showTGNotification(result.message || "Failed to sell items.", "error");
         }
     } catch (error) { /* Handled in apiRequest */ }
 }
-
 
 // --- Withdraw Flow Logic ---
 function showWithdrawStep(stepNumber) {
@@ -2023,12 +1874,12 @@ function showWithdrawStep(stepNumber) {
     });
 }
 
-function startWithdrawalProcess(itemId) { // itemId is inventory_item.id
+function startWithdrawalProcess(itemId) {
     const item = currentUser.inventory.find(i => i.id === parseInt(itemId));  
     if (!item) {
         showTGNotification("Item not found for withdrawal.", "error"); return;
     }
-    itemToWithdraw = item.id; // Store the inventory item's unique ID
+    itemToWithdraw = item.id; 
     withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`; 
     showWithdrawStep(1);
     withdrawModal.classList.add('active');
@@ -2036,46 +1887,25 @@ function startWithdrawalProcess(itemId) { // itemId is inventory_item.id
 }
 
 async function completeWithdrawal() { 
-    if (!itemToWithdraw) {
-        showTGNotification("No item selected for withdrawal.", "error");
-        showWithdrawStep(1); // Go back to selection or close
-        return;
-    }
-    withdrawStatusMessage.textContent = "Processing withdrawal with backend..."; 
+    withdrawStatusMessage.textContent = "Simulating withdrawal process..."; 
     withdrawStatusMessage.style.color = 'var(--text-secondary)'; 
     const loader = withdrawModal.querySelector('.loader'); 
     if(loader) loader.style.display = 'block';
-    
-    try {
-        // Point 3: Call backend to finalize withdrawal and remove item from DB inventory
-        const result = await apiRequest(`/api/finalize_withdrawal/${itemToWithdraw}`, 'POST');
-
-        if (result.status === 'success') {
-            // Remove item from client-side inventory
-            const itemIndex = currentUser.inventory.findIndex(item => item.id === itemToWithdraw);
-            let itemName = "Item";
-            if (itemIndex !== -1) {
-                 itemName = currentUser.inventory[itemIndex].name;
-                 currentUser.inventory.splice(itemIndex, 1); 
-            }
-            renderInventory(); // This is crucial to update "Sell All" value and inventory display
-            
-            withdrawStatusMessage.textContent = result.message || `${itemName} withdrawal confirmed!`; 
-            withdrawStatusMessage.style.color = 'var(--success-color)';
-            showTGNotification(result.message || `${itemName} withdrawal confirmed!`, 'success');
-        } else {
-             withdrawStatusMessage.textContent = result.error || result.message || "Withdrawal failed on backend."; 
-             withdrawStatusMessage.style.color = 'var(--danger-color)';
-             showTGNotification(result.error || result.message || "Withdrawal failed.", 'error');
-        }
-    } catch (error) {
-        // apiRequest shows notification
-        withdrawStatusMessage.textContent = "Error during withdrawal process."; 
-        withdrawStatusMessage.style.color = 'var(--danger-color)';
-    } finally {
-        if(loader) loader.style.display = 'none'; 
-        itemToWithdraw = null; // Clear after attempt
+    await new Promise(resolve => setTimeout(resolve, 2500)); 
+    const itemIndex = currentUser.inventory.findIndex(item => item.id === itemToWithdraw);
+    if (itemIndex !== -1) {
+         const itemName = currentUser.inventory[itemIndex].name;
+         currentUser.inventory.splice(itemIndex, 1); 
+         renderInventory(); 
+         withdrawStatusMessage.textContent = "Gift withdrawal simulated!"; 
+         withdrawStatusMessage.style.color = 'var(--success-color)';
+         showTGNotification(`${itemName} withdrawal simulated!`, 'success');
+    } else {
+         withdrawStatusMessage.textContent = "Error: Item not found locally."; 
+         withdrawStatusMessage.style.color = 'var(--danger-color)';
+         showTGNotification("Error withdrawing item.", 'error');
     }
+     if(loader) loader.style.display = 'none'; 
 }
 
 function closeWithdrawModal() {
@@ -2084,14 +1914,9 @@ function closeWithdrawModal() {
     itemToWithdraw = null;
     showWithdrawStep(1); 
     withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; 
-    // Reset status messages if any
-    if(withdrawStatusMessage) withdrawStatusMessage.textContent = "";
-    const loader = withdrawModal.querySelector('.loader');
-    if(loader) loader.style.display = 'none';
 }
 
 // --- Deposit Modal Logic ---
-// 🔴🔴🔴 PASTE YOUR `initiateDepositProcedure`, `startDepositExpiryTimer`, `verifyPaymentSent`, `closeDepositInstructionsModal` FUNCTIONS HERE (UNCHANGED) 🔴🔴🔴
 async function initiateDepositProcedure() {
     const amountText = profileElements.depositAmountInput.value;
     if (!amountText.trim()) {
@@ -2121,7 +1946,7 @@ async function initiateDepositProcedure() {
             let finalNanoAmountForLink;
             if (result.final_amount_nano_ton) { 
                 finalNanoAmountForLink = result.final_amount_nano_ton;
-            } else { // Fallback if backend only sends string display amount
+            } else { 
                 finalNanoAmountForLink = Math.round(parseFloat(result.amount_to_send) * 1e9);
             }
 
@@ -2140,11 +1965,11 @@ async function initiateDepositProcedure() {
             showTGNotification(result.message || result.error || 'Failed to initiate deposit.', 'error');
         }
     } catch (error) {
-        // apiRequest will show error
         profileElements.initiateDepositButton.disabled = false;
         profileElements.initiateDepositButton.textContent = "Deposit TON";
     }
 }
+
 function startDepositExpiryTimer(expiresAtISO) {
     if (depositExpiryInterval) clearInterval(depositExpiryInterval);
     const expiryTime = new Date(expiresAtISO).getTime();
@@ -2168,6 +1993,7 @@ function startDepositExpiryTimer(expiresAtISO) {
     updateTimer(); 
     depositExpiryInterval = setInterval(updateTimer, 1000);
 }
+
 async function verifyPaymentSent() {
     if (!currentPendingDepositId) {
         showTGNotification("No active deposit to verify.", "error");
@@ -2194,7 +2020,7 @@ async function verifyPaymentSent() {
             depositStatusMessageEl.textContent = result.message;
             confirmPaymentSentButton.disabled = false; 
             confirmPaymentSentButton.textContent = "Check Again";
-        } else { // Covers 'expired', 'failed', 'error' from backend
+        } else { 
             showTGNotification(result.message || "Verification failed.", 'error');
             depositStatusMessageEl.textContent = result.message || "Verification failed.";
             if (result.status === 'expired') {
@@ -2205,17 +2031,16 @@ async function verifyPaymentSent() {
             }
         }
     } catch (error) {
-        // apiRequest will show error
         depositStatusMessageEl.textContent = 'An error occurred. Please try again.';
         confirmPaymentSentButton.disabled = false;
         confirmPaymentSentButton.textContent = "Try Verification Again";
     } finally {
-        // Hide loader unless still actively checking
         if (depositLoader.style.display === 'block' && (!depositStatusMessageEl.textContent.includes('Please wait') && !depositStatusMessageEl.textContent.includes('Checking'))) {
              depositLoader.style.display = 'none';
         }
     }
 }
+
 function closeDepositInstructionsModal() {
     if (tgBackButton) popTgBackButtonHandler();
     depositInstructionsModal.classList.remove('active');
@@ -2223,36 +2048,6 @@ function closeDepositInstructionsModal() {
     currentPendingDepositId = null;
     profileElements.depositAmountInput.value = ''; 
     if (tonTransferLink) tonTransferLink.href = '#'; 
-    // Reset status messages
-    depositStatusMessageEl.textContent = '';
-    depositLoader.style.display = 'none';
-    depositExpiryInfo.textContent = '';
-}
-
-
-// Point 2: Promocode Redemption
-async function redeemPromocode() {
-    const code = profileElements.promocodeInput.value.trim();
-    if (!code) {
-        showTGNotification("Please enter a promocode.", "warning");
-        return;
-    }
-    profileElements.redeemPromocodeButton.disabled = true;
-    try {
-        const result = await apiRequest('/api/redeem_promocode', 'POST', { promocode_text: code });
-        if (result.status === 'success') {
-            currentUser.tonBalance = result.new_balance_ton;
-            updateBalances();
-            showTGNotification(result.message, 'success');
-            profileElements.promocodeInput.value = ''; // Clear input on success
-        } else {
-            showTGNotification(result.message || result.error || "Failed to redeem promocode.", 'error');
-        }
-    } catch (error) {
-        // apiRequest handles notification
-    } finally {
-        profileElements.redeemPromocodeButton.disabled = false;
-    }
 }
 
 
@@ -2263,14 +2058,13 @@ closeRouletteButton.addEventListener('click', closeRouletteModal);
 
 profileElements.disconnectWalletButton.addEventListener('click', () => { tonConnectUI.disconnect(); });
 profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
-profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode); // Point 2
 
 
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
 withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); });
-withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
-if (closeWithdrawModalButton) closeWithdrawModalButton.addEventListener('click', closeWithdrawModal);
+withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal); // This is the "Close" after simulation
+if (closeWithdrawModalButton) closeWithdrawModalButton.addEventListener('click', closeWithdrawModal); // Main modal close button
 
 
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(button => {
@@ -2309,7 +2103,7 @@ inviteElements.withdrawReferralButton.addEventListener('click', async () => {
             renderInvitePage(); 
             showTGNotification(result.message, 'success');
         } else {
-            showTGNotification(result.message || result.error || "Failed to withdraw earnings.", 'error');
+            showTGNotification(result.message || "Failed to withdraw earnings.", 'error');
         }
     } catch (error) { /* Handled in apiRequest */ }
 });
@@ -2327,19 +2121,17 @@ async function fetchInitialUserData() {
     if (!Telegram.WebApp.initData) {
         console.warn("No initData, cannot fetch user data from backend.");
         if (!window.Telegram || !window.Telegram.WebApp) { 
-            updateUIBasedOnWallet(null); // Handle non-TG environment
+            updateUIBasedOnWallet(null);
             renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
             navigateToPage('main-page');
         } else {
-            // In TG env but no initData is unusual, might be an error or early call
             showTGNotification("Error: Telegram data not available. Please restart.", "error");
         }
-        return false; // Indicate data fetch failed or was not possible
+        return false; 
     }
 
     console.log("Fetching initial user data from backend...");
     try {
-        // Ensure body is an empty object if not sending specific data, but method is POST
         const data = await apiRequest('/api/get_user_data', 'POST', {}); 
         
         currentUser.id = data.id;
@@ -2352,21 +2144,17 @@ async function fetchInitialUserData() {
         currentUser.referralCode = data.referralCode;
         currentUser.referralEarningsPending = data.referralEarningsPending || 0;
         currentUser.total_won_ton = data.total_won_ton || 0;
-        currentUser.invited_friends_count = data.invited_friends_count || 0; // For referral page
-        // currentUser.invited_friends_list = data.invited_friends_list || []; // If backend sends list
-
         
         console.log("User data fetched and currentUser updated:", currentUser);
-        return true; // Indicate success
+        return true; 
 
     } catch (error) {
         console.error("Failed to fetch initial user data:", error);
         showTGNotification("Could not load your profile data. Please try again later.", 'error');
-        return false; // Indicate failure
+        return false; 
     }
 }
 
-// 🔴🔴🔴 PASTE YOUR `initializeApp` FUNCTION HERE (UNCHANGED except for log messages if desired) 🔴🔴🔴
 async function initializeApp() {
     console.log("initializeApp started");
     preloadImages(imageUrlsToPreload); 
@@ -2377,25 +2165,18 @@ async function initializeApp() {
 
     let initialDataFetched = false;
 
-    // Subscribe to TonConnectUI status changes
     tonConnectUI.onStatusChange(async wallet => { 
         console.log("TON Connect status changed. Wallet:", wallet);
-        updateUIBasedOnWallet(wallet); // Update UI based on wallet connection (address, buttons)
-        
-        // Fetch user data from backend after wallet status change IF initData is available
-        // This is useful if the app relies on wallet for some initial user identification not covered by TG initData
-        // However, primary user data fetch should be tied to TG initData availability.
+        updateUIBasedOnWallet(wallet); 
         if (!initialDataFetched && window.Telegram && Telegram.WebApp.initData) {
             if (await fetchInitialUserData()) {
                 initialDataFetched = true;
-                // Full render after data is fetched
                 renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
-                navigateToPage('main-page'); // Navigate to default page
+                navigateToPage('main-page'); 
             }
         }
     });
 
-    // Telegram WebApp specific initializations
     if (window.Telegram && window.Telegram.WebApp) {
         Telegram.WebApp.ready(); 
         Telegram.WebApp.expand(); 
@@ -2405,14 +2186,11 @@ async function initializeApp() {
         const tgUser = Telegram.WebApp.initDataUnsafe?.user;
         if (tgUser) {
             console.log("Telegram user data available (unsafe):", tgUser);
-            // Potentially pre-fill some currentUser fields if needed before backend call
-            // For example, if backend user creation relies on these being present early.
-            if (!currentUser.id || currentUser.id !== tgUser.id) { // Check ensures we don't overwrite if already set
+            if (!currentUser.id || currentUser.id !== tgUser.id) {
                 currentUser.id = tgUser.id; 
                 currentUser.username = tgUser.username;
-                currentUser.first_name = tgUser.first_name || 'User'; // Default if not present
+                currentUser.first_name = tgUser.first_name || 'User';
                 currentUser.last_name = tgUser.last_name;
-                // A simple default referral code based on user ID, backend might override this
                 if (!currentUser.referralCode) { 
                     currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
                 }
@@ -2421,15 +2199,13 @@ async function initializeApp() {
             console.warn("Telegram.WebApp.initDataUnsafe.user is not available.");
         }
         
-        // Set theme colors from CSS variables
         try { 
             const rootStyle = getComputedStyle(document.documentElement);
             let bgColor = rootStyle.getPropertyValue('--bg-gradient-start').trim();
             if (!bgColor || bgColor === "initial" || bgColor === "inherit") { 
-                // Fallback if CSS var is not loaded/parsed correctly (should not happen with :root)
                 bgColor = '#181A25'; 
             }
-            if (bgColor) { // Ensure bgColor is a valid color string
+            if (bgColor) { 
                  Telegram.WebApp.setHeaderColor(bgColor);
                  Telegram.WebApp.setBackgroundColor(bgColor);
                  console.log("Telegram theme colors set to:", bgColor);
@@ -2438,51 +2214,42 @@ async function initializeApp() {
             console.warn("Could not set Telegram WebApp theme colors.", e);
         }
 
-        // Crucial: Fetch user data using initData after TG WebApp is ready
         if (Telegram.WebApp.initData) {
             console.log("initData is available, calling fetchInitialUserData.");
             if (await fetchInitialUserData()) {
                 initialDataFetched = true;
             }
         } else { 
-            // This case should be rare if app is launched correctly inside Telegram
-            console.warn("Running in Telegram WebApp, but initData is NOT available at this point. UI might be incomplete until it loads or connection re-establishes.");
-            // Render with defaults or placeholders
-            updateUIBasedOnWallet(null); // Assume no wallet connected yet
+            console.warn("Running in Telegram WebApp, but initData is NOT available at this point.");
+            updateUIBasedOnWallet(null); 
             renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
             navigateToPage('main-page');
         }
 
     } else { 
-        // Fallback for environments where Telegram SDK is not available (e.g., standard browser)
         console.warn("Telegram WebApp SDK not available. Running in simulated browser mode.");
-        // Simulate some currentUser data for testing if needed
         if (!currentUser.referralCode) { 
             currentUser.referralCode = `ref_BROWSER${Math.random().toString(36).substring(2, 8)}`;
         }
-        initialDataFetched = true; // Mark as "fetched" for browser mode
-        updateUIBasedOnWallet(null); // No wallet in this mode by default
-        // Initial render with default/empty data
+        initialDataFetched = true; 
+        updateUIBasedOnWallet(null); 
         renderHeader(); renderCases(); renderProfile(); renderLeaderboard(); renderInvitePage();
         navigateToPage('main-page');
     }
 
-    // Final render pass if data was fetched (covers TG and browser modes if initialDataFetched is true)
     if (initialDataFetched) {
-        console.log("Initial data fetched (or simulated), performing final UI render.");
+        console.log("Initial data fetched, performing final UI render.");
         renderHeader(); 
         renderCases(); 
         renderProfile(); 
         renderLeaderboard(); 
         renderInvitePage();
-        navigateToPage('main-page'); // Ensure correct page is active
+        navigateToPage('main-page'); 
     } else {
-        console.warn("Initial data was NOT successfully fetched. UI might be incomplete or show loading states.");
-        // Optionally, display a global loading indicator or an error message if critical data is missing.
+        console.warn("Initial data was NOT successfully fetched. UI might be incomplete.");
     }
      console.log("initializeApp finished.");
 }
-
 
 document.addEventListener('DOMContentLoaded', initializeApp);
     
