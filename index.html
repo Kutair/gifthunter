@@ -1028,8 +1028,9 @@ function generateImageFilename(name) {
 //    priceTON: 30, 
 //    prizes: [ /* ... your prizes ... */ ]
 // },
-const casesData = [
-    { 
+// 🔴🔴🔴 PASTE THIS INTO YOUR JS `casesData` VARIABLE 🔴🔴🔴
+// Make sure your `generateImageFilename` function is defined before this const casesData = [
+    {
         id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.001 },
@@ -1045,7 +1046,7 @@ const casesData = [
             { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: 1.4, probability: 0.10 },
         ]
     },
-    { 
+    {
         id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0012 },
@@ -1059,7 +1060,7 @@ const casesData = [
             { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: 4, probability: 0.05 },
         ]
     },
-    { 
+    {
         id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0015 },
@@ -1074,7 +1075,7 @@ const casesData = [
             { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: 8.4, probability: 0.149 },
         ]
     },
-    { 
+    {
         id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 20,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0018 },
@@ -1084,16 +1085,16 @@ const casesData = [
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.15 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.15 },
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.15 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 }, 
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.10 },
             { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.07 },
             { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.07874 },
         ]
     },
-    { 
+    {
         id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 40,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.002 },
-            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 }, // Adjusted to make space for Pepe but keep total ~1
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.2994 },
             { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.12 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.10 },
@@ -1104,11 +1105,11 @@ const casesData = [
             { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.0486 },
         ]
     },
-    { 
+    {
         id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 100,
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0025 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 }, // Adjusted
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.09925 },
             { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.10 },
             { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: 120, probability: 0.10 },
             { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: 26, probability: 0.12 },
@@ -1118,24 +1119,27 @@ const casesData = [
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.10 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.08 },
             { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: 24, probability: 0.05 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 }, // Adjusted
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.04825 },
         ]
     },
-    { 
+    {
         id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200,
         prizes: [
-            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 }, // Higher chance as it's the "Pepe" case
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.15 },
             { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.25 },
             { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: 120, probability: 0.60 },
         ]
     },
-    { 
-        id: 'black', name: 'BLACK Singularity', 
-        isBackgroundCase: true, bgImageFilename: 'Black.png', overlayPrizeName: 'Neko Helmet', 
-        priceTON: 30, 
-        prizes: [ 
+    {
+        id: 'black', name: 'BLACK Singularity',
+        isBackgroundCase: true,
+        bgImageFilename: 'image-1.png', // This will be used by renderCases if it's not a direct URL
+                                        // The special handling in renderCases for id 'black' will use the i.ibb.co URL
+        overlayPrizeName: 'Neko Helmet',
+        priceTON: 30,
+        prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: 1000, probability: 0.0022 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 }, // Adjusted
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: 200, probability: 0.04934 },
             { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: 42, probability: 0.10 },
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: 36, probability: 0.08 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: 34, probability: 0.07 },
@@ -1145,10 +1149,10 @@ const casesData = [
             { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: 19.2, probability: 0.08 },
             { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: 18, probability: 0.07 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: 15, probability: 0.07 },
-            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 }, 
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: 18, probability: 0.07 },
             { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: 12.6, probability: 0.05 },
             { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: 11.4, probability: 0.05 },
-            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 }, // Adjusted
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: 15, probability: 0.06846 },
         ]
     },
 ];
