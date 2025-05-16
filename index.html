@@ -436,11 +436,10 @@ const UPDATED_FLOOR_PRICES_FRONTEND = { // Keep a copy for frontend logic if nee
 };
 
 
-const casesData = [ // EXAMPLE - YOU MUST FILL THIS WITH ALL CASES AND THEIR CORRECT RTP-ADJUSTED PRICES
+const casesData = [
     {
         id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'),
-        // priceTON: ((1200*0.001 + 15*0.005 + 2*0.07 + 2*0.07 + 1.8*0.07 + 2*0.06 + 3.4*0.023 + 1.4*0.25 + 1.4*0.25 + 1.4*0.10 + 1.4*0.10) / 0.70).toFixed(2), // Calculated dynamically or hardcoded from backend output
-        priceTON: 3.70, // Placeholder - Replace with actual calculated price
+        priceTON: 1.5, // Original fixed price
         prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.001 },
             { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet'], probability: 0.005 },
@@ -452,20 +451,107 @@ const casesData = [ // EXAMPLE - YOU MUST FILL THIS WITH ALL CASES AND THEIR COR
             { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Lol Pop'], probability: 0.25 },
             { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Hynpo Lollipop'], probability: 0.25 },
             { name: 'Desk Calendar', imageFilename: generateImageFilename('Desk Calendar'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar'], probability: 0.10 },
-            { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['B-Day Candle'], probability: 0.10 },
+            { name: 'B-Day Candle', imageFilename: generateImageFilename('B-Day Candle'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['B-Day Candle'], probability: 0.101 },
         ]
     },
-    // ... (ADD ALL OTHER CASES HERE, ENSURING 'priceTON' IS THE RTP-ADJUSTED VALUE FROM BACKEND LOGIC
-    // AND 'floorPrice' FOR EACH PRIZE USES UPDATED_FLOOR_PRICES_FRONTEND)
+    {
+        id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'),
+        priceTON: 6.0, // Original fixed price
+        prizes: [
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.0012 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Record Player'], probability: 0.40 },
+            { name: 'Lol Pop', imageFilename: generateImageFilename('Lol Pop'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Lol Pop'], probability: 0.10 },
+            { name: 'Hynpo Lollipop', imageFilename: generateImageFilename('Hynpo Lollipop'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Hynpo Lollipop'], probability: 0.10 },
+            { name: 'Party Sparkler', imageFilename: generateImageFilename('Party Sparkler'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Party Sparkler'], probability: 0.10 },
+            { name: 'Skull Flower', imageFilename: generateImageFilename('Skull Flower'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Skull Flower'], probability: 0.10 },
+            { name: 'Jelly Bunny', imageFilename: generateImageFilename('Jelly Bunny'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Jelly Bunny'], probability: 0.0988 },
+            { name: 'Tama Gadget', imageFilename: generateImageFilename('Tama Gadget'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Tama Gadget'], probability: 0.05 },
+            { name: 'Snow Globe', imageFilename: generateImageFilename('Snow Globe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Snow Globe'], probability: 0.05 },
+        ]
+    },
+    {
+        id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'),
+        priceTON: 10.0, // Original fixed price
+        prizes: [
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.0015 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Swiss Watch'], probability: 0.08 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet'], probability: 0.10 },
+            { name: 'Eternal Rose', imageFilename: generateImageFilename('Eternal Rose'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Eternal Rose'], probability: 0.05 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Electric Skull'], probability: 0.03 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Diamond Ring'], probability: 0.0395 },
+            { name: 'Record Player', imageFilename: generateImageFilename('Record Player'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Record Player'], probability: 0.20 },
+            { name: 'Love Potion', imageFilename: generateImageFilename('Love Potion'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Love Potion'], probability: 0.20 },
+            { name: 'Top Hat', imageFilename: generateImageFilename('Top Hat'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Top Hat'], probability: 0.15 },
+            { name: 'Voodoo Doll', imageFilename: generateImageFilename('Voodoo Doll'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Voodoo Doll'], probability: 0.149 },
+        ]
+    },
+    {
+        id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'),
+        priceTON: 20.0, // Original fixed price
+        prizes: [
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.0018 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle'], probability: 0.08 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Sharp Tongue'], probability: 0.12 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Loot Bag'], probability: 0.09946 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Swiss Watch'], probability: 0.15 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet'], probability: 0.15 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Genie Lamp'], probability: 0.15 },
+            { name: 'Kissed Frog', imageFilename: generateImageFilename('Kissed Frog'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Kissed Frog'], probability: 0.10 },
+            { name: 'Electric Skull', imageFilename: generateImageFilename('Electric Skull'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Electric Skull'], probability: 0.07 },
+            { name: 'Diamond Ring', imageFilename: generateImageFilename('Diamond Ring'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Diamond Ring'], probability: 0.07874 },
+        ]
+    },
+    {
+        id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'),
+        priceTON: 40.0, // Original fixed price
+        prizes: [
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.002 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle'], probability: 0.2994 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Vintage Cigar'], probability: 0.12 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Swiss Watch'], probability: 0.12 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet'], probability: 0.10 },
+            { name: 'Sharp Tongue', imageFilename: generateImageFilename('Sharp Tongue'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Sharp Tongue'], probability: 0.10 },
+            { name: 'Genie Lamp', imageFilename: generateImageFilename('Genie Lamp'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Genie Lamp'], probability: 0.08 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Mini Oscar'], probability: 0.08 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Scared Cat'], probability: 0.05 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Toy Bear'], probability: 0.0486 },
+        ]
+    },
+    {
+        id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'),
+        priceTON: 100.0, // Original fixed price
+        prizes: [
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.0025 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap'], probability: 0.09925 },
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Astral Shard'], probability: 0.10 },
+            { name: 'Precious Peach', imageFilename: generateImageFilename('Precious Peach'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Precious Peach'], probability: 0.10 },
+            { name: 'Vintage Cigar', imageFilename: generateImageFilename('Vintage Cigar'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Vintage Cigar'], probability: 0.12 },
+            { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle'], probability: 0.12 },
+            { name: 'Swiss Watch', imageFilename: generateImageFilename('Swiss Watch'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Swiss Watch'], probability: 0.10 },
+            { name: 'Neko Helmet', imageFilename: generateImageFilename('Neko Helmet'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet'], probability: 0.08 },
+            { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Mini Oscar'], probability: 0.10 },
+            { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Scared Cat'], probability: 0.08 },
+            { name: 'Loot Bag', imageFilename: generateImageFilename('Loot Bag'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Loot Bag'], probability: 0.05 },
+            { name: 'Toy Bear', imageFilename: generateImageFilename('Toy Bear'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Toy Bear'], probability: 0.04825 },
+        ]
+    },
+    {
+        id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'),
+        priceTON: 200.0, // Original fixed price
+        prizes: [
+            { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.15 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap'], probability: 0.25 },
+            { name: 'Astral Shard', imageFilename: generateImageFilename('Astral Shard'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Astral Shard'], probability: 0.60 },
+        ]
+    },
     {
         id: 'black', name: 'BLACK Singularity',
-        isBackgroundCase: true, bgImageFilename: 'image-1.png', // Frontend will use direct URL for this bg
+        isBackgroundCase: true, bgImageFilename: 'image-1.png', // Direct URL handled by renderCases
         overlayPrizeName: 'Neko Helmet',
-        // priceTON: (Calculate EV for black items (2.5x multiplier) / 0.70).toFixed(2),
-        priceTON: 60.89, // Placeholder - Replace with actual calculated price for Black Singularity
-        prizes: [ // Ensure these prizes also use UPDATED_FLOOR_PRICES_FRONTEND for their base floorPrice
+        priceTON: 30.0, // Manually set price
+        prizes: [
             { name: 'Plush Pepe', imageFilename: generateImageFilename('Plush Pepe'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe'], probability: 0.001 },
-            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND["Durov's Cap"], probability: 0.01 },
+            { name: 'Durov\'s Cap', imageFilename: generateImageFilename('Durov\'s Cap'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap'], probability: 0.01 },
             { name: 'Perfume Bottle', imageFilename: generateImageFilename('Perfume Bottle'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle'], probability: 0.05 },
             { name: 'Mini Oscar', imageFilename: generateImageFilename('Mini Oscar'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Mini Oscar'], probability: 0.04 },
             { name: 'Scared Cat', imageFilename: generateImageFilename('Scared Cat'), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND['Scared Cat'], probability: 0.06 },
@@ -481,7 +567,6 @@ const casesData = [ // EXAMPLE - YOU MUST FILL THIS WITH ALL CASES AND THEIR COR
         ]
     },
 ];
-
 
 // --- DOM Elements (IDs are assumed from your HTML) ---
 const headerElements = { tonConnectButton: document.getElementById('ton-connect-button'), walletAddressDisplay: document.getElementById('wallet-address-display'), tonBalanceSpan: document.getElementById('ton-balance'), balanceDisplay: document.getElementById('balance')};
