@@ -867,5 +867,5 @@ if __name__ == '__main__':
         bot_polling_thread.start()
     elif os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         logger.info("Werkzeug reloader process, not starting polling here.")
-    logger.info("Starting Flask development server...")
+    logger.info("Запуск Flask development server...")
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
