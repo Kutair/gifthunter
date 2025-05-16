@@ -15,7 +15,7 @@ from urllib.parse import unquote, parse_qs, quote
 from datetime import datetime as dt, timezone, timedelta
 import json
 
-# SQLAlchemy imports
+# SQLAlchemy importss
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint, BigInteger
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base, backref
 from sqlalchemy.sql import func
