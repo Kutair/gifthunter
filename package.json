@@ -1,0 +1,8 @@
+{
+  "name": "pusik-gifts-backend-js-deps",
+  "version": "1.0.0",
+  "description": "JS dependencies for Python backend",
+  "dependencies": {
+    "crypto-js": "^4.1.1" 
+  }
+}
