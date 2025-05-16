@@ -15,7 +15,7 @@ from urllib.parse import unquote, parse_qs, quote
 from datetime import datetime as dt, timezone, timedelta
 import json
 
-# SQLAlchemy importss
+# SQLAlchemy imports
 from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint, BigInteger
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base, backref
 from sqlalchemy.sql import func
@@ -30,8 +30,8 @@ import asyncio
 load_dotenv()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-MINI_APP_NAME = os.environ.get("MINI_APP_NAME", "case") # Used for referral link construction
-MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}") # Default, can be overridden
+MINI_APP_NAME = os.environ.get("MINI_APP_NAME", "case") 
+MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24
 
@@ -79,7 +79,7 @@ class NFT(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, index=True, nullable=False)
     image_filename = Column(String, nullable=True)
-    floor_price = Column(Float, default=0.0, nullable=False) # This will store the BASE floor price
+    floor_price = Column(Float, default=0.0, nullable=False)
     __table_args__ = (UniqueConstraint('name', name='uq_nft_name'),)
 
 class InventoryItem(Base):
@@ -87,10 +87,10 @@ class InventoryItem(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     nft_id = Column(Integer, ForeignKey("nfts.id"), nullable=False)
-    current_value = Column(Float, nullable=False) # Actual value, potentially modified by variant/upgrades
+    current_value = Column(Float, nullable=False)
     upgrade_multiplier = Column(Float, default=1.0, nullable=False)
     obtained_at = Column(DateTime(timezone=True), server_default=func.now())
-    variant = Column(String, nullable=True) # e.g., "black_singularity"
+    variant = Column(String, nullable=True) 
 
     owner = relationship("User", back_populates="inventory")
     nft = relationship("NFT")
@@ -131,194 +131,162 @@ def generate_image_filename_from_name(name_str: str) -> str:
     cleaned_name = re.sub(r'\s+', '-', cleaned_name)
     return cleaned_name + '.png'
 
-# Point 2: Updated Floor Prices
 UPDATED_FLOOR_PRICES = {
-    'Plush Pepe': 1200.0,
-    'Neko Helmet': 15.0,
-    'Party Sparkler': 2.0, # Assuming original, not specified to change
-    'Homemade Cake': 2.0,  # Assuming original
-    'Cookie Heart': 1.8,   # Assuming original
-    'Jack-in-the-box': 2.0,# Assuming original
-    'Skull Flower': 3.4,   # Assuming original
-    'Lol Pop': 1.4,        # Assuming original
-    'Hynpo Lollipop': 1.4, # Assuming original
-    'Desk Calendar': 1.4,  # Assuming original
-    'B-Day Candle': 1.4,   # Assuming original
-    'Record Player': 4.0,  # Assuming original
-    'Jelly Bunny': 3.6,    # Assuming original
-    'Tama Gadget': 4.0,    # Assuming original
-    'Snow Globe': 4.0,     # Assuming original
-    'Swiss Watch': 18.6,
-    'Eternal Rose': 11.0,  # Assuming original
-    'Electric Skull': 10.9,
-    'Diamond Ring': 8.06,
-    'Love Potion': 5.4,    # Assuming original
-    'Top Hat': 6.0,        # Assuming original
-    'Voodoo Doll': 9.4,
-    'Perfume Bottle': 38.3,
-    'Sharp Tongue': 17.0,
-    'Loot Bag': 25.0,
-    'Genie Lamp': 19.3,
-    'Kissed Frog': 14.8,
-    'Vintage Cigar': 19.7,
-    'Mini Oscar': 40.5,
-    'Scared Cat': 22.0, # Renamed from "Sacred Cat" to "Scared Cat" for consistency if that was a typo
-    'Toy Bear': 16.3,
-    'Astral Shard': 50.0,
-    "Durov's Cap": 251.0,
-    'Precious Peach': 100.0
+    'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0,
+    'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0,
+    'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3,
+    'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9,
+    'Diamond Ring': 8.06, 'Mini Oscar': 40.5,
+    'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0,
+    'Skull Flower': 3.4, 'Lol Pop': 1.4, 'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4,
+    'B-Day Candle': 1.4, 'Record Player': 4.0, 'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 
+    'Snow Globe': 4.0, 'Eternal Rose': 11.0, 'Love Potion': 5.4, 'Top Hat': 6.0
 }
 
-# Function to calculate Expected Value (EV) of a case and adjust its price for RTP
-TARGET_RTP = 0.70 # 70%
-
-def calculate_case_price_for_rtp(prizes_config, black_singularity_mode=False):
-    ev = 0
-    for prize_info in prizes_config:
-        base_floor_price = UPDATED_FLOOR_PRICES.get(prize_info['name'], prize_info['floorPrice']) # Use updated or original
-        
-        current_prize_value = base_floor_price
-        if black_singularity_mode:
-            # Point 4: Black Singularity items are 2-3x more valuable. Let's use 2.5x as an average.
-            # This higher value is used for EV calculation of the Black Singularity case.
-            current_prize_value *= 2.5 
-        
-        ev += current_prize_value * prize_info['probability']
-    
-    if TARGET_RTP > 0:
-        case_price = ev / TARGET_RTP
-        return round(case_price, 2) # Round to 2 decimal places for TON
-    return round(ev, 2) # Fallback if RTP is 0, price equals EV (100% RTP)
-
-
-cases_data_backend_unpriced = [ # Original structure without priceTON
+# Reverted to original fixed prices, only floor prices of items are updated.
+cases_data_backend = [
     {
-        'id': 'lolpop', 'name': 'Lol Pop Stash',
+        'id': 'lolpop', 'name': 'Lol Pop Stash', 'imageFilename': generate_image_filename_from_name('Lol Pop'),
+        'priceTON': 1.5, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.001 }, { 'name': 'Neko Helmet', 'probability': 0.005 },
-            { 'name': 'Party Sparkler', 'probability': 0.07 }, { 'name': 'Homemade Cake', 'probability': 0.07 },
-            { 'name': 'Cookie Heart', 'probability': 0.07 }, { 'name': 'Jack-in-the-box', 'probability': 0.06 },
-            { 'name': 'Skull Flower', 'probability': 0.023 }, { 'name': 'Lol Pop', 'probability': 0.25 },
-            { 'name': 'Hynpo Lollipop', 'probability': 0.25 }, { 'name': 'Desk Calendar', 'probability': 0.10 },
-            { 'name': 'B-Day Candle', 'probability': 0.10 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.001 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES['Neko Helmet'], 'probability': 0.005 },
+            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': UPDATED_FLOOR_PRICES['Party Sparkler'], 'probability': 0.07 },
+            { 'name': 'Homemade Cake', 'imageFilename': generate_image_filename_from_name('Homemade Cake'), 'floorPrice': UPDATED_FLOOR_PRICES['Homemade Cake'], 'probability': 0.07 },
+            { 'name': 'Cookie Heart', 'imageFilename': generate_image_filename_from_name('Cookie Heart'), 'floorPrice': UPDATED_FLOOR_PRICES['Cookie Heart'], 'probability': 0.07 },
+            { 'name': 'Jack-in-the-box', 'imageFilename': generate_image_filename_from_name('Jack-in-the-box'), 'floorPrice': UPDATED_FLOOR_PRICES['Jack-in-the-box'], 'probability': 0.06 },
+            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': UPDATED_FLOOR_PRICES['Skull Flower'], 'probability': 0.023 },
+            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': UPDATED_FLOOR_PRICES['Lol Pop'], 'probability': 0.25 },
+            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': UPDATED_FLOOR_PRICES['Hynpo Lollipop'], 'probability': 0.25 },
+            { 'name': 'Desk Calendar', 'imageFilename': generate_image_filename_from_name('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES['Desk Calendar'], 'probability': 0.10 },
+            { 'name': 'B-Day Candle', 'imageFilename': generate_image_filename_from_name('B-Day Candle'), 'floorPrice': UPDATED_FLOOR_PRICES['B-Day Candle'], 'probability': 0.101 }, # ensure sum is 1
         ]
     },
     {
-        'id': 'recordplayer', 'name': 'Record Player Vault',
+        'id': 'recordplayer', 'name': 'Record Player Vault', 'imageFilename': generate_image_filename_from_name('Record Player'),
+        'priceTON': 6.0, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.0012 }, { 'name': 'Record Player', 'probability': 0.40 },
-            { 'name': 'Lol Pop', 'probability': 0.10 }, { 'name': 'Hynpo Lollipop', 'probability': 0.10 },
-            { 'name': 'Party Sparkler', 'probability': 0.10 }, { 'name': 'Skull Flower', 'probability': 0.10 },
-            { 'name': 'Jelly Bunny', 'probability': 0.0988 }, { 'name': 'Tama Gadget', 'probability': 0.05 },
-            { 'name': 'Snow Globe', 'probability': 0.05 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.0012 },
+            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': UPDATED_FLOOR_PRICES['Record Player'], 'probability': 0.40 },
+            { 'name': 'Lol Pop', 'imageFilename': generate_image_filename_from_name('Lol Pop'), 'floorPrice': UPDATED_FLOOR_PRICES['Lol Pop'], 'probability': 0.10 },
+            { 'name': 'Hynpo Lollipop', 'imageFilename': generate_image_filename_from_name('Hynpo Lollipop'), 'floorPrice': UPDATED_FLOOR_PRICES['Hynpo Lollipop'], 'probability': 0.10 },
+            { 'name': 'Party Sparkler', 'imageFilename': generate_image_filename_from_name('Party Sparkler'), 'floorPrice': UPDATED_FLOOR_PRICES['Party Sparkler'], 'probability': 0.10 },
+            { 'name': 'Skull Flower', 'imageFilename': generate_image_filename_from_name('Skull Flower'), 'floorPrice': UPDATED_FLOOR_PRICES['Skull Flower'], 'probability': 0.10 },
+            { 'name': 'Jelly Bunny', 'imageFilename': generate_image_filename_from_name('Jelly Bunny'), 'floorPrice': UPDATED_FLOOR_PRICES['Jelly Bunny'], 'probability': 0.0988 },
+            { 'name': 'Tama Gadget', 'imageFilename': generate_image_filename_from_name('Tama Gadget'), 'floorPrice': UPDATED_FLOOR_PRICES['Tama Gadget'], 'probability': 0.05 },
+            { 'name': 'Snow Globe', 'imageFilename': generate_image_filename_from_name('Snow Globe'), 'floorPrice': UPDATED_FLOOR_PRICES['Snow Globe'], 'probability': 0.05 },
         ]
     },
     {
-        'id': 'swisswatch', 'name': 'Swiss Watch Box',
+        'id': 'swisswatch', 'name': 'Swiss Watch Box', 'imageFilename': generate_image_filename_from_name('Swiss Watch'),
+        'priceTON': 10.0, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.0015 }, { 'name': 'Swiss Watch', 'probability': 0.08 },
-            { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Eternal Rose', 'probability': 0.05 },
-            { 'name': 'Electric Skull', 'probability': 0.03 }, { 'name': 'Diamond Ring', 'probability': 0.0395 },
-            { 'name': 'Record Player', 'probability': 0.20 }, { 'name': 'Love Potion', 'probability': 0.20 },
-            { 'name': 'Top Hat', 'probability': 0.15 }, { 'name': 'Voodoo Doll', 'probability': 0.149 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.0015 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': UPDATED_FLOOR_PRICES['Swiss Watch'], 'probability': 0.08 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES['Neko Helmet'], 'probability': 0.10 },
+            { 'name': 'Eternal Rose', 'imageFilename': generate_image_filename_from_name('Eternal Rose'), 'floorPrice': UPDATED_FLOOR_PRICES['Eternal Rose'], 'probability': 0.05 },
+            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': UPDATED_FLOOR_PRICES['Electric Skull'], 'probability': 0.03 },
+            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': UPDATED_FLOOR_PRICES['Diamond Ring'], 'probability': 0.0395 },
+            { 'name': 'Record Player', 'imageFilename': generate_image_filename_from_name('Record Player'), 'floorPrice': UPDATED_FLOOR_PRICES['Record Player'], 'probability': 0.20 },
+            { 'name': 'Love Potion', 'imageFilename': generate_image_filename_from_name('Love Potion'), 'floorPrice': UPDATED_FLOOR_PRICES['Love Potion'], 'probability': 0.20 },
+            { 'name': 'Top Hat', 'imageFilename': generate_image_filename_from_name('Top Hat'), 'floorPrice': UPDATED_FLOOR_PRICES['Top Hat'], 'probability': 0.15 },
+            { 'name': 'Voodoo Doll', 'imageFilename': generate_image_filename_from_name('Voodoo Doll'), 'floorPrice': UPDATED_FLOOR_PRICES['Voodoo Doll'], 'probability': 0.149 },
         ]
     },
     {
-        'id': 'perfumebottle', 'name': 'Perfume Chest',
+        'id': 'perfumebottle', 'name': 'Perfume Chest', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'),
+        'priceTON': 20.0, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.0018 }, { 'name': 'Perfume Bottle', 'probability': 0.08 },
-            { 'name': 'Sharp Tongue', 'probability': 0.12 }, { 'name': 'Loot Bag', 'probability': 0.09946 },
-            { 'name': 'Swiss Watch', 'probability': 0.15 }, { 'name': 'Neko Helmet', 'probability': 0.15 },
-            { 'name': 'Genie Lamp', 'probability': 0.15 }, { 'name': 'Kissed Frog', 'probability': 0.10 },
-            { 'name': 'Electric Skull', 'probability': 0.07 }, { 'name': 'Diamond Ring', 'probability': 0.07874 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.0018 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': UPDATED_FLOOR_PRICES['Perfume Bottle'], 'probability': 0.08 },
+            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': UPDATED_FLOOR_PRICES['Sharp Tongue'], 'probability': 0.12 },
+            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': UPDATED_FLOOR_PRICES['Loot Bag'], 'probability': 0.09946 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': UPDATED_FLOOR_PRICES['Swiss Watch'], 'probability': 0.15 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES['Neko Helmet'], 'probability': 0.15 },
+            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': UPDATED_FLOOR_PRICES['Genie Lamp'], 'probability': 0.15 },
+            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': UPDATED_FLOOR_PRICES['Kissed Frog'], 'probability': 0.10 },
+            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': UPDATED_FLOOR_PRICES['Electric Skull'], 'probability': 0.07 },
+            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': UPDATED_FLOOR_PRICES['Diamond Ring'], 'probability': 0.07874 },
         ]
     },
     {
-        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe',
+        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'),
+        'priceTON': 40.0, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.002 }, { 'name': 'Perfume Bottle', 'probability': 0.2994 },
-            { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Swiss Watch', 'probability': 0.12 },
-            { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Sharp Tongue', 'probability': 0.10 },
-            { 'name': 'Genie Lamp', 'probability': 0.08 }, { 'name': 'Mini Oscar', 'probability': 0.08 },
-            { 'name': 'Scared Cat', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.0486 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.002 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': UPDATED_FLOOR_PRICES['Perfume Bottle'], 'probability': 0.2994 },
+            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': UPDATED_FLOOR_PRICES['Vintage Cigar'], 'probability': 0.12 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': UPDATED_FLOOR_PRICES['Swiss Watch'], 'probability': 0.12 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES['Neko Helmet'], 'probability': 0.10 },
+            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': UPDATED_FLOOR_PRICES['Sharp Tongue'], 'probability': 0.10 },
+            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': UPDATED_FLOOR_PRICES['Genie Lamp'], 'probability': 0.08 },
+            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': UPDATED_FLOOR_PRICES['Mini Oscar'], 'probability': 0.08 },
+            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': UPDATED_FLOOR_PRICES['Scared Cat'], 'probability': 0.05 },
+            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': UPDATED_FLOOR_PRICES['Toy Bear'], 'probability': 0.0486 },
         ]
     },
     {
-        'id': 'astralshard', 'name': 'Astral Shard Relic',
+        'id': 'astralshard', 'name': 'Astral Shard Relic', 'imageFilename': generate_image_filename_from_name('Astral Shard'),
+        'priceTON': 100.0, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.0025 }, { 'name': 'Durov\'s Cap', 'probability': 0.09925 },
-            { 'name': 'Astral Shard', 'probability': 0.10 }, { 'name': 'Precious Peach', 'probability': 0.10 },
-            { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Perfume Bottle', 'probability': 0.12 },
-            { 'name': 'Swiss Watch', 'probability': 0.10 }, { 'name': 'Neko Helmet', 'probability': 0.08 },
-            { 'name': 'Mini Oscar', 'probability': 0.10 }, { 'name': 'Scared Cat', 'probability': 0.08 },
-            { 'name': 'Loot Bag', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.04825 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.0025 },
+            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES['Durov\'s Cap'], 'probability': 0.09925 },
+            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': UPDATED_FLOOR_PRICES['Astral Shard'], 'probability': 0.10 },
+            { 'name': 'Precious Peach', 'imageFilename': generate_image_filename_from_name('Precious Peach'), 'floorPrice': UPDATED_FLOOR_PRICES['Precious Peach'], 'probability': 0.10 },
+            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': UPDATED_FLOOR_PRICES['Vintage Cigar'], 'probability': 0.12 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': UPDATED_FLOOR_PRICES['Perfume Bottle'], 'probability': 0.12 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': UPDATED_FLOOR_PRICES['Swiss Watch'], 'probability': 0.10 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES['Neko Helmet'], 'probability': 0.08 },
+            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': UPDATED_FLOOR_PRICES['Mini Oscar'], 'probability': 0.10 },
+            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': UPDATED_FLOOR_PRICES['Scared Cat'], 'probability': 0.08 },
+            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': UPDATED_FLOOR_PRICES['Loot Bag'], 'probability': 0.05 },
+            { 'name': 'Toy Bear', 'imageFilename': generate_image_filename_from_name('Toy Bear'), 'floorPrice': UPDATED_FLOOR_PRICES['Toy Bear'], 'probability': 0.04825 },
         ]
     },
     {
-        'id': 'plushpepe', 'name': 'Plush Pepe Hoard',
+        'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'imageFilename': generate_image_filename_from_name('Plush Pepe'),
+        'priceTON': 200.0, # Original fixed price
         'prizes': [
-            { 'name': 'Plush Pepe', 'probability': 0.15 },
-            { 'name': 'Durov\'s Cap', 'probability': 0.25 },
-            { 'name': 'Astral Shard', 'probability': 0.60 },
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.15 },
+            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES['Durov\'s Cap'], 'probability': 0.25 },
+            { 'name': 'Astral Shard', 'imageFilename': generate_image_filename_from_name('Astral Shard'), 'floorPrice': UPDATED_FLOOR_PRICES['Astral Shard'], 'probability': 0.60 },
         ]
     },
     {
         'id': 'black', 'name': 'BLACK Singularity',
         'isBackgroundCase': True, 'bgImageFilename': 'image-1.png', 'overlayPrizeName': 'Neko Helmet',
-        'prizes': [ # Probabilities might need significant adjustment for RTP with 2-3x values
-            { 'name': 'Plush Pepe', 'probability': 0.001 }, # Reduced significantly
-            { 'name': 'Durov\'s Cap', 'probability': 0.01 }, # Reduced
-            { 'name': 'Perfume Bottle', 'probability': 0.05 },
-            { 'name': 'Mini Oscar', 'probability': 0.04 },
-            { 'name': 'Scared Cat', 'probability': 0.06 },
-            { 'name': 'Vintage Cigar', 'probability': 0.07 },
-            { 'name': 'Loot Bag', 'probability': 0.07 },
-            { 'name': 'Sharp Tongue', 'probability': 0.08 },
-            { 'name': 'Genie Lamp', 'probability': 0.08 },
-            { 'name': 'Swiss Watch', 'probability': 0.10 },
-            { 'name': 'Neko Helmet', 'probability': 0.15 }, # Higher for overlay
-            { 'name': 'Kissed Frog', 'probability': 0.10 },
-            { 'name': 'Electric Skull', 'probability': 0.09 },
-            { 'name': 'Diamond Ring', 'probability': 0.089}, # Adjusted to make sum ~1
-            # Removed Toy Bear to make space for higher value item probabilities or to adjust sum
+        'priceTON': 30.0, # Manually set price
+        'prizes': [
+            { 'name': 'Plush Pepe', 'imageFilename': generate_image_filename_from_name('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES['Plush Pepe'], 'probability': 0.001 },
+            { 'name': 'Durov\'s Cap', 'imageFilename': generate_image_filename_from_name('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES['Durov\'s Cap'], 'probability': 0.01 },
+            { 'name': 'Perfume Bottle', 'imageFilename': generate_image_filename_from_name('Perfume Bottle'), 'floorPrice': UPDATED_FLOOR_PRICES['Perfume Bottle'], 'probability': 0.05 },
+            { 'name': 'Mini Oscar', 'imageFilename': generate_image_filename_from_name('Mini Oscar'), 'floorPrice': UPDATED_FLOOR_PRICES['Mini Oscar'], 'probability': 0.04 },
+            { 'name': 'Scared Cat', 'imageFilename': generate_image_filename_from_name('Scared Cat'), 'floorPrice': UPDATED_FLOOR_PRICES['Scared Cat'], 'probability': 0.06 },
+            { 'name': 'Vintage Cigar', 'imageFilename': generate_image_filename_from_name('Vintage Cigar'), 'floorPrice': UPDATED_FLOOR_PRICES['Vintage Cigar'], 'probability': 0.07 },
+            { 'name': 'Loot Bag', 'imageFilename': generate_image_filename_from_name('Loot Bag'), 'floorPrice': UPDATED_FLOOR_PRICES['Loot Bag'], 'probability': 0.07 },
+            { 'name': 'Sharp Tongue', 'imageFilename': generate_image_filename_from_name('Sharp Tongue'), 'floorPrice': UPDATED_FLOOR_PRICES['Sharp Tongue'], 'probability': 0.08 },
+            { 'name': 'Genie Lamp', 'imageFilename': generate_image_filename_from_name('Genie Lamp'), 'floorPrice': UPDATED_FLOOR_PRICES['Genie Lamp'], 'probability': 0.08 },
+            { 'name': 'Swiss Watch', 'imageFilename': generate_image_filename_from_name('Swiss Watch'), 'floorPrice': UPDATED_FLOOR_PRICES['Swiss Watch'], 'probability': 0.10 },
+            { 'name': 'Neko Helmet', 'imageFilename': generate_image_filename_from_name('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES['Neko Helmet'], 'probability': 0.15 },
+            { 'name': 'Kissed Frog', 'imageFilename': generate_image_filename_from_name('Kissed Frog'), 'floorPrice': UPDATED_FLOOR_PRICES['Kissed Frog'], 'probability': 0.10 },
+            { 'name': 'Electric Skull', 'imageFilename': generate_image_filename_from_name('Electric Skull'), 'floorPrice': UPDATED_FLOOR_PRICES['Electric Skull'], 'probability': 0.09 },
+            { 'name': 'Diamond Ring', 'imageFilename': generate_image_filename_from_name('Diamond Ring'), 'floorPrice': UPDATED_FLOOR_PRICES['Diamond Ring'], 'probability': 0.089},
         ]
     },
 ]
 
-# Populate cases_data_backend with image filenames, full prize data, and calculated prices
-cases_data_backend = []
-for case_template in cases_data_backend_unpriced:
-    full_prizes = []
-    for prize_stub in case_template['prizes']:
-        prize_name = prize_stub['name']
-        full_prizes.append({
-            'name': prize_name,
-            'imageFilename': generate_image_filename_from_name(prize_name),
-            'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), # Get updated floor price
-            'probability': prize_stub['probability']
-        })
+# Log actual RTPs for these fixed prices
+for case_info in cases_data_backend:
+    ev = 0
+    for p_info in case_info['prizes']:
+        # For BLACK Singularity, the EV uses the multiplied value of prizes
+        prize_val_for_ev = p_info['floorPrice']
+        if case_info['id'] == 'black':
+            prize_val_for_ev *= 2.5 # The 2-3x multiplier (using 2.5x example)
+        ev += prize_val_for_ev * p_info['probability']
     
-    is_black_singularity = case_template['id'] == 'black'
-    calculated_price = calculate_case_price_for_rtp(full_prizes, black_singularity_mode=is_black_singularity)
-
-    # Add imageFilenames for the case itself, if not a background case
-    case_image_filename = None
-    if not case_template.get('isBackgroundCase'):
-        case_image_filename = generate_image_filename_from_name(case_template['name'])
-
-
-    cases_data_backend.append({
-        **case_template, # id, name, and potentially isBackgroundCase, bgImageFilename, overlayPrizeName
-        'imageFilename': case_image_filename, # Add this only if not a background case
-        'prizes': full_prizes,
-        'priceTON': calculated_price
-    })
-    # Correctly add imageFilename for non-background cases, and keep existing for background cases
-    if not case_template.get('isBackgroundCase'):
-        cases_data_backend[-1]['imageFilename'] = generate_image_filename_from_name(case_template['name'])
-    elif 'bgImageFilename' in case_template: # for black singularity
-         cases_data_backend[-1]['bgImageFilename'] = case_template['bgImageFilename']
-         cases_data_backend[-1]['overlayPrizeName'] = case_template.get('overlayPrizeName')
+    actual_rtp = (ev / case_info['priceTON']) * 100 if case_info['priceTON'] > 0 else float('inf')
+    logger.info(f"Case (fixed price): {case_info['name']}, Price: {case_info['priceTON']:.2f} TON, EV: {ev:.2f}, Actual RTP: {actual_rtp:.2f}%")
 
 
 if not cases_data_backend:
@@ -328,36 +296,35 @@ def populate_initial_data():
     db = SessionLocal()
     try:
         existing_nft_names = {name[0] for name in db.query(NFT.name).all()}
-        nfts_to_add = []
-        for prize_name, floor_price in UPDATED_FLOOR_PRICES.items():
-            if prize_name not in existing_nft_names:
-                nfts_to_add.append(NFT(
-                    name=prize_name,
-                    image_filename=generate_image_filename_from_name(prize_name),
-                    floor_price=floor_price
+        nfts_to_add_or_update = []
+        
+        for prize_name_key, floor_price_val in UPDATED_FLOOR_PRICES.items():
+            if prize_name_key not in existing_nft_names:
+                nfts_to_add_or_update.append(NFT(
+                    name=prize_name_key,
+                    image_filename=generate_image_filename_from_name(prize_name_key),
+                    floor_price=floor_price_val
                 ))
-                existing_nft_names.add(prize_name)
-        if nfts_to_add:
-            db.add_all(nfts_to_add); db.commit()
-            logger.info(f"Добавлено/Обновлено {len(nfts_to_add)} NFT с новыми ценами.")
-        else:
-            # Update existing NFTs if their prices changed
-            updated_count = 0
-            for nft_in_db in db.query(NFT).all():
-                if nft_in_db.name in UPDATED_FLOOR_PRICES and nft_in_db.floor_price != UPDATED_FLOOR_PRICES[nft_in_db.name]:
-                    nft_in_db.floor_price = UPDATED_FLOOR_PRICES[nft_in_db.name]
-                    updated_count +=1
-            if updated_count > 0:
-                db.commit()
-                logger.info(f"Обновлены цены для {updated_count} существующих NFT.")
-
-
+                existing_nft_names.add(prize_name_key) # Add to set to prevent re-checking below
+            else:
+                # If it exists, check if floor price needs update
+                nft_in_db = db.query(NFT).filter(NFT.name == prize_name_key).first()
+                if nft_in_db and nft_in_db.floor_price != floor_price_val:
+                    nft_in_db.floor_price = floor_price_val
+                    # No need to add to nfts_to_add_or_update, will be committed with session
+        
+        if nfts_to_add_or_update: # Only add new NFTs
+            db.add_all(nfts_to_add_or_update)
+        
+        db.commit() # Commit all changes (new NFTs and updated prices)
+        logger.info(f"Populated/Updated NFT data. New: {len(nfts_to_add_or_update)}.")
+        
         durov_code = db.query(PromoCode).filter(PromoCode.code_text == 'durov').first()
         if not durov_code:
             db.add(PromoCode(code_text='durov', activations_left=10, ton_amount=5.0)); db.commit()
             logger.info("Promocode 'durov' seeded.")
     except Exception as e:
-        db.rollback(); logger.error(f"Ошибка populate_initial_data: {e}")
+        db.rollback(); logger.error(f"Ошибка populate_initial_data: {e}", exc_info=True)
     finally: db.close()
 
 populate_initial_data()
