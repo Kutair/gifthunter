@@ -28,13 +28,13 @@ from javascript import require # Ensure python-javascript is installed
 
 # Pytoniq imports
 from pytoniq import LiteBalancer
-import asyncio # Make sure asyncio is imported for event loop management
+import asyncio
 
 load_dotenv()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 MINI_APP_NAME = os.environ.get("MINI_APP_NAME", "case")
-MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}") # Default, can be overridden
+MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
@@ -53,7 +53,6 @@ logger = logging.getLogger(__name__)
 if not DATABASE_URL:
     logger.error("DATABASE_URL не установлен!")
     exit("DATABASE_URL is not set. Exiting.")
-# Warning for Tonnel data, but don't exit, as other parts of app might work
 if not TONNEL_SENDER_INIT_DATA:
     logger.warning("TONNEL_SENDER_INIT_DATA is not set! Tonnel gift withdrawal will likely fail.")
 
@@ -129,13 +128,10 @@ Base.metadata.create_all(bind=engine)
 # --- Tonnel Gift Withdrawal Class ---
 class TonnelGiftSender:
     def __init__(self, sender_auth_data: str, gift_secret: str):
-        # It's better to create a new session per operation or manage its lifecycle carefully
-        # For now, we'll create it here. For a Flask app, you might want to manage this differently.
-        # self.session = AsyncSession(impersonate="chrome110", http_version=2)
         self.secret = gift_secret
         self.authdata = sender_auth_data
         self._crypto_js = require("crypto-js")
-        self._session_instance = None # Will be initialized in an async context
+        self._session_instance = None
 
     async def _get_session(self):
         if self._session_instance is None or self._session_instance.closed:
@@ -147,10 +143,10 @@ class TonnelGiftSender:
             await self._session_instance.close()
             self._session_instance = None
 
-
     async def _make_request(self, method, url, headers=None, json_payload=None, timeout=30):
         session = await self._get_session()
         try:
+            response = None # Initialize response
             if method.upper() == "GET":
                 response = await session.get(url, headers=headers, timeout=timeout)
             elif method.upper() == "POST":
@@ -161,19 +157,17 @@ class TonnelGiftSender:
                 raise ValueError(f"Unsupported HTTP method: {method}")
             
             logger.debug(f"Tonnel API {method} {url} - Status: {response.status_code}")
-            # Don't raise for status here for OPTIONS as they might not return typical success codes but are needed
-            if method.upper() != "OPTIONS":
-                response.raise_for_status() 
+            if method.upper() != "OPTIONS": # Don't raise for OPTIONS by default
+                response.raise_for_status()
             
             if response.status_code == 204: return None
-            # For OPTIONS, we might not get JSON, so handle that
             if method.upper() == "OPTIONS" and response.status_code // 100 == 2 : return {"status": "options_ok"}
-
             return response.json()
         except Exception as e:
-            logger.error(f"Tonnel API request error ({method} {url}): {type(e).__name__} - {e}", exc_info=False) # exc_info=False to reduce log noise for common http errors
-            try: logger.error(f"Response content for error: {await response.text()}") # Log response text for http errors
-            except: pass
+            logger.error(f"Tonnel API request error ({method} {url}): {type(e).__name__} - {e}", exc_info=False)
+            if response is not None: # Check if response object exists
+                try: logger.error(f"Response content for error: {await response.text()}")
+                except: pass
             raise
 
     async def send_gift_to_user(self, gift_item_name: str, receiver_telegram_id: int):
@@ -187,7 +181,7 @@ class TonnelGiftSender:
             logger.info("Tonnel: Initial GET to marketplace.tonnel.network done.")
             
             filter_str = json.dumps({"price":{"$exists":True},"refunded":{"$ne":True},"buyer":{"$exists":False},"export_at":{"$exists":True},"gift_name":gift_item_name,"asset":"TON"})
-            page_gifts_payload = {"filter": filter_str, "limit":10, "page":1, "sort":'{"price":1,"gift_id":-1}'} # Removed other unused fields
+            page_gifts_payload = {"filter": filter_str, "limit":10, "page":1, "sort":'{"price":1,"gift_id":-1}'}
             pg_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
             
             await self._make_request("OPTIONS", "https://gifts2.tonnel.network/api/pageGifts", headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://tonnel-gift.vercel.app", "Referer":"https://tonnel-gift.vercel.app/"})
@@ -255,19 +249,13 @@ cases_data_backend_with_fixed_prices = [
 ]
 cases_data_backend = []
 for case_template in cases_data_backend_with_fixed_prices:
-    processed_case = {**case_template} # Start with a copy
+    processed_case = {**case_template}
     if not processed_case.get('isBackgroundCase'):
         processed_case['imageFilename'] = generate_image_filename_from_name(processed_case['name'])
-    
     full_prizes = []
     for prize_stub in processed_case['prizes']:
         prize_name = prize_stub['name']
-        full_prizes.append({
-            'name': prize_name,
-            'imageFilename': generate_image_filename_from_name(prize_name),
-            'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), # Use updated floor price
-            'probability': prize_stub['probability']
-        })
+        full_prizes.append({'name': prize_name, 'imageFilename': generate_image_filename_from_name(prize_name), 'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), 'probability': prize_stub['probability']})
     processed_case['prizes'] = full_prizes
     cases_data_backend.append(processed_case)
 
@@ -297,7 +285,7 @@ DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3h
 app = Flask(__name__); CORS(app, resources={r"/api/*": {"origins": ["https://vasiliy-katsyka.github.io"]}})
 if not BOT_TOKEN: logger.error("BOT_TOKEN not found!"); exit("BOT_TOKEN is not set.")
 bot = telebot.TeleBot(BOT_TOKEN)
-def get_db(): db = SessionLocal();_ = (yield db);db.close()
+def get_db(): db = SessionLocal();_ = (yield db);db.close() # Simplified generator
 def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
     try:
         if not init_data_str: return None
@@ -315,6 +303,7 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
         logger.warning("Hash mismatch in initData validation"); return None
     except Exception as e: logger.error(f"initData validation error: {e}", exc_info=True); return None
 
+# --- API Endpoints ---
 @app.route('/')
 def index_route(): return "Pusik Gifts App is Running!"
 
@@ -340,19 +329,27 @@ def open_case_api():
     if not tcase: return jsonify({"error": "Case not found"}), 404
     cost = tcase['priceTON']
     if user.ton_balance < cost: return jsonify({"error": f"Not enough TON. Need {cost:.2f}"}), 400
-    prizes = tcase['prizes']; rv = random.random(); cprob = 0; chosen = None
-    for p in prizes: cprob += p['probability'];
-        if rv <= cprob: chosen = p; break # Corrected Indentation
-    if not chosen: chosen = random.choice(prizes)
+    
+    prizes = tcase['prizes']; rv = random.random(); cprob = 0; chosen_prize_info = None
+    for p_info in prizes: # Use p_info to avoid conflict if 'p' is used elsewhere
+        cprob += p_info['probability']
+        if rv <= cprob:
+            chosen_prize_info = p_info # Indented correctly
+            break                     # Indented correctly
+            
+    if not chosen_prize_info: chosen_prize_info = random.choice(prizes) # Fallback
+    
     user.ton_balance -= cost
-    dbnft = db.query(NFT).filter(NFT.name == chosen['name']).first()
-    if not dbnft: user.ton_balance += cost; db.commit(); return jsonify({"error": "Prize NFT missing"}), 500
-    variant = "black_singularity" if tcase['id'] == 'black' else None
-    actual_val = dbnft.floor_price * (2.5 if variant == "black_singularity" else 1)
-    user.total_won_ton += actual_val
-    item = InventoryItem(user_id=uid, nft_id=dbnft.id, current_value=actual_val, variant=variant)
-    db.add(item); db.commit(); db.refresh(item)
-    return jsonify({"status": "success", "won_prize": {"id": item.id, "name": dbnft.name, "imageFilename": dbnft.image_filename, "floorPrice": dbnft.floor_price, "currentValue": item.current_value, "variant": item.variant}, "new_balance_ton": user.ton_balance})
+    dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
+    if not dbnft: user.ton_balance += cost; db.commit(); logger.error(f"CRITICAL: NFT {chosen_prize_info['name']} not found in DB!"); return jsonify({"error": "Prize NFT missing from DB"}), 500
+    
+    item_variant = "black_singularity" if tcase['id'] == 'black' else None
+    actual_item_value = dbnft.floor_price * (2.5 if item_variant == "black_singularity" else 1)
+    user.total_won_ton += actual_item_value
+    
+    new_item = InventoryItem(user_id=uid, nft_id=dbnft.id, current_value=round(actual_item_value, 2), variant=item_variant)
+    db.add(new_item); db.commit(); db.refresh(new_item)
+    return jsonify({"status": "success", "won_prize": {"id": new_item.id, "name": dbnft.name, "imageFilename": dbnft.image_filename, "floorPrice": dbnft.floor_price, "currentValue": new_item.current_value, "variant": new_item.variant}, "new_balance_ton": user.ton_balance})
 
 @app.route('/api/upgrade_item', methods=['POST'])
 def upgrade_item_api():
@@ -457,22 +454,42 @@ def verify_deposit_api():
     if pdep.status == 'expired' or pdep.expires_at <= dt.now(timezone.utc):
         if pdep.status == 'pending': pdep.status = 'expired'; db.commit()
         return jsonify({"status": "expired", "message": "Deposit expired."}), 400
-    loop = asyncio.get_event_loop();
-    if loop.is_closed(): loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
-    try: result = loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
-    except RuntimeError as e: # Handle RuntimeError if event loop is already running in the same thread
-        if "cannot be called from a running event loop" in str(e):
-            # This is a simplistic way; proper async Flask (Quart) or task queues are better
-            result = asyncio.ensure_future(check_blockchain_for_deposit(pdep, db)) 
-            # Note: This won't block and wait for the result directly in a sync Flask route.
-            # For now, we'll proceed as if run_until_complete worked, but this needs attention for prod.
-            logger.warning("Running check_blockchain_for_deposit in ensure_future due to existing loop.")
-            # This will likely return a coroutine object, not the dict. Needs refactor for true async handling.
-            # For now, let's just assume it might have worked or will work, and tell user to check again.
-            return jsonify({"status":"pending", "message":"Verification in progress, please check again shortly."})
+    
+    result = {}
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # If loop is running (e.g. in Jupyter or another async context), use ensure_future
+            # This part is tricky in plain Flask. For production, an async framework like Quart or FastAPI is better.
+            # For now, we'll try to run it, but this might behave unexpectedly in some Flask/Gunicorn setups.
+            logger.warning("Event loop already running. Attempting ensure_future for blockchain check.")
+            # This won't block and wait in a sync Flask route, so the response might be premature.
+            # Consider a separate worker/task queue for these calls in production.
+            # For a simple demo, it might appear to work if the check is fast.
+            future = asyncio.ensure_future(check_blockchain_for_deposit(pdep, db))
+            # This will not wait for the future to complete in a sync route.
+            # A better way for sync Flask is to use loop.run_until_complete if possible,
+            # or structure this as a task to be polled.
+            # For now, let's make it behave like the original run_until_complete for simplicity,
+            # acknowledging its limitations in a sync server.
+            result = loop.run_until_complete(future) if not future.done() else future.result()
 
-        else: raise e # Re-raise other RuntimeErrors
-    # finally: loop.close() # Don't close if it's the main loop or managed by Flask/Gunicorn
+        else: # If no loop is running, we can use run_until_complete
+            result = loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+    except RuntimeError as e:
+         if "cannot be called from a running event loop" in str(e) or "no current event loop" in str(e).lower():
+            logger.warning(f"Asyncio loop issue: {e}. Creating new loop for this call.")
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+            # new_loop.close() # Closing might be problematic depending on context
+         else:
+            logger.error(f"RuntimeError during verify_deposit: {e}", exc_info=True)
+            return jsonify({"status": "error", "message": "Internal error during verification."}), 500
+    except Exception as e:
+        logger.error(f"General exception during verify_deposit: {e}", exc_info=True)
+        return jsonify({"status": "error", "message": "Unexpected error during verification."}), 500
+        
     return jsonify(result)
 
 
@@ -507,7 +524,7 @@ def redeem_promocode_api():
     except SQLAlchemyError: db.rollback(); return jsonify({"status": "error", "message": "DB error."}), 500
 
 @app.route('/api/withdraw_item_via_tonnel/<int:inventory_item_id>', methods=['POST'])
-def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id): # Renamed to avoid async keyword on route directly
+def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
     auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data: return jsonify({"status": "error", "message": "Authentication failed"}), 401
     player_user_id = auth_user_data["id"]
@@ -523,24 +540,36 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id): # Renamed to a
     
     tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret=TONNEL_GIFT_SECRET)
     
+    tonnel_result = {}
     try:
-        # Managing asyncio loop for the async call within a sync Flask route
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-        except RuntimeError: # No current event loop
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-
-        tonnel_result = loop.run_until_complete(
-            tonnel_client.send_gift_to_user(
-                gift_item_name=item_name_for_tonnel,
-                receiver_telegram_id=player_user_id
+        loop = asyncio.get_event_loop()
+        if loop.is_running(): # This check might not be sufficient in all WSGI server contexts
+            logger.warning("Event loop seems to be running. Trying to use it for Tonnel withdrawal.")
+            # This is a tricky part in synchronous Flask.
+            # A better approach for production would be to offload this to a task queue (Celery, RQ)
+            # or use an async framework (Quart, FastAPI).
+            # For now, we attempt to run it, but it might block or behave unexpectedly under load.
+            async def run_in_current_loop():
+                return await tonnel_client.send_gift_to_user(
+                    gift_item_name=item_name_for_tonnel,
+                    receiver_telegram_id=player_user_id
+                )
+            # This creates a task but doesn't necessarily wait for it in a way that sync Flask likes.
+            # For simplicity in this example, we'll try to run it to completion if possible.
+            try:
+                tonnel_result = loop.run_until_complete(run_in_current_loop())
+            except RuntimeError as re: # If it's already running and run_until_complete fails
+                 if "cannot be called from a running event loop" in str(re):
+                    logger.error("Cannot run_until_complete in already running loop. Tonnel withdrawal might not complete in this request.")
+                    return jsonify({"status":"pending_internal", "message":"Withdrawal processing, result will be updated later."}), 202 # Accepted
+                 else: raise re
+        else:
+            tonnel_result = loop.run_until_complete(
+                tonnel_client.send_gift_to_user(
+                    gift_item_name=item_name_for_tonnel,
+                    receiver_telegram_id=player_user_id
+                )
             )
-        )
-        # loop.close() # Be careful closing the loop if it's managed by something else (e.g. Gunicorn might have its own)
 
         if tonnel_result and tonnel_result.get("status") == "success":
             item_value_deducted = item_to_withdraw.current_value
@@ -576,7 +605,7 @@ def send_welcome(message):
     if created or updated: try: db.commit()
                            except Exception as e_comm: db.rollback(); logger.error(f"Error saving user {uid}: {e_comm}")
     
-    btn_url = f"https://t.me/{bot.get_me().username}/{MINI_APP_NAME or 'app'}" # Fallback to 'app' if MINI_APP_NAME not set
+    btn_url = f"https://t.me/{bot.get_me().username}/{MINI_APP_NAME or 'app'}" 
     if not MINI_APP_NAME: logger.warning("MINI_APP_NAME not set, using fallback for button URL.")
         
     markup = types.InlineKeyboardMarkup(); web_app = types.WebAppInfo(url=btn_url)
@@ -600,7 +629,7 @@ def run_bot_polling():
             logger.error(f"Telegram API Exception: {e}", exc_info=True); time.sleep(30)
         except Exception as e: logger.error(f"Critical polling error: {e}", exc_info=True); time.sleep(60)
         if not bot_polling_started: break
-        time.sleep(15) # Brief pause if infinity_polling exits non-critically
+        time.sleep(15) 
     logger.info("Bot polling loop terminated.")
 
 if __name__ == '__main__':
