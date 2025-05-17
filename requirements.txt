@@ -7,4 +7,5 @@ gunicorn
 Flask-CORS
 pytoniq
 regex
+curl_cffi
 javascript
