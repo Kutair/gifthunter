@@ -22,13 +22,16 @@ from sqlalchemy.sql import func
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import text
 
-# Imports for Tonnel Withdrawal
+# Imports for Tonnel Withdrawal - Now using PyCryptodome
 from curl_cffi.requests import AsyncSession
-from javascript import require # Ensure python-javascript is installed
+import base64
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
 
 # Pytoniq imports
 from pytoniq import LiteBalancer
-import asyncio 
+import asyncio
 
 load_dotenv()
 
@@ -38,7 +41,7 @@ MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_AP
 DATABASE_URL = os.environ.get("DATABASE_URL")
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
-TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit")
+TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit") # This is now the passphrase
 
 logging.basicConfig(
     level=logging.INFO,
@@ -124,13 +127,42 @@ class PromoCode(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# --- Tonnel Gift Withdrawal Class ---
+# --- Pure Python AES Encryption (CryptoJS Compatible) ---
+SALT_SIZE = 8
+KEY_SIZE = 32  # AES-256
+IV_SIZE = 16   # AES block size
+
+def derive_key_and_iv(passphrase: str, salt: bytes, key_length: int, iv_length: int) -> tuple[bytes, bytes]:
+    derived = b''
+    hasher = hashlib.md5()
+    hasher.update(passphrase.encode('utf-8'))
+    hasher.update(salt)
+    derived += hasher.digest()
+    while len(derived) < key_length + iv_length:
+        hasher = hashlib.md5()
+        hasher.update(derived[-hasher.digest_size:])
+        hasher.update(passphrase.encode('utf-8'))
+        hasher.update(salt)
+        derived += hasher.digest()
+    return derived[:key_length], derived[key_length : key_length + iv_length]
+
+def encrypt_aes_cryptojs_compat(plain_text: str, secret_passphrase: str) -> str:
+    salt = get_random_bytes(SALT_SIZE)
+    key, iv = derive_key_and_iv(secret_passphrase, salt, KEY_SIZE, IV_SIZE)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plain_text_bytes = plain_text.encode('utf-8')
+    padded_plain_text = pad(plain_text_bytes, AES.block_size, style='pkcs7')
+    ciphertext = cipher.encrypt(padded_plain_text)
+    salted_ciphertext = b"Salted__" + salt + ciphertext
+    encrypted_base64 = base64.b64encode(salted_ciphertext).decode('utf-8')
+    return encrypted_base64
+
+# --- Tonnel Gift Withdrawal Class (using Python AES) ---
 class TonnelGiftSender:
-    def __init__(self, sender_auth_data: str, gift_secret: str):
-        self.secret = gift_secret
+    def __init__(self, sender_auth_data: str, gift_secret_passphrase: str):
+        self.passphrase_secret = gift_secret_passphrase
         self.authdata = sender_auth_data
-        self._crypto_js = require("crypto-js")
-        self._session_instance = None
+        self._session_instance = None # Managed by _get_session and _close_session
 
     async def _get_session(self):
         if self._session_instance is None or self._session_instance.closed:
@@ -201,8 +233,10 @@ class TonnelGiftSender:
                 logger.warning(f"Tonnel: UserInfo check failed for receiver {receiver_telegram_id}. Resp: {user_check_resp}")
                 return {"status": "error", "message": f"Tonnel user check failed. {user_check_resp.get('message', '')}"}
 
-            time_now_ts = int(time.time())
-            encrypted_ts = self._crypto_js.AES.encrypt(f"{time_now_ts}", self.secret).toString()
+            time_now_ts_str = f"{int(time.time())}"
+            encrypted_ts = encrypt_aes_cryptojs_compat(time_now_ts_str, self.passphrase_secret) # Using Python AES
+            logger.debug(f"Tonnel: Python AES Encrypted timestamp: {encrypted_ts[:20]}...")
+
             buy_gift_url = f"https://gifts.coffin.meme/api/buyGift/{low_gift['gift_id']}"
             buy_payload = {"anonymously": True, "asset": "TON", "authData": self.authdata, "price": low_gift['price'], "receiver": receiver_telegram_id, "showPrice": False, "timestamp": encrypted_ts}
             buy_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/", "Host":"gifts.coffin.meme"}
@@ -222,6 +256,7 @@ class TonnelGiftSender:
             return {"status": "error", "message": f"Unexpected error during Tonnel withdrawal: {str(e)}"}
         finally:
             await self._close_session_if_open()
+
 
 # --- Utility and Data Functions ---
 def generate_image_filename_from_name(name_str: str) -> str:
@@ -331,8 +366,8 @@ def open_case_api():
     for p_info in prizes:
         cprob += p_info['probability']
         if rv <= cprob:
-            chosen_prize_info = p_info # Correctly indented
-            break                     # Correctly indented
+            chosen_prize_info = p_info
+            break
             
     if not chosen_prize_info: chosen_prize_info = random.choice(prizes)
     
@@ -456,26 +491,15 @@ def verify_deposit_api():
     try:
         loop = asyncio.get_event_loop()
         if loop.is_running():
-            logger.warning("Event loop already running. Attempting ensure_future for blockchain check.")
-            future = asyncio.ensure_future(check_blockchain_for_deposit(pdep, db))
-            # This simplified handling might not correctly wait in all server setups.
-            # It's better to run run_until_complete in a new loop if the main one is busy or use a task queue.
-            if hasattr(loop, '_thread_id') and loop._thread_id != threading.get_ident():
-                 # If in a different thread, we can't easily run_until_complete on the main loop's future.
-                 # This indicates a more complex async setup is needed.
-                logger.error("Async task started in a different thread's loop. Result won't be available in this request.")
-                return jsonify({"status":"pending_internal", "message":"Verification task submitted."}), 202
-            try:
-                # Try to wait for it if possible, but this can block.
-                result = loop.run_until_complete(future) if not future.done() else future.result()
-            except RuntimeError as re_inner: # If run_until_complete itself fails in a running loop
-                 logger.error(f"RuntimeError trying to complete future in running loop: {re_inner}")
-                 return jsonify({"status":"pending_internal", "message":"Verification processing, check later."}), 202
-        else:
+            logger.warning("Event loop already running in verify_deposit. Creating new for this call.")
+            new_loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(new_loop)
+            result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+        else: 
             result = loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
     except RuntimeError as e:
-         if "cannot be called from a running event loop" in str(e) or "no current event loop" in str(e).lower():
-            logger.warning(f"Asyncio loop issue: {e}. Creating new loop for this call.")
+         if "cannot be called from a running event loop" in str(e) or "no current event loop" in str(e).lower() or "There is no current event loop in thread" in str(e):
+            logger.warning(f"Asyncio loop issue in verify_deposit: {e}. Creating new loop for this call.")
             new_loop = asyncio.new_event_loop(); asyncio.set_event_loop(new_loop)
             result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
          else:
@@ -532,20 +556,27 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
     if not item_to_withdraw: return jsonify({"status": "error", "message": "Item not found or already withdrawn."}), 404
     item_name_for_tonnel = item_to_withdraw.nft.name
     
-    tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret=TONNEL_GIFT_SECRET)
+    tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
     
     tonnel_result = {}
     try:
-        # Simplified asyncio handling for sync Flask; for prod, use task queue or async framework
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # Ensure a new loop is used if one isn't already running or if the current one is closed.
+        # This is a common pattern for running async code from a sync context.
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_closed(): # If global loop is closed for some reason
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+        except RuntimeError: # If no event loop exists in the current context at all
+             loop = asyncio.new_event_loop()
+             asyncio.set_event_loop(loop)
+        
         tonnel_result = loop.run_until_complete(
             tonnel_client.send_gift_to_user(
                 gift_item_name=item_name_for_tonnel,
                 receiver_telegram_id=player_user_id
             )
         )
-        # loop.close() # Closing the loop here can be problematic in some server environments
 
         if tonnel_result and tonnel_result.get("status") == "success":
             item_value_deducted = item_to_withdraw.current_value
@@ -573,40 +604,32 @@ def send_welcome(message):
         created_now = True
         user = User(id=user_id, username=tg_user_obj.username, first_name=tg_user_obj.first_name, last_name=tg_user_obj.last_name, referral_code=f"ref_{user_id}_{random.randint(1000,9999)}")
         db.add(user)
-        # Commit immediately for new user to ensure referral_code exists if they are a referrer
         try:
             db.commit()
-            db.refresh(user)
+            db.refresh(user) # Get the full user object with defaults
             logger.info(f"New user created: {user_id}")
         except Exception as e_commit_new:
             db.rollback()
             logger.error(f"Error committing new user {user_id}: {e_commit_new}")
-            # Potentially try to fetch again if race condition created user
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user: # If still not found, something is wrong
+            user = db.query(User).filter(User.id == user_id).first() # Try fetching if created by race
+            if not user:
                  bot.send_message(message.chat.id, "Error creating your profile. Please try /start again.")
                  return
 
-
-    # Process referral from start parameter
     try:
         command_parts = message.text.split(' ')
         if len(command_parts) > 1 and command_parts[1].startswith('startapp='):
             start_param_value = command_parts[1].split('=')[1]
             if start_param_value.startswith('ref_'):
                 referrer_code = start_param_value
-                # Apply referral only if the user is being created now OR if they don't have a referrer yet
-                # AND they are not trying to refer themselves
-                if (created_now or not user.referred_by_id):
+                if (created_now or not user.referred_by_id): 
                     referrer = db.query(User).filter(User.referral_code == referrer_code, User.id != user.id).first()
                     if referrer:
                         user.referred_by_id = referrer.id
                         logger.info(f"User {user_id} referred by {referrer.id} via deep link {referrer_code}.")
-                        try:
-                            bot.send_message(referrer.id, f"🎉 Your friend {user.first_name or user.username or user.id} joined using your referral link!")
-                        except Exception as e_notify:
-                            logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
-                    elif not referrer and user.id != db.query(User.id).filter(User.referral_code == referrer_code).scalar(): # Check if code exists but belongs to self
+                        try: bot.send_message(referrer.id, f"🎉 Your friend {user.first_name or user.username or user.id} joined using your referral link!")
+                        except Exception as e_notify: logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
+                    elif not referrer and user.id != db.query(User.id).filter(User.referral_code == referrer_code).scalar():
                          logger.warning(f"Referral code {referrer_code} not found or self-referral attempt by {user_id}.")
     except Exception as e:
         logger.error(f"Error processing start parameter for {user_id}: {e}")
@@ -616,10 +639,10 @@ def send_welcome(message):
     if user.first_name != tg_user_obj.first_name: user.first_name = tg_user_obj.first_name; updated_fields = True
     if user.last_name != tg_user_obj.last_name: user.last_name = tg_user_obj.last_name; updated_fields = True
     
-    if updated_fields: # Commit only if there were actual changes to user fields or referral_by_id
+    if updated_fields or (created_now and user.referred_by_id): # Also commit if referral_by_id was set for a new user
         try:
             db.commit()
-            logger.info(f"User data for {user_id} updated (if changed).")
+            logger.info(f"User data for {user_id} updated/committed.")
         except Exception as e_commit_update:
             db.rollback()
             logger.error(f"Error committing updates for user {user_id}: {e_commit_update}")
@@ -648,54 +671,29 @@ def run_bot_polling():
         return
     bot_polling_started = True
     logger.info("Starting bot polling...")
-    
-    # Attempt to remove webhook before starting polling
-    for i in range(3): # Retry a few times
-        try:
-            bot.remove_webhook()
-            logger.info("Webhook successfully removed (if it was set).")
-            break 
-        except Exception as e:
-            logger.warning(f"Attempt {i+1} to remove webhook failed: {e}")
-            if i < 2: time.sleep(2) # Wait before retrying
-            else: logger.error("Failed to remove webhook after multiple attempts. Polling might conflict if a webhook is active elsewhere.")
-
+    for i in range(3):
+        try: bot.remove_webhook(); logger.info("Webhook successfully removed."); break
+        except Exception as e: logger.warning(f"Attempt {i+1} to remove webhook failed: {e}"); time.sleep(2 if i < 2 else 0)
     while bot_polling_started:
         try:
             logger.info("Bot calling infinity_polling...")
             bot.infinity_polling(logger_level=logging.INFO, skip_pending=True, timeout=60, long_polling_timeout=30)
-            # If infinity_polling exits cleanly (e.g., by bot.stop_polling()), this part will be reached.
-            logger.info("infinity_polling finished.") 
+            logger.info("infinity_polling finished.")
         except telebot.apihelper.ApiTelegramException as e:
             logger.error(f"Telegram API Exception in polling: Code {e.error_code} - {e.description}", exc_info=False)
-            if e.error_code == 401: # Unauthorized (bad token)
-                logger.error("CRITICAL: Bot token is invalid. Stopping polling.")
-                bot_polling_started = False # Stop the loop
-            elif e.error_code == 409: # Conflict (another instance polling or webhook set)
-                logger.error("CRITICAL: Conflict with another bot instance or webhook. Stopping polling.")
-                bot_polling_started = False # Stop the loop
-            else: # Other Telegram API errors, try to continue after a delay
-                logger.info("Will retry polling after 30 seconds.")
-                time.sleep(30)
-        except ConnectionError as e: # requests.exceptions.ConnectionError and similar
+            if e.error_code == 401 or e.error_code == 409:
+                logger.error("CRITICAL: Bot token invalid or conflict. Stopping polling.")
+                bot_polling_started = False
+            else: time.sleep(30)
+        except ConnectionError as e:
             logger.error(f"Network ConnectionError in polling: {e}", exc_info=False)
-            logger.info("Will retry polling after 60 seconds.")
             time.sleep(60)
-        except Exception as e: # Catch-all for other unexpected errors
+        except Exception as e:
             logger.error(f"Unexpected critical error in polling: {type(e).__name__} - {e}", exc_info=True)
-            logger.info("Will retry polling after 60 seconds.")
             time.sleep(60)
-        
-        if not bot_polling_started: # Check if flag was set to false to exit loop
-            break
-        # If infinity_polling ended for a non-critical reason (e.g., timeout without exception, or clean stop)
-        # and bot_polling_started is still true, we might want a small delay before restarting.
-        if bot_polling_started:
-             logger.info("Polling loop will restart shortly.")
-             time.sleep(5) # Brief pause before restarting the loop if it exited "cleanly" but should continue
-
+        if not bot_polling_started: break
+        if bot_polling_started: time.sleep(5)
     logger.info("Bot polling loop has terminated.")
-
 
 if __name__ == '__main__':
     if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
@@ -704,6 +702,5 @@ if __name__ == '__main__':
         bot_polling_thread.start()
     elif os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         logger.info("Werkzeug reloader process, not starting polling here.")
-    
     logger.info("Starting Flask development server...")
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
