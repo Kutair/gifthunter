@@ -1,261 +1,92 @@
-import os
-import logging
-from flask import Flask, jsonify, request as flask_request
-from flask_cors import CORS
-import telebot
-from telebot import types
-from dotenv import load_dotenv
-import threading
-import time
-import random
-import re
-import hmac
-import hashlib
-from urllib.parse import unquote, parse_qs, quote
-from datetime import datetime as dt, timezone, timedelta
-import json
+# app.py
 
-# SQLAlchemy imports
-from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, DateTime, Boolean, UniqueConstraint, BigInteger
-from sqlalchemy.orm import sessionmaker, relationship, declarative_base, backref
-from sqlalchemy.sql import func
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy import text
+# ... (os, logging, flask, telebot, dotenv, threading, time, random, re, hmac, hashlib, urllib, datetime, json) ...
+# ... (SQLAlchemy imports) ...
 
-# Imports for Tonnel Withdrawal - Now using PyCryptodome
+# Imports for Tonnel Withdrawal
 from curl_cffi.requests import AsyncSession, RequestsError
-import base64
-from Crypto.Cipher import AES
-from Crypto.Random import get_random_bytes
-from Crypto.Util.Padding import pad, unpad
+from javascript import require # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ENSURE THIS IS PRESENT
 
 # Pytoniq imports
 from pytoniq import LiteBalancer
 import asyncio
 
+# Pure Python AES (if you switch later, you'd use this and remove 'require' and self._crypto_js)
+import base64
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad, unpad
+# (Keep SALT_SIZE, KEY_SIZE, IV_SIZE, derive_key_and_iv, encrypt_aes_cryptojs_compat functions if you plan to use them)
+
+
 load_dotenv()
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-MINI_APP_NAME = os.environ.get("MINI_APP_NAME", "case")
-MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}")
-DATABASE_URL = os.environ.get("DATABASE_URL")
-AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24
-TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
-TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit") # This is now the passphrase
+# ... (BOT_TOKEN, MINI_APP_NAME, etc. global variables) ...
+# ... (logging setup) ...
+# ... (SQLAlchemy setup: engine, SessionLocal, Base, Models) ...
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("app.log", encoding='utf-8'),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
 
-if not DATABASE_URL:
-    logger.error("DATABASE_URL не установлен!")
-    exit("DATABASE_URL is not set. Exiting.")
-if not TONNEL_SENDER_INIT_DATA:
-    logger.warning("TONNEL_SENDER_INIT_DATA is not set! Tonnel gift withdrawal will likely fail.")
-
-engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
-
-# --- Database Models ---
-class User(Base):
-    __tablename__ = "users"
-    id = Column(BigInteger, primary_key=True, index=True, autoincrement=False)
-    username = Column(String, nullable=True, index=True)
-    first_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=True)
-    ton_balance = Column(Float, default=0.0, nullable=False)
-    star_balance = Column(Integer, default=0, nullable=False)
-    referral_code = Column(String, unique=True, index=True, nullable=True)
-    referred_by_id = Column(BigInteger, ForeignKey("users.id"), nullable=True)
-    referral_earnings_pending = Column(Float, default=0.0, nullable=False)
-    total_won_ton = Column(Float, default=0.0, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-    inventory = relationship("InventoryItem", back_populates="owner", cascade="all, delete-orphan")
-    pending_deposits = relationship("PendingDeposit", back_populates="owner")
-    referrer = relationship("User", remote_side=[id], foreign_keys=[referred_by_id], back_populates="referrals_made", uselist=False)
-    referrals_made = relationship("User", back_populates="referrer")
-
-class NFT(Base):
-    __tablename__ = "nfts"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    name = Column(String, unique=True, index=True, nullable=False)
-    image_filename = Column(String, nullable=True)
-    floor_price = Column(Float, default=0.0, nullable=False)
-    __table_args__ = (UniqueConstraint('name', name='uq_nft_name'),)
-
-class InventoryItem(Base):
-    __tablename__ = "inventory_items"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    nft_id = Column(Integer, ForeignKey("nfts.id"), nullable=False)
-    current_value = Column(Float, nullable=False)
-    upgrade_multiplier = Column(Float, default=1.0, nullable=False)
-    obtained_at = Column(DateTime(timezone=True), server_default=func.now())
-    variant = Column(String, nullable=True)
-    owner = relationship("User", back_populates="inventory")
-    nft = relationship("NFT")
-
-class PendingDeposit(Base):
-    __tablename__ = "pending_deposits"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    original_amount_ton = Column(Float, nullable=False)
-    unique_identifier_nano_ton = Column(BigInteger, nullable=False)
-    final_amount_nano_ton = Column(BigInteger, nullable=False, index=True)
-    expected_comment = Column(String, nullable=False, default="cpd7r07ud3s")
-    status = Column(String, default="pending", index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    expires_at = Column(DateTime(timezone=True), nullable=False)
-    owner = relationship("User", back_populates="pending_deposits")
-
-class PromoCode(Base):
-    __tablename__ = "promo_codes"
-    id = Column(Integer, primary_key=True, index=True)
-    code_text = Column(String, unique=True, index=True, nullable=False)
-    activations_left = Column(Integer, nullable=False, default=0)
-    ton_amount = Column(Float, nullable=False, default=0.0)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
-
-Base.metadata.create_all(bind=engine)
-
-# --- Pure Python AES Encryption (CryptoJS Compatible) ---
-SALT_SIZE = 8
-KEY_SIZE = 32  # AES-256
-IV_SIZE = 16   # AES block size
-
-def derive_key_and_iv(passphrase: str, salt: bytes, key_length: int, iv_length: int) -> tuple[bytes, bytes]:
-    derived = b''
-    hasher = hashlib.md5()
-    hasher.update(passphrase.encode('utf-8'))
-    hasher.update(salt)
-    derived += hasher.digest()
-    while len(derived) < key_length + iv_length:
-        hasher = hashlib.md5()
-        hasher.update(derived[-hasher.digest_size:])
-        hasher.update(passphrase.encode('utf-8'))
-        hasher.update(salt)
-        derived += hasher.digest()
-    return derived[:key_length], derived[key_length : key_length + iv_length]
-
-def encrypt_aes_cryptojs_compat(plain_text: str, secret_passphrase: str) -> str:
-    salt = get_random_bytes(SALT_SIZE)
-    key, iv = derive_key_and_iv(secret_passphrase, salt, KEY_SIZE, IV_SIZE)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
-    plain_text_bytes = plain_text.encode('utf-8')
-    padded_plain_text = pad(plain_text_bytes, AES.block_size, style='pkcs7')
-    ciphertext = cipher.encrypt(padded_plain_text)
-    salted_ciphertext = b"Salted__" + salt + ciphertext
-    encrypted_base64 = base64.b64encode(salted_ciphertext).decode('utf-8')
-    return encrypted_base64
-
-# --- Tonnel Gift Withdrawal Class (using Python AES) ---
+# --- Tonnel Gift Withdrawal Class ---
 class TonnelGiftSender:
     def __init__(self, sender_auth_data: str, gift_secret_passphrase: str):
-        self.passphrase_secret = gift_secret_passphrase
+        self.passphrase_secret = gift_secret_passphrase # Used if switching to Python AES
         self.authdata = sender_auth_data
-        self._session_instance = None # Will be initialized lazily
-        self._crypto_js = require("crypto-js") # Assuming this works after build process fix
+        self._session_instance = None
+        
+        # This line causes the NameError if 'require' is not imported
+        # If you are using python-javascript:
+        self._crypto_js = require("crypto-js") 
+        # If you switched to pure Python AES, this line above should be removed.
 
-    async def _get_session(self):
+    async def _get_session(self): # ... same as before ...
         if self._session_instance is None:
-            # Headers for the session can be set here if they are common to all requests
-            # For now, curl_cffi's impersonate will handle many common browser headers.
-            self._session_instance = AsyncSession(http_version=2, impersonate="chrome110")
+            self._session_instance = AsyncSession(impersonate="chrome110", http_version=2)
             logger.debug("Initialized new AsyncSession for TonnelGiftSender.")
         return self._session_instance
 
-    async def _close_session_if_open(self):
+    async def _close_session_if_open(self): # ... same as before ...
         if self._session_instance:
             logger.debug("Closing AsyncSession for TonnelGiftSender.")
             await self._session_instance.close()
             self._session_instance = None
-
-    async def _make_request(self, method, url, headers=None, json_payload=None, timeout=30, is_initial_get=False):
+            
+    async def _make_request(self, method, url, headers=None, json_payload=None, timeout=30, is_initial_get=False): # ... same as before ...
         session = await self._get_session()
-        response_obj = None # To store the response object for logging in case of error
+        response_obj = None 
         try:
             logger.debug(f"Tonnel API Request: {method} {url} Headers: {headers} Payload: {json_payload}")
-            if method.upper() == "GET":
-                response_obj = await session.get(url, headers=headers, timeout=timeout)
-            elif method.upper() == "POST":
-                response_obj = await session.post(url, headers=headers, json=json_payload, timeout=timeout)
-            elif method.upper() == "OPTIONS":
-                response_obj = await session.options(url, headers=headers, timeout=timeout)
-            else:
-                raise ValueError(f"Unsupported HTTP method: {method}")
-            
+            if method.upper() == "GET": response_obj = await session.get(url, headers=headers, timeout=timeout)
+            elif method.upper() == "POST": response_obj = await session.post(url, headers=headers, json=json_payload, timeout=timeout)
+            elif method.upper() == "OPTIONS": response_obj = await session.options(url, headers=headers, timeout=timeout)
+            else: raise ValueError(f"Unsupported HTTP method: {method}")
             logger.debug(f"Tonnel API Response: {method} {url} - Status: {response_obj.status_code}, Response Headers: {response_obj.headers}")
-            
-            if method.upper() != "OPTIONS": # OPTIONS might not strictly follow raise_for_status logic
-                response_obj.raise_for_status() 
-            
-            if response_obj.status_code == 204: 
-                return None # No content
-            
-            if method.upper() == "OPTIONS" and response_obj.status_code // 100 == 2 :
-                 # Successful OPTIONS request, usually no body or non-JSON body
-                return {"status": "options_ok"}
-
+            if method.upper() != "OPTIONS": response_obj.raise_for_status() 
+            if response_obj.status_code == 204: return None
+            if method.upper() == "OPTIONS" and response_obj.status_code // 100 == 2 : return {"status": "options_ok"}
             content_type = response_obj.headers.get("Content-Type", "").lower()
-            if "application/json" in content_type:
-                return response_obj.json()
+            if "application/json" in content_type: return response_obj.json()
             else:
-                # If it's the initial GET to the marketplace, it's expected to be HTML.
-                # We don't need the content, just that the request was made (for cookies/session).
-                if is_initial_get:
-                    logger.info(f"Tonnel API: Initial GET to {url} successful (Content-Type: {content_type}).")
-                    return {"status": "get_ok_non_json"}
-                else:
-                    # For other non-JSON responses that were expected to be JSON, log and return error structure
-                    responseText = await response_obj.text()
-                    logger.warning(f"Tonnel API {method} {url} - Response is not JSON (Content-Type: {content_type}). Text: {responseText[:200]}")
-                    return {"status": "error", "message": "Response was not JSON", "content_type": content_type, "text_preview": responseText[:200]}
-
-        except RequestsError as re: # Catch specific errors from curl_cffi
-            logger.error(f"Tonnel API RequestsError ({method} {url}): {re}", exc_info=False)
-            if response_obj is not None:
-                try: logger.error(f"Response content for RequestsError: {await response_obj.text()}")
-                except: pass
-            raise # Re-raise to be caught by the outer try-except in send_gift_to_user
-        except json.JSONDecodeError as je:
-            logger.error(f"Tonnel API JSONDecodeError ({method} {url}): {je}", exc_info=False)
-            if response_obj is not None:
-                try: logger.error(f"Response content for JSONDecodeError: {await response_obj.text()}")
-                except: pass
-            # This means we expected JSON but didn't get it
-            raise ValueError(f"Failed to decode JSON response from {url}. Content-Type: {response_obj.headers.get('Content-Type', '') if response_obj else 'N/A'}") from je
-        except Exception as e:
-            logger.error(f"Tonnel API general request error ({method} {url}): {type(e).__name__} - {e}", exc_info=False)
-            if response_obj is not None:
-                try: logger.error(f"Response content for general error: {await response_obj.text()}")
-                except: pass
-            raise
+                if is_initial_get: logger.info(f"Tonnel API: Initial GET to {url} successful (Content-Type: {content_type})."); return {"status": "get_ok_non_json"}
+                else: responseText = await response_obj.text(); logger.warning(f"Tonnel API {method} {url} - Response not JSON (Content-Type: {content_type}). Text: {responseText[:200]}"); return {"status": "error", "message": "Response was not JSON", "content_type": content_type, "text_preview": responseText[:200]}
+        except RequestsError as re_err: logger.error(f"Tonnel API RequestsError ({method} {url}): {re_err}", exc_info=False); err_text = await response_obj.text() if response_obj else ""; logger.error(f"Response for RequestsError: {err_text}"); raise
+        except json.JSONDecodeError as je_err: logger.error(f"Tonnel API JSONDecodeError ({method} {url}): {je_err}", exc_info=False); err_text = await response_obj.text() if response_obj else ""; logger.error(f"Response for JSONDecodeError: {err_text}"); raise ValueError(f"Failed to decode JSON from {url}.") from je_err
+        except Exception as e_gen: logger.error(f"Tonnel API general request error ({method} {url}): {type(e_gen).__name__} - {e_gen}", exc_info=False); err_text = await response_obj.text() if response_obj else ""; logger.error(f"Response for general error: {err_text}"); raise
 
 
     async def send_gift_to_user(self, gift_item_name: str, receiver_telegram_id: int):
+        # ... (rest of the method is the same, but it relies on self._crypto_js being defined) ...
         logger.info(f"Attempting Tonnel gift '{gift_item_name}' to user {receiver_telegram_id} using sender auth: {self.authdata[:30]}...")
         if not self.authdata:
             logger.error("TONNEL_SENDER_INIT_DATA not configured.")
             return {"status": "error", "message": "Tonnel sender not configured."}
-        if not self._crypto_js:
-            logger.error("CryptoJS module not loaded. Cannot proceed with Tonnel encryption.")
-            return {"status": "error", "message": "Internal crypto module error."}
+        if not self._crypto_js: # Check if crypto_js was loaded
+            logger.error("CryptoJS module (via require) not loaded. Cannot proceed with Tonnel encryption.")
+            return {"status": "error", "message": "Internal crypto module error. Withdrawal unavailable."}
 
         try:
-            # 1. Initial GET to marketplace (cookie/session setup)
             await self._make_request("GET", "https://marketplace.tonnel.network/", is_initial_get=True)
-            logger.info("Tonnel: Initial GET to marketplace.tonnel.network seems okay.")
+            logger.info("Tonnel: Initial GET to marketplace.tonnel.network okay.")
             
-            # 2. Get available gifts
             filter_str = json.dumps({"price":{"$exists":True},"refunded":{"$ne":True},"buyer":{"$exists":False},"export_at":{"$exists":True},"gift_name":gift_item_name,"asset":"TON"})
             page_gifts_payload = {"filter": filter_str, "limit":10, "page":1, "sort":'{"price":1,"gift_id":-1}'}
             pg_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
@@ -264,12 +95,11 @@ class TonnelGiftSender:
             gifts_found = await self._make_request("POST", "https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers, json_payload=page_gifts_payload)
             
             if not gifts_found or not isinstance(gifts_found, list) or len(gifts_found) == 0:
-                logger.warning(f"Tonnel: No gifts found for '{gift_item_name}'. Response: {gifts_found}")
+                logger.warning(f"Tonnel: No gifts found for '{gift_item_name}'. Resp: {gifts_found}")
                 return {"status": "error", "message": f"No '{gift_item_name}' gifts on Tonnel."}
             low_gift = gifts_found[0]
             logger.info(f"Tonnel: Found gift for '{gift_item_name}': ID {low_gift.get('gift_id')}, Price {low_gift.get('price')} TON")
 
-            # 3. UserInfo check
             user_info_payload = {"authData": self.authdata, "user": receiver_telegram_id}
             ui_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
             await self._make_request("OPTIONS", "https://gifts2.tonnel.network/api/userInfo", headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/"})
@@ -277,14 +107,12 @@ class TonnelGiftSender:
             logger.info(f"Tonnel: UserInfo check response: {user_check_resp}")
             if not user_check_resp or user_check_resp.get("status") != "success":
                 logger.warning(f"Tonnel: UserInfo check failed for receiver {receiver_telegram_id}. Resp: {user_check_resp}")
-                return {"status": "error", "message": f"Tonnel user check failed. {user_check_resp.get('message', 'Unknown error')}"}
+                return {"status": "error", "message": f"Tonnel user check failed. {user_check_resp.get('message', '')}"}
 
-            # 4. Buy/Send Gift
             time_now_ts_str = f"{int(time.time())}"
-            encrypted_ts = self._crypto_js.AES.encrypt(time_now_ts_str, self.secret).toString() # Using NodeJS bridge
-            # If using Python AES:
-            # encrypted_ts = encrypt_aes_cryptojs_compat(time_now_ts_str, self.secret) 
-            logger.debug(f"Tonnel: Encrypted timestamp: {encrypted_ts[:20]}...")
+            # Using the self._crypto_js obtained via require()
+            encrypted_ts = self._crypto_js.AES.encrypt(time_now_ts_str, self.passphrase_secret).toString() 
+            logger.debug(f"Tonnel: JS Bridge AES Encrypted timestamp: {encrypted_ts[:20]}...")
 
             buy_gift_url = f"https://gifts.coffin.meme/api/buyGift/{low_gift['gift_id']}"
             buy_payload = {"anonymously": True, "asset": "TON", "authData": self.authdata, "price": low_gift['price'], "receiver": receiver_telegram_id, "showPrice": False, "timestamp": encrypted_ts}
@@ -299,21 +127,21 @@ class TonnelGiftSender:
                 return {"status": "success", "message": f"Gift '{gift_item_name}' sent!", "details": purchase_resp}
             else:
                 logger.error(f"Tonnel: Failed to send gift '{gift_item_name}'. Resp: {purchase_resp}")
-                return {"status": "error", "message": f"Tonnel transfer failed. {purchase_resp.get('message', 'API error')}"}
-        except ValueError as ve: # Catch specific JSON errors or other ValueErrors from _make_request
+                return {"status": "error", "message": f"Tonnel transfer failed. {purchase_resp.get('message', '')}"}
+        except ValueError as ve: 
              logger.error(f"Tonnel: ValueError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {ve}", exc_info=True)
              return {"status": "error", "message": f"Tonnel API communication error: {str(ve)}"}
-        except RequestsError as re: # Catch specific curl_cffi request errors
-             logger.error(f"Tonnel: RequestsError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {re}", exc_info=True)
-             return {"status": "error", "message": f"Tonnel network error: {str(re)}"}
+        except RequestsError as re_err_outer: 
+             logger.error(f"Tonnel: RequestsError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {re_err_outer}", exc_info=True)
+             return {"status": "error", "message": f"Tonnel network error: {str(re_err_outer)}"}
         except Exception as e:
             logger.error(f"Tonnel: Unexpected error sending gift '{gift_item_name}' to {receiver_telegram_id}: {e}", exc_info=True)
             return {"status": "error", "message": f"Unexpected error during Tonnel withdrawal: {str(e)}"}
         finally:
             await self._close_session_if_open()
-
-
-# --- Utility and Data Functions ---
+            
+# --- Utility and Data Functions (generate_image_filename_from_name, UPDATED_FLOOR_PRICES, cases_data_backend setup, populate_initial_data) ---
+# (These remain the same as your last provided version)
 def generate_image_filename_from_name(name_str: str) -> str:
     if not name_str: return 'placeholder.png';
     if name_str == "Durov's Cap": return "Durov's-Cap.png";
@@ -338,14 +166,10 @@ cases_data_backend_with_fixed_prices = [
 cases_data_backend = []
 for case_template in cases_data_backend_with_fixed_prices:
     processed_case = {**case_template}
-    if not processed_case.get('isBackgroundCase'):
-        processed_case['imageFilename'] = generate_image_filename_from_name(processed_case['name'])
+    if not processed_case.get('isBackgroundCase'): processed_case['imageFilename'] = generate_image_filename_from_name(processed_case['name'])
     full_prizes = []
-    for prize_stub in processed_case['prizes']:
-        prize_name = prize_stub['name']
-        full_prizes.append({'name': prize_name, 'imageFilename': generate_image_filename_from_name(prize_name), 'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), 'probability': prize_stub['probability']})
-    processed_case['prizes'] = full_prizes
-    cases_data_backend.append(processed_case)
+    for prize_stub in processed_case['prizes']: prize_name = prize_stub['name']; full_prizes.append({'name': prize_name, 'imageFilename': generate_image_filename_from_name(prize_name), 'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), 'probability': prize_stub['probability']})
+    processed_case['prizes'] = full_prizes; cases_data_backend.append(processed_case)
 
 for case_info in cases_data_backend:
     ev = sum(p['floorPrice'] * p['probability'] * (2.5 if case_info['id'] == 'black' else 1) for p in case_info['prizes'])
@@ -355,9 +179,7 @@ for case_info in cases_data_backend:
 def populate_initial_data():
     db = SessionLocal();
     try:
-        existing_nfts = {nft.name: nft for nft in db.query(NFT).all()}
-        nfts_to_add = []
-        updated_count = 0
+        existing_nfts = {nft.name: nft for nft in db.query(NFT).all()}; nfts_to_add = []; updated_count = 0
         for name, price in UPDATED_FLOOR_PRICES.items():
             if name in existing_nfts:
                 if existing_nfts[name].floor_price != price: existing_nfts[name].floor_price = price; updated_count += 1
@@ -416,24 +238,19 @@ def open_case_api():
     if not tcase: return jsonify({"error": "Case not found"}), 404
     cost = tcase['priceTON']
     if user.ton_balance < cost: return jsonify({"error": f"Not enough TON. Need {cost:.2f}"}), 400
-    
     prizes = tcase['prizes']; rv = random.random(); cprob = 0; chosen_prize_info = None
     for p_info in prizes:
         cprob += p_info['probability']
         if rv <= cprob:
             chosen_prize_info = p_info
             break
-            
     if not chosen_prize_info: chosen_prize_info = random.choice(prizes)
-    
     user.ton_balance -= cost
     dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
     if not dbnft: user.ton_balance += cost; db.commit(); logger.error(f"CRITICAL: NFT {chosen_prize_info['name']} not found!"); return jsonify({"error": "Prize NFT missing"}), 500
-    
     variant = "black_singularity" if tcase['id'] == 'black' else None
     actual_val = dbnft.floor_price * (2.5 if variant == "black_singularity" else 1)
     user.total_won_ton += actual_val
-    
     item = InventoryItem(user_id=uid, nft_id=dbnft.id, current_value=round(actual_val, 2), variant=variant)
     db.add(item); db.commit(); db.refresh(item)
     return jsonify({"status": "success", "won_prize": {"id": item.id, "name": dbnft.name, "imageFilename": dbnft.image_filename, "floorPrice": dbnft.floor_price, "currentValue": item.current_value, "variant": item.variant}, "new_balance_ton": user.ton_balance})
@@ -545,25 +362,12 @@ def verify_deposit_api():
     result = {}
     try:
         loop = asyncio.get_event_loop()
-        if loop.is_running():
-            logger.warning("Event loop already running in verify_deposit. Creating new for this call.")
-            new_loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(new_loop)
-            result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
-        else: 
-            result = loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+        if loop.is_running(): logger.warning("Event loop already running in verify_deposit. Creating new for this call."); new_loop = asyncio.new_event_loop(); asyncio.set_event_loop(new_loop); result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+        else: result = loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
     except RuntimeError as e:
-         if "cannot be called from a running event loop" in str(e) or "no current event loop" in str(e).lower() or "There is no current event loop in thread" in str(e):
-            logger.warning(f"Asyncio loop issue in verify_deposit: {e}. Creating new loop for this call.")
-            new_loop = asyncio.new_event_loop(); asyncio.set_event_loop(new_loop)
-            result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
-         else:
-            logger.error(f"RuntimeError during verify_deposit: {e}", exc_info=True)
-            return jsonify({"status": "error", "message": "Internal error during verification."}), 500
-    except Exception as e:
-        logger.error(f"General exception during verify_deposit: {e}", exc_info=True)
-        return jsonify({"status": "error", "message": "Unexpected error during verification."}), 500
-        
+         if "cannot be called from a running event loop" in str(e) or "no current event loop" in str(e).lower() or "There is no current event loop in thread" in str(e): logger.warning(f"Asyncio loop issue in verify_deposit: {e}. Creating new loop for this call."); new_loop = asyncio.new_event_loop(); asyncio.set_event_loop(new_loop); result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+         else: logger.error(f"RuntimeError during verify_deposit: {e}", exc_info=True); return jsonify({"status": "error", "message": "Internal error during verification."}), 500
+    except Exception as e: logger.error(f"General exception during verify_deposit: {e}", exc_info=True); return jsonify({"status": "error", "message": "Unexpected error during verification."}), 500
     return jsonify(result)
 
 @app.route('/api/get_leaderboard', methods=['GET'])
@@ -615,16 +419,9 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
     
     tonnel_result = {}
     try:
-        # Ensure a new loop is used if one isn't already running or if the current one is closed.
-        # This is a common pattern for running async code from a sync context.
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_closed(): # If global loop is closed for some reason
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-        except RuntimeError: # If no event loop exists in the current context at all
-             loop = asyncio.new_event_loop()
-             asyncio.set_event_loop(loop)
+        try: loop = asyncio.get_event_loop()
+        except RuntimeError: loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
+        if loop.is_closed(): loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
         
         tonnel_result = loop.run_until_complete(
             tonnel_client.send_gift_to_user(
@@ -661,12 +458,12 @@ def send_welcome(message):
         db.add(user)
         try:
             db.commit()
-            db.refresh(user) # Get the full user object with defaults
+            db.refresh(user)
             logger.info(f"New user created: {user_id}")
         except Exception as e_commit_new:
             db.rollback()
             logger.error(f"Error committing new user {user_id}: {e_commit_new}")
-            user = db.query(User).filter(User.id == user_id).first() # Try fetching if created by race
+            user = db.query(User).filter(User.id == user_id).first()
             if not user:
                  bot.send_message(message.chat.id, "Error creating your profile. Please try /start again.")
                  return
@@ -694,7 +491,7 @@ def send_welcome(message):
     if user.first_name != tg_user_obj.first_name: user.first_name = tg_user_obj.first_name; updated_fields = True
     if user.last_name != tg_user_obj.last_name: user.last_name = tg_user_obj.last_name; updated_fields = True
     
-    if updated_fields or (created_now and user.referred_by_id): # Also commit if referral_by_id was set for a new user
+    if updated_fields or (created_now and user.referred_by_id):
         try:
             db.commit()
             logger.info(f"User data for {user_id} updated/committed.")
@@ -721,31 +518,20 @@ bot_polling_started = False
 bot_polling_thread = None
 def run_bot_polling():
     global bot_polling_started
-    if bot_polling_started:
-        logger.info("Bot polling is already running.")
-        return
-    bot_polling_started = True
-    logger.info("Starting bot polling...")
-    for i in range(3):
-        try: bot.remove_webhook(); logger.info("Webhook successfully removed."); break
-        except Exception as e: logger.warning(f"Attempt {i+1} to remove webhook failed: {e}"); time.sleep(2 if i < 2 else 0)
+    if bot_polling_started: logger.info("Bot polling is already running."); return
+    bot_polling_started = True; logger.info("Starting bot polling...")
+    for i in range(3): try: bot.remove_webhook(); logger.info("Webhook successfully removed."); break; except Exception as e: logger.warning(f"Attempt {i+1} to remove webhook failed: {e}"); time.sleep(2 if i < 2 else 0)
     while bot_polling_started:
         try:
             logger.info("Bot calling infinity_polling...")
             bot.infinity_polling(logger_level=logging.INFO, skip_pending=True, timeout=60, long_polling_timeout=30)
-            logger.info("infinity_polling finished.")
+            logger.info("infinity_polling finished.") 
         except telebot.apihelper.ApiTelegramException as e:
             logger.error(f"Telegram API Exception in polling: Code {e.error_code} - {e.description}", exc_info=False)
-            if e.error_code == 401 or e.error_code == 409:
-                logger.error("CRITICAL: Bot token invalid or conflict. Stopping polling.")
-                bot_polling_started = False
+            if e.error_code == 401 or e.error_code == 409: logger.error("CRITICAL: Bot token invalid or conflict. Stopping polling."); bot_polling_started = False
             else: time.sleep(30)
-        except ConnectionError as e:
-            logger.error(f"Network ConnectionError in polling: {e}", exc_info=False)
-            time.sleep(60)
-        except Exception as e:
-            logger.error(f"Unexpected critical error in polling: {type(e).__name__} - {e}", exc_info=True)
-            time.sleep(60)
+        except ConnectionError as e: logger.error(f"Network ConnectionError in polling: {e}", exc_info=False); time.sleep(60)
+        except Exception as e: logger.error(f"Unexpected critical error in polling: {type(e).__name__} - {e}", exc_info=True); time.sleep(60)
         if not bot_polling_started: break
         if bot_polling_started: time.sleep(5)
     logger.info("Bot polling loop has terminated.")
