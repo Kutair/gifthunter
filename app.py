@@ -54,9 +54,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-if not DATABASE_URL: logger.error("DATABASE_URL not set!"); exit()
-if not BOT_TOKEN: logger.error("BOT_TOKEN not set!"); exit()
-if not TONNEL_SENDER_INIT_DATA: logger.warning("TONNEL_SENDER_INIT_DATA not set! Tonnel withdrawal will likely fail.")
+if not DATABASE_URL:
+    logger.error("DATABASE_URL не установлен!")
+    exit("DATABASE_URL is not set. Exiting.")
+if not BOT_TOKEN:
+    logger.error("BOT_TOKEN не установлен!")
+    exit("BOT_TOKEN is not set. Exiting.")
+if not TONNEL_SENDER_INIT_DATA:
+    logger.warning("TONNEL_SENDER_INIT_DATA is not set! Tonnel gift withdrawal will likely fail.")
 
 engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -129,16 +134,37 @@ class PromoCode(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# --- Pure Python AES Encryption ---
-SALT_SIZE = 8; KEY_SIZE = 32; IV_SIZE = 16
+# --- Pure Python AES Encryption (CryptoJS Compatible) ---
+SALT_SIZE = 8
+KEY_SIZE = 32
+IV_SIZE = 16
+
 def derive_key_and_iv(passphrase: str, salt: bytes, key_length: int, iv_length: int) -> tuple[bytes, bytes]:
-    derived = b''; hasher = hashlib.md5(); hasher.update(passphrase.encode('utf-8')); hasher.update(salt); derived_block = hasher.digest(); derived += derived_block
-    while len(derived) < key_length + iv_length: hasher = hashlib.md5(); hasher.update(derived_block); hasher.update(passphrase.encode('utf-8')); hasher.update(salt); derived_block = hasher.digest(); derived += derived_block
+    derived = b''
+    hasher = hashlib.md5()
+    hasher.update(passphrase.encode('utf-8'))
+    hasher.update(salt)
+    derived_block = hasher.digest()
+    derived += derived_block
+    while len(derived) < key_length + iv_length:
+        hasher = hashlib.md5()
+        hasher.update(derived_block) 
+        hasher.update(passphrase.encode('utf-8'))
+        hasher.update(salt)
+        derived_block = hasher.digest()
+        derived += derived_block
     return derived[:key_length], derived[key_length : key_length + iv_length]
+
 def encrypt_aes_cryptojs_compat(plain_text: str, secret_passphrase: str) -> str:
-    salt = get_random_bytes(SALT_SIZE); key, iv = derive_key_and_iv(secret_passphrase, salt, KEY_SIZE, IV_SIZE); cipher = AES.new(key, AES.MODE_CBC, iv)
-    padded_plain_text = pad(plain_text.encode('utf-8'), AES.block_size, style='pkcs7'); ciphertext = cipher.encrypt(padded_plain_text)
-    return base64.b64encode(b"Salted__" + salt + ciphertext).decode('utf-8')
+    salt = get_random_bytes(SALT_SIZE)
+    key, iv = derive_key_and_iv(secret_passphrase, salt, KEY_SIZE, IV_SIZE)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plain_text_bytes = plain_text.encode('utf-8')
+    padded_plain_text = pad(plain_text_bytes, AES.block_size, style='pkcs7')
+    ciphertext = cipher.encrypt(padded_plain_text)
+    salted_ciphertext = b"Salted__" + salt + ciphertext
+    encrypted_base64 = base64.b64encode(salted_ciphertext).decode('utf-8')
+    return encrypted_base64
 
 # --- Tonnel Gift Withdrawal Class ---
 class TonnelGiftSender:
@@ -148,12 +174,14 @@ class TonnelGiftSender:
         self._session_instance = None
 
     async def _get_session(self):
-        if self._session_instance is None or self._session_instance.closed: # Check if session needs re-creation
+        if self._session_instance is None or self._session_instance.closed:
             self._session_instance = AsyncSession(impersonate="chrome110", http_version=2)
+            logger.debug("Initialized new AsyncSession for TonnelGiftSender.")
         return self._session_instance
 
     async def _close_session_if_open(self):
-        if self._session_instance and not self._session_instance.closed: # Check if session exists and is not closed
+        if self._session_instance and not self._session_instance.closed:
+            logger.debug("Closing AsyncSession for TonnelGiftSender.")
             await self._session_instance.close()
             self._session_instance = None
 
@@ -162,49 +190,130 @@ class TonnelGiftSender:
         response_obj = None 
         try:
             logger.debug(f"Tonnel API Request: {method} {url} Headers: {headers} Payload: {json_payload}")
-            if method.upper() == "GET": response_obj = await session.get(url, headers=headers, timeout=timeout)
-            elif method.upper() == "POST": response_obj = await session.post(url, headers=headers, json=json_payload, timeout=timeout)
-            elif method.upper() == "OPTIONS": response_obj = await session.options(url, headers=headers, timeout=timeout)
-            else: raise ValueError(f"Unsupported method: {method}")
-            logger.debug(f"Tonnel API Response: {method} {url} - Status: {response_obj.status_code}, Response Headers: {response_obj.headers}")
-            if method.upper() != "OPTIONS": response_obj.raise_for_status() 
-            if response_obj.status_code == 204: return None
-            if method.upper() == "OPTIONS" and response_obj.status_code // 100 == 2 : return {"status": "options_ok"}
-            content_type = response_obj.headers.get("Content-Type", "").lower()
-            if "application/json" in content_type: return response_obj.json()
+            if method.upper() == "GET":
+                response_obj = await session.get(url, headers=headers, timeout=timeout)
+            elif method.upper() == "POST":
+                response_obj = await session.post(url, headers=headers, json=json_payload, timeout=timeout)
+            elif method.upper() == "OPTIONS":
+                response_obj = await session.options(url, headers=headers, timeout=timeout)
             else:
-                if is_initial_get: return {"status": "get_ok_non_json"}
-                resp_text = await response_obj.text(); logger.warning(f"Tonnel API not JSON: {method} {url} ({content_type}). Text: {resp_text[:200]}"); return {"status": "error", "message": "Response not JSON", "text_preview": resp_text[:200]}
-        except Exception as e: logger.error(f"Tonnel API request error ({method} {url}): {e}", exc_info=True); err_text = await response_obj.text()[:500] if response_obj else ""; logger.error(f"Erroneous response text: {err_text}"); raise
+                raise ValueError(f"Unsupported HTTP method: {method}")
+            
+            logger.debug(f"Tonnel API Response: {method} {url} - Status: {response_obj.status_code}, Response Headers: {response_obj.headers}")
+            
+            if method.upper() != "OPTIONS":
+                response_obj.raise_for_status() 
+            
+            if response_obj.status_code == 204: 
+                return None
+            
+            if method.upper() == "OPTIONS" and response_obj.status_code // 100 == 2 :
+                return {"status": "options_ok"}
+
+            content_type = response_obj.headers.get("Content-Type", "").lower()
+            if "application/json" in content_type:
+                return response_obj.json()
+            else:
+                if is_initial_get:
+                    logger.info(f"Tonnel API: Initial GET to {url} successful (Content-Type: {content_type}).")
+                    return {"status": "get_ok_non_json"}
+                else:
+                    responseText = await response_obj.text()
+                    logger.warning(f"Tonnel API {method} {url} - Response is not JSON (Content-Type: {content_type}). Text: {responseText[:200]}")
+                    return {"status": "error", "message": "Response was not JSON", "content_type": content_type, "text_preview": responseText[:200]}
+
+        except RequestsError as re_err:
+            logger.error(f"Tonnel API RequestsError ({method} {url}): {re_err}", exc_info=False)
+            err_text = ""
+            if response_obj is not None: 
+                try: 
+                    err_text = await response_obj.text() 
+                except: # pragma: no cover
+                    pass
+                logger.error(f"Response for RequestsError: {err_text}")
+            raise 
+        except json.JSONDecodeError as je_err:
+            logger.error(f"Tonnel API JSONDecodeError ({method} {url}): {je_err}", exc_info=False)
+            err_text = ""
+            if response_obj is not None: 
+                try: 
+                    err_text = await response_obj.text()
+                except: # pragma: no cover
+                    pass
+                logger.error(f"Response for JSONDecodeError: {err_text}")
+            raise ValueError(f"Failed to decode JSON from {url}. Content-Type: {response_obj.headers.get('Content-Type', '') if response_obj else 'N/A'}") from je_err
+        except Exception as e_gen:
+            logger.error(f"Tonnel API general request error ({method} {url}): {type(e_gen).__name__} - {e_gen}", exc_info=False)
+            err_text = ""
+            if response_obj is not None: 
+                try: 
+                    err_text = await response_obj.text()
+                except: # pragma: no cover
+                    pass
+                logger.error(f"Response for general error: {err_text}")
+            raise
 
     async def send_gift_to_user(self, gift_item_name: str, receiver_telegram_id: int):
-        logger.info(f"Tonnel: Sending '{gift_item_name}' to {receiver_telegram_id} via {self.authdata[:30]}...")
-        if not self.authdata: return {"status": "error", "message": "Tonnel sender not configured."}
+        logger.info(f"Attempting Tonnel gift '{gift_item_name}' to user {receiver_telegram_id} using sender auth: {self.authdata[:30]}...")
+        if not self.authdata:
+            logger.error("TONNEL_SENDER_INIT_DATA not configured.")
+            return {"status": "error", "message": "Tonnel sender not configured."}
+
         try:
             await self._make_request("GET", "https://marketplace.tonnel.network/", is_initial_get=True)
-            f_str = json.dumps({"price":{"$exists":True},"refunded":{"$ne":True},"buyer":{"$exists":False},"export_at":{"$exists":True},"gift_name":gift_item_name,"asset":"TON"})
-            pg_payload = {"filter": f_str, "limit":10, "page":1, "sort":'{"price":1,"gift_id":-1}'}
-            pg_hdrs = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
+            logger.info("Tonnel: Initial GET to marketplace.tonnel.network okay.")
+            
+            filter_str = json.dumps({"price":{"$exists":True},"refunded":{"$ne":True},"buyer":{"$exists":False},"export_at":{"$exists":True},"gift_name":gift_item_name,"asset":"TON"})
+            page_gifts_payload = {"filter": filter_str, "limit":10, "page":1, "sort":'{"price":1,"gift_id":-1}'}
+            pg_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
+            
             await self._make_request("OPTIONS", "https://gifts2.tonnel.network/api/pageGifts", headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://tonnel-gift.vercel.app", "Referer":"https://tonnel-gift.vercel.app/"})
-            gifts = await self._make_request("POST", "https://gifts2.tonnel.network/api/pageGifts", headers=pg_hdrs, json_payload=pg_payload)
-            if not gifts or not isinstance(gifts, list) or len(gifts) == 0: return {"status": "error", "message": f"No '{gift_item_name}' on Tonnel market."}
-            low_gift = gifts[0]; logger.info(f"Tonnel: Found gift ID {low_gift.get('gift_id')}, Price {low_gift.get('price')}")
-            ui_payload = {"authData": self.authdata, "user": receiver_telegram_id}
-            ui_hdrs = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
+            gifts_found = await self._make_request("POST", "https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers, json_payload=page_gifts_payload)
+            
+            if not gifts_found or not isinstance(gifts_found, list) or len(gifts_found) == 0:
+                logger.warning(f"Tonnel: No gifts found for '{gift_item_name}'. Resp: {gifts_found}")
+                return {"status": "error", "message": f"No '{gift_item_name}' gifts on Tonnel."}
+            low_gift = gifts_found[0]
+            logger.info(f"Tonnel: Found gift for '{gift_item_name}': ID {low_gift.get('gift_id')}, Price {low_gift.get('price')} TON")
+
+            user_info_payload = {"authData": self.authdata, "user": receiver_telegram_id}
+            ui_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
             await self._make_request("OPTIONS", "https://gifts2.tonnel.network/api/userInfo", headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/"})
-            user_chk = await self._make_request("POST", "https://gifts2.tonnel.network/api/userInfo", headers=ui_hdrs, json_payload=ui_payload)
-            if not user_chk or user_chk.get("status") != "success": return {"status": "error", "message": f"Tonnel user check failed: {user_chk.get('message', '')}"}
-            ts_str = f"{int(time.time())}"; enc_ts = encrypt_aes_cryptojs_compat(ts_str, self.passphrase_secret)
-            logger.debug(f"Tonnel: Python AES Encrypted timestamp: {enc_ts[:20]}...")
-            buy_url = f"https://gifts.coffin.meme/api/buyGift/{low_gift['gift_id']}"
-            buy_payload = {"anonymously":True, "asset":"TON", "authData":self.authdata, "price":low_gift['price'], "receiver":receiver_telegram_id, "showPrice":False, "timestamp":enc_ts}
-            buy_hdrs = {"Content-Type":"application/json", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/", "Host":"gifts.coffin.meme"}
-            await self._make_request("OPTIONS", buy_url, headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/"})
-            purchase = await self._make_request("POST", buy_url, headers=buy_hdrs, json_payload=buy_payload, timeout=90)
-            if purchase and purchase.get("status") == "success": return {"status": "success", "message": f"Gift '{gift_item_name}' sent!", "details": purchase}
-            return {"status": "error", "message": f"Tonnel transfer failed: {purchase.get('message', '')}"}
-        except Exception as e: logger.error(f"Tonnel send_gift error: {e}", exc_info=True); return {"status":"error", "message":f"Unexpected Tonnel error: {e}"}
-        finally: await self._close_session_if_open()
+            user_check_resp = await self._make_request("POST", "https://gifts2.tonnel.network/api/userInfo", headers=ui_headers, json_payload=user_info_payload)
+            logger.info(f"Tonnel: UserInfo check response: {user_check_resp}")
+            if not user_check_resp or user_check_resp.get("status") != "success":
+                logger.warning(f"Tonnel: UserInfo check failed for receiver {receiver_telegram_id}. Resp: {user_check_resp}")
+                return {"status": "error", "message": f"Tonnel user check failed. {user_check_resp.get('message', '')}"}
+
+            time_now_ts_str = f"{int(time.time())}"
+            encrypted_ts = encrypt_aes_cryptojs_compat(time_now_ts_str, self.passphrase_secret)
+            logger.debug(f"Tonnel: Python AES Encrypted timestamp: {encrypted_ts[:20]}...")
+
+            buy_gift_url = f"https://gifts.coffin.meme/api/buyGift/{low_gift['gift_id']}"
+            buy_payload = {"anonymously": True, "asset": "TON", "authData": self.authdata, "price": low_gift['price'], "receiver": receiver_telegram_id, "showPrice": False, "timestamp": encrypted_ts}
+            buy_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/", "Host":"gifts.coffin.meme"}
+            
+            await self._make_request("OPTIONS", buy_gift_url, headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/"})
+            purchase_resp = await self._make_request("POST", buy_gift_url, headers=buy_headers, json_payload=buy_payload, timeout=90)
+            logger.info(f"Tonnel: BuyGift response for {low_gift['gift_id']} to {receiver_telegram_id}: {purchase_resp}")
+
+            if purchase_resp and purchase_resp.get("status") == "success":
+                logger.info(f"Tonnel: Gift '{gift_item_name}' to user {receiver_telegram_id} success.")
+                return {"status": "success", "message": f"Gift '{gift_item_name}' sent!", "details": purchase_resp}
+            else:
+                logger.error(f"Tonnel: Failed to send gift '{gift_item_name}'. Resp: {purchase_resp}")
+                return {"status": "error", "message": f"Tonnel transfer failed. {purchase_resp.get('message', '')}"}
+        except ValueError as ve: 
+             logger.error(f"Tonnel: ValueError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {ve}", exc_info=True)
+             return {"status": "error", "message": f"Tonnel API communication error: {str(ve)}"}
+        except RequestsError as re_err_outer: 
+             logger.error(f"Tonnel: RequestsError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {re_err_outer}", exc_info=True)
+             return {"status": "error", "message": f"Tonnel network error: {str(re_err_outer)}"}
+        except Exception as e:
+            logger.error(f"Tonnel: Unexpected error sending gift '{gift_item_name}' to {receiver_telegram_id}: {e}", exc_info=True)
+            return {"status": "error", "message": f"Unexpected error during Tonnel withdrawal: {str(e)}"}
+        finally:
+            await self._close_session_if_open()
 
 # --- Utility and Data Functions ---
 def generate_image_filename_from_name(name_str: str) -> str:
@@ -236,49 +345,35 @@ for case_template in cases_data_backend_with_fixed_prices:
     for prize_stub in processed_case['prizes']: prize_name = prize_stub['name']; full_prizes.append({'name': prize_name, 'imageFilename': generate_image_filename_from_name(prize_name), 'floorPrice': UPDATED_FLOOR_PRICES.get(prize_name, 0), 'probability': prize_stub['probability']})
     processed_case['prizes'] = full_prizes; cases_data_backend.append(processed_case)
 
-TON_PRIZE_IMAGE_DEFAULT = "ton_coin.png" # Placeholder, ensure you have this image
+TON_PRIZE_IMAGE_DEFAULT = "ton_coin.png"
 DEFAULT_SLOT_TON_PRIZES = [ {'name': "0.1 TON", 'value': 0.1, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "0.25 TON", 'value': 0.25, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "0.5 TON", 'value': 0.5, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "1.0 TON", 'value': 1.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "1.5 TON", 'value': 1.5, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, ]
 PREMIUM_SLOT_TON_PRIZES = [ {'name': "2 TON", 'value': 2.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "3 TON", 'value': 3.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "5 TON", 'value': 5.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "10 TON", 'value': 10.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, ]
-ALL_ITEMS_POOL_FOR_SLOTS = [{'name': prize_data['name'], 'floorPrice': prize_data['floorPrice'], 'imageFilename': prize_data['imageFilename'], 'is_ton_prize': False} for prize_data in UPDATED_FLOOR_PRICES.values() if isinstance(prize_data, dict)] # Needs rework
-# Temporary fix for ALL_ITEMS_POOL_FOR_SLOTS if UPDATED_FLOOR_PRICES is just name:price
 ALL_ITEMS_POOL_FOR_SLOTS = [{'name': name, 'floorPrice': price, 'imageFilename': generate_image_filename_from_name(name), 'is_ton_prize': False} for name, price in UPDATED_FLOOR_PRICES.items()]
-
 
 slots_data_backend = [
     { 'id': 'default_slot', 'name': 'Default Slot', 'priceTON': 3.0, 'reels_config': 3, 'prize_pool': [] },
     { 'id': 'premium_slot', 'name': 'Premium Slot', 'priceTON': 10.0, 'reels_config': 3, 'prize_pool': [] }
 ]
-
 def finalize_slot_prize_pools():
     global slots_data_backend
     for slot_data in slots_data_backend:
         temp_pool = []
         if slot_data['id'] == 'default_slot':
-            # 50% for TON prizes, equally distributed
             prob_per_ton_prize = (0.50 / len(DEFAULT_SLOT_TON_PRIZES)) if DEFAULT_SLOT_TON_PRIZES else 0
             for ton_prize in DEFAULT_SLOT_TON_PRIZES: temp_pool.append({**ton_prize, 'probability': prob_per_ton_prize})
-            # 50% for item prizes, skewed towards cheaper
-            item_candidates = [item for item in ALL_ITEMS_POOL_FOR_SLOTS if item['floorPrice'] < 15] # Cheaper items
-            if not item_candidates: item_candidates = ALL_ITEMS_POOL_FOR_SLOTS[:10] # Fallback to first 10
-            
-            # Simple equal distribution for remaining probability among these item candidates
+            item_candidates = [item for item in ALL_ITEMS_POOL_FOR_SLOTS if item['floorPrice'] < 15];
+            if not item_candidates: item_candidates = ALL_ITEMS_POOL_FOR_SLOTS[:10] 
             remaining_prob_for_items = 0.50
-            if item_candidates:
-                prob_per_item = remaining_prob_for_items / len(item_candidates)
+            if item_candidates: prob_per_item = remaining_prob_for_items / len(item_candidates);
                 for item in item_candidates: temp_pool.append({**item, 'probability': prob_per_item})
-            
         elif slot_data['id'] == 'premium_slot':
             prob_per_ton_prize = (0.40 / len(PREMIUM_SLOT_TON_PRIZES)) if PREMIUM_SLOT_TON_PRIZES else 0
             for ton_prize in PREMIUM_SLOT_TON_PRIZES: temp_pool.append({**ton_prize, 'probability': prob_per_ton_prize})
             item_candidates = [item for item in ALL_ITEMS_POOL_FOR_SLOTS if item['floorPrice'] >= 15]
-            if not item_candidates: item_candidates = ALL_ITEMS_POOL_FOR_SLOTS[-10:] # Fallback to last 10 (likely more expensive)
-
+            if not item_candidates: item_candidates = ALL_ITEMS_POOL_FOR_SLOTS[-10:]
             remaining_prob_for_items = 0.60
-            if item_candidates:
-                prob_per_item = remaining_prob_for_items / len(item_candidates)
+            if item_candidates: prob_per_item = remaining_prob_for_items / len(item_candidates)
                 for item in item_candidates: temp_pool.append({**item, 'probability': prob_per_item})
-        
-        # Normalize final pool for the slot
         current_total_prob = sum(p.get('probability', 0) for p in temp_pool)
         if current_total_prob > 0 and abs(current_total_prob - 1.0) > 0.001 :
             logger.warning(f"Normalizing probabilities for slot {slot_data['id']}. Original sum: {current_total_prob}")
@@ -286,86 +381,53 @@ def finalize_slot_prize_pools():
         slot_data['prize_pool'] = temp_pool
 finalize_slot_prize_pools()
 
-
 def calculate_and_log_rtp():
     logger.info("--- RTP Calculations (Based on Current Fixed Prices & Probabilities) ---")
-    overall_total_ev = Decimal('0')
-    overall_total_cost = Decimal('0')
-    
-    all_games_data = cases_data_backend + slots_data_backend
+    overall_total_ev_weighted_by_price = Decimal('0') # EV contribution weighted by price
+    overall_total_cost_squared = Decimal('0') # Sum of price^2 for weighting
 
+    all_games_data = cases_data_backend + slots_data_backend
     for game_data in all_games_data:
         game_id = game_data['id']; game_name = game_data['name']; price = Decimal(str(game_data['priceTON']))
         ev = Decimal('0')
-
-        if 'prizes' in game_data: # This is a Case
+        if 'prizes' in game_data: # Case
             for prize in game_data['prizes']:
                 prize_value = Decimal(str(UPDATED_FLOOR_PRICES.get(prize['name'], 0)))
                 if game_id == 'black': prize_value *= Decimal('2.5')
                 ev += prize_value * Decimal(str(prize['probability']))
-        elif 'prize_pool' in game_data: # This is a Slot
-            # Simplified EV for slots: sum of (value * probability_on_a_single_reel) * number_of_reels_where_any_win_counts
-            # This assumes if a TON prize lands on any reel, it's won. Item prizes need 3-in-a-row.
-            # This is a ROUGH ESTIMATE. Real slot EV is more complex.
-            expected_value_per_reel_spin = Decimal('0')
+        elif 'prize_pool' in game_data: # Slot
+            # Rough EV estimate for slots (sum of (value * prob_on_reel) * num_reels for TON, items need more complex math)
+            # This is a placeholder and not accurate slot RTP
             for prize_spec in game_data['prize_pool']:
                 value = Decimal(str(prize_spec.get('value', prize_spec.get('floorPrice', 0))))
                 prob_on_reel = Decimal(str(prize_spec.get('probability', 0)))
                 if prize_spec.get('is_ton_prize'):
-                    expected_value_per_reel_spin += value * prob_on_reel
-                else: # Item prize
-                    # Prob of 3-in-a-row for this specific item is (prob_on_reel)^3
-                    # This is very low, so item EV contribution is small unless high prob_on_reel
-                    prob_3_in_row = prob_on_reel ** Decimal(str(game_data.get('reels_config', 3)))
-                    expected_value_per_reel_spin += value * prob_3_in_row 
-            # For simplicity, if any TON prize on any reel contributes, this is still not right.
-            # Let's assume the EV for slots is primarily driven by how their prize pool is constructed for now.
-            # The EV used here will be sum of (prize_value * prize_probability_in_pool)
-            # This means the prize_pool probabilities must be for *winning that prize*, not just appearing on a reel.
-            # For this printout, let's re-calculate slot EV based on the prize_pool directly
-            # if the probabilities in prize_pool represent overall win chance for that item/amount.
-            # The current slot prize_pool probabilities are for *appearing on a single reel*.
-            # This RTP calculation for slots will be INACCURATE without proper slot math.
-            # For now, we'll use a placeholder or a very simplified EV for logging.
-            # Let's calculate EV based on direct prize pool probabilities assuming they are overall win probabilities.
-            temp_slot_ev = Decimal('0')
-            for p_info in game_data['prize_pool']:
-                 val = Decimal(str(p_info.get('value', p_info.get('floorPrice',0))))
-                 prob = Decimal(str(p_info.get('probability',0)))
-                 temp_slot_ev += val * prob
-            ev = temp_slot_ev * Decimal(str(game_data.get('reels_config', 1))) # If each reel is independent draw from pool
-            # This is still not right for 3-in-a-row items. For logging, it's a placeholder.
-
-
+                    ev += value * prob_on_reel * Decimal(str(game_data.get('reels_config', 3))) # Simplified: win if lands on any reel
+                else: # For items, P(3-in-a-row) is (prob_on_reel)^3
+                    ev += value * (prob_on_reel ** Decimal(str(game_data.get('reels_config', 3))))
         rtp = (ev / price) * 100 if price > 0 else Decimal('0')
         dev_cut = 100 - rtp if price > 0 else Decimal('0')
-        logger.info(f"Game: {game_name:<25} | Price: {price:>6.2f} | Est.EV: {ev:>6.2f} | Est.RTP: {rtp:>6.2f}% | Est.DevCut: {dev_cut:>6.2f}%")
-        if price > 0: overall_total_ev += ev * price; overall_total_cost += price * price # Weighted by price for a rough overall
-    
-    if overall_total_cost > 0:
-        weighted_avg_rtp = (overall_total_ev / overall_total_cost) * 100
-        logger.info(f"--- Weighted Avg RTP (by price): {weighted_avg_rtp:.2f}% ---")
-    else: logger.info("--- No priced games for overall RTP. ---")
+        logger.info(f"Game: {game_name:<25} | Price: {price:>6.2f} TON | Est.EV: {ev:>6.2f} | Est.RTP: {rtp:>6.2f}% | Est.DevCut: {dev_cut:>6.2f}%")
+        if price > 0: overall_total_ev_weighted_by_price += ev * price; overall_total_cost_squared += price * price
+    if overall_total_cost_squared > 0: # Avoid division by zero if all games are free
+        # This weighting by price is just one way to get an idea, not a true overall RTP without play stats
+        weighted_avg_rtp = (overall_total_ev_weighted_by_price / overall_total_cost_squared) * 100 if overall_total_cost_squared > 0 else Decimal('0')
+        logger.info(f"--- Approx. Weighted Avg RTP (by price, for priced games): {weighted_avg_rtp:.2f}% ---")
+    else: logger.info("--- No priced games for overall RTP calculation. ---")
 
 def initial_setup_and_logging():
     populate_initial_data()
-    # Add Grachev promocode
     db = SessionLocal()
     try:
         if not db.query(PromoCode).filter(PromoCode.code_text == 'Grachev').first():
             db.add(PromoCode(code_text='Grachev', activations_left=10, ton_amount=100.0))
             db.commit()
             logger.info("Promocode 'Grachev' (100 TON, 10 activations) seeded.")
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error seeding Grachev promocode: {e}")
-    finally:
-        db.close()
+    except Exception as e: db.rollback(); logger.error(f"Error seeding Grachev promocode: {e}")
+    finally: db.close()
     calculate_and_log_rtp()
 initial_setup_and_logging()
 
-
-# --- Flask App and Bot Initialization ---
 DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR"; DEPOSIT_COMMENT = "cpd7r07ud3s"; PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 app = Flask(__name__); CORS(app, resources={r"/api/*": {"origins": ["https://vasiliy-katsyka.github.io"]}})
 if not BOT_TOKEN: logger.error("BOT_TOKEN not found!"); exit("BOT_TOKEN is not set.")
@@ -418,12 +480,15 @@ def open_case_api():
     user.ton_balance = float(Decimal(str(user.ton_balance)) - total_cost)
     prizes_in_case = tcase['prizes']; won_prizes_list = []; total_value_this_spin = Decimal('0')
     for _ in range(multiplier):
-        rv = random.random(); cprob = 0; chosen = None
-        for p_info in prizes_in_case: cprob += p_info['probability'];
-            if rv <= cprob: chosen = p_info; break
-        if not chosen: chosen = random.choice(prizes_in_case)
-        dbnft = db.query(NFT).filter(NFT.name == chosen['name']).first()
-        if not dbnft: logger.error(f"NFT {chosen['name']} missing in DB for case open!"); continue
+        rv = random.random(); cprob = 0; chosen_prize_info = None
+        for p_info in prizes_in_case:
+            cprob += p_info['probability']
+            if rv <= cprob:
+                chosen_prize_info = p_info
+                break
+        if not chosen_prize_info: chosen_prize_info = random.choice(prizes_in_case)
+        dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
+        if not dbnft: logger.error(f"NFT {chosen_prize_info['name']} missing for case open!"); continue
         variant = "black_singularity" if tcase['id'] == 'black' else None
         actual_val = Decimal(str(dbnft.floor_price)) * (Decimal('2.5') if variant == "black_singularity" else Decimal('1'))
         total_value_this_spin += actual_val
@@ -454,31 +519,41 @@ def spin_slot_api():
     reel_results_data = []
     for _ in range(num_reels):
         rv = random.random(); cprob = 0; landed = None
-        for p_info in slot_pool: cprob += p_info['probability'];
+        for p_info in slot_pool: cprob += p_info.get('probability', 0); # Ensure probability exists
             if rv <= cprob: landed = p_info; break
-        if not landed: landed = random.choice(slot_pool)
-        reel_results_data.append(landed)
-    
+        if not landed: landed = random.choice(slot_pool) if slot_pool else None # Handle empty slot_pool
+        if landed: reel_results_data.append(landed)
+        else: # Should not happen if slot_pool is not empty and probabilities sum to 1
+            logger.error(f"Could not determine landed prize for a reel in slot {slot_id}. Pool: {slot_pool}")
+            reel_results_data.append({"name": "Error Symbol", "imageFilename": "placeholder.png", "is_ton_prize": False, "currentValue": 0})
+
+
     won_prizes_from_slot = []; total_value_this_spin = Decimal('0')
-    # TON prizes
     for landed_item_data in reel_results_data:
         if landed_item_data.get('is_ton_prize'):
             ton_val = Decimal(str(landed_item_data['value']))
             won_prizes_from_slot.append({"id": f"ton_{int(time.time()*1e3)}_{random.randint(0,999)}", "name": landed_item_data['name'], "imageFilename": landed_item_data.get('imageFilename', TON_PRIZE_IMAGE_DEFAULT), "currentValue": float(ton_val), "is_ton_prize": True})
             total_value_this_spin += ton_val; user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_val)
-    # Item prizes (3 in a row)
-    if num_reels == 3 and not reel_results_data[0].get('is_ton_prize') and reel_results_data[0]['name'] == reel_results_data[1]['name'] == reel_results_data[2]['name']:
-        won_item_data = reel_results_data[0]; db_nft = db.query(NFT).filter(NFT.name == won_item_data['name']).first()
-        if db_nft:
-            actual_val = Decimal(str(db_nft.floor_price)) # Standard value for slot items
-            inv_item = InventoryItem(user_id=uid, nft_id=db_nft.id, current_value=float(actual_val), variant=None) # No special variant from slots for now
-            db.add(inv_item); db.commit(); db.refresh(inv_item)
-            won_prizes_from_slot.append({"id": inv_item.id, "name": db_nft.name, "imageFilename": db_nft.image_filename, "floorPrice": float(db_nft.floor_price), "currentValue": inv_item.current_value, "is_ton_prize": False, "variant": inv_item.variant})
-            total_value_this_spin += actual_val
-        else: logger.error(f"Slot win: NFT {won_item_data['name']} not found!")
+    
+    if num_reels == 3 and len(reel_results_data) == 3: # Check if we have 3 results
+        is_item_win = True
+        first_item_name = None
+        for res_data in reel_results_data:
+            if res_data.get('is_ton_prize'): is_item_win = False; break
+            if first_item_name is None: first_item_name = res_data['name']
+            elif res_data['name'] != first_item_name: is_item_win = False; break
+        
+        if is_item_win and first_item_name is not None:
+            won_item_data = reel_results_data[0]; db_nft = db.query(NFT).filter(NFT.name == won_item_data['name']).first()
+            if db_nft:
+                actual_val = Decimal(str(db_nft.floor_price))
+                inv_item = InventoryItem(user_id=uid, nft_id=db_nft.id, current_value=float(actual_val), variant=None)
+                db.add(inv_item); db.commit(); db.refresh(inv_item)
+                won_prizes_from_slot.append({"id": inv_item.id, "name": db_nft.name, "imageFilename": db_nft.image_filename, "floorPrice": float(db_nft.floor_price), "currentValue": inv_item.current_value, "is_ton_prize": False, "variant": inv_item.variant})
+                total_value_this_spin += actual_val
+            else: logger.error(f"Slot win: NFT {won_item_data['name']} not found!")
     user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin); db.commit()
     return jsonify({"status": "success", "reel_results": reel_results_data, "won_prizes": won_prizes_from_slot, "new_balance_ton": user.ton_balance})
-
 
 @app.route('/api/upgrade_item', methods=['POST'])
 def upgrade_item_api():
@@ -688,26 +763,42 @@ def send_welcome(message):
                     if referrer:
                         user.referred_by_id = referrer.id
                         logger.info(f"User {user_id} referred by {referrer.id} via deep link {referrer_code}.")
-                        try: bot.send_message(referrer.id, f"🎉 Your friend {user.first_name or user.username or user.id} joined using your referral link!")
-                        except Exception as e_notify: logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
+                        try: 
+                            bot.send_message(referrer.id, f"🎉 Your friend {user.first_name or user.username or user.id} joined using your referral link!")
+                        except Exception as e_notify: 
+                            logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
                     elif not referrer and user.id != db.query(User.id).filter(User.referral_code == referrer_code).scalar():
                          logger.warning(f"Referral code {referrer_code} not found or self-referral attempt by {user_id}.")
     except Exception as e:
         logger.error(f"Error processing start parameter for {user_id}: {e}")
 
     updated_fields = False
-    if user.username != tg_user_obj.username: user.username = tg_user_obj.username; updated_fields = True
-    if user.first_name != tg_user_obj.first_name: user.first_name = tg_user_obj.first_name; updated_fields = True
-    if user.last_name != tg_user_obj.last_name: user.last_name = tg_user_obj.last_name; updated_fields = True
+    if user.username != tg_user_obj.username: 
+        user.username = tg_user_obj.username
+        updated_fields = True
+    if user.first_name != tg_user_obj.first_name: 
+        user.first_name = tg_user_obj.first_name
+        updated_fields = True
+    if user.last_name != tg_user_obj.last_name: 
+        user.last_name = tg_user_obj.last_name
+        updated_fields = True
     
-    if updated_fields or (created_now and user.referred_by_id):
+    # Commit if new user and referred_by_id was set, or if existing user fields were updated
+    if (created_now and user.referred_by_id) or (not created_now and updated_fields):
         try:
             db.commit()
             logger.info(f"User data for {user_id} updated/committed.")
         except Exception as e_commit_update:
             db.rollback()
             logger.error(f"Error committing updates for user {user_id}: {e_commit_update}")
-    
+    elif created_now: # If it was a new user but no referral was set in this interaction
+        try:
+            db.commit() # Ensure new user is saved
+        except Exception as e_commit_new_no_ref:
+            db.rollback()
+            logger.error(f"Error committing new user (no ref update) {user_id}: {e_commit_new_no_ref}")
+
+
     button_mini_app_url = f"https://t.me/{bot.get_me().username}/{MINI_APP_NAME or 'app'}"
     if not MINI_APP_NAME:
         logger.warning("MINI_APP_NAME environment variable is not set. The Mini App button link might be incorrect.")
@@ -727,9 +818,19 @@ bot_polling_started = False
 bot_polling_thread = None
 def run_bot_polling():
     global bot_polling_started
-    if bot_polling_started: logger.info("Bot polling is already running."); return
-    bot_polling_started = True; logger.info("Starting bot polling...")
-    for i in range(3): try: bot.remove_webhook(); logger.info("Webhook successfully removed."); break; except Exception as e: logger.warning(f"Attempt {i+1} to remove webhook failed: {e}"); time.sleep(2 if i < 2 else 0)
+    if bot_polling_started: 
+        logger.info("Bot polling is already running.")
+        return
+    bot_polling_started = True
+    logger.info("Starting bot polling...")
+    for i in range(3): 
+        try: 
+            bot.remove_webhook()
+            logger.info("Webhook successfully removed.")
+            break
+        except Exception as e: 
+            logger.warning(f"Attempt {i+1} to remove webhook failed: {e}")
+            time.sleep(2 if i < 2 else 0)
     while bot_polling_started:
         try:
             logger.info("Bot calling infinity_polling...")
@@ -737,12 +838,21 @@ def run_bot_polling():
             logger.info("infinity_polling finished.") 
         except telebot.apihelper.ApiTelegramException as e:
             logger.error(f"Telegram API Exception in polling: Code {e.error_code} - {e.description}", exc_info=False)
-            if e.error_code == 401 or e.error_code == 409: logger.error("CRITICAL: Bot token invalid or conflict. Stopping polling."); bot_polling_started = False
-            else: time.sleep(30)
-        except ConnectionError as e: logger.error(f"Network ConnectionError in polling: {e}", exc_info=False); time.sleep(60)
-        except Exception as e: logger.error(f"Unexpected critical error in polling: {type(e).__name__} - {e}", exc_info=True); time.sleep(60)
-        if not bot_polling_started: break
-        if bot_polling_started: time.sleep(5)
+            if e.error_code == 401 or e.error_code == 409: 
+                logger.error("CRITICAL: Bot token invalid or conflict. Stopping polling.")
+                bot_polling_started = False
+            else: 
+                time.sleep(30)
+        except ConnectionError as e: 
+            logger.error(f"Network ConnectionError in polling: {e}", exc_info=False)
+            time.sleep(60)
+        except Exception as e: 
+            logger.error(f"Unexpected critical error in polling: {type(e).__name__} - {e}", exc_info=True)
+            time.sleep(60)
+        if not bot_polling_started: 
+            break
+        if bot_polling_started: # Check again before sleep
+            time.sleep(5) 
     logger.info("Bot polling loop has terminated.")
 
 if __name__ == '__main__':
@@ -752,5 +862,6 @@ if __name__ == '__main__':
         bot_polling_thread.start()
     elif os.environ.get("WERKZEUG_RUN_MAIN") == "true":
         logger.info("Werkzeug reloader process, not starting polling here.")
+    
     logger.info("Starting Flask development server...")
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
