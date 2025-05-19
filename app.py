@@ -65,7 +65,6 @@ engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# --- Database Models (Corrected User relationships) ---
 class User(Base):
     __tablename__ = "users"
     id = Column(BigInteger, primary_key=True, index=True, autoincrement=False)
@@ -75,9 +74,9 @@ class User(Base):
     ton_balance = Column(Float, default=0.0, nullable=False)
     star_balance = Column(Integer, default=0, nullable=False)
     referral_code = Column(String, unique=True, index=True, nullable=True)
-
+    
     referred_by_id = Column(BigInteger, ForeignKey("users.id", name="fk_user_referred_by"), nullable=True)
-
+    
     referral_earnings_pending = Column(Float, default=0.0, nullable=False)
     total_won_ton = Column(Float, default=0.0, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -87,15 +86,15 @@ class User(Base):
     pending_deposits = relationship("PendingDeposit", back_populates="owner")
 
     referrer = relationship(
-        "User",
-        remote_side=[id],
-        foreign_keys=[referred_by_id],
+        "User", 
+        remote_side=[id], 
+        foreign_keys=[referred_by_id], 
         back_populates="referrals_made_explicit",
-        uselist=False
+        uselist=False 
     )
 
     referrals_made_explicit = relationship(
-        "User",
+        "User", 
         back_populates="referrer",
         foreign_keys="User.referred_by_id"
     )
@@ -104,7 +103,7 @@ class NFT(Base):
     __tablename__ = "nfts"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, index=True, nullable=False)
-    image_filename = Column(String, nullable=True)
+    image_filename = Column(String, nullable=True) # Relative path or full URL if stored externally
     floor_price = Column(Float, default=0.0, nullable=False)
     __table_args__ = (UniqueConstraint('name', name='uq_nft_name'),)
 
@@ -114,12 +113,14 @@ class InventoryItem(Base):
     user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE", name="fk_inventory_user"), nullable=False)
     nft_id = Column(Integer, ForeignKey("nfts.id", name="fk_inventory_nft"), nullable=True)
     item_name_override = Column(String, nullable=True)
-    item_image_override = Column(String, nullable=True)
+    item_image_override = Column(String, nullable=True) # Can be full URL if image source is external
     current_value = Column(Float, nullable=False)
     upgrade_multiplier = Column(Float, default=1.0, nullable=False)
     obtained_at = Column(DateTime(timezone=True), server_default=func.now())
     variant = Column(String, nullable=True)
     is_ton_prize = Column(Boolean, default=False, nullable=False)
+    image_filename_is_full_url = Column(Boolean, default=False, nullable=False) # New field to indicate if item_image_override is a full URL
+
     owner = relationship("User", back_populates="inventory")
     nft = relationship("NFT")
 
@@ -227,7 +228,7 @@ class TonnelGiftSender:
                     err_text_options_resp = await response_obj.text()
                     logger.error(f"Tonnel API OPTIONS request to {url} failed with status {response_obj.status_code}. Response: {err_text_options_resp[:500]}")
                     response_obj.raise_for_status()
-                    return {"status": "error", "message": f"OPTIONS request failed: {response_obj.status_code}"} # Should be unreachable
+                    return {"status": "error", "message": f"OPTIONS request failed: {response_obj.status_code}"} 
             response_obj.raise_for_status()
             if response_obj.status_code == 204:
                 return None
@@ -254,8 +255,7 @@ class TonnelGiftSender:
             if response_obj is not None:
                 try:
                     err_text_requests_err_body = await response_obj.text()
-                except:
-                    pass
+                except: pass
                 logger.error(f"Response body for RequestsError (status {response_obj.status_code if response_obj else 'N/A'}): {err_text_requests_err_body[:500]}")
             raise
         except json.JSONDecodeError as je_err_req:
@@ -264,8 +264,7 @@ class TonnelGiftSender:
             if response_obj is not None:
                 try:
                     err_text_json_outer_body = await response_obj.text()
-                except:
-                    pass
+                except: pass
                 logger.error(f"Response body for outer JSONDecodeError: {err_text_json_outer_body[:500]}")
             raise ValueError(f"Failed to decode JSON from {url}. Content-Type: {response_obj.headers.get('Content-Type', '') if response_obj else 'N/A'}") from je_err_req
         except Exception as e_gen_req:
@@ -274,8 +273,7 @@ class TonnelGiftSender:
             if response_obj is not None:
                 try:
                     err_text_general_body = await response_obj.text()
-                except:
-                    pass
+                except: pass
                 logger.error(f"Response body for general error: {err_text_general_body[:500]}")
             raise
 
@@ -354,15 +352,14 @@ def generate_image_filename_from_name(name_str: str) -> str:
 
 UPDATED_FLOOR_PRICES = { 'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 'Hypno Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 'Love Potion': 5.4, 'Top Hat': 6.0 }
 
-cases_data_backend_with_fixed_prices = [
+cases_data_backend_with_fixed_prices = [ # BLACK Singularity case removed
     { 'id': 'lolpop', 'name': 'Lol Pop Stash', 'priceTON': 1.5, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.001 }, { 'name': 'Neko Helmet', 'probability': 0.005 }, { 'name': 'Party Sparkler', 'probability': 0.07 }, { 'name': 'Homemade Cake', 'probability': 0.07 }, { 'name': 'Cookie Heart', 'probability': 0.07 }, { 'name': 'Jack-in-the-box', 'probability': 0.06 }, { 'name': 'Skull Flower', 'probability': 0.023 }, { 'name': 'Lol Pop', 'probability': 0.25 }, { 'name': 'Hypno Lollipop', 'probability': 0.25 }, { 'name': 'Desk Calendar', 'probability': 0.10 }, { 'name': 'B-Day Candle', 'probability': 0.101 } ] },
     { 'id': 'recordplayer', 'name': 'Record Player Vault', 'priceTON': 6.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0012 }, { 'name': 'Record Player', 'probability': 0.40 }, { 'name': 'Lol Pop', 'probability': 0.10 }, { 'name': 'Hypno Lollipop', 'probability': 0.10 }, { 'name': 'Party Sparkler', 'probability': 0.10 }, { 'name': 'Skull Flower', 'probability': 0.10 }, { 'name': 'Jelly Bunny', 'probability': 0.0988 }, { 'name': 'Tama Gadget', 'probability': 0.05 }, { 'name': 'Snow Globe', 'probability': 0.05 } ] },
     { 'id': 'swisswatch', 'name': 'Swiss Watch Box', 'priceTON': 10.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0015 }, { 'name': 'Swiss Watch', 'probability': 0.08 }, { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Eternal Rose', 'probability': 0.05 }, { 'name': 'Electric Skull', 'probability': 0.03 }, { 'name': 'Diamond Ring', 'probability': 0.0395 }, { 'name': 'Record Player', 'probability': 0.20 }, { 'name': 'Love Potion', 'probability': 0.20 }, { 'name': 'Top Hat', 'probability': 0.15 }, { 'name': 'Voodoo Doll', 'probability': 0.149 } ] },
     { 'id': 'perfumebottle', 'name': 'Perfume Chest', 'priceTON': 20.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0018 }, { 'name': 'Perfume Bottle', 'probability': 0.08 }, { 'name': 'Sharp Tongue', 'probability': 0.12 }, { 'name': 'Loot Bag', 'probability': 0.09946 }, { 'name': 'Swiss Watch', 'probability': 0.15 }, { 'name': 'Neko Helmet', 'probability': 0.15 }, { 'name': 'Genie Lamp', 'probability': 0.15 }, { 'name': 'Kissed Frog', 'probability': 0.10 }, { 'name': 'Electric Skull', 'probability': 0.07 }, { 'name': 'Diamond Ring', 'probability': 0.07874 } ] },
     { 'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'priceTON': 40.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.002 }, { 'name': 'Perfume Bottle', 'probability': 0.2994 }, { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Swiss Watch', 'probability': 0.12 }, { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Sharp Tongue', 'probability': 0.10 }, { 'name': 'Genie Lamp', 'probability': 0.08 }, { 'name': 'Mini Oscar', 'probability': 0.08 }, { 'name': 'Scared Cat', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.0486 } ] },
     { 'id': 'astralshard', 'name': 'Astral Shard Relic', 'priceTON': 100.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0025 }, { 'name': 'Durov\'s Cap', 'probability': 0.09925 }, { 'name': 'Astral Shard', 'probability': 0.10 }, { 'name': 'Precious Peach', 'probability': 0.10 }, { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Perfume Bottle', 'probability': 0.12 }, { 'name': 'Swiss Watch', 'probability': 0.10 }, { 'name': 'Neko Helmet', 'probability': 0.08 }, { 'name': 'Mini Oscar', 'probability': 0.10 }, { 'name': 'Scared Cat', 'probability': 0.08 }, { 'name': 'Loot Bag', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.04825 } ] },
-    { 'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'priceTON': 200.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.15 }, { 'name': 'Durov\'s Cap', 'probability': 0.25 }, { 'name': 'Astral Shard', 'probability': 0.60 } ] },
-    { 'id': 'black', 'name': 'BLACK Singularity', 'isBackgroundCase': True, 'bgImageFilename': 'image-1.png', 'overlayPrizeName': 'Neko Helmet', 'priceTON': 30.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.001 }, { 'name': 'Durov\'s Cap', 'probability': 0.01 }, { 'name': 'Perfume Bottle', 'probability': 0.05 }, { 'name': 'Mini Oscar', 'probability': 0.04 }, { 'name': 'Scared Cat', 'probability': 0.06 }, { 'name': 'Vintage Cigar', 'probability': 0.07 }, { 'name': 'Loot Bag', 'probability': 0.07 }, { 'name': 'Sharp Tongue', 'probability': 0.08 }, { 'name': 'Genie Lamp', 'probability': 0.08 }, { 'name': 'Swiss Watch', 'probability': 0.10 }, { 'name': 'Neko Helmet', 'probability': 0.15 }, { 'name': 'Kissed Frog', 'probability': 0.10 }, { 'name': 'Electric Skull', 'probability': 0.09 }, { 'name': 'Diamond Ring', 'probability': 0.089} ] }
+    { 'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'priceTON': 200.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.15 }, { 'name': 'Durov\'s Cap', 'probability': 0.25 }, { 'name': 'Astral Shard', 'probability': 0.60 } ] }
 ]
 cases_data_backend = []
 for case_template_item in cases_data_backend_with_fixed_prices:
@@ -376,17 +373,17 @@ for case_template_item in cases_data_backend_with_fixed_prices:
     processed_case_item['prizes'] = full_prizes_list
     cases_data_backend.append(processed_case_item)
 
-TON_PRIZE_IMAGE_DEFAULT = "ton_coin.png"
-DEFAULT_SLOT_TON_PRIZES = [ {'name': "0.1 TON", 'value': 0.1, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "0.25 TON", 'value': 0.25, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "0.5 TON", 'value': 0.5, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "1.0 TON", 'value': 1.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "1.5 TON", 'value': 1.5, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, ]
-PREMIUM_SLOT_TON_PRIZES = [ {'name': "2 TON", 'value': 2.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "3 TON", 'value': 3.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "5 TON", 'value': 5.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, {'name': "10 TON", 'value': 10.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True}, ]
-ALL_ITEMS_POOL_FOR_SLOTS = [{'name': name_val, 'floorPrice': price_val, 'imageFilename': generate_image_filename_from_name(name_val), 'is_ton_prize': False} for name_val, price_val in UPDATED_FLOOR_PRICES.items()]
+TON_PRIZE_IMAGE_DEFAULT = "https://cdn.prod.website-files.com/64a2a26178ac203cccd4a006/6730c392cdf19828e76e898d_ton-logo.png"
+DEFAULT_SLOT_TON_PRIZES = [ {'name': "0.1 TON", 'value': 0.1, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "0.25 TON", 'value': 0.25, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "0.5 TON", 'value': 0.5, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "1.0 TON", 'value': 1.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "1.5 TON", 'value': 1.5, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, ]
+PREMIUM_SLOT_TON_PRIZES = [ {'name': "2 TON", 'value': 2.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "3 TON", 'value': 3.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "5 TON", 'value': 5.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, {'name': "10 TON", 'value': 10.0, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'is_ton_prize': True, 'imageFilenameIsFullUrl': True}, ]
+ALL_ITEMS_POOL_FOR_SLOTS = [{'name': name_val, 'floorPrice': price_val, 'imageFilename': generate_image_filename_from_name(name_val), 'is_ton_prize': False, 'imageFilenameIsFullUrl': False} for name_val, price_val in UPDATED_FLOOR_PRICES.items()]
 
 slots_data_backend = [
     { 'id': 'default_slot', 'name': 'Default Slot', 'priceTON': 3.0, 'reels_config': 3, 'prize_pool': [],
-      'displayPrizes': [ { 'name': 'Lol Pop', 'probability_display': 20}, { 'name': 'Cookie Heart', 'probability_display': 15 }, { 'name': '0.1 TON', 'probability_display': 10 }, {'name': 'Neko Helmet', 'probability_display': 1} ]
+      'displayPrizes': [ { 'name': 'Lol Pop', 'probability_display': 20}, { 'name': 'Cookie Heart', 'probability_display': 15 }, { 'name': '0.1 TON', 'probability_display': 10, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'imageFilenameIsFullUrl': True }, {'name': 'Neko Helmet', 'probability_display': 1} ]
     },
     { 'id': 'premium_slot', 'name': 'Premium Slot', 'priceTON': 10.0, 'reels_config': 3, 'prize_pool': [],
-      'displayPrizes': [ { 'name': 'Neko Helmet', 'probability_display': 15 }, { 'name': 'Swiss Watch', 'probability_display': 10 }, { 'name': '1.0 TON', 'probability_display': 8 }, {'name': 'Durov\'s Cap', 'probability_display': 0.5} ]
+      'displayPrizes': [ { 'name': 'Neko Helmet', 'probability_display': 15 }, { 'name': 'Swiss Watch', 'probability_display': 10 }, { 'name': '1.0 TON', 'probability_display': 8, 'imageFilename': TON_PRIZE_IMAGE_DEFAULT, 'imageFilenameIsFullUrl': True }, {'name': 'Durov\'s Cap', 'probability_display': 0.5} ]
     }
 ]
 for slot_backend_item in slots_data_backend:
@@ -394,8 +391,11 @@ for slot_backend_item in slots_data_backend:
         for dp_item_val in slot_backend_item['displayPrizes']:
             if 'imageFilename' not in dp_item_val and not dp_item_val['name'].endswith(" TON"):
                 dp_item_val['imageFilename'] = generate_image_filename_from_name(dp_item_val['name'])
-            elif dp_item_val['name'].endswith(" TON"):
+                dp_item_val['imageFilenameIsFullUrl'] = False
+            elif dp_item_val['name'].endswith(" TON") and 'imageFilename' not in dp_item_val : # Ensure TON prizes have the correct image if not set
                  dp_item_val['imageFilename'] = TON_PRIZE_IMAGE_DEFAULT
+                 dp_item_val['imageFilenameIsFullUrl'] = True
+
 
 def finalize_slot_prize_pools():
     global slots_data_backend
@@ -446,8 +446,8 @@ def calculate_and_log_rtp():
         if 'prizes' in game_data_item:
             for prize_item in game_data_item['prizes']:
                 prize_value_calc = Decimal(str(UPDATED_FLOOR_PRICES.get(prize_item['name'], 0)))
-                if game_id_val == 'black':
-                    prize_value_calc *= Decimal('2.5')
+                # if game_id_val == 'black': # Black Singularity case removed
+                #     prize_value_calc *= Decimal('2.5')
                 ev_val += prize_value_calc * Decimal(str(prize_item['probability']))
         elif 'prize_pool' in game_data_item:
             reels_count = Decimal(str(game_data_item.get('reels_config', 3)))
@@ -455,9 +455,9 @@ def calculate_and_log_rtp():
                 value_item_rtp = Decimal(str(prize_spec_item.get('value', prize_spec_item.get('floorPrice', 0))))
                 prob_on_reel_val = Decimal(str(prize_spec_item.get('probability', 0)))
                 if prize_spec_item.get('is_ton_prize'):
-                    ev_val += value_item_rtp * prob_on_reel_val * reels_count
+                    ev_val += value_item_rtp * prob_on_reel_val * reels_count # Simplified: assumes any TON on line pays for its value * num reels
                 else:
-                    ev_val += value_item_rtp * (prob_on_reel_val ** reels_count)
+                    ev_val += value_item_rtp * (prob_on_reel_val ** reels_count) # For 3-of-a-kind items
         rtp_calc = (ev_val / price_val_rtp) * 100 if price_val_rtp > 0 else Decimal('0')
         dev_cut_calc = 100 - rtp_calc if price_val_rtp > 0 else Decimal('0')
         logger.info(f"Game: {game_name_val:<25} | Price: {price_val_rtp:>6.2f} TON | Est.EV: {ev_val:>6.2f} | Est.RTP: {rtp_calc:>6.2f}% | Est.DevCut: {dev_cut_calc:>6.2f}%")
@@ -582,7 +582,21 @@ def get_user_data_api():
         
         invited_friends_count = len(user.referrals_made_explicit) if user.referrals_made_explicit else 0
         
-        inv = [{"id": i.id, "name": i.nft.name if i.nft else i.item_name_override, "imageFilename": i.nft.image_filename if i.nft else i.item_image_override, "floorPrice": i.nft.floor_price if i.nft else i.current_value, "currentValue": i.current_value, "upgradeMultiplier": i.upgrade_multiplier, "variant": i.variant, "is_ton_prize": i.is_ton_prize, "obtained_at": i.obtained_at.isoformat() if i.obtained_at else None} for i in user.inventory]
+        inv = []
+        for i in user.inventory:
+            inv_item = {
+                "id": i.id, 
+                "name": i.nft.name if i.nft else i.item_name_override, 
+                "imageFilename": i.nft.image_filename if i.nft else i.item_image_override, 
+                "floorPrice": i.nft.floor_price if i.nft else i.current_value, 
+                "currentValue": i.current_value, 
+                "upgradeMultiplier": i.upgrade_multiplier, 
+                "variant": i.variant, 
+                "is_ton_prize": i.is_ton_prize, 
+                "obtained_at": i.obtained_at.isoformat() if i.obtained_at else None,
+                "imageFilenameIsFullUrl": i.image_filename_is_full_url # Pass this to frontend
+            }
+            inv.append(inv_item)
         
         return jsonify({
             "id": user.id, "username": user.username, "first_name": user.first_name, 
@@ -623,13 +637,12 @@ def open_case_api():
             if not chosen_prize_data: logger.error(f"Could not determine prize for case {cid} for user {uid}"); continue
             db_nft_record = db.query(NFT).filter(NFT.name == chosen_prize_data['name']).first()
             if not db_nft_record: logger.error(f"NFT master record for '{chosen_prize_data['name']}' not found! Cannot add."); continue
-            item_variant = "black_singularity" if target_case.get('id') == 'black' else None
+            item_variant = None # Black Singularity removed, so no special variant for cases now
             value_of_item = Decimal(str(db_nft_record.floor_price))
-            if item_variant == "black_singularity": value_of_item *= Decimal('2.5')
             total_value_won_this_spin += value_of_item
             new_inventory_item = InventoryItem(user_id=uid, nft_id=db_nft_record.id, current_value=float(value_of_item.quantize(Decimal('0.01'))), variant=item_variant)
             db.add(new_inventory_item); db.flush()
-            won_prizes_list_response.append({"id": new_inventory_item.id, "name": db_nft_record.name, "imageFilename": db_nft_record.image_filename, "floorPrice": float(db_nft_record.floor_price), "currentValue": new_inventory_item.current_value, "variant": new_inventory_item.variant})
+            won_prizes_list_response.append({"id": new_inventory_item.id, "name": db_nft_record.name, "imageFilename": db_nft_record.image_filename, "floorPrice": float(db_nft_record.floor_price), "currentValue": new_inventory_item.current_value, "variant": new_inventory_item.variant, "imageFilenameIsFullUrl": False }) # Cases use relative paths
         user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_won_this_spin)
         db.commit()
         return jsonify({"status": "success", "won_prizes": won_prizes_list_response, "new_balance_ton": user.ton_balance})
@@ -661,15 +674,15 @@ def spin_slot_api():
                 if random_val_slot <= cumulative_prob_slot: landed_symbol = prize_symbol_info; break
             if not landed_symbol: landed_symbol = random.choice(slot_prize_pool_config) if slot_prize_pool_config else None
             if landed_symbol: actual_reel_results.append(landed_symbol)
-            else: actual_reel_results.append({"name": "ErrorSym", "imageFilename": "placeholder.png", "is_ton_prize": False, "currentValue": 0, "floorPrice": 0})
+            else: actual_reel_results.append({"name": "ErrorSym", "imageFilename": "placeholder.png", "is_ton_prize": False, "currentValue": 0, "floorPrice": 0, "imageFilenameIsFullUrl": False})
         prizes_won_in_spin = []; total_value_from_spin = Decimal('0')
         for landed_sym_data in actual_reel_results:
             if landed_sym_data.get('is_ton_prize'):
                 ton_value_won = Decimal(str(landed_sym_data.get('value', 0)))
                 temp_id_for_ton = f"ton_prize_{int(time.time()*1000)}_{random.randint(1,1000)}"
-                prizes_won_in_spin.append({"id": temp_id_for_ton, "name": landed_sym_data['name'], "imageFilename": landed_sym_data.get('imageFilename', TON_PRIZE_IMAGE_DEFAULT), "currentValue": float(ton_value_won), "is_ton_prize": True})
+                prizes_won_in_spin.append({"id": temp_id_for_ton, "name": landed_sym_data['name'], "imageFilename": landed_sym_data.get('imageFilename', TON_PRIZE_IMAGE_DEFAULT), "currentValue": float(ton_value_won), "is_ton_prize": True, "imageFilenameIsFullUrl": landed_sym_data.get('imageFilenameIsFullUrl', True)})
                 user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_value_won); total_value_from_spin += ton_value_won
-        if num_reels_for_slot == 3 and len(actual_reel_results) == 3: # Check for 3-of-a-kind item win
+        if num_reels_for_slot == 3 and len(actual_reel_results) == 3:
             first_sym = actual_reel_results[0]
             if not first_sym.get('is_ton_prize') and \
                actual_reel_results[1]['name'] == first_sym['name'] and not actual_reel_results[1].get('is_ton_prize') and \
@@ -678,16 +691,22 @@ def spin_slot_api():
                 db_nft_slot_win = db.query(NFT).filter(NFT.name == won_item_master_data['name']).first()
                 if db_nft_slot_win:
                     item_value_slot = Decimal(str(db_nft_slot_win.floor_price))
-                    new_inv_item_slot = InventoryItem(user_id=uid, nft_id=db_nft_slot_win.id, current_value=float(item_value_slot), variant=None)
-                    db.add(new_inv_item_slot); db.commit(); db.refresh(new_inv_item_slot) # Commit item here to get ID
-                    prizes_won_in_spin.append({"id": new_inv_item_slot.id, "name": db_nft_slot_win.name, "imageFilename": db_nft_slot_win.image_filename, "floorPrice": float(db_nft_slot_win.floor_price), "currentValue": new_inv_item_slot.current_value, "is_ton_prize": False, "variant": new_inv_item_slot.variant})
+                    new_inv_item_slot = InventoryItem(user_id=uid, nft_id=db_nft_slot_win.id, current_value=float(item_value_slot), variant=None, image_filename_is_full_url=False)
+                    db.add(new_inv_item_slot); db.commit(); db.refresh(new_inv_item_slot)
+                    prizes_won_in_spin.append({"id": new_inv_item_slot.id, "name": db_nft_slot_win.name, "imageFilename": db_nft_slot_win.image_filename, "floorPrice": float(db_nft_slot_win.floor_price), "currentValue": new_inv_item_slot.current_value, "is_ton_prize": False, "variant": new_inv_item_slot.variant, "imageFilenameIsFullUrl": False})
                     total_value_from_spin += item_value_slot
                 else: logger.error(f"Slot win: NFT master for '{won_item_master_data['name']}' not found.")
         user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_from_spin)
-        db.commit() # Final commit for user balance and total_won_ton
+        db.commit()
         return jsonify({"status": "success", "reel_results": actual_reel_results, "won_prizes": prizes_won_in_spin, "new_balance_ton": user.ton_balance})
     except Exception as e_spin_slot: db.rollback(); logger.error(f"Error in spin_slot: {e_spin_slot}", exc_info=True); return jsonify({"error":"Internal error"}),500
     finally: db.close()
+
+# (All other API routes: upgrade_item, convert_to_ton, sell_all_items, initiate_deposit, 
+#  check_blockchain_for_deposit, verify_deposit, get_leaderboard, withdraw_referral_earnings, 
+#  redeem_promocode, withdraw_item_via_tonnel_api_sync_wrapper are inserted here from the previous 
+#  "FULL Python code" block, as their internal logic was largely stable once variable names were consistent.)
+# This is just to indicate their position. For the actual code, refer to the previous full python block.
 
 @app.route('/api/upgrade_item', methods=['POST'])
 def upgrade_item_api():
@@ -697,11 +716,8 @@ def upgrade_item_api():
     if not all([item_id_to_upgrade, multiplier_str_upgrade]): return jsonify({"error": "Missing parameters"}), 400
     try: multiplier_decimal = Decimal(multiplier_str_upgrade); item_id_int = int(item_id_to_upgrade)
     except ValueError: return jsonify({"error": "Invalid parameter format"}), 400
-    upgrade_chances_map = {Decimal("1.5"):50, Decimal("2.0"):35, Decimal("3.0"):25, Decimal("5.0"):15, Decimal("10.0"):8, Decimal("2.0"):3} # Corrected typo, should be 20.0
-    if Decimal("20.0") not in upgrade_chances_map and multiplier_decimal == Decimal("20.0"): # Add if missing
-        upgrade_chances_map[Decimal("20.0")] = 3 # Example chance for x20
-    elif multiplier_decimal not in upgrade_chances_map: return jsonify({"error": "Invalid multiplier selected"}), 400
-    
+    upgrade_chances_map = {Decimal("1.5"):50, Decimal("2.0"):35, Decimal("3.0"):25, Decimal("5.0"):15, Decimal("10.0"):8, Decimal("20.0"):3}
+    if multiplier_decimal not in upgrade_chances_map: return jsonify({"error": "Invalid multiplier selected"}), 400
     db = next(get_db());
     try:
         inventory_item_to_upgrade = db.query(InventoryItem).filter(InventoryItem.id == item_id_int, InventoryItem.user_id == uid).with_for_update().first()
@@ -714,7 +730,7 @@ def upgrade_item_api():
             user_performing_upgrade.total_won_ton = float(Decimal(str(user_performing_upgrade.total_won_ton)) + value_increase)
             db.commit()
             return jsonify({"status": "success", "message": f"Upgrade successful! New value: {new_value:.2f} TON", 
-                            "item": {"id": inventory_item_to_upgrade.id, "name": inventory_item_to_upgrade.nft.name, "imageFilename": inventory_item_to_upgrade.nft.image_filename, "currentValue": inventory_item_to_upgrade.current_value, "upgradeMultiplier": inventory_item_to_upgrade.upgrade_multiplier, "variant": inventory_item_to_upgrade.variant}})
+                            "item": {"id": inventory_item_to_upgrade.id, "name": inventory_item_to_upgrade.nft.name, "imageFilename": inventory_item_to_upgrade.nft.image_filename, "currentValue": inventory_item_to_upgrade.current_value, "upgradeMultiplier": inventory_item_to_upgrade.upgrade_multiplier, "variant": inventory_item_to_upgrade.variant, "imageFilenameIsFullUrl": False}})
         else:
             lost_item_name = inventory_item_to_upgrade.nft.name; lost_item_value = Decimal(str(inventory_item_to_upgrade.current_value))
             user_performing_upgrade.total_won_ton = float(Decimal(str(user_performing_upgrade.total_won_ton)) - lost_item_value)
@@ -786,18 +802,6 @@ def initiate_deposit_api():
     except Exception as e_init_deposit: db.rollback(); logger.error(f"Error in initiate_deposit: {e_init_deposit}", exc_info=True); return jsonify({"error": "Internal error"}),500
     finally: db.close()
 
-# check_blockchain_for_deposit (already corrected with referrer logic)
-# verify_deposit_api (already corrected)
-# get_leaderboard_api (already corrected)
-# withdraw_referral_earnings_api (already corrected)
-# redeem_promocode_api (already corrected)
-# withdraw_item_via_tonnel_api_sync_wrapper (already corrected)
-# send_welcome (Telegram /start handler - already corrected for referral)
-# echo_all_messages (Telegram default handler - already corrected)
-# run_bot_polling_loop (already corrected)
-# if __name__ == '__main__': block (already corrected)
-
-# Re-inserting these critical parts with the corrected logic as they were in the previous full response
 async def check_blockchain_for_deposit(pending_deposit_to_check: PendingDeposit, db_session_for_check):
     lite_balancer_client = None
     try:
@@ -822,7 +826,7 @@ async def check_blockchain_for_deposit(pending_deposit_to_check: PendingDeposit,
                             user_to_credit_deposit.ton_balance = float(Decimal(str(user_to_credit_deposit.ton_balance)) + Decimal(str(pending_deposit_to_check.original_amount_ton)))
                             if user_to_credit_deposit.referrer: 
                                 referrer_for_bonus = user_to_credit_deposit.referrer
-                                db_session_for_check.refresh(referrer_for_bonus, with_for_update=True) # Lock before update
+                                db_session_for_check.refresh(referrer_for_bonus, with_for_update=True)
                                 bonus_amount = (Decimal(str(pending_deposit_to_check.original_amount_ton)) * Decimal('0.10')).quantize(Decimal('0.01'),ROUND_HALF_UP)
                                 referrer_for_bonus.referral_earnings_pending = float(Decimal(str(referrer_for_bonus.referral_earnings_pending)) + bonus_amount)
                                 logger.info(f"Credited referrer {referrer_for_bonus.id} with {bonus_amount:.2f} TON for deposit by {user_to_credit_deposit.id}")
@@ -877,6 +881,143 @@ def verify_deposit_api():
         return jsonify(blockchain_check_result)
     except Exception as e_verify_db: db.rollback(); logger.error(f"Outer error in verify_deposit: {e_verify_db}", exc_info=True); return jsonify({"error": "DB error"}),500
     finally: db.close()
+
+@app.route('/api/get_leaderboard', methods=['GET'])
+def get_leaderboard_api():
+    db = next(get_db())
+    try:
+        top_leaders = db.query(User).order_by(User.total_won_ton.desc()).limit(100).all()
+        return jsonify([{"rank": index + 1, "name": leader.first_name or leader.username or f"User_{str(leader.id)[:6]}", "avatarChar": (leader.first_name or leader.username or "U")[0].upper(), "income": leader.total_won_ton, "user_id": leader.id} for index, leader in enumerate(top_leaders)])
+    finally:
+        db.close()
+
+@app.route('/api/withdraw_referral_earnings', methods=['POST'])
+def withdraw_referral_earnings_api():
+    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth: return jsonify({"error": "Auth failed"}), 401
+    uid = auth["id"]
+    db = next(get_db())
+    try:
+        user_withdrawing_referrals = db.query(User).filter(User.id == uid).with_for_update().first()
+        if not user_withdrawing_referrals: return jsonify({"error": "User not found"}), 404
+        
+        if user_withdrawing_referrals.referral_earnings_pending > 0:
+            amount_withdrawn = Decimal(str(user_withdrawing_referrals.referral_earnings_pending))
+            user_withdrawing_referrals.ton_balance = float(Decimal(str(user_withdrawing_referrals.ton_balance)) + amount_withdrawn)
+            user_withdrawing_referrals.referral_earnings_pending = 0.0
+            db.commit()
+            return jsonify({"status": "success", "message": f"{amount_withdrawn:.2f} TON from referral earnings moved to main balance.", "new_balance_ton": user_withdrawing_referrals.ton_balance, "new_referral_earnings_pending": 0.0})
+        else:
+            return jsonify({"status": "no_earnings", "message": "No referral earnings available to withdraw."})
+    except Exception as e_withdraw_referral:
+        db.rollback()
+        logger.error(f"Error withdrawing referral earnings: {e_withdraw_referral}", exc_info=True)
+        return jsonify({"error": "An internal error occurred."}), 500
+    finally:
+        db.close()
+
+@app.route('/api/redeem_promocode', methods=['POST'])
+def redeem_promocode_api():
+    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth: return jsonify({"error": "Auth failed"}), 401
+    uid = auth["id"]
+    data = flask_request.get_json()
+    promocode_text_to_redeem = data.get('promocode_text', "").strip()
+    if not promocode_text_to_redeem: return jsonify({"status": "error", "message": "Promocode cannot be empty."}), 400
+    
+    db = next(get_db())
+    try:
+        user_redeeming_promo = db.query(User).filter(User.id == uid).with_for_update().first()
+        promo_code_obj = db.query(PromoCode).filter(PromoCode.code_text == promocode_text_to_redeem).with_for_update().first()
+        
+        if not user_redeeming_promo: return jsonify({"status": "error", "message": "User not found."}), 404
+        if not promo_code_obj: return jsonify({"status": "error", "message": "Invalid promocode."}), 404
+        if promo_code_obj.activations_left <= 0: return jsonify({"status": "error", "message": "This promocode has expired or reached its activation limit."}), 400
+        
+        promo_code_obj.activations_left -= 1
+        user_redeeming_promo.ton_balance = float(Decimal(str(user_redeeming_promo.ton_balance)) + Decimal(str(promo_code_obj.ton_amount)))
+        db.commit()
+        return jsonify({"status": "success", "message": f"Promocode '{promocode_text_to_redeem}' redeemed! You received {promo_code_obj.ton_amount:.2f} TON.", "new_balance_ton": user_redeeming_promo.ton_balance})
+    except SQLAlchemyError as e_sql_redeem:
+        db.rollback()
+        logger.error(f"SQLAlchemyError redeeming promocode: {e_sql_redeem}", exc_info=True)
+        return jsonify({"status": "error", "message": "Database error during promocode redemption."}), 500
+    except Exception as e_promo_redeem:
+        db.rollback()
+        logger.error(f"General error redeeming promocode: {e_promo_redeem}", exc_info=True)
+        return jsonify({"status": "error", "message": "An unexpected error occurred while redeeming."}), 500
+    finally:
+        db.close()
+
+@app.route('/api/withdraw_item_via_tonnel/<int:inventory_item_id_for_tonnel>', methods=['POST'])
+def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id_for_tonnel):
+    auth_user_data_tonnel = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data_tonnel: return jsonify({"status": "error", "message": "Authentication failed"}), 401
+    
+    player_user_id_tonnel = auth_user_data_tonnel["id"]
+    if not TONNEL_SENDER_INIT_DATA:
+        logger.error("Tonnel withdrawal: TONNEL_SENDER_INIT_DATA not set.")
+        return jsonify({"status": "error", "message": "Withdrawal service (Tonnel) not configured."}), 500
+    
+    db = next(get_db())
+    try:
+        item_for_tonnel_withdrawal = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id_for_tonnel, InventoryItem.user_id == player_user_id_tonnel).with_for_update().first()
+        if not item_for_tonnel_withdrawal or item_for_tonnel_withdrawal.is_ton_prize:
+            return jsonify({"status": "error", "message": "Item not found or not withdrawable."}), 404
+        
+        target_item_name_for_tonnel = item_for_tonnel_withdrawal.nft.name
+        
+        tonnel_gift_service_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
+        tonnel_api_call_result = {}
+        
+        try:
+            event_loop_for_tonnel = asyncio.get_event_loop()
+            if event_loop_for_tonnel.is_closed():
+                event_loop_for_tonnel = asyncio.new_event_loop()
+                asyncio.set_event_loop(event_loop_for_tonnel)
+            tonnel_api_call_result = event_loop_for_tonnel.run_until_complete(
+                tonnel_gift_service_client.send_gift_to_user(gift_item_name=target_item_name_for_tonnel, receiver_telegram_id=player_user_id_tonnel)
+            )
+        except RuntimeError as e_async_runtime_tonnel:
+             if "cannot schedule new futures after shutdown" in str(e_async_runtime_tonnel).lower() or \
+                "event loop is closed" in str(e_async_runtime_tonnel).lower() or \
+                "no current event loop" in str(e_async_runtime_tonnel).lower():
+                logger.warning(f"Asyncio loop issue in Tonnel withdrawal, creating new loop: {e_async_runtime_tonnel}")
+                new_event_loop_tonnel = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_event_loop_tonnel)
+                tonnel_api_call_result = new_event_loop_tonnel.run_until_complete(
+                    tonnel_gift_service_client.send_gift_to_user(gift_item_name=target_item_name_for_tonnel, receiver_telegram_id=player_user_id_tonnel)
+                )
+                new_event_loop_tonnel.close()
+             else:
+                raise
+
+        if tonnel_api_call_result and tonnel_api_call_result.get("status") == "success":
+            value_deducted_from_total = Decimal(str(item_for_tonnel_withdrawal.current_value))
+            player_user_tonnel = db.query(User).filter(User.id == player_user_id_tonnel).with_for_update().first()
+            if player_user_tonnel:
+                player_user_tonnel.total_won_ton = float(max(Decimal('0'), Decimal(str(player_user_tonnel.total_won_ton)) - value_deducted_from_total))
+            
+            db.delete(item_for_tonnel_withdrawal)
+            db.commit()
+            return jsonify({
+                "status": "success", 
+                "message": f"Gift '{target_item_name_for_tonnel}' sent via Tonnel! {tonnel_api_call_result.get('message', '')}", 
+                "details": tonnel_api_call_result.get("details")
+            })
+        else:
+            db.rollback()
+            return jsonify({
+                "status": "error", 
+                "message": f"Tonnel withdrawal failed: {tonnel_api_call_result.get('message', 'Tonnel API reported an error or unexpected response.')}"
+            }), 500
+            
+    except Exception as e_withdraw_via_tonnel:
+        db.rollback()
+        logger.error(f"General exception in Tonnel withdrawal wrapper: {e_withdraw_via_tonnel}", exc_info=True)
+        return jsonify({"status": "error", "message": "An unexpected server error occurred during the withdrawal process."}), 500
+    finally:
+        db.close()
 
 # --- Telegram Bot Handlers ---
 @bot.message_handler(commands=['start'])
@@ -939,7 +1080,8 @@ def send_welcome(message):
                 if was_user_created_now:
                      user_record.referral_code = f"ref_{user_id_from_message}_{random.randint(10000,99999)}"
                      try:
-                         db.add(user_record) 
+                         if not db.query(User).filter(User.id == user_record.id).first(): # Re-add if add was rolled back
+                            db.add(user_record)
                          db.commit()
                          db.refresh(user_record)
                          logger.info(f"User {user_id_from_message} committed with new ref_code after collision.")
