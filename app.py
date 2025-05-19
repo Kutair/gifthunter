@@ -1,7 +1,7 @@
 import os
 import logging
 from flask import Flask, jsonify, request as flask_request
-from flask_cors import CORS
+from flask_cors import CORS # Make sure this is imported
 import telebot
 from telebot import types
 from dotenv import load_dotenv
@@ -38,7 +38,7 @@ load_dotenv()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 MINI_APP_NAME = os.environ.get("MINI_APP_NAME", "case")
-MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}") # Ensure your bot username is correct
+MINI_APP_URL = os.environ.get("MINI_APP_URL", f"https://t.me/caseKviBot/{MINI_APP_NAME}")
 DATABASE_URL = os.environ.get("DATABASE_URL")
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
@@ -134,7 +134,6 @@ class PromoCode(Base):
 
 Base.metadata.create_all(bind=engine)
 
-# --- Pure Python AES Encryption (CryptoJS Compatible) ---
 SALT_SIZE = 8
 KEY_SIZE = 32
 IV_SIZE = 16
@@ -168,7 +167,6 @@ def encrypt_aes_cryptojs_compat(plain_text: str, secret_passphrase: str) -> str:
     encrypted_base64 = base64.b64encode(salted_ciphertext).decode('utf-8')
     return encrypted_base64
 
-# --- Tonnel Gift Withdrawal Class ---
 class TonnelGiftSender:
     def __init__(self, sender_auth_data: str, gift_secret_passphrase: str):
         self.passphrase_secret = gift_secret_passphrase
@@ -230,7 +228,7 @@ class TonnelGiftSender:
             if response_obj is not None:
                 try:
                     err_text = await response_obj.text()
-                except: # pragma: no cover
+                except:
                     pass
                 logger.error(f"Response for RequestsError: {err_text}")
             raise
@@ -240,7 +238,7 @@ class TonnelGiftSender:
             if response_obj is not None:
                 try:
                     err_text = await response_obj.text()
-                except: # pragma: no cover
+                except:
                     pass
                 logger.error(f"Response for JSONDecodeError: {err_text}")
             raise ValueError(f"Failed to decode JSON from {url}. Content-Type: {response_obj.headers.get('Content-Type', '') if response_obj else 'N/A'}") from je_err
@@ -250,7 +248,7 @@ class TonnelGiftSender:
             if response_obj is not None:
                 try:
                     err_text = await response_obj.text()
-                except: # pragma: no cover
+                except:
                     pass
                 logger.error(f"Response for general error: {err_text}")
             raise
@@ -317,7 +315,6 @@ class TonnelGiftSender:
         finally:
             await self._close_session_if_open()
 
-# --- Utility and Data Functions ---
 def generate_image_filename_from_name(name_str: str) -> str:
     if not name_str:
         return 'placeholder.png'
@@ -395,8 +392,8 @@ def finalize_slot_prize_pools():
         current_total_prob = sum(p.get('probability', 0) for p in temp_pool)
         if current_total_prob > 0 and abs(current_total_prob - 1.0) > 0.001:
             logger.warning(f"Normalizing probabilities for slot {slot_data['id']}. Original sum: {current_total_prob}")
-            for p in temp_pool:
-                p['probability'] = p.get('probability', 0) / current_total_prob
+            for p_item in temp_pool: # Renamed p to p_item to avoid conflict if outer loop uses p
+                p_item['probability'] = p_item.get('probability', 0) / current_total_prob
         slot_data['prize_pool'] = temp_pool
 finalize_slot_prize_pools()
 
@@ -468,13 +465,27 @@ def initial_setup_and_logging():
     finally:
         db.close()
     calculate_and_log_rtp()
+
 initial_setup_and_logging()
 
 DEPOSIT_RECIPIENT_ADDRESS_RAW = "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR"
 DEPOSIT_COMMENT = "cpd7r07ud3s"
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
+
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": ["https://vasiliy-katsyka.github.io"]}}) # Adjust origins as needed
+
+PROD_ORIGIN = "https://vasiliy-katsyka.github.io"
+NULL_ORIGIN = "null"
+LOCAL_DEV_ORIGINS = [
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+final_allowed_origins = list(set([PROD_ORIGIN, NULL_ORIGIN] + LOCAL_DEV_ORIGINS))
+CORS(app, resources={r"/api/*": {"origins": final_allowed_origins}})
+
+
 if not BOT_TOKEN:
     logger.error("BOT_TOKEN not found!")
     exit("BOT_TOKEN is not set.")
@@ -482,10 +493,6 @@ bot = telebot.TeleBot(BOT_TOKEN)
 
 def get_db():
     db = SessionLocal()
-    # This structure is a bit fragile for session management using `next(get_db())`
-    # as the db.close() might not be reliably called if the generator is not explicitly closed
-    # or fully iterated. A try/finally block or context manager is safer for resource management.
-    # However, adhering to "no refactoring logic" means just splitting lines:
     try:
         yield db
     finally:
@@ -505,9 +512,8 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
             return None
         
         data_check_string_parts = []
-        for k in sorted(parsed_data.keys()):
-            # Values from parse_qs are lists, take the first element
-            data_check_string_parts.append(f"{k}={parsed_data[k][0]}")
+        for k_sorted in sorted(parsed_data.keys()): # Renamed k to k_sorted
+            data_check_string_parts.append(f"{k_sorted}={parsed_data[k_sorted][0]}")
         data_check_string = "\n".join(data_check_string_parts)
 
         secret_key = hmac.new("WebAppData".encode(), bot_token.encode(), hashlib.sha256).digest()
@@ -519,16 +525,14 @@ def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
             if 'id' not in user_info_dict:
                 logger.warning("ID missing in user_info_dict")
                 return None
-            # Ensure id is an int for consistency, though TG usually sends it as int.
             user_info_dict['id'] = int(user_info_dict['id'])
-            return user_info_dict # Return the whole user dict from initData
+            return user_info_dict
         else:
             logger.warning("Hash mismatch in initData validation")
             return None
-    except Exception as e:
-        logger.error(f"initData validation error: {e}", exc_info=True)
+    except Exception as e_validate: # Renamed e to e_validate
+        logger.error(f"initData validation error: {e_validate}", exc_info=True)
         return None
-
 
 @app.route('/')
 def index_route():
@@ -554,7 +558,6 @@ def get_user_data_api():
     finally:
         db.close()
 
-
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
@@ -574,7 +577,7 @@ def open_case_api():
         user = db.query(User).filter(User.id == uid).first()
         if not user:
             return jsonify({"error": "User not found"}), 404
-        tcase = next((c for c in cases_data_backend if c['id'] == cid), None)
+        tcase = next((c_item for c_item in cases_data_backend if c_item['id'] == cid), None) # Renamed c to c_item
         if not tcase:
             return jsonify({"error": "Case not found"}), 404
         
@@ -603,7 +606,7 @@ def open_case_api():
             dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
             if not dbnft:
                 logger.error(f"NFT {chosen_prize_info['name']} missing for case open!")
-                continue # Skip this prize if NFT master record is missing
+                continue
             
             variant = "black_singularity" if tcase['id'] == 'black' else None
             actual_val = Decimal(str(dbnft.floor_price)) * (Decimal('2.5') if variant == "black_singularity" else Decimal('1'))
@@ -611,20 +614,19 @@ def open_case_api():
             item = InventoryItem(user_id=uid, nft_id=dbnft.id, current_value=float(actual_val.quantize(Decimal('0.01'))), variant=variant)
             db.add(item)
             try: 
-                db.flush() # Use flush to get item.id before full commit of this prize
+                db.flush() 
                 won_prizes_list.append({"id": item.id, "name": dbnft.name, "imageFilename": dbnft.image_filename, "floorPrice": float(dbnft.floor_price), "currentValue": item.current_value, "variant": item.variant})
-            except Exception as e_flush: 
-                db.rollback() # Rollback the add of this specific item
-                logger.error(f"Error flushing item {dbnft.name}: {e_flush}")
-                # Potentially re-add user.ton_balance for this failed prize if needed, though usually it's better to let the spin cost stand
-                continue # Skip this specific prize if it fails to be added
+            except Exception as e_flush_case:  # Renamed e_flush
+                db.rollback() 
+                logger.error(f"Error flushing item {dbnft.name}: {e_flush_case}")
+                continue
 
         user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin)
-        db.commit() # Commit all changes (balance, successfully added items)
+        db.commit()
         return jsonify({"status": "success", "won_prizes": won_prizes_list, "new_balance_ton": user.ton_balance})
-    except Exception as e_outer:
+    except Exception as e_outer_case: # Renamed e_outer
         db.rollback()
-        logger.error(f"Outer error in open_case: {e_outer}")
+        logger.error(f"Outer error in open_case: {e_outer_case}")
         return jsonify({"error": "DB error."}), 500
     finally:
         db.close()
@@ -646,7 +648,7 @@ def spin_slot_api():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        target_slot = next((s for s in slots_data_backend if s['id'] == slot_id), None)
+        target_slot = next((s_item for s_item in slots_data_backend if s_item['id'] == slot_id), None) # Renamed s to s_item
         if not target_slot:
             return jsonify({"error": "Slot not found"}), 404
         
@@ -665,27 +667,25 @@ def spin_slot_api():
             rv = random.random()
             cprob = 0
             landed = None
-            for p_info in slot_pool: 
-                cprob += p_info.get('probability', 0)
+            for p_info_slot in slot_pool:  # Renamed p_info
+                cprob += p_info_slot.get('probability', 0)
                 if rv <= cprob: 
-                    landed = p_info
+                    landed = p_info_slot
                     break
             if not landed:
                 landed = random.choice(slot_pool) if slot_pool else None
             
             if landed:
                 reel_results_data.append(landed)
-            else: # Should not happen if slot_pool is not empty
+            else:
                 reel_results_data.append({"name": "Error Symbol", "imageFilename": "placeholder.png", "is_ton_prize": False, "currentValue": 0})
         
         won_prizes_from_slot = []
         total_value_this_spin = Decimal('0')
         
-        # Check for direct TON wins first (can happen on any reel independently)
         for landed_item_data in reel_results_data:
             if landed_item_data.get('is_ton_prize'):
                 ton_val = Decimal(str(landed_item_data['value']))
-                # Create a unique ID for display purposes on frontend if needed
                 temp_ton_prize_id = f"ton_{int(time.time()*1e3)}_{random.randint(0,999)}"
                 won_prizes_from_slot.append({
                     "id": temp_ton_prize_id, 
@@ -695,35 +695,33 @@ def spin_slot_api():
                     "is_ton_prize": True
                 })
                 total_value_this_spin += ton_val
-                user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_val) # Add directly to balance
+                user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_val)
         
-        # Check for item win (e.g., 3 of the same non-TON items)
         if num_reels == 3 and len(reel_results_data) == 3:
-            # Check if all three are non-TON prizes and are identical
             is_item_win = True
             first_item_name = None
             
-            # Ensure all are non-TON prizes
             for res_data in reel_results_data:
                 if res_data.get('is_ton_prize'):
                     is_item_win = False
                     break
             
-            if is_item_win: # All are potentially items, now check if they are the same
+            if is_item_win:
                 first_item_name = reel_results_data[0]['name']
-                for i in range(1, num_reels):
-                    if reel_results_data[i]['name'] != first_item_name:
+                for i_reel in range(1, num_reels): # Renamed i to i_reel
+                    if reel_results_data[i_reel]['name'] != first_item_name:
                         is_item_win = False
                         break
             
-            if is_item_win and first_item_name is not None: # We have a 3-of-a-kind item win
-                won_item_data = reel_results_data[0] # All are the same, take the first one's data
+            if is_item_win and first_item_name is not None:
+                won_item_data = reel_results_data[0]
                 db_nft = db.query(NFT).filter(NFT.name == won_item_data['name']).first()
                 if db_nft:
                     actual_val = Decimal(str(db_nft.floor_price))
-                    inv_item = InventoryItem(user_id=uid, nft_id=db_nft.id, current_value=float(actual_val), variant=None) # Slots typically don't have variants unless specified
+                    inv_item = InventoryItem(user_id=uid, nft_id=db_nft.id, current_value=float(actual_val), variant=None)
                     db.add(inv_item)
-                    db.flush() # To get inv_item.id
+                    db.commit() # Commit item creation
+                    db.refresh(inv_item) # Refresh to get ID
                     won_prizes_from_slot.append({
                         "id": inv_item.id, 
                         "name": db_nft.name, 
@@ -738,11 +736,11 @@ def spin_slot_api():
                     logger.error(f"Slot win: NFT {won_item_data['name']} not found in database!")
         
         user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin)
-        db.commit()
+        db.commit() # Commit user balance and total_won_ton updates
         return jsonify({"status": "success", "reel_results": reel_results_data, "won_prizes": won_prizes_from_slot, "new_balance_ton": user.ton_balance})
-    except Exception as e_outer_slot:
+    except Exception as e_outer_slot_api: # Renamed e_outer_slot
         db.rollback()
-        logger.error(f"Outer error in spin_slot: {e_outer_slot}", exc_info=True)
+        logger.error(f"Outer error in spin_slot: {e_outer_slot_api}", exc_info=True)
         return jsonify({"error": "DB error during slot spin."}), 500
     finally:
         db.close()
@@ -761,7 +759,7 @@ def upgrade_item_api():
     
     try:
         mult = Decimal(mult_str)
-        iid = int(iid)
+        iid_int = int(iid) # Renamed iid to iid_int for clarity
     except:
         return jsonify({"error": "Invalid data"}), 400
     
@@ -771,11 +769,11 @@ def upgrade_item_api():
     
     db = next(get_db())
     try:
-        item = db.query(InventoryItem).filter(InventoryItem.id == iid, InventoryItem.user_id == uid).first()
+        item = db.query(InventoryItem).filter(InventoryItem.id == iid_int, InventoryItem.user_id == uid).first()
         if not item or item.is_ton_prize:
             return jsonify({"error": "Item not found or not upgradable"}), 404
         
-        user = db.query(User).filter(User.id == uid).first() # Fetch user for total_won_ton update
+        user = db.query(User).filter(User.id == uid).first()
 
         if random.uniform(0,100) < chances[mult]:
             orig_val = Decimal(str(item.current_value))
@@ -791,13 +789,13 @@ def upgrade_item_api():
             name_lost = item.nft.name
             val_lost = Decimal(str(item.current_value))
             if user:
-                user.total_won_ton = float(Decimal(str(user.total_won_ton)) - val_lost) # Deduct lost value
+                user.total_won_ton = float(Decimal(str(user.total_won_ton)) - val_lost)
             db.delete(item)
             db.commit()
             return jsonify({"status": "failed", "message": f"Upgrade failed! Lost {name_lost}.", "item_lost": True})
-    except Exception as e_upgrade:
+    except Exception as e_upgrade_api: # Renamed e_upgrade
         db.rollback()
-        logger.error(f"Error during item upgrade: {e_upgrade}", exc_info=True)
+        logger.error(f"Error during item upgrade: {e_upgrade_api}", exc_info=True)
         return jsonify({"error": "DB error during upgrade."}), 500
     finally:
         db.close()
@@ -809,18 +807,18 @@ def convert_to_ton_api():
         return jsonify({"error": "Auth failed"}), 401
     uid = auth["id"]
     data = flask_request.get_json()
-    iid = data.get('inventory_item_id')
-    if not iid:
+    iid_convert = data.get('inventory_item_id') # Renamed iid
+    if not iid_convert:
         return jsonify({"error": "ID required"}), 400
     try:
-        iid = int(iid)
+        iid_convert_int = int(iid_convert) # Renamed iid to iid_convert_int
     except ValueError:
         return jsonify({"error": "Invalid ID"}), 400
     
     db = next(get_db())
     try:
         user = db.query(User).filter(User.id == uid).first()
-        item = db.query(InventoryItem).filter(InventoryItem.id == iid, InventoryItem.user_id == uid).first()
+        item = db.query(InventoryItem).filter(InventoryItem.id == iid_convert_int, InventoryItem.user_id == uid).first()
         if not user or not item:
             return jsonify({"error": "User or item not found"}), 404
         if item.is_ton_prize:
@@ -828,14 +826,13 @@ def convert_to_ton_api():
         
         val = Decimal(str(item.current_value))
         user.ton_balance = float(Decimal(str(user.ton_balance)) + val)
-        # No change to user.total_won_ton as this is a conversion, not a new win/loss
-        item_name = item.nft.name # Get name before deleting
+        item_name_converted = item.nft.name # Renamed item_name
         db.delete(item)
         db.commit()
-        return jsonify({"status": "success", "message": f"{item_name} sold for {val:.2f} TON.", "new_balance_ton": user.ton_balance})
-    except Exception as e_convert:
+        return jsonify({"status": "success", "message": f"{item_name_converted} sold for {val:.2f} TON.", "new_balance_ton": user.ton_balance})
+    except Exception as e_convert_api: # Renamed e_convert
         db.rollback()
-        logger.error(f"Error converting item to TON: {e_convert}", exc_info=True)
+        logger.error(f"Error converting item to TON: {e_convert_api}", exc_info=True)
         return jsonify({"error": "DB error during conversion."}), 500
     finally:
         db.close()
@@ -852,20 +849,19 @@ def sell_all_items_api():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        items_to_sell = [item for item in user.inventory if not item.is_ton_prize]
+        items_to_sell = [item_obj for item_obj in user.inventory if not item_obj.is_ton_prize] # Renamed item to item_obj
         if not items_to_sell:
             return jsonify({"status": "no_items", "message": "No sellable items."})
         
-        total_val = sum(Decimal(str(i.current_value)) for i in items_to_sell)
+        total_val = sum(Decimal(str(i_sell.current_value)) for i_sell in items_to_sell) # Renamed i to i_sell
         user.ton_balance = float(Decimal(str(user.ton_balance)) + total_val)
-        # No change to user.total_won_ton for sell all
-        for i in items_to_sell:
-            db.delete(i)
+        for i_del in items_to_sell: # Renamed i to i_del
+            db.delete(i_del)
         db.commit()
         return jsonify({"status": "success", "message": f"All {len(items_to_sell)} sellable items sold for {total_val:.2f} TON.", "new_balance_ton": user.ton_balance})
-    except Exception as e_sell_all:
+    except Exception as e_sell_all_api: # Renamed e_sell_all
         db.rollback()
-        logger.error(f"Error selling all items: {e_sell_all}", exc_info=True)
+        logger.error(f"Error selling all items: {e_sell_all_api}", exc_info=True)
         return jsonify({"error": "DB error during sell all."}), 500
     finally:
         db.close()
@@ -886,7 +882,7 @@ def initiate_deposit_api():
     except ValueError:
         return jsonify({"error": "Invalid amount"}), 400
     
-    if not (0.1 <= orig_amt <= 10000): # Adjusted min amount for sanity
+    if not (0.1 <= orig_amt <= 10000):
         return jsonify({"error": "Amount out of range (0.1 to 10000 TON)"}), 400
     
     db = next(get_db())
@@ -895,11 +891,10 @@ def initiate_deposit_api():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        # Check for existing active deposit
         if db.query(PendingDeposit).filter(PendingDeposit.user_id == uid, PendingDeposit.status == 'pending', PendingDeposit.expires_at > dt.now(timezone.utc)).first():
             return jsonify({"error": "You already have an active deposit. Please complete or cancel it first."}), 409
         
-        nano_part = random.randint(10000, 999999) # Unique part in nanoTON
+        nano_part = random.randint(10000, 999999)
         final_nano_amt = int(orig_amt * 1e9) + nano_part
         
         pdep = PendingDeposit(user_id=uid, original_amount_ton=orig_amt, unique_identifier_nano_ton=nano_part, final_amount_nano_ton=final_nano_amt, expected_comment=DEPOSIT_COMMENT, expires_at=dt.now(timezone.utc) + timedelta(minutes=PENDING_DEPOSIT_EXPIRY_MINUTES))
@@ -907,11 +902,11 @@ def initiate_deposit_api():
         db.commit()
         db.refresh(pdep)
         
-        disp_amt = f"{final_nano_amt / 1e9:.9f}".rstrip('0').rstrip('.') # Clean display amount
+        disp_amt = f"{final_nano_amt / 1e9:.9f}".rstrip('0').rstrip('.')
         return jsonify({"status": "success", "pending_deposit_id": pdep.id, "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW, "amount_to_send": disp_amt, "final_amount_nano_ton": final_nano_amt, "comment": DEPOSIT_COMMENT, "expires_at": pdep.expires_at.isoformat()})
-    except Exception as e_init_dep:
+    except Exception as e_init_dep_api: # Renamed e_init_dep
         db.rollback()
-        logger.error(f"Error initiating deposit: {e_init_dep}", exc_info=True)
+        logger.error(f"Error initiating deposit: {e_init_dep_api}", exc_info=True)
         return jsonify({"error": "DB error during deposit initiation."}), 500
     finally:
         db.close()
@@ -919,33 +914,27 @@ def initiate_deposit_api():
 async def check_blockchain_for_deposit(pdep: PendingDeposit, db_sess):
     prov = None
     try:
-        # Ensure LiteBalancer is properly configured if testnet/mainnet distinction is needed
-        prov = LiteBalancer.from_mainnet_config(trust_level=2) # Or testnet if applicable
+        prov = LiteBalancer.from_mainnet_config(trust_level=2)
         await prov.start_up()
         
-        # Get transactions for the recipient address
-        txs = await prov.get_transactions(DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30) # Fetch a reasonable number of recent transactions
+        txs = await prov.get_transactions(DEPOSIT_RECIPIENT_ADDRESS_RAW, count=30)
         
         for tx in txs:
-            # Check for internal incoming message, matching value, and within a reasonable time window
-            if tx.in_msg and tx.in_msg.is_internal and tx.in_msg.info.value_coins == pdep.final_amount_nano_ton and tx.now > int((pdep.created_at - timedelta(minutes=5)).timestamp()): # Check 5 mins before creation for safety
+            if tx.in_msg and tx.in_msg.is_internal and tx.in_msg.info.value_coins == pdep.final_amount_nano_ton and tx.now > int((pdep.created_at - timedelta(minutes=5)).timestamp()):
                 cmt_slice = tx.in_msg.body.begin_parse()
-                # Check for text comment (first 32 bits are 0 for text comment)
                 if cmt_slice.remaining_bits >= 32 and cmt_slice.load_uint(32) == 0:
                     try:
                         comment_text = cmt_slice.load_snake_string()
                         if comment_text == pdep.expected_comment:
-                            # Transaction found and matches!
-                            usr = db_sess.query(User).filter(User.id == pdep.user_id).with_for_update().first() # Lock user row
-                            if not usr: # Should not happen
-                                pdep.status = 'failed' # Mark deposit as failed if user is gone
+                            usr = db_sess.query(User).filter(User.id == pdep.user_id).with_for_update().first()
+                            if not usr:
+                                pdep.status = 'failed'
                                 db_sess.commit()
                                 return {"status": "error", "message": "User associated with deposit not found."}
                             
-                            # Credit user and handle referral
                             usr.ton_balance = float(Decimal(str(usr.ton_balance)) + Decimal(str(pdep.original_amount_ton)))
                             if usr.referred_by_id:
-                                referrer = db_sess.query(User).filter(User.id == usr.referred_by_id).with_for_update().first() # Lock referrer
+                                referrer = db_sess.query(User).filter(User.id == usr.referred_by_id).with_for_update().first()
                                 if referrer:
                                     referral_bonus = (Decimal(str(pdep.original_amount_ton)) * Decimal('0.10')).quantize(Decimal('0.01'),ROUND_HALF_UP)
                                     referrer.referral_earnings_pending = float(Decimal(str(referrer.referral_earnings_pending)) + referral_bonus)
@@ -953,20 +942,18 @@ async def check_blockchain_for_deposit(pdep: PendingDeposit, db_sess):
                             pdep.status = 'completed'
                             db_sess.commit()
                             return {"status": "success", "message": "Deposit confirmed!", "new_balance_ton": usr.ton_balance}
-                    except Exception as e_comment:
-                        # Failed to parse comment or other error, log it
-                        logger.debug(f"Error parsing comment or other issue for tx {tx.hash}: {e_comment}")
-                        pass # Continue to next transaction
+                    except Exception as e_comment_parse: # Renamed e_comment
+                        logger.debug(f"Error parsing comment or other issue for tx {tx.hash}: {e_comment_parse}")
+                        pass
         
-        # If no matching transaction found yet
         if pdep.expires_at <= dt.now(timezone.utc) and pdep.status == 'pending':
             pdep.status = 'expired'
             db_sess.commit()
             return {"status": "expired", "message": "Deposit expired."}
         
         return {"status": "pending", "message": "Transaction not confirmed yet."}
-    except Exception as e:
-        logger.error(f"Blockchain check error: {e}", exc_info=True)
+    except Exception as e_bc_check: # Renamed e
+        logger.error(f"Blockchain check error: {e_bc_check}", exc_info=True)
         return {"status": "error", "message": "Error checking transaction on blockchain."}
     finally:
         if prov:
@@ -985,7 +972,7 @@ def verify_deposit_api():
     
     db = next(get_db())
     try:
-        pdep = db.query(PendingDeposit).filter(PendingDeposit.id == pid, PendingDeposit.user_id == uid).with_for_update().first() # Lock pending deposit row
+        pdep = db.query(PendingDeposit).filter(PendingDeposit.id == pid, PendingDeposit.user_id == uid).with_for_update().first()
         if not pdep:
             return jsonify({"error": "Pending deposit not found"}), 404
         
@@ -994,55 +981,48 @@ def verify_deposit_api():
             return jsonify({"status": "success", "message": "Deposit already confirmed.", "new_balance_ton": usr.ton_balance if usr else 0})
         
         if pdep.status == 'expired' or pdep.expires_at <= dt.now(timezone.utc):
-            if pdep.status == 'pending': # Ensure it's marked expired if time passed during check
+            if pdep.status == 'pending':
                 pdep.status = 'expired'
                 db.commit()
             return jsonify({"status": "expired", "message": "Deposit has expired."}), 400
         
-        # Run the async blockchain check
         result = {}
         try:
-            current_loop = asyncio.get_event_loop()
-            if current_loop.is_running():
-                # If in a running loop (e.g. FastAPI context, though this is Flask)
-                # this part needs careful handling or running in a separate thread's loop.
-                # For Flask, it's simpler to just run it.
-                logger.warning("verify_deposit_api: Attempting to run async in a potentially running loop context. This might be problematic in some server setups.")
-                # Fallback to new loop if needed, or ensure server setup handles this.
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
-
+            current_loop_verify = asyncio.get_event_loop() # Renamed current_loop
+            if current_loop_verify.is_running():
+                logger.warning("verify_deposit_api: Attempting to run async in a potentially running loop context.")
+                new_loop_verify = asyncio.new_event_loop() # Renamed new_loop
+                asyncio.set_event_loop(new_loop_verify)
+                result = new_loop_verify.run_until_complete(check_blockchain_for_deposit(pdep, db))
             else:
-                 result = current_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
-        except RuntimeError as e:
-            if "cannot be called from a running event loop" in str(e) or "no current event loop" in str(e).lower() or "There is no current event loop in thread" in str(e):
+                 result = current_loop_verify.run_until_complete(check_blockchain_for_deposit(pdep, db))
+        except RuntimeError as e_runtime: # Renamed e
+            if "cannot be called from a running event loop" in str(e_runtime) or "no current event loop" in str(e_runtime).lower() or "There is no current event loop in thread" in str(e_runtime):
                 logger.info("verify_deposit_api: Creating new event loop for blockchain check.")
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                result = new_loop.run_until_complete(check_blockchain_for_deposit(pdep, db))
+                new_loop_runtime = asyncio.new_event_loop() # Renamed new_loop
+                asyncio.set_event_loop(new_loop_runtime)
+                result = new_loop_runtime.run_until_complete(check_blockchain_for_deposit(pdep, db))
             else:
-                logger.error(f"RuntimeError during async execution in verify_deposit: {e}", exc_info=True)
+                logger.error(f"RuntimeError during async execution in verify_deposit: {e_runtime}", exc_info=True)
                 return jsonify({"status": "error", "message": "Internal server error during verification."}), 500
-        except Exception as e_async_run:
-            logger.error(f"Exception running async task in verify_deposit: {e_async_run}", exc_info=True)
+        except Exception as e_async_run_verify: # Renamed e_async_run
+            logger.error(f"Exception running async task in verify_deposit: {e_async_run_verify}", exc_info=True)
             return jsonify({"status": "error", "message": "Unexpected error during verification process."}), 500
         
         return jsonify(result)
-    except Exception as e_verify_outer:
-        db.rollback() # Rollback if any error before commit in check_blockchain_for_deposit
-        logger.error(f"Outer error in verify_deposit: {e_verify_outer}", exc_info=True)
+    except Exception as e_verify_outer_api: # Renamed e_verify_outer
+        db.rollback()
+        logger.error(f"Outer error in verify_deposit: {e_verify_outer_api}", exc_info=True)
         return jsonify({"error": "DB error during deposit verification."}), 500
     finally:
         db.close()
-
 
 @app.route('/api/get_leaderboard', methods=['GET'])
 def get_leaderboard_api():
     db = next(get_db())
     try:
         leaders = db.query(User).order_by(User.total_won_ton.desc()).limit(100).all()
-        return jsonify([{"rank": r+1, "name": u.first_name or u.username or f"User_{str(u.id)[:6]}", "avatarChar": (u.first_name or u.username or "U")[0].upper(), "income": u.total_won_ton, "user_id": u.id} for r, u in enumerate(leaders)])
+        return jsonify([{"rank": r_idx+1, "name": u_leader.first_name or u_leader.username or f"User_{str(u_leader.id)[:6]}", "avatarChar": (u_leader.first_name or u_leader.username or "U")[0].upper(), "income": u_leader.total_won_ton, "user_id": u_leader.id} for r_idx, u_leader in enumerate(leaders)]) # Renamed r, u
     finally:
         db.close()
 
@@ -1054,7 +1034,7 @@ def withdraw_referral_earnings_api():
     uid = auth["id"]
     db = next(get_db())
     try:
-        user = db.query(User).filter(User.id == uid).with_for_update().first() # Lock user row
+        user = db.query(User).filter(User.id == uid).with_for_update().first()
         if not user:
             return jsonify({"error": "User not found"}), 404
         
@@ -1066,9 +1046,9 @@ def withdraw_referral_earnings_api():
             return jsonify({"status": "success", "message": f"{withdrawn_amount:.2f} TON referral earnings withdrawn to main balance.", "new_balance_ton": user.ton_balance, "new_referral_earnings_pending": 0.0})
         else:
             return jsonify({"status": "no_earnings", "message": "No referral earnings to withdraw."})
-    except Exception as e_withdraw_ref:
+    except Exception as e_withdraw_ref_api: # Renamed e_withdraw_ref
         db.rollback()
-        logger.error(f"Error withdrawing referral earnings: {e_withdraw_ref}", exc_info=True)
+        logger.error(f"Error withdrawing referral earnings: {e_withdraw_ref_api}", exc_info=True)
         return jsonify({"error": "DB error during referral withdrawal."}), 500
     finally:
         db.close()
@@ -1086,8 +1066,8 @@ def redeem_promocode_api():
     
     db = next(get_db())
     try:
-        user = db.query(User).filter(User.id == uid).with_for_update().first() # Lock user
-        promo = db.query(PromoCode).filter(PromoCode.code_text == code_txt).with_for_update().first() # Lock promocode
+        user = db.query(User).filter(User.id == uid).with_for_update().first()
+        promo = db.query(PromoCode).filter(PromoCode.code_text == code_txt).with_for_update().first()
         
         if not user:
             return jsonify({"status": "error", "message": "User not found."}), 404
@@ -1096,20 +1076,17 @@ def redeem_promocode_api():
         if promo.activations_left <= 0:
             return jsonify({"status": "error", "message": "Promocode has expired or reached its activation limit."}), 400
         
-        # Here you might want to add a check if the user has already redeemed this specific promocode
-        # This would require an association table UserPromoRedemptions. For simplicity, it's omitted here.
-
         promo.activations_left -= 1
         user.ton_balance = float(Decimal(str(user.ton_balance)) + Decimal(str(promo.ton_amount)))
         db.commit()
         return jsonify({"status": "success", "message": f"Promocode '{code_txt}' redeemed successfully! You received {promo.ton_amount:.2f} TON.", "new_balance_ton": user.ton_balance})
-    except SQLAlchemyError as e_sql:
+    except SQLAlchemyError as e_sql_promo: # Renamed e_sql
         db.rollback()
-        logger.error(f"SQLAlchemyError redeeming promocode: {e_sql}", exc_info=True)
+        logger.error(f"SQLAlchemyError redeeming promocode: {e_sql_promo}", exc_info=True)
         return jsonify({"status": "error", "message": "Database error redeeming promocode."}), 500
-    except Exception as e_promo:
+    except Exception as e_promo_api: # Renamed e_promo
         db.rollback()
-        logger.error(f"General error redeeming promocode: {e_promo}", exc_info=True)
+        logger.error(f"General error redeeming promocode: {e_promo_api}", exc_info=True)
         return jsonify({"status": "error", "message": "An unexpected error occurred."}), 500
     finally:
         db.close()
@@ -1127,55 +1104,50 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
     
     db = next(get_db())
     try:
-        # Lock item and user rows to prevent race conditions
         item_to_withdraw = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == player_user_id).with_for_update().first()
         if not item_to_withdraw or item_to_withdraw.is_ton_prize:
             return jsonify({"status": "error", "message": "Item not found or is not withdrawable."}), 404
         
-        item_name_for_tonnel = item_to_withdraw.nft.name # Get name from related NFT object
+        item_name_for_tonnel = item_to_withdraw.nft.name
         
         tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
         tonnel_result = {}
         
         try:
-            current_loop = asyncio.get_event_loop()
-            if current_loop.is_closed(): # Should not happen in a running Flask app context typically
-                current_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(current_loop)
-            tonnel_result = current_loop.run_until_complete(tonnel_client.send_gift_to_user(gift_item_name=item_name_for_tonnel, receiver_telegram_id=player_user_id))
-        except RuntimeError as e_async_loop: # Handle cases where loop might be running (e.g. in certain server setups)
-             if "cannot schedule new futures after shutdown" in str(e_async_loop).lower() or "event loop is closed" in str(e_async_loop).lower() :
-                logger.warning(f"Asyncio loop issue in Tonnel withdrawal, trying new loop: {e_async_loop}")
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                tonnel_result = new_loop.run_until_complete(tonnel_client.send_gift_to_user(gift_item_name=item_name_for_tonnel, receiver_telegram_id=player_user_id))
+            current_loop_tonnel = asyncio.get_event_loop() # Renamed current_loop
+            if current_loop_tonnel.is_closed():
+                current_loop_tonnel = asyncio.new_event_loop()
+                asyncio.set_event_loop(current_loop_tonnel)
+            tonnel_result = current_loop_tonnel.run_until_complete(tonnel_client.send_gift_to_user(gift_item_name=item_name_for_tonnel, receiver_telegram_id=player_user_id))
+        except RuntimeError as e_async_loop_tonnel: # Renamed e_async_loop
+             if "cannot schedule new futures after shutdown" in str(e_async_loop_tonnel).lower() or "event loop is closed" in str(e_async_loop_tonnel).lower() :
+                logger.warning(f"Asyncio loop issue in Tonnel withdrawal, trying new loop: {e_async_loop_tonnel}")
+                new_loop_tonnel = asyncio.new_event_loop() # Renamed new_loop
+                asyncio.set_event_loop(new_loop_tonnel)
+                tonnel_result = new_loop_tonnel.run_until_complete(tonnel_client.send_gift_to_user(gift_item_name=item_name_for_tonnel, receiver_telegram_id=player_user_id))
              else:
-                raise # Re-raise if it's a different RuntimeError
+                raise
 
         if tonnel_result and tonnel_result.get("status") == "success":
-            # Item successfully sent via Tonnel, now remove from inventory and adjust total_won_ton
             val_deducted = Decimal(str(item_to_withdraw.current_value))
             player = db.query(User).filter(User.id == player_user_id).with_for_update().first()
-            if player: # Should exist
-                player.total_won_ton = float(max(Decimal('0'), Decimal(str(player.total_won_ton)) - val_deducted)) # Ensure not negative
+            if player:
+                player.total_won_ton = float(max(Decimal('0'), Decimal(str(player.total_won_ton)) - val_deducted))
             
             db.delete(item_to_withdraw)
             db.commit()
             return jsonify({"status": "success", "message": f"Gift '{item_name_for_tonnel}' sent via Tonnel! {tonnel_result.get('message', '')}", "details": tonnel_result.get("details")})
         else:
-            # Tonnel API call failed, do not change DB state for the item
-            db.rollback() # Rollback any potential implicit changes if any, though none should occur before commit
+            db.rollback()
             return jsonify({"status": "error", "message": f"Tonnel withdrawal failed: {tonnel_result.get('message', 'Tonnel API error')}"}), 500
             
-    except Exception as e_withdraw_wrapper:
+    except Exception as e_withdraw_wrapper_api: # Renamed e_withdraw_wrapper
         db.rollback()
-        logger.error(f"Tonnel withdrawal wrapper exception: {e_withdraw_wrapper}", exc_info=True)
+        logger.error(f"Tonnel withdrawal wrapper exception: {e_withdraw_wrapper_api}", exc_info=True)
         return jsonify({"status": "error", "message": "An unexpected error occurred during withdrawal."}), 500
     finally:
         db.close()
 
-
-# --- Telegram Bot Commands ---
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     logger.info(f"/start from {message.chat.id} ({message.from_user.username}) text: '{message.text}'")
@@ -1190,30 +1162,27 @@ def send_welcome(message):
             created_now = True
             user = User(id=user_id, username=tg_user_obj.username, first_name=tg_user_obj.first_name, last_name=tg_user_obj.last_name, referral_code=f"ref_{user_id}_{random.randint(1000,9999)}")
             db.add(user)
-            # No commit yet, will commit after referral processing or updates
         
-        # Process referral from deep link if present
         try:
             command_parts = message.text.split(' ')
             if len(command_parts) > 1 and command_parts[1].startswith('startapp='):
                 start_param_value = command_parts[1].split('=')[1]
                 if start_param_value.startswith('ref_'):
                     referrer_code = start_param_value
-                    if (created_now or not user.referred_by_id) and user.referral_code != referrer_code : # Don't allow self-referral
+                    if (created_now or not user.referred_by_id) and user.referral_code != referrer_code :
                         referrer = db.query(User).filter(User.referral_code == referrer_code, User.id != user.id).first()
                         if referrer:
                             user.referred_by_id = referrer.id
                             logger.info(f"User {user_id} referred by {referrer.id} via deep link {referrer_code}.")
                             try: 
                                 bot.send_message(referrer.id, f"🎉 Your friend {user.first_name or user.username or user.id} joined using your referral link!")
-                            except Exception as e_notify: 
-                                logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
-                        elif not referrer: # Check if code format is okay but just not found for another user
+                            except Exception as e_notify_ref: # Renamed e_notify
+                                logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify_ref}")
+                        elif not referrer:
                              logger.warning(f"Referral code {referrer_code} not found for any other user, or self-referral attempt by {user_id}.")
-        except Exception as e_ref:
-            logger.error(f"Error processing start parameter for {user_id}: {e_ref}")
+        except Exception as e_ref_param: # Renamed e_ref
+            logger.error(f"Error processing start parameter for {user_id}: {e_ref_param}")
 
-        # Update user fields if changed
         updated_fields = False
         if user.username != tg_user_obj.username: 
             user.username = tg_user_obj.username
@@ -1225,19 +1194,17 @@ def send_welcome(message):
             user.last_name = tg_user_obj.last_name
             updated_fields = True
         
-        if created_now or updated_fields or user.referred_by_id: # Commit if new, or fields updated, or referral was processed
+        if created_now or updated_fields or user.referred_by_id:
             try:
                 db.commit()
                 if created_now:
-                    db.refresh(user) # Refresh if new to get defaults like created_at
+                    db.refresh(user)
                 logger.info(f"User data for {user_id} committed/updated.")
-            except Exception as e_commit_user:
+            except Exception as e_commit_user_start: # Renamed e_commit_user
                 db.rollback()
-                logger.error(f"Error committing user {user_id}: {e_commit_user}")
-                # If new user creation failed, they might not be in DB yet.
-                # Re-query to be sure, or handle this state.
+                logger.error(f"Error committing user {user_id}: {e_commit_user_start}")
                 user_check_after_fail = db.query(User).filter(User.id == user_id).first()
-                if not user_check_after_fail and created_now: # Creation truly failed
+                if not user_check_after_fail and created_now:
                      bot.send_message(message.chat.id, "Sorry, there was an error setting up your profile. Please try /start again.")
                      return
 
@@ -1250,8 +1217,8 @@ def send_welcome(message):
         app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info)
         markup.add(app_button)
         bot.send_message(message.chat.id, "Добро пожаловать в Pusik Gifts! 🎁\n\nНажмите кнопку ниже, чтобы начать!", reply_markup=markup)
-    except Exception as e_start_handler:
-        logger.error(f"General error in /start handler for chat {message.chat.id}: {e_start_handler}", exc_info=True)
+    except Exception as e_start_handler_main: # Renamed e_start_handler
+        logger.error(f"General error in /start handler for chat {message.chat.id}: {e_start_handler_main}", exc_info=True)
         bot.send_message(message.chat.id, "An unexpected error occurred. Please try again later.")
     finally:
         db.close()
@@ -1260,7 +1227,6 @@ def send_welcome(message):
 def echo_all(message):
     bot.reply_to(message, "Нажмите /start, чтобы открыть Pusik Gifts.")
 
-# --- Polling ---
 bot_polling_started = False
 bot_polling_thread = None
 def run_bot_polling():
@@ -1270,50 +1236,44 @@ def run_bot_polling():
         return
     bot_polling_started = True
     logger.info("Starting bot polling...")
-    for i in range(3): 
+    for i_webhook_attempt in range(3): # Renamed i
         try: 
             bot.remove_webhook()
             logger.info("Webhook successfully removed.")
             break
-        except Exception as e_webhook: 
-            logger.warning(f"Attempt {i+1} to remove webhook failed: {e_webhook}")
-            if i < 2: # Sleep before retrying, but not on the last attempt
+        except Exception as e_webhook_remove: # Renamed e_webhook
+            logger.warning(f"Attempt {i_webhook_attempt+1} to remove webhook failed: {e_webhook_remove}")
+            if i_webhook_attempt < 2:
                 time.sleep(2)
     
     while bot_polling_started:
         try:
             logger.info("Bot calling infinity_polling...")
             bot.infinity_polling(logger_level=logging.INFO, skip_pending=True, timeout=60, long_polling_timeout=30)
-            # infinity_polling is blocking, so this line below is usually not reached unless it stops gracefully or errors out in a specific way.
             logger.info("infinity_polling finished a cycle or stopped.") 
-        except telebot.apihelper.ApiTelegramException as e_api:
-            logger.error(f"Telegram API Exception in polling: Code {e_api.error_code} - {e_api.description}", exc_info=False)
-            if e_api.error_code == 401 or e_api.error_code == 409: 
+        except telebot.apihelper.ApiTelegramException as e_api_poll: # Renamed e_api
+            logger.error(f"Telegram API Exception in polling: Code {e_api_poll.error_code} - {e_api_poll.description}", exc_info=False)
+            if e_api_poll.error_code == 401 or e_api_poll.error_code == 409: 
                 logger.error("CRITICAL: Bot token invalid or conflict. Stopping polling.")
-                bot_polling_started = False # This will break the while loop
+                bot_polling_started = False
             else: 
-                # For other API errors, wait before retrying
                 time.sleep(30)
-        except ConnectionError as e_conn: 
-            logger.error(f"Network ConnectionError in polling: {e_conn}", exc_info=False)
-            time.sleep(60) # Longer sleep for network issues
-        except Exception as e_generic: 
-            logger.error(f"Unexpected critical error in polling: {type(e_generic).__name__} - {e_generic}", exc_info=True)
-            time.sleep(60) # Sleep on generic critical errors
+        except ConnectionError as e_conn_poll: # Renamed e_conn
+            logger.error(f"Network ConnectionError in polling: {e_conn_poll}", exc_info=False)
+            time.sleep(60)
+        except Exception as e_generic_poll: # Renamed e_generic
+            logger.error(f"Unexpected critical error in polling: {type(e_generic_poll).__name__} - {e_generic_poll}", exc_info=True)
+            time.sleep(60)
         
-        if not bot_polling_started: # Check if the flag was set to false (e.g., by 401 error)
-            break # Exit the while loop
+        if not bot_polling_started:
+            break
         
-        # If infinity_polling returned for some other reason (e.g. timeout not leading to exception, though unlikely for infinity_polling)
-        # and bot_polling_started is still true, add a small delay before restarting.
         if bot_polling_started: 
             time.sleep(5) 
             
     logger.info("Bot polling loop has terminated.")
 
 if __name__ == '__main__':
-    # Start bot polling in a separate thread only if it's the main execution
-    # and not a Werkzeug reloader process.
     if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         logger.info("Main process, starting bot polling thread.")
         bot_polling_thread = threading.Thread(target=run_bot_polling, daemon=True)
@@ -1322,6 +1282,4 @@ if __name__ == '__main__':
         logger.info("Werkzeug reloader process, bot polling will be started by the main reloaded instance if conditions met.")
     
     logger.info("Starting Flask development server...")
-    # use_reloader=True is default for debug=True. Explicitly False if not desired.
-    # debug=False should be used for production.
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
