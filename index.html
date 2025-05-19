@@ -64,7 +64,7 @@
         .case-card, .slot-card { background-image: var(--case-grad-default); border-radius: var(--main-border-radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border-color); overflow: hidden; position: relative; }
         .case-card:hover, .slot-card:hover { filter: brightness(1.12); transform: translateY(-6px) scale(1.02); box-shadow: var(--soft-shadow); }
         .case-image-display, .slot-image-display { width: 85px; height: 85px; margin: 0 auto 18px auto; background-color: transparent; border-radius: var(--button-border-radius); overflow: hidden; position: relative; display:flex; align-items:center; justify-content:center;}
-        .case-image-display img, .slot-image-display img { display: block; width: 100%; height: 100%; object-fit: contain; } /* Changed slot-image-display to contain */
+        .case-image-display img, .slot-image-display img { display: block; width: 100%; height: 100%; object-fit: contain; }
         .case-image-display .overlay-image { position: absolute; width: 70%; height: 70%; top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: contain; pointer-events: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); }
         .case-name, .slot-name { font-weight: 600; font-size: 1.05em; margin-bottom: 8px; color: var(--text-primary); min-height: 2.5em; display: flex; align-items: center; justify-content: center; }
         .case-price, .slot-price { font-size: 0.9em; font-weight: 500; color: var(--text-price-color); }
@@ -76,8 +76,7 @@
         .modal-actions { margin-bottom: 18px; display: flex; flex-direction: column; gap: 14px; flex-shrink: 0; }
         .modal-body { overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; margin-top: 12px; max-height: 60vh; }
         
-        /* Roulette & Win Overlay Specifics */
-        #roulette-wheel-container { width: 100%; flex-shrink: 0; }
+        #roulette-wheel-container { width: 100%; flex-shrink: 0; min-height: 100px; /* Ensure it has some height even if empty */ }
         .roulette-row { height: 92px; border: 1px solid var(--border-color); border-radius: var(--button-border-radius); overflow: hidden; position: relative; background-color: var(--surface-color); margin: 8px 0; }
         .roulette-row::before { content: ''; position: absolute; left: 10px; right: 10px; top: 50%; height: 3px; background-color: var(--primary-color); opacity: 0.9; transform: translateY(-50%); z-index: 2; pointer-events: none; border-radius: 2px; }
         .roulette-spinner-reel { display: flex; flex-direction: column; position: absolute; left: 0; width: 100%; }
@@ -87,7 +86,7 @@
         .case-multiplier-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
         .case-multiplier-selector button { width: 60px; padding: 10px 0; font-size: 0.9em; }
         
-        #win-overlay-modal .modal-content { max-width: 360px; } /* Smaller for win overlay */
+        #win-overlay-modal .modal-content { max-width: 360px; }
         #win-overlay-prize-image { width: 120px; height: 120px; margin: 0 auto 20px; border-radius: var(--main-border-radius); background-color: var(--surface-hover-color); display:flex; align-items:center; justify-content:center; overflow:hidden;}
         #win-overlay-prize-image img { max-width:100%; max-height:100%; object-fit:contain; }
         #win-overlay-prize-name { font-size: 1.5em; font-weight: 700; margin-bottom: 25px; color: var(--success-color); }
@@ -104,20 +103,26 @@
         #possible-prizes-display.black-singularity-style .prize-card-image-placeholder { background-image: var(--black-singularity-bg-image); background-size: cover; background-position: center; border: 1px solid rgba(70,70,80,0.7); }
         #possible-prizes-display.black-singularity-style .prize-card { background-color: #1A1C2A; }
         
-        /* Slot Modal Specifics */
         #slot-machine-modal .modal-content { max-width: 480px; }
-        #slot-reels-container { display: flex; justify-content: space-around; align-items: center; height: 120px; background-color: var(--bg-gradient-mid); border: 2px solid var(--border-color); border-radius: var(--button-border-radius); margin: 20px 0; padding: 10px; overflow: hidden; /* To hide non-visible parts of reels */ }
-        .slot-reel { width: 30%; height: 100%; /* background-color: var(--surface-color); */ overflow: hidden; position: relative; border-radius: 8px; border: 1px solid var(--border-color); }
+        #slot-reels-container { 
+            display: flex; justify-content: space-around; align-items: center; 
+            height: 120px; background-color: var(--bg-gradient-mid); 
+            border: 2px solid var(--border-color); border-radius: var(--button-border-radius); 
+            margin: 20px 0; padding: 10px; overflow: hidden; 
+            position: relative; /* Added for line centering */
+        }
+        .slot-reel { width: 30%; height: 100%; overflow: hidden; position: relative; border-radius: 8px; border: 1px solid var(--border-color); }
         .slot-reel-spinner { display: flex; flex-direction: column; position: absolute; left: 0; width: 100%; transition: top 0.5s cubic-bezier(0.25, 0.1, 0.25, 1); }
-        .slot-reel-item { height: 100px; /* Should be slightly less than reel height for visual stop */ display: flex; align-items: center; justify-content: center; border-bottom: 1px dashed var(--border-color); }
+        .slot-reel-item { height: 100px; display: flex; align-items: center; justify-content: center; border-bottom: 1px dashed var(--border-color); }
         .slot-reel-item:last-child { border-bottom: none; }
         .slot-reel-item img { max-width: 80%; max-height: 80%; object-fit: contain; }
-        /* Line in the middle of the slot reels */
-        #slot-reels-container::before { content:''; position:absolute; left:10px; right:10px; top:50%; height:3px; background: var(--primary-color); transform: translateY(-50%); z-index:10; }
-        #slot-prize-display { margin-top:15px; font-size: 1.2em; font-weight: 600; }
+        #slot-reels-container::before { 
+            content:''; position:absolute; left:10px; right:10px; 
+            top:50%; height:3px; background: var(--primary-color); 
+            transform: translateY(-50%); z-index:10; 
+        }
+        #slot-prize-display { margin-top:15px; font-size: 1.2em; font-weight: 600; min-height: 1.5em; /* Ensure space for message */ }
 
-        /* Other page styles (withdraw, inputs, profile, upgrade, invite, leaderboard, deposit) */
-        /* These are largely the same as your previous full CSS, ensure they are complete */
         #withdraw-modal .modal-step { display: none; } #withdraw-modal .modal-step.active { display: block; } #withdraw-modal p { color: var(--text-secondary); margin-bottom: 18px; line-height: 1.55;} #withdraw-modal strong { color: var(--text-primary); font-weight: 600; } #withdraw-modal a.button { margin-bottom: 12px; text-decoration: none; }
         .loader { border: 4px solid var(--surface-hover-color); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 22px auto; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         input[type="text"], input[type="number"], select { width: 100%; padding: 13px 15px; margin-bottom: 14px; border-radius: var(--button-border-radius); background-color: var(--surface-hover-color); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 1em; font-weight: 500; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; } input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-placeholder); } input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: var(--border-highlight); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.25); }
@@ -129,7 +134,6 @@
         .leaderboard-list { padding-left: 0; padding-right: 0; } .leaderboard-list .leader-entry { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color); transition: background-color 0.25s ease-out; position: relative; } .leaderboard-list .leader-entry:hover { background-color: rgba(255,255,255,0.04); } .leaderboard-list .leader-entry:last-child { border-bottom: none; } .leader-entry .rank { font-weight: 700; font-size: 1.05em; min-width: 40px; text-align: left; color: var(--text-secondary); margin-right: 5px; } .leader-entry .avatar-placeholder { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface-hover-color); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 1.2em; font-weight: 600; margin: 0 16px 0 10px; border: 2px solid var(--border-color); } .leader-entry .info { flex-grow: 1; } .leader-entry .info .name { font-weight: 600; font-size: 1.1em; color: var(--text-primary); margin-bottom: 3px; } .leader-entry .info .details { font-size: 0.85em; color: var(--text-secondary); line-height: 1.3; } .leader-entry .score { margin-left: auto; font-weight: 700; font-size: 1.05em; color: var(--primary-color); padding-left: 15px; text-align: right; } .leader-entry.current-user-entry { background-color: rgba(0, 122, 255, 0.12); } .leader-entry.current-user-entry .rank { color: var(--primary-color); } .leader-entry.current-user-entry .info .name { color: var(--primary-gradient-end); font-weight: 700; } .leader-entry.current-user-entry .score { color: var(--secondary-color); font-weight: 800; } .leader-entry.current-user-entry .avatar-placeholder { border-color: var(--primary-color); }
         #deposit-instructions-modal .modal-body p { color: var(--text-secondary); font-size: 0.95em; line-height: 1.6; margin-bottom: 18px; } #deposit-instructions-modal .modal-body strong { color: var(--text-primary); font-weight: 600; } #deposit-instructions-modal #ton-transfer-link { margin-top: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; } #deposit-instructions-modal #ton-transfer-link svg { width: 20px; height: 20px; fill: currentColor; } #deposit-status-message, #deposit-expiry-info { text-align: center; }
         .promocode-input-group { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; } .promocode-input-group input { flex-grow: 1; margin-bottom: 0; } .promocode-input-group button { flex-shrink: 0; padding: 13px 18px; width: auto; }
-
     </style>
 </head>
 <body>
@@ -154,7 +158,7 @@
         </main>
 
         <nav id="app-nav">
-            <button class="nav-button active" data-page="main-page"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Games</button> <!-- Changed from Cases to Games -->
+            <button class="nav-button active" data-page="main-page"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Games</button>
             <button class="nav-button" data-page="upgrade-page"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>Upgrade</button>
             <button class="nav-button" data-page="invite-page"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Referrals</button>
             <button class="nav-button" data-page="leaderboard-page"><svg viewBox="0 0 24 24"><path d="M16,1H4C2.89,1 2,1.89 2,3V17H4V3H16V1M16.5,5H7.5C6.67,5 6,5.67 6,6.5V22.5L12,19.5L18,22.5V6.5C18,5.67 17.33,5 16.5,5M14,11H10V9H14V11M14,15H10V13H14V15Z"/></svg>Leaders</button>
@@ -162,12 +166,11 @@
         </nav>
     </div>
 
-    <!-- Roulette (Case Opening) Modal -->
     <div id="roulette-modal" class="modal">
         <div class="modal-content">
             <h3 id="roulette-case-name">Opening Case...</h3>
             <div id="roulette-wheel-container">
-                <!-- Multiple rows will be added here by JS if multiplier > 1 -->
+                <!-- Roulette rows will be dynamically added here by JS -->
             </div>
             <div class="case-multiplier-selector">
                 <button class="button button-secondary active-multiplier" data-multiplier="1">1x</button>
@@ -178,13 +181,10 @@
                 <button id="spin-button" class="button">Spin</button>
                 <button id="close-roulette-button" class="button button-secondary">Close</button>
             </div>
-            <!-- Prize display for single wins might be removed or adapted if win overlay is primary -->
-            <div id="roulette-prize-display-temp" style="display:none;">You got: <span id="roulette-won-prize-name-temp"></span>!</div>
             <hr><h4>Possible Prizes in this Case:</h4><div id="possible-prizes-display"></div>
         </div>
     </div>
 
-    <!-- Slot Machine Modal -->
     <div id="slot-machine-modal" class="modal">
         <div class="modal-content">
             <h3 id="slot-machine-name">Spinning Slot...</h3>
@@ -198,11 +198,10 @@
                 <button id="spin-slot-button" class="button">Spin Slot</button>
                 <button id="close-slot-modal-button" class="button button-secondary">Close</button>
             </div>
-             <div id="slot-prize-display" style="margin-top:15px; font-size: 1.2em; font-weight: 600;"></div>
+             <div id="slot-prize-display"></div>
         </div>
     </div>
 
-    <!-- Win Overlay Modal (Point 2) -->
     <div id="win-overlay-modal" class="modal">
         <div class="modal-content">
             <div id="win-overlay-prize-image">
@@ -216,7 +215,6 @@
         </div>
     </div>
 
-
     <div id="withdraw-modal" class="modal"><div class="modal-content"><h3>Withdraw Gift</h3><div class="modal-body"><div id="withdraw-step-1" class="modal-step active"><p>Tonnel Market...</p><a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel</a><button id="withdraw-step1-next" class="button button-secondary">Opened</button></div><div id="withdraw-step-2" class="modal-step"><p>Send message to <a href="https://t.me/giftrelayer" target="_blank">@giftrelayer</a>...</p><button id="withdraw-step2-next" class="button button-secondary">Sent</button><button id="withdraw-step2-back" class="button button-secondary">Back</button></div><div id="withdraw-step-3" class="modal-step"><p>Finalizing...</p><div class="loader"></div><p id="withdraw-status-message"></p><button id="withdraw-step3-close" class="button button-secondary">Close</button></div></div><button id="close-withdraw-modal-button" class="button button-secondary">Close Window</button></div></div>
     <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>Click link...</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
 
@@ -224,22 +222,24 @@
 // --- Constants and Global State ---
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/';
-const API_BASE_URL = 'https://case-hznb.onrender.com';
+const API_BASE_URL = 'https://case-v48j.onrender.com'; // Ensure this is correct for your deployment
 const BOT_USERNAME = 'caseKviBot';
 const MINI_APP_NAME = 'case';
 
 const currentUser = { id: null, username: null, first_name: 'User', last_name: null, walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0, inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0, invited_friends_count: 0 };
-let currentOpenCaseOrSlot = null; // Generic holder for active game
-let selectedCaseMultiplier = 1; // Point 1
+let currentOpenCaseOrSlot = null;
+let selectedCaseMultiplier = 1;
 let itemToWithdraw = null;
 const upgradeChances = { 1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3 };
-let lastWonPrizeForOverlay = null; // Point 2
+let lastWonPrizeForOverlay = null;
+let selectedUpgradeMultiplier = 1.5; // Default for upgrade page
 
-function generateImageFilename(name) { /* ... (same as before) ... */ if (!name) return 'placeholder.png'; if (name === "Durov's Cap") return "Durov's-Cap.png"; if (name === "Vintage Cigar") return "Vintage-CIgar.png"; if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) return name.replace('-','_') + '.png'; return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; }
+let spinAnimationTimeoutOuter; // For case opening
+let slotSpinEndTimeout; // For slot machine
 
+function generateImageFilename(name) { if (!name) return 'placeholder.png'; if (name === "Durov's Cap") return "Durov's-Cap.png"; if (name === "Vintage Cigar") return "Vintage-CIgar.png"; if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) return name.replace('-','_') + '.png'; return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; }
 const UPDATED_FLOOR_PRICES_FRONTEND = { 'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 'Love Potion': 5.4, 'Top Hat': 6.0 };
-
-const casesData = [ /* ... (Your FULL casesData array with FIXED prices from previous response) ... */
+const casesData = [
     { id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5, prizes: [ { name: 'Plush Pepe', probability: 0.001 }, { name: 'Neko Helmet', probability: 0.005 }, { name: 'Party Sparkler', probability: 0.07 }, { name: 'Homemade Cake', probability: 0.07 }, { name: 'Cookie Heart', probability: 0.07 }, { name: 'Jack-in-the-box', probability: 0.06 }, { name: 'Skull Flower', probability: 0.023 }, { name: 'Lol Pop', probability: 0.25 }, { name: 'Hynpo Lollipop', probability: 0.25 }, { name: 'Desk Calendar', probability: 0.10 }, { name: 'B-Day Candle', probability: 0.101 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
     { id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6.0, prizes: [ { name: 'Plush Pepe', probability: 0.0012 }, { name: 'Record Player', probability: 0.40 }, { name: 'Lol Pop', probability: 0.10 }, { name: 'Hynpo Lollipop', probability: 0.10 }, { name: 'Party Sparkler', probability: 0.10 }, { name: 'Skull Flower', probability: 0.10 }, { name: 'Jelly Bunny', probability: 0.0988 }, { name: 'Tama Gadget', probability: 0.05 }, { name: 'Snow Globe', probability: 0.05 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
     { id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10.0, prizes: [ { name: 'Plush Pepe', probability: 0.0015 }, { name: 'Swiss Watch', probability: 0.08 }, { name: 'Neko Helmet', probability: 0.10 }, { name: 'Eternal Rose', probability: 0.05 }, { name: 'Electric Skull', probability: 0.03 }, { name: 'Diamond Ring', probability: 0.0395 }, { name: 'Record Player', probability: 0.20 }, { name: 'Love Potion', probability: 0.20 }, { name: 'Top Hat', probability: 0.15 }, { name: 'Voodoo Doll', probability: 0.149 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
@@ -249,20 +249,16 @@ const casesData = [ /* ... (Your FULL casesData array with FIXED prices from pre
     { id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200.0, prizes: [ { name: 'Plush Pepe', probability: 0.15 }, { name: 'Durov\'s Cap', probability: 0.25 }, { name: 'Astral Shard', probability: 0.60 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
     { id: 'black', name: 'BLACK Singularity', isBackgroundCase: true, bgImageFilename: 'image-1.png', overlayPrizeName: 'Neko Helmet', priceTON: 30.0, prizes: [ { name: 'Plush Pepe', probability: 0.001 }, { name: 'Durov\'s Cap', probability: 0.01 }, { name: 'Perfume Bottle', probability: 0.05 }, { name: 'Mini Oscar', probability: 0.04 }, { name: 'Scared Cat', probability: 0.06 }, { name: 'Vintage Cigar', probability: 0.07 }, { name: 'Loot Bag', probability: 0.07 }, { name: 'Sharp Tongue', probability: 0.08 }, { name: 'Genie Lamp', probability: 0.08 }, { name: 'Swiss Watch', probability: 0.10 }, { name: 'Neko Helmet', probability: 0.15 }, { name: 'Kissed Frog', probability: 0.10 }, { name: 'Electric Skull', probability: 0.09 }, { name: 'Diamond Ring', probability: 0.089} ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) }
 ];
-
-// Point 3: Slot Data (Simplified for frontend display, backend has full prize pool)
-const TON_COIN_IMG = 'ton_coin.png'; // Ensure you have this image in your IMAGE_BASE_URL path
+const TON_COIN_IMG = 'ton_coin.png';
 const slotsData = [
-    { id: 'default_slot', name: 'Default Slot', priceTON: 3.0, imageFilename: generateImageFilename('Lol Pop') /* Placeholder image */ },
-    { id: 'premium_slot', name: 'Premium Slot', priceTON: 10.0, imageFilename: generateImageFilename('Neko Helmet') /* Placeholder image */ }
+    { id: 'default_slot', name: 'Default Slot', priceTON: 3.0, imageFilename: generateImageFilename('Lol Pop') },
+    { id: 'premium_slot', name: 'Premium Slot', priceTON: 10.0, imageFilename: generateImageFilename('Neko Helmet') }
 ];
 
-
 // --- DOM Elements ---
-// (Same as your previous full HTML)
 const headerElements = { tonConnectButton: document.getElementById('ton-connect-button'), walletAddressDisplay: document.getElementById('wallet-address-display'), tonBalanceSpan: document.getElementById('ton-balance'), balanceDisplay: document.getElementById('balance')};
 const appNavButtons = document.querySelectorAll('.nav-button'); const pages = document.querySelectorAll('.page'); const casesGrid = document.getElementById('cases-grid'); const slotsGrid = document.getElementById('slots-grid');
-const rouletteModal = document.getElementById('roulette-modal'); const rouletteCaseName = document.getElementById('roulette-case-name'); const rouletteWheelContainer = document.getElementById('roulette-wheel-container'); const prizeDisplayTemp = document.getElementById('roulette-prize-display-temp'); const wonPrizeNameTemp = document.getElementById('roulette-won-prize-name-temp'); const spinButton = document.getElementById('spin-button'); const closeRouletteButton = document.getElementById('close-roulette-button'); const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
+const rouletteModal = document.getElementById('roulette-modal'); const rouletteCaseName = document.getElementById('roulette-case-name'); const rouletteWheelContainer = document.getElementById('roulette-wheel-container'); const spinButton = document.getElementById('spin-button'); const closeRouletteButton = document.getElementById('close-roulette-button'); const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
 const winOverlayModal = document.getElementById('win-overlay-modal'); const winOverlayImageEl = document.getElementById('win-overlay-prize-image').querySelector('img'); const winOverlayNameEl = document.getElementById('win-overlay-prize-name'); const winOverlaySaveBtn = document.getElementById('win-overlay-save-button'); const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button'); const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
 const slotMachineModal = document.getElementById('slot-machine-modal'); const slotMachineName = document.getElementById('slot-machine-name'); const slotReelsContainer = document.getElementById('slot-reels-container'); const spinSlotButton = document.getElementById('spin-slot-button'); const closeSlotModalButton = document.getElementById('close-slot-modal-button'); const slotPriceDisplay = document.getElementById('slot-price-display'); const slotPrizeDisplay = document.getElementById('slot-prize-display');
 const withdrawModal = document.getElementById('withdraw-modal'); const withdrawSteps = withdrawModal.querySelectorAll('.modal-step'); const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next'); const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next'); const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back'); const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close'); const withdrawStatusMessage = document.getElementById('withdraw-status-message'); const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
@@ -275,7 +271,6 @@ let currentPendingDepositId = null; let depositExpiryInterval = null; let deposi
 const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json', buttonRootId: 'ton-connect-button' });
 let tgBackButton = null; const backButtonHandlerStack = [];
 
-
 function _updateTgBackButton() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) { const handler = backButtonHandlerStack[backButtonHandlerStack.length - 1]; tgBackButton.offClick(); tgBackButton.onClick(handler); tgBackButton.show(); } else { tgBackButton.hide(); tgBackButton.offClick(); } }
 function pushTgBackButtonHandler(handler) { if (!tgBackButton) return; backButtonHandlerStack.push(handler); _updateTgBackButton(); }
 function popTgBackButtonHandler() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) backButtonHandlerStack.pop(); _updateTgBackButton(); }
@@ -286,303 +281,221 @@ function closeWinOverlayModalWithBackButton() { closeWinOverlayModal(); }
 function closeSlotModalWithBackButton() { closeSlotModal(); }
 function closeDepositModalWithBackButton() { closeDepositInstructionsModal(); }
 
-async function apiRequest(endpoint, method = 'GET', body = null) { const headers = {'Content-Type': 'application/json'}; if (Telegram.WebApp.initData) headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData; const config = { method, headers }; if (body && (method === 'POST' || method === 'PUT')) config.body = JSON.stringify(body); try { const response = await fetch(API_BASE_URL + endpoint, config); if (!response.ok) { let errData; try { errData = await response.json(); } catch (e) { errData = { error: `HTTP ${response.status}: ${response.statusText}` }; } showTGNotification(errData.error || errData.message || `Request failed`, 'error'); throw new Error(errData.error || errData.message); } return response.status === 204 ? null : await response.json(); } catch (error) { if (!(error.message.includes("HTTP") || error.message.includes("failed"))) showTGNotification(`Network: ${error.message}`, 'error'); throw error; } }
+async function apiRequest(endpoint, method = 'GET', body = null) { const headers = {'Content-Type': 'application/json'}; if (Telegram.WebApp.initData) headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData; const config = { method, headers }; if (body && (method === 'POST' || method === 'PUT')) config.body = JSON.stringify(body); try { const response = await fetch(API_BASE_URL + endpoint, config); if (!response.ok) { let errData; try { errData = await response.json(); } catch (e) { errData = { error: `HTTP ${response.status}: ${response.statusText}` }; } showTGNotification(errData.error || errData.message || `Request failed`, 'error'); throw new Error(errData.error || errData.message); } return response.status === 204 ? null : await response.json(); } catch (error) { if (!(error.message.includes("HTTP") || error.message.includes("Request failed"))) showTGNotification(`Network: ${error.message}`, 'error'); throw error; } }
 function updateBalances() { headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`; profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`; }
 function navigateToPage(pageId) { pages.forEach(p => p.classList.remove('active')); document.getElementById(pageId)?.classList.add('active'); appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId)); if (tgBackButton) { if (pageId === 'main-page') clearTgBackButtonStack(); else { while (backButtonHandlerStack.length > 0 && backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) popTgBackButtonHandler(); if (backButtonHandlerStack.length === 0) pushTgBackButtonHandler(navigateBackToMainPage); } } window.scrollTo(0,0); }
 function showTGNotification(message, type = 'info') { Telegram.WebApp.showAlert?.(message); if (Telegram.WebApp.HapticFeedback) { if (type === 'success') Telegram.WebApp.HapticFeedback.notificationOccurred('success'); else if (type === 'error') Telegram.WebApp.HapticFeedback.notificationOccurred('error'); else if (type === 'warning') Telegram.WebApp.HapticFeedback.notificationOccurred('warning'); } }
 function renderHeader() { updateBalances(); }
 function updateUIBasedOnWallet(wallet) { const connected = !!wallet; if (connected) { const addr = wallet.account.address; currentUser.walletAddressRaw = addr; const friendlyAddr = TonConnectSDK.toUserFriendlyAddress(addr, wallet.account.chain === TonConnectSDK.CHAIN.TESTNET); currentUser.walletAddress = friendlyAddr; headerElements.walletAddressDisplay.textContent = `${friendlyAddr.substring(0,5)}...${friendlyAddr.substring(friendlyAddr.length - 4)}`; headerElements.walletAddressDisplay.classList.add('connected');headerElements.walletAddressDisplay.style.display = 'block'; headerElements.balanceDisplay.classList.add('connected'); headerElements.balanceDisplay.style.display = 'flex'; headerElements.tonConnectButton.style.display = 'none'; profileElements.walletAddress.textContent = friendlyAddr; profileElements.disconnectWalletButton.style.display = 'block'; } else { currentUser.walletAddress = null; currentUser.walletAddressRaw = null; headerElements.walletAddressDisplay.classList.remove('connected'); headerElements.walletAddressDisplay.style.display = 'none'; headerElements.balanceDisplay.classList.remove('connected'); headerElements.balanceDisplay.style.display = 'none'; headerElements.tonConnectButton.style.display = 'block'; profileElements.walletAddress.textContent = 'Not Connected'; profileElements.disconnectWalletButton.style.display = 'none'; } updateBalances(); }
-
-function renderCasesAndSlots() {
-    renderCases();
-    renderSlots();
-}
-
-function renderCases() {
-    casesGrid.innerHTML = ''; if (!casesData || casesData.length === 0) { casesGrid.innerHTML = "<p>Loading cases...</p>"; return; }
-    casesData.forEach(caseItem => { /* ... (same as before, using caseItem.priceTON) ... */ const card = document.createElement('div'); card.className = 'case-card'; card.dataset.caseId = caseItem.id; card.onclick = () => openRouletteModal(caseItem); const imgCont = document.createElement('div'); imgCont.className = 'case-image-display'; const img = document.createElement('img'); img.loading = 'lazy'; img.alt = caseItem.name; img.onerror = () => { imgCont.textContent = '❓'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';}; if (caseItem.id === 'black' && caseItem.isBackgroundCase) { img.src = 'https://i.ibb.co/JR1nWpdn/image-1.png'; } else if (caseItem.isBackgroundCase && caseItem.bgImageFilename) { img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename; } else if (caseItem.imageFilename) { img.src = IMAGE_BASE_URL + caseItem.imageFilename; img.style.objectFit = 'contain';} else { imgCont.textContent = '🎁'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;'; } imgCont.appendChild(img); if (caseItem.isBackgroundCase && caseItem.overlayPrizeName) { const ovr = document.createElement('img'); ovr.src = IMAGE_BASE_URL + generateImageFilename(caseItem.overlayPrizeName); ovr.className = 'overlay-image'; ovr.loading = 'lazy'; imgCont.appendChild(ovr); } const nameEl = document.createElement('div'); nameEl.className = 'case-name'; nameEl.textContent = caseItem.name; const priceEl = document.createElement('div'); priceEl.className = 'case-price'; priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`; card.append(imgCont, nameEl, priceEl); casesGrid.appendChild(card); });
-}
-
-function renderSlots() { // Point 3
-    slotsGrid.innerHTML = ''; if (!slotsData || slotsData.length === 0) { slotsGrid.innerHTML = "<p>Loading slots...</p>"; return; }
-    slotsData.forEach(slotItem => {
-        const card = document.createElement('div'); card.className = 'slot-card'; card.dataset.slotId = slotItem.id; card.onclick = () => openSlotMachineModal(slotItem);
-        const imgCont = document.createElement('div'); imgCont.className = 'slot-image-display'; const img = document.createElement('img'); img.loading = 'lazy'; img.alt = slotItem.name;
-        img.onerror = () => { imgCont.textContent = '🎰'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';};
-        if (slotItem.imageFilename) { img.src = IMAGE_BASE_URL + slotItem.imageFilename; } else { imgCont.textContent = '🎰'; }
-        imgCont.appendChild(img);
-        const nameEl = document.createElement('div'); nameEl.className = 'slot-name'; nameEl.textContent = slotItem.name;
-        const priceEl = document.createElement('div'); priceEl.className = 'slot-price'; priceEl.textContent = `${parseFloat(slotItem.priceTON).toFixed(1)} TON`;
-        card.append(imgCont, nameEl, priceEl); slotsGrid.appendChild(card);
-    });
-}
-
-function renderProfile() { /* ... (same as before) ... */ profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?'; profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User'; profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...'; profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected'; profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none'; renderInventory(); }
-function renderInventory() { /* ... (same as before, ensure black-singularity-item class is applied based on item.variant) ... */ profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0; if (currentUser.inventory.length === 0) { profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none'; } else { profileElements.emptyInventoryMessage.style.display = 'none'; currentUser.inventory.forEach(item => { totalValue += item.currentValue || 0; const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item'; if (item.variant === 'black_singularity') itemDiv.classList.add('black-singularity-item'); const imgCont = document.createElement('div'); imgCont.className = 'item-image-display'; const img = document.createElement('img'); img.src = item.is_ton_prize ? IMAGE_BASE_URL + item.imageFilename : (item.imageFilename ? IMAGE_BASE_URL + item.imageFilename : ''); img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img); itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="convertToTon(${item.id})">Convert</button>`}</div>`; itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv); }); profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2); } profileElements.inventoryCount.textContent = currentUser.inventory.length; populateUpgradeInventorySelect(); }
-function populateUpgradeInventorySelect() { /* ... (same as before, filter out is_ton_prize items) ... */ upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>'; currentUser.inventory.filter(item => !item.is_ton_prize).forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`; upgradeElements.inventorySelect.appendChild(opt); }); }
-async function renderLeaderboard() { /* ... (same as before) ... */ }
+function renderCasesAndSlots() { renderCases(); renderSlots(); }
+function renderCases() { casesGrid.innerHTML = ''; if (!casesData || casesData.length === 0) { casesGrid.innerHTML = "<p>Loading cases...</p>"; return; } casesData.forEach(caseItem => { const card = document.createElement('div'); card.className = 'case-card'; card.dataset.caseId = caseItem.id; card.onclick = () => openRouletteModal(caseItem); const imgCont = document.createElement('div'); imgCont.className = 'case-image-display'; const img = document.createElement('img'); img.loading = 'lazy'; img.alt = caseItem.name; img.onerror = () => { imgCont.textContent = '❓'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';}; if (caseItem.id === 'black' && caseItem.isBackgroundCase) { img.src = 'https://i.ibb.co/JR1nWpdn/image-1.png'; } else if (caseItem.isBackgroundCase && caseItem.bgImageFilename) { img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename; } else if (caseItem.imageFilename) { img.src = IMAGE_BASE_URL + caseItem.imageFilename; img.style.objectFit = 'contain';} else { imgCont.textContent = '🎁'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;'; } imgCont.appendChild(img); if (caseItem.isBackgroundCase && caseItem.overlayPrizeName) { const ovr = document.createElement('img'); ovr.src = IMAGE_BASE_URL + generateImageFilename(caseItem.overlayPrizeName); ovr.className = 'overlay-image'; ovr.loading = 'lazy'; imgCont.appendChild(ovr); } const nameEl = document.createElement('div'); nameEl.className = 'case-name'; nameEl.textContent = caseItem.name; const priceEl = document.createElement('div'); priceEl.className = 'case-price'; priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`; card.append(imgCont, nameEl, priceEl); casesGrid.appendChild(card); });}
+function renderSlots() { slotsGrid.innerHTML = ''; if (!slotsData || slotsData.length === 0) { slotsGrid.innerHTML = "<p>Loading slots...</p>"; return; } slotsData.forEach(slotItem => { const card = document.createElement('div'); card.className = 'slot-card'; card.dataset.slotId = slotItem.id; card.onclick = () => openSlotMachineModal(slotItem); const imgCont = document.createElement('div'); imgCont.className = 'slot-image-display'; const img = document.createElement('img'); img.loading = 'lazy'; img.alt = slotItem.name; img.onerror = () => { imgCont.textContent = '🎰'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';}; if (slotItem.imageFilename) { img.src = IMAGE_BASE_URL + slotItem.imageFilename; } else { imgCont.textContent = '🎰'; } imgCont.appendChild(img); const nameEl = document.createElement('div'); nameEl.className = 'slot-name'; nameEl.textContent = slotItem.name; const priceEl = document.createElement('div'); priceEl.className = 'slot-price'; priceEl.textContent = `${parseFloat(slotItem.priceTON).toFixed(1)} TON`; card.append(imgCont, nameEl, priceEl); slotsGrid.appendChild(card); });}
+function renderProfile() { profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?'; profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User'; profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...'; profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected'; profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none'; renderInventory(); }
+function renderInventory() { profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0; if (currentUser.inventory.length === 0) { profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none'; } else { profileElements.emptyInventoryMessage.style.display = 'none'; currentUser.inventory.forEach(item => { totalValue += item.currentValue || 0; const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item'; if (item.variant === 'black_singularity') itemDiv.classList.add('black-singularity-item'); const imgCont = document.createElement('div'); imgCont.className = 'item-image-display'; const img = document.createElement('img'); img.src = item.is_ton_prize ? IMAGE_BASE_URL + item.imageFilename : (item.imageFilename ? IMAGE_BASE_URL + item.imageFilename : ''); img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img); itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="convertToTon(${item.id})">Convert</button>`}</div>`; itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv); }); profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2); } profileElements.inventoryCount.textContent = currentUser.inventory.length; populateUpgradeInventorySelect(); }
+function populateUpgradeInventorySelect() { upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>'; currentUser.inventory.filter(item => !item.is_ton_prize).forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`; upgradeElements.inventorySelect.appendChild(opt); }); }
+async function renderLeaderboard() { try {const leaders = await apiRequest('/api/get_leaderboard'); leaderboardList.innerHTML=''; leaders.forEach(l => { const entry = document.createElement('div'); entry.className = 'leader-entry'; if(l.user_id === currentUser.id) entry.classList.add('current-user-entry'); entry.innerHTML = `<div class="rank">${l.rank}</div><div class="avatar-placeholder">${l.avatarChar}</div><div class="info"><div class="name">${l.name}</div><div class="details">User ID: ${String(l.user_id).slice(0,6)}...</div></div><div class="score">${l.income.toFixed(2)} TON</div>`; leaderboardList.appendChild(entry);}); } catch(e){leaderboardList.innerHTML='<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>';}}
 function renderInvitePage() { inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}` : 'Loading...'; inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`; inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0; }
 
-// Point 2: Win Overlay Modal Functions
-function showWinOverlay(prizeItem) {
-    lastWonPrizeForOverlay = prizeItem; // Store the full prize object
-    winOverlayImageEl.src = prizeItem.is_ton_prize ? IMAGE_BASE_URL + prizeItem.imageFilename : (prizeItem.imageFilename ? IMAGE_BASE_URL + prizeItem.imageFilename : '');
-    winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`;
-    if (prizeItem.is_ton_prize) {
-        winOverlayConvertBtn.style.display = 'none'; // Cannot convert TON to TON
-    } else {
-        winOverlayConvertBtn.style.display = 'block';
-        winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2);
+function showWinOverlay(prizeItem) { lastWonPrizeForOverlay = prizeItem; winOverlayImageEl.src = prizeItem.is_ton_prize ? IMAGE_BASE_URL + prizeItem.imageFilename : (prizeItem.imageFilename ? IMAGE_BASE_URL + prizeItem.imageFilename : ''); winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`; if (prizeItem.is_ton_prize) { winOverlayConvertBtn.style.display = 'none'; } else { winOverlayConvertBtn.style.display = 'block'; winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2); } winOverlayModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton); Telegram.WebApp.HapticFeedback?.notificationOccurred('success'); }
+function closeWinOverlayModal() { if (tgBackButton) popTgBackButtonHandler(); winOverlayModal.classList.remove('active'); lastWonPrizeForOverlay = null; }
+
+function initializeRouletteVisuals(caseItem, multiplier) {
+    rouletteWheelContainer.innerHTML = '';
+    if (!caseItem || !caseItem.prizes || caseItem.prizes.length === 0) {
+        rouletteWheelContainer.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding: 20px 0;">No prize data for visuals.</p>';
+        return;
     }
-    winOverlayModal.classList.add('active');
-    if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
-    Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
+    for (let i = 0; i < multiplier; i++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'roulette-row';
+        const spinnerReel = document.createElement('div');
+        spinnerReel.className = 'roulette-spinner-reel';
+        let defaultVisualItems = [];
+        const numVisualItems = 30;
+        for (let j = 0; j < numVisualItems; j++) {
+            const randomPrize = caseItem.prizes[Math.floor(Math.random() * caseItem.prizes.length)];
+            defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename });
+        }
+        defaultVisualItems.forEach(pData => {
+            const itemEl = document.createElement('div'); itemEl.className = 'roulette-item';
+            const img = document.createElement('img'); img.src = IMAGE_BASE_URL + pData.imageFilename; img.alt = pData.name;
+            itemEl.appendChild(img); spinnerReel.appendChild(itemEl);
+        });
+        rowDiv.appendChild(spinnerReel); rouletteWheelContainer.appendChild(rowDiv);
+    }
 }
-function closeWinOverlayModal() {
-    if (tgBackButton) popTgBackButtonHandler();
-    winOverlayModal.classList.remove('active');
-    lastWonPrizeForOverlay = null;
-}
-
-
-function openRouletteModal(caseItem) { // Point 1: 3x Cases
-    currentOpenCaseOrSlot = caseItem;
-    selectedCaseMultiplier = 1; // Reset to 1x
-    updateCaseMultiplierButtons();
-    rouletteCaseName.textContent = caseItem.name;
-    updateSpinButtonText(); // Update price on spin button
-    
-    rouletteWheelContainer.innerHTML = ''; // Clear previous roulette rows
-    prizeDisplayTemp.classList.add('hidden'); // Hide old temp prize display
-
-    // Prepare for possible prizes display (same as before)
+function openRouletteModal(caseItem) {
+    currentOpenCaseOrSlot = caseItem; selectedCaseMultiplier = 1; updateCaseMultiplierButtons();
+    rouletteCaseName.textContent = caseItem.name; updateSpinButtonText(); 
+    initializeRouletteVisuals(caseItem, selectedCaseMultiplier); // Initialize visuals here
     possiblePrizesDisplay.innerHTML = ''; possiblePrizesDisplay.className = caseItem.id === 'black' ? 'black-singularity-style' : ''; 
     const prizeMap = new Map(); caseItem.prizes.forEach(p => { if (!p || !p.name) return; if (prizeMap.has(p.name)) prizeMap.set(p.name, { ...prizeMap.get(p.name), probability: prizeMap.get(p.name).probability + p.probability }); else prizeMap.set(p.name, { ...p }); });
     prizeMap.forEach((pData, name) => { const prob = pData.probability || 0; const card = document.createElement('div'); card.className = 'prize-card'; const imgCont = document.createElement('div'); imgCont.className = 'prize-card-image-placeholder'; const img = document.createElement('img'); img.src = IMAGE_BASE_URL + pData.imageFilename; img.alt = name; imgCont.appendChild(img); card.innerHTML = `<span class="prize-card-probability">${(prob*100).toFixed(prob<0.001?3:(prob<0.01?2:1))}%</span><span class="prize-card-name">${name}</span>`; card.insertBefore(imgCont, card.firstChild); possiblePrizesDisplay.appendChild(card); });
+    rouletteModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton); Telegram.WebApp.HapticFeedback?.impactOccurred('light');
+}
+function updateSpinButtonText() { if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) { const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier; spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`; } }
+function updateCaseMultiplierButtons() { caseMultiplierSelector.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier); if(parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary'); else btn.classList.add('button-secondary'); }); initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier); } // Re-initialize visuals on multiplier change
+function closeRouletteModal() { if (tgBackButton) popTgBackButtonHandler(); rouletteModal.classList.remove('active'); currentOpenCaseOrSlot = null; if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter); }
 
-    rouletteModal.classList.add('active');
-    if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
-    Telegram.WebApp.HapticFeedback?.impactOccurred('light');
-}
-function updateSpinButtonText() {
-    if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) {
-        const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
-        spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
-    }
-}
-function updateCaseMultiplierButtons() {
-    caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
-        btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier);
-        if(parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary'); else btn.classList.add('button-secondary');
-    });
-}
-function closeRouletteModal() { if (tgBackButton) popTgBackButtonHandler(); rouletteModal.classList.remove('active'); currentOpenCaseOrSlot = null; }
-
-async function spinRoulette() { // Handles "Nx Cases"
+async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return;
-    clearTimeout(spinAnimationTimeoutOuter); // Use a different timeout name if needed
     spinButton.disabled = true; spinButton.textContent = 'Spinning...';
-    
+    const allReels = rouletteWheelContainer.querySelectorAll('.roulette-spinner-reel');
+    if (allReels.length !== selectedCaseMultiplier) {
+        showTGNotification("Roulette visuals not ready. Please close and reopen the case.", "error");
+        spinButton.disabled = false; updateSpinButtonText(); return;
+    }
     try {
         const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCaseOrSlot.id, multiplier: selectedCaseMultiplier });
-        spinButton.disabled = false; updateSpinButtonText(); // Re-enable and reset text
-
+        spinButton.disabled = false; updateSpinButtonText();
         if (result.status === 'success' && result.won_prizes && result.won_prizes.length > 0) {
             currentUser.tonBalance = result.new_balance_ton; updateBalances();
-            rouletteWheelContainer.innerHTML = ''; // Clear for new spin results
-
+            if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
             result.won_prizes.forEach((winner, index) => {
-                const prizeForOverlay = { // Structure for win overlay
-                    id: winner.id, name: winner.name, imageFilename: winner.imageFilename,
-                    floorPrice: winner.floorPrice, currentValue: winner.currentValue,
-                    variant: winner.variant, is_ton_prize: false // Cases don't award direct TON
-                };
-                // Add to inventory immediately
-                const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === prizeForOverlay.id);
-                if (existingItemIndex === -1) { // Only add if not somehow already there (should be new)
-                     currentUser.inventory.push(prizeForOverlay);
-                }
-                
-                // Create a visual row for this win
-                const rowDiv = document.createElement('div'); rowDiv.className = 'roulette-row';
-                const spinnerReel = document.createElement('div'); spinnerReel.className = 'roulette-spinner-reel';
-                rowDiv.appendChild(spinnerReel);
-                rouletteWheelContainer.appendChild(rowDiv);
-
-                let spinnerItemsForDisplay = [];
-                const availablePrizes = currentOpenCaseOrSlot.prizes;
-                for (let i = 0; i < 70; i++) { const rp = availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; spinnerItemsForDisplay.push({name: rp.name, imageFilename: rp.imageFilename, floorPrice: rp.floorPrice}); }
+                if (index >= allReels.length) return;
+                const spinnerReel = allReels[index]; spinnerReel.innerHTML = '';
+                let spinnerItemsForDisplay = []; const availablePrizes = currentOpenCaseOrSlot.prizes; const numVisualItems = 70;
+                for (let i = 0; i < numVisualItems; i++) { const rp = availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; spinnerItemsForDisplay.push({name: rp.name, imageFilename: rp.imageFilename, floorPrice: rp.floorPrice}); }
                 const winnerVisualIdx = Math.floor(spinnerItemsForDisplay.length * 0.85);
                 spinnerItemsForDisplay[winnerVisualIdx] = { name: winner.name, imageFilename: winner.imageFilename, floorPrice: winner.floorPrice };
-                
                 spinnerItemsForDisplay.forEach(pData => { const iEl = document.createElement('div'); iEl.className = 'roulette-item'; const im = document.createElement('img'); im.src = IMAGE_BASE_URL + pData.imageFilename; im.alt = pData.name; iEl.appendChild(im); spinnerReel.appendChild(iEl); });
-                
                 const allItemsInThisSpinner = spinnerReel.querySelectorAll('.roulette-item');
-                const itemHeight = allItemsInThisSpinner[0].offsetHeight;
-                const rouletteRowVisibleHeight = rowDiv.clientHeight; // Height of one .roulette-row
-
-                let visualBiasOffsetPx = 0; /* ... (Your existing bias logic from previous full JS response) ... */
-                const BIAS_PERCENTAGE = 0.30;
-                const actualWinnerBaseFloorPrice = UPDATED_FLOOR_PRICES_FRONTEND[winner.name] || 0;
-                const itemAboveData = winnerVisualIdx > 0 ? spinnerItemsForDisplay[winnerVisualIdx - 1] : null;
-                const itemBelowData = winnerVisualIdx < spinnerItemsForDisplay.length - 1 ? spinnerItemsForDisplay[winnerVisualIdx + 1] : null;
+                const itemHeight = allItemsInThisSpinner[0] ? allItemsInThisSpinner[0].offsetHeight : 92;
+                const rouletteRowVisibleHeight = spinnerReel.parentElement.clientHeight;
+                let visualBiasOffsetPx = 0; const BIAS_PERCENTAGE = 0.30; const actualWinnerBaseFloorPrice = UPDATED_FLOOR_PRICES_FRONTEND[winner.name] || 0;
+                const itemAboveData = winnerVisualIdx > 0 ? spinnerItemsForDisplay[winnerVisualIdx - 1] : null; const itemBelowData = winnerVisualIdx < spinnerItemsForDisplay.length - 1 ? spinnerItemsForDisplay[winnerVisualIdx + 1] : null;
                 let isNearPepeOrHighValue = false;
                 if (itemAboveData) { const aboveFloor = UPDATED_FLOOR_PRICES_FRONTEND[itemAboveData.name] || 0; if (itemAboveData.name === 'Plush Pepe' || aboveFloor > actualWinnerBaseFloorPrice * 10) { visualBiasOffsetPx = itemHeight * BIAS_PERCENTAGE; isNearPepeOrHighValue = true;} }
                 if (!isNearPepeOrHighValue && itemBelowData) { const belowFloor = UPDATED_FLOOR_PRICES_FRONTEND[itemBelowData.name] || 0; if (itemBelowData.name === 'Plush Pepe' || belowFloor > actualWinnerBaseFloorPrice * 10) { visualBiasOffsetPx = -itemHeight * BIAS_PERCENTAGE; isNearPepeOrHighValue = true;} }
                 if (!isNearPepeOrHighValue) visualBiasOffsetPx = (Math.random() - 0.5) * (itemHeight * 0.20);
                 let scrollDist = (winnerVisualIdx * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx;
-                
                 spinnerReel.style.transition = 'none'; spinnerReel.style.top = '0px'; void spinnerReel.offsetWidth;
-                spinnerReel.style.transition = 'top 6s cubic-bezier(0.25, 0.1, 0.2, 1)'; spinnerReel.style.top = `-${scrollDist}px`;
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; spinnerReel.style.top = `-${scrollDist}px`;
             });
-            renderInventory(); // Update inventory display
-
-            // After animation for ALL reels finishes, show win overlay for the FIRST prize (or handle multiple prizes display)
+            const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
-                if (result.won_prizes.length === 1) {
-                    showWinOverlay(result.won_prizes[0]);
-                } else if (result.won_prizes.length > 1) {
-                    // For multiple wins, you might list them or show the most valuable one in overlay
-                    // For now, just show the first one.
-                    showWinOverlay(result.won_prizes[0]);
-                    showTGNotification(`You won ${result.won_prizes.length} items! Check your collection.`, 'success');
+                result.won_prizes.forEach(wp => { const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id); if (existingItemIndex === -1 && wp.id) { currentUser.inventory.push({ id: wp.id, name: wp.name, imageFilename: wp.imageFilename, currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: false }); }});
+                renderInventory();
+                if (result.won_prizes.length > 0) {
+                    const firstWonPrizeData = result.won_prizes[0];
+                    const prizeToShowInOverlay = { id: firstWonPrizeData.id, name: firstWonPrizeData.name, imageFilename: firstWonPrizeData.imageFilename, currentValue: firstWonPrizeData.currentValue, variant: firstWonPrizeData.variant, is_ton_prize: false };
+                    showWinOverlay(prizeToShowInOverlay);
+                    if (result.won_prizes.length > 1) showTGNotification(`You won ${result.won_prizes.length} items! The first is shown.`, 'success');
                 }
-            }, 6100 * result.won_prizes.length); // Stagger overlay if animating multiple reels sequentially, or show after all finish
-
-        } else { showTGNotification(result.error || result.message || 'Failed to open.', 'error'); }
-    } catch (e) { console.error("Spin roulette error", e); spinButton.disabled = false; updateSpinButtonText(); }
+            }, animationDuration + 100);
+        } else { showTGNotification(result.error || result.message || 'Failed to open case.', 'error'); }
+    } catch (e) { console.error("Spin roulette error", e); spinButton.disabled = false; updateSpinButtonText(); showTGNotification("Error during spin. Try again.", "error");}
 }
 
-// Slot Machine Logic (Point 3)
+function initializeSlotReels(slotItem) {
+    const reelSpinners = slotReelsContainer.querySelectorAll('.slot-reel-spinner');
+    let prizePoolForVisuals = [];
+    if (casesData.length > 0 && casesData[0].prizes) { prizePoolForVisuals = casesData[0].prizes.map(p => ({ name: p.name, imageFilename: p.imageFilename })); }
+    else { prizePoolForVisuals = [{ name: "Gift", imageFilename: generateImageFilename("Lol Pop") }]; }
+    if(prizePoolForVisuals.length === 0) prizePoolForVisuals.push({ name: "Default", imageFilename: TON_COIN_IMG });
+
+    const numVisualItemsPerReel = 30; const itemDisplayHeight = 100;
+    const reelVisibleHeight = slotReelsContainer.querySelector('.slot-reel').clientHeight;
+    reelSpinners.forEach(spinner => {
+        spinner.innerHTML = ''; let visualReelSymbols = [];
+        for (let i = 0; i < numVisualItemsPerReel; i++) visualReelSymbols.push(prizePoolForVisuals[Math.floor(Math.random() * prizePoolForVisuals.length)]);
+        visualReelSymbols.forEach(p => { const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item'; const img = document.createElement('img'); img.src = IMAGE_BASE_URL + (p.imageFilename || TON_COIN_IMG); img.alt = p.name; itemEl.appendChild(img); spinner.appendChild(itemEl); });
+        const initialPosIdx = Math.floor(numVisualItemsPerReel / 2); 
+        const initialScroll = (initialPosIdx * itemDisplayHeight) + (itemDisplayHeight / 2) - (reelVisibleHeight / 2);
+        spinner.style.transition = 'none'; spinner.style.top = `-${initialScroll}px`;
+    });
+}
 function openSlotMachineModal(slotItem) {
-    currentOpenCaseOrSlot = slotItem;
-    slotMachineName.textContent = slotItem.name;
+    currentOpenCaseOrSlot = slotItem; slotMachineName.textContent = slotItem.name;
     slotPriceDisplay.textContent = `Cost: ${parseFloat(slotItem.priceTON).toFixed(1)} TON`;
-    spinSlotButton.disabled = false;
-    slotPrizeDisplay.innerHTML = '';
-    // Clear previous reel items
-    slotReelsContainer.querySelectorAll('.slot-reel-spinner').forEach(spinner => spinner.innerHTML = '');
-    slotMachineModal.classList.add('active');
-    if (tgBackButton) pushTgBackButtonHandler(closeSlotModalWithBackButton);
+    spinSlotButton.disabled = false; spinSlotButton.textContent = 'Spin Slot'; slotPrizeDisplay.innerHTML = '';
+    initializeSlotReels(slotItem); // Initialize visuals
+    slotMachineModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeSlotModalWithBackButton);
 }
-function closeSlotModal() { if (tgBackButton) popTgBackButtonHandler(); slotMachineModal.classList.remove('active'); currentOpenCaseOrSlot = null;}
-
+function closeSlotModal() { if (tgBackButton) popTgBackButtonHandler(); slotMachineModal.classList.remove('active'); currentOpenCaseOrSlot = null; if(slotSpinEndTimeout) clearTimeout(slotSpinEndTimeout); }
 async function spinSlotMachine() {
     if (!currentOpenCaseOrSlot) return;
-    spinSlotButton.disabled = true; spinSlotButton.textContent = 'Spinning...';
-    slotPrizeDisplay.innerHTML = '';
-
+    spinSlotButton.disabled = true; spinSlotButton.textContent = 'Spinning...'; slotPrizeDisplay.innerHTML = '';
     try {
         const result = await apiRequest('/api/spin_slot', 'POST', { slot_id: currentOpenCaseOrSlot.id });
         spinSlotButton.disabled = false; spinSlotButton.textContent = 'Spin Slot';
-
         if (result.status === 'success') {
             currentUser.tonBalance = result.new_balance_ton; updateBalances();
             const reelElements = slotReelsContainer.querySelectorAll('.slot-reel-spinner');
             const reelHeight = slotReelsContainer.querySelector('.slot-reel').clientHeight;
-            const itemDisplayHeight = 100; // Assuming .slot-reel-item height
-
+            const itemDisplayHeight = 100;
             result.reel_results.forEach((landedPrize, reelIndex) => {
                 if (reelElements[reelIndex]) {
-                    const spinner = reelElements[reelIndex];
-                    spinner.innerHTML = ''; // Clear previous
-                    // Create a list of symbols for this reel visual spin, with landedPrize at target position
-                    let visualReelItems = [];
-                    const prizePoolForVisuals = slotsData.find(s=>s.id === currentOpenCaseOrSlot.id)?.prize_pool_frontend_temp || casesData[0].prizes; // Fallback
+                    const spinner = reelElements[reelIndex]; spinner.innerHTML = '';
+                    let visualReelItems = []; const prizePoolForVisuals = slotsData.find(s=>s.id === currentOpenCaseOrSlot.id)?.prize_pool_frontend_temp || casesData[0].prizes; 
                     for(let i=0; i<20; i++) visualReelItems.push(prizePoolForVisuals[Math.floor(Math.random() * prizePoolForVisuals.length)]);
                     const targetIdx = Math.floor(visualReelItems.length * 0.8);
-                    visualReelItems[targetIdx] = landedPrize; // Ensure landed prize is in visual strip
-
-                    visualReelItems.forEach(p => {
-                        const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item';
-                        const img = document.createElement('img');
-                        img.src = IMAGE_BASE_URL + (p.imageFilename || TON_COIN_IMG);
-                        img.alt = p.name;
-                        itemEl.appendChild(img);
-                        spinner.appendChild(itemEl);
-                    });
-                    // Animate to the targetIdx
+                    visualReelItems[targetIdx] = landedPrize;
+                    visualReelItems.forEach(p => { const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item'; const img = document.createElement('img'); img.src = IMAGE_BASE_URL + (p.imageFilename || TON_COIN_IMG); img.alt = p.name; itemEl.appendChild(img); spinner.appendChild(itemEl); });
                     const landingPosition = (targetIdx * itemDisplayHeight) + (itemDisplayHeight/2) - (reelHeight/2);
                     spinner.style.transition = 'none'; spinner.style.top = '0px'; void spinner.offsetWidth;
                     spinner.style.transition = `top ${2 + reelIndex * 0.5}s cubic-bezier(0.25,0.1,0.2,1)`;
                     spinner.style.top = `-${landingPosition}px`;
                 }
             });
-
-            // Handle display of won prizes after animation
-            setTimeout(() => {
+            const num_reels_from_backend = result.reel_results.length;
+            const totalAnimationTime = 2000 + (num_reels_from_backend -1) * 500;
+            if(slotSpinEndTimeout) clearTimeout(slotSpinEndTimeout);
+            slotSpinEndTimeout = setTimeout(() => {
                 if (result.won_prizes && result.won_prizes.length > 0) {
-                    let displayMessage = "You Won: ";
+                    let displayMessage = ""; let firstItemPrize = null;
                     result.won_prizes.forEach((prize, index) => {
                         displayMessage += `${prize.name}${index < result.won_prizes.length - 1 ? ', ' : ''}`;
-                        // Add to inventory if it's not a TON prize that was already credited
-                        if (!prize.is_ton_prize) {
-                            currentUser.inventory.push(prize); // id, name, imageFilename, currentValue, etc.
-                        }
+                        if (!prize.is_ton_prize && !firstItemPrize) firstItemPrize = prize;
+                        if (!prize.is_ton_prize) { const existingItem = currentUser.inventory.find(invItem => invItem.id === prize.id); if (!existingItem && prize.id) currentUser.inventory.push({ id: prize.id, name: prize.name, imageFilename: prize.imageFilename, currentValue: prize.currentValue, variant: prize.variant, is_ton_prize: false }); }
                     });
-                    slotPrizeDisplay.textContent = displayMessage + "!";
-                    slotPrizeDisplay.style.color = 'var(--success-color)';
-                    showTGNotification(displayMessage, 'success');
-                    renderInventory(); // Update inventory display
-                } else {
-                    slotPrizeDisplay.textContent = "Try Again!";
-                    slotPrizeDisplay.style.color = 'var(--text-secondary)';
-                }
-            }, 2500 + num_reels * 500); // Wait for all reels to "settle"
-
+                    if (firstItemPrize) { showWinOverlay(firstItemPrize); if (result.won_prizes.length > 1) { slotPrizeDisplay.textContent = "Won: " + displayMessage + "!"; slotPrizeDisplay.style.color = 'var(--success-color)'; }}
+                    else { slotPrizeDisplay.textContent = (result.won_prizes.length > 0) ? "You Won: " + displayMessage + "!" : "Try Again!"; slotPrizeDisplay.style.color = (result.won_prizes.length > 0) ? 'var(--success-color)' : 'var(--text-secondary)'; }
+                    if (result.won_prizes.length > 0) showTGNotification("Spin result: " + displayMessage, 'success');
+                    renderInventory();
+                } else { slotPrizeDisplay.textContent = "Try Again!"; slotPrizeDisplay.style.color = 'var(--text-secondary)'; }
+            }, totalAnimationTime + 100);
         } else { showTGNotification(result.error || "Slot spin failed.", 'error'); }
     } catch (e) { console.error("Slot spin error", e); spinSlotButton.disabled = false; spinSlotButton.textContent = 'Spin Slot'; }
 }
 
-
-// --- Other Page Logic (convertToTon, handleUpgrade, sellAll, withdrawal, deposit, promocode) ---
-// (These are largely the same as your previous full JS response, ensure they use item.id for operations)
-async function convertToTon(itemId) { // itemId is inventory_item.id
-    if (!lastWonPrizeForOverlay && !itemId) { showTGNotification("No item to convert.", "warning"); return; }
-    const idToConvert = itemId || lastWonPrizeForOverlay?.id;
-    if (!idToConvert) { showTGNotification("Item ID missing.", "error"); return; }
-    const itemInInventory = currentUser.inventory.find(i => i.id === idToConvert);
-    if (itemInInventory && itemInInventory.is_ton_prize) { showTGNotification("Cannot convert TON prize to TON.", "info"); return; }
-
-    try { const res = await apiRequest('/api/convert_to_ton', 'POST', {inventory_item_id: parseInt(idToConvert)}); if (res.status==='success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(idToConvert)); updateBalances(); renderInventory(); showTGNotification(res.message, 'success'); closeWinOverlayModal(); } else showTGNotification(res.error||res.message||'Failed.', 'error'); } catch(e){}
-}
-async function handleUpgrade() { const itemId = upgradeElements.inventorySelect.value; if (!itemId) { showTGNotification("Select item.", 'warning'); return; } upgradeElements.upgradeResult.textContent = "Attempting..."; upgradeElements.doUpgradeButton.disabled = true; try { const res = await apiRequest('/api/upgrade_item', 'POST', {inventory_item_id: parseInt(itemId), multiplier_str: selectedMultiplier.toString()}); if (res.status === 'success') { const upItem = res.item; const idx = currentUser.inventory.findIndex(i=>i.id===upItem.id); if (idx!==-1) { currentUser.inventory[idx].currentValue=upItem.currentValue; currentUser.inventory[idx].upgradeMultiplier=upItem.upgradeMultiplier; currentUser.inventory[idx].name=upItem.name; } upgradeElements.upgradeResult.textContent = res.message; upgradeElements.upgradeResult.style.color = 'var(--success-color)'; showTGNotification("Success!", 'success'); } else { if (res.message?.includes("lost") || res.item_lost) currentUser.inventory = currentUser.inventory.filter(i=>i.id!==parseInt(itemId)); upgradeElements.upgradeResult.textContent=res.message; upgradeElements.upgradeResult.style.color='var(--danger-color)'; showTGNotification(res.message||"Failed.", 'error');} renderInventory(); updateBalances(); upgradeElements.doUpgradeButton.disabled=false; upgradeElements.inventorySelect.value=''; } catch(e){ upgradeElements.upgradeResult.textContent="Error."; upgradeElements.upgradeResult.style.color='var(--danger-color)'; upgradeElements.doUpgradeButton.disabled=false;}}
-async function sellAllItems() { if (!currentUser.inventory.filter(i => !i.is_ton_prize).length) {showTGNotification("No sellable items.", "info"); return;} const val = parseFloat(profileElements.sellAllValueSpan.textContent); if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) doSellAll(); }
-async function doSellAll() { try { const res = await apiRequest('/api/sell_all_items', 'POST'); if (res.status==='success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory=currentUser.inventory.filter(i => i.is_ton_prize); updateBalances(); renderInventory(); showTGNotification(res.message, "success"); } else showTGNotification(res.message||"Failed.", "error");} catch(e){} }
+async function convertToTon(itemId) { if (!lastWonPrizeForOverlay && !itemId) { showTGNotification("No item to convert.", "warning"); return; } const idToConvert = itemId || lastWonPrizeForOverlay?.id; if (!idToConvert) { showTGNotification("Item ID missing.", "error"); return; } const itemInInventory = currentUser.inventory.find(i => i.id === idToConvert); if (itemInInventory && itemInInventory.is_ton_prize) { showTGNotification("Cannot convert TON prize to TON.", "info"); return; } try { const res = await apiRequest('/api/convert_to_ton', 'POST', {inventory_item_id: parseInt(idToConvert)}); if (res.status==='success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(idToConvert)); updateBalances(); renderInventory(); showTGNotification(res.message, 'success'); closeWinOverlayModal(); } else showTGNotification(res.error||res.message||'Failed.', 'error'); } catch(e){ showTGNotification("Conversion request failed.", "error");}}
+async function handleUpgrade() { const itemId = upgradeElements.inventorySelect.value; if (!itemId) { showTGNotification("Select item.", 'warning'); return; } upgradeElements.upgradeResult.textContent = "Attempting..."; upgradeElements.doUpgradeButton.disabled = true; try { const res = await apiRequest('/api/upgrade_item', 'POST', {inventory_item_id: parseInt(itemId), multiplier_str: selectedUpgradeMultiplier.toString()}); if (res.status === 'success') { const upItem = res.item; const idx = currentUser.inventory.findIndex(i=>i.id===parseInt(itemId)); if (idx!==-1) { currentUser.inventory[idx]=upItem; } else {currentUser.inventory.push(upItem); } upgradeElements.upgradeResult.textContent = res.message; upgradeElements.upgradeResult.style.color = 'var(--success-color)'; showTGNotification("Success!", 'success'); } else { if (res.item_lost) currentUser.inventory = currentUser.inventory.filter(i=>i.id!==parseInt(itemId)); upgradeElements.upgradeResult.textContent=res.message || "Upgrade failed."; upgradeElements.upgradeResult.style.color='var(--danger-color)'; showTGNotification(res.message||"Failed.", 'error');} renderInventory(); updateBalances(); upgradeElements.doUpgradeButton.disabled=false; upgradeElements.inventorySelect.value=''; } catch(e){ upgradeElements.upgradeResult.textContent="Error."; upgradeElements.upgradeResult.style.color='var(--danger-color)'; upgradeElements.doUpgradeButton.disabled=false;}}
+async function sellAllItems() { const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize); if (!sellableItems.length) {showTGNotification("No sellable items.", "info"); return;} const val = parseFloat(profileElements.sellAllValueSpan.textContent); if (Telegram.WebApp.showConfirm) { Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => { if (ok) doSellAll(); }); } else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) { doSellAll(); } }
+async function doSellAll() { try { const res = await apiRequest('/api/sell_all_items', 'POST'); if (res.status==='success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory=currentUser.inventory.filter(i => i.is_ton_prize); updateBalances(); renderInventory(); showTGNotification(res.message, "success"); } else showTGNotification(res.message||"Failed.", "error");} catch(e){showTGNotification("Sell all request failed.", "error");} }
 function showWithdrawStep(step) { withdrawSteps.forEach((s, i) => s.classList.toggle('active', i+1 === step)); }
 function startWithdrawalProcess(inventoryItemId) { const item = currentUser.inventory.find(i=>i.id===parseInt(inventoryItemId)); if(!item || item.is_ton_prize){showTGNotification("Item not found or not withdrawable.","error");return;} itemToWithdraw=inventoryItemId; withdrawModal.querySelector('h3').textContent=`Withdraw ${item.name}`; showWithdrawStep(1); withdrawModal.classList.add('active'); if(tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton); }
-async function completeWithdrawal() { if(!itemToWithdraw){showTGNotification("No item selected.","error");return;} withdrawStatusMessage.textContent="Processing Tonnel withdrawal..."; withdrawModal.querySelector('.loader').style.display='block'; try { const res = await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`, 'POST'); if(res.status === 'success'){ const idx = currentUser.inventory.findIndex(i => i.id === itemToWithdraw); if(idx !== -1)currentUser.inventory.splice(idx,1); renderInventory(); withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!"; withdrawStatusMessage.style.color = 'var(--success-color)'; showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success'); showWithdrawStep(3); /* Keep on step 3 */ } else { withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error'); /* Stay on step 3 or allow retry? */}} catch(e){withdrawStatusMessage.textContent = "Error."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification("Error processing Tonnel withdrawal.", "error");} finally {withdrawModal.querySelector('.loader').style.display='none'; /* itemToWithdraw = null; Don't clear here if staying on step 3 */}}
+async function completeWithdrawal() { if(!itemToWithdraw){showTGNotification("No item selected.","error");return;} withdrawStatusMessage.textContent="Processing Tonnel withdrawal..."; withdrawModal.querySelector('.loader').style.display='block'; try { const res = await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`, 'POST'); if(res.status === 'success'){ const idx = currentUser.inventory.findIndex(i => i.id === itemToWithdraw); if(idx !== -1)currentUser.inventory.splice(idx,1); renderInventory(); withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!"; withdrawStatusMessage.style.color = 'var(--success-color)'; showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success'); showWithdrawStep(3); } else { withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error'); }} catch(e){withdrawStatusMessage.textContent = "Error processing withdrawal."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification("Error processing Tonnel withdrawal.", "error");} finally {withdrawModal.querySelector('.loader').style.display='none';}}
 function closeWithdrawModal() { if(tgBackButton)popTgBackButtonHandler(); withdrawModal.classList.remove('active'); itemToWithdraw=null; showWithdrawStep(1); withdrawModal.querySelector('h3').textContent="Withdraw Gift"; withdrawStatusMessage.textContent=""; withdrawModal.querySelector('.loader').style.display='none'; }
-async function initiateDepositProcedure() { const amtTxt = profileElements.depositAmountInput.value; if(!amtTxt.trim()){showTGNotification("Enter amount.","warning");return;} const amt=parseFloat(amtTxt); if(isNaN(amt)||amt<=0||amt<0.1||amt>10000){showTGNotification("Invalid amount.","error");return;} profileElements.initiateDepositButton.disabled=true; profileElements.initiateDepositButton.textContent="Initializing..."; try { const res = await apiRequest('/api/initiate_deposit','POST',{amount:amt}); profileElements.initiateDepositButton.disabled=false; profileElements.initiateDepositButton.textContent="Deposit TON"; if(res.status==='success'){currentPendingDepositId=res.pending_deposit_id; depositRecipientAddressRaw=res.recipient_address; depositCommentText=res.comment; const nanoAmt = res.final_amount_nano_ton || Math.round(parseFloat(res.amount_to_send)*1e9); tonTransferLink.href=`ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`; startDepositExpiryTimer(res.expires_at); depositStatusMessageEl.textContent=''; depositLoader.style.display='none'; confirmPaymentSentButton.disabled=false; confirmPaymentSentButton.textContent='I Sent Funds'; depositInstructionsModal.classList.add('active'); if(tgBackButton)pushTgBackButtonHandler(closeDepositModalWithBackButton);} else showTGNotification(res.message||res.error||'Failed.','error');} catch(e){profileElements.initiateDepositButton.disabled=false; profileElements.initiateDepositButton.textContent="Deposit TON";}}
+async function initiateDepositProcedure() { const amtTxt = profileElements.depositAmountInput.value; if(!amtTxt.trim()){showTGNotification("Enter amount.","warning");return;} const amt=parseFloat(amtTxt); if(isNaN(amt)||amt<=0||amt<0.1||amt>10000){showTGNotification("Invalid amount. Min 0.1 TON","error");return;} profileElements.initiateDepositButton.disabled=true; profileElements.initiateDepositButton.textContent="Initializing..."; try { const res = await apiRequest('/api/initiate_deposit','POST',{amount:amt}); profileElements.initiateDepositButton.disabled=false; profileElements.initiateDepositButton.textContent="Deposit TON"; if(res.status==='success'){currentPendingDepositId=res.pending_deposit_id; depositRecipientAddressRaw=res.recipient_address; depositCommentText=res.comment; const nanoAmt = res.final_amount_nano_ton || Math.round(parseFloat(res.amount_to_send)*1e9); tonTransferLink.href=`ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`; startDepositExpiryTimer(res.expires_at); depositStatusMessageEl.textContent=''; depositLoader.style.display='none'; confirmPaymentSentButton.disabled=false; confirmPaymentSentButton.textContent='I Sent Funds'; depositInstructionsModal.classList.add('active'); if(tgBackButton)pushTgBackButtonHandler(closeDepositModalWithBackButton);} else showTGNotification(res.message||res.error||'Failed.','error');} catch(e){profileElements.initiateDepositButton.disabled=false; profileElements.initiateDepositButton.textContent="Deposit TON"; showTGNotification("Deposit init request failed.", "error");}}
 function startDepositExpiryTimer(expiresISO) { if(depositExpiryInterval)clearInterval(depositExpiryInterval); const expiry=new Date(expiresISO).getTime(); function update(){ const now=new Date().getTime(); const dist=expiry-now; if(dist<0){clearInterval(depositExpiryInterval);depositExpiryInfo.textContent="Expired.";confirmPaymentSentButton.disabled=true;tonTransferLink.classList.add('button-secondary');return;} const m=Math.floor((dist%(1e3*60*60))/(1e3*60)); const s=Math.floor((dist%(1e3*60))/1e3); depositExpiryInfo.textContent=`Expires in ${m}m ${s}s.`; tonTransferLink.classList.remove('button-secondary');} update(); depositExpiryInterval=setInterval(update,1e3); }
-async function verifyPaymentSent() { if(!currentPendingDepositId){showTGNotification("No deposit.","error");return;} confirmPaymentSentButton.disabled=true; confirmPaymentSentButton.textContent="Verifying..."; depositLoader.style.display='block'; depositStatusMessageEl.textContent='Checking...'; try { const res = await apiRequest('/api/verify_deposit','POST',{pending_deposit_id:currentPendingDepositId}); if(res.status==='success'){showTGNotification(res.message,'success');currentUser.tonBalance=res.new_balance_ton;updateBalances();renderProfile();closeDepositInstructionsModal();} else if (res.status==='pending'){depositStatusMessageEl.textContent=res.message;confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Check Again";} else {showTGNotification(res.message||"Failed.","error");depositStatusMessageEl.textContent=res.message||"Failed.";if(res.status==='expired')tonTransferLink.classList.add('button-secondary'); else {confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Try Again";}}} catch(e){depositStatusMessageEl.textContent='Error.';confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Try Again";} finally {if(depositLoader.style.display==='block'&&!depositStatusMessageEl.textContent.includes('Checking'))depositLoader.style.display='none';}}
+async function verifyPaymentSent() { if(!currentPendingDepositId){showTGNotification("No deposit.","error");return;} confirmPaymentSentButton.disabled=true; confirmPaymentSentButton.textContent="Verifying..."; depositLoader.style.display='block'; depositStatusMessageEl.textContent='Checking...'; try { const res = await apiRequest('/api/verify_deposit','POST',{pending_deposit_id:currentPendingDepositId}); if(res.status==='success'){showTGNotification(res.message,'success');currentUser.tonBalance=res.new_balance_ton;updateBalances();renderProfile();closeDepositInstructionsModal();} else if (res.status==='pending'){depositStatusMessageEl.textContent=res.message;confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Check Again";} else {showTGNotification(res.message||"Failed.","error");depositStatusMessageEl.textContent=res.message||"Failed.";if(res.status==='expired')tonTransferLink.classList.add('button-secondary'); else {confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Try Again";}}} catch(e){depositStatusMessageEl.textContent='Error verifying.';confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Try Again"; showTGNotification("Verification request failed.", "error");} finally {if(depositLoader.style.display==='block'&&!depositStatusMessageEl.textContent.includes('Checking'))depositLoader.style.display='none';}}
 function closeDepositInstructionsModal() { if(tgBackButton)popTgBackButtonHandler(); depositInstructionsModal.classList.remove('active'); if(depositExpiryInterval)clearInterval(depositExpiryInterval); currentPendingDepositId=null; profileElements.depositAmountInput.value=''; tonTransferLink.href='#'; depositStatusMessageEl.textContent=''; depositLoader.style.display='none'; depositExpiryInfo.textContent='';}
-async function redeemPromocode() { const code = profileElements.promocodeInput.value.trim(); if(!code){showTGNotification("Enter code.","warning");return;} profileElements.redeemPromocodeButton.disabled=true; try { const res = await apiRequest('/api/redeem_promocode','POST',{promocode_text:code}); if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;updateBalances();showTGNotification(res.message,'success');profileElements.promocodeInput.value='';} else showTGNotification(res.message||res.error||"Failed.","error");} catch(e){} finally {profileElements.redeemPromocodeButton.disabled=false;}}
+async function redeemPromocode() { const code = profileElements.promocodeInput.value.trim(); if(!code){showTGNotification("Enter code.","warning");return;} profileElements.redeemPromocodeButton.disabled=true; try { const res = await apiRequest('/api/redeem_promocode','POST',{promocode_text:code}); if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;updateBalances();showTGNotification(res.message,'success');profileElements.promocodeInput.value='';} else showTGNotification(res.message||res.error||"Failed.","error");} catch(e){ showTGNotification("Promocode request failed.", "error");} finally {profileElements.redeemPromocodeButton.disabled=false;}}
 
-// --- Event Listeners ---
 appNavButtons.forEach(b=>b.addEventListener('click',()=>navigateToPage(b.dataset.page)));
 spinButton.addEventListener('click',spinRoulette); closeRouletteButton.addEventListener('click',closeRouletteModal);
-winOverlaySaveBtn.addEventListener('click', closeWinOverlayModal); // Just closes for now, item already saved
+winOverlaySaveBtn.addEventListener('click', closeWinOverlayModal);
 winOverlayConvertBtn.addEventListener('click', () => { if(lastWonPrizeForOverlay) convertToTon(lastWonPrizeForOverlay.id); });
 spinSlotButton.addEventListener('click', spinSlotMachine); closeSlotModalButton.addEventListener('click', closeSlotModal);
 caseMultiplierSelector.querySelectorAll('button').forEach(btn => { btn.addEventListener('click', (e) => { selectedCaseMultiplier = parseInt(e.target.dataset.multiplier); updateCaseMultiplierButtons(); updateSpinButtonText(); }); });
 profileElements.disconnectWalletButton.addEventListener('click',()=>tonConnectUI.disconnect()); profileElements.initiateDepositButton.addEventListener('click',initiateDepositProcedure); profileElements.redeemPromocodeButton.addEventListener('click',redeemPromocode);
 withdrawStep1NextBtn.addEventListener('click',()=>showWithdrawStep(2)); withdrawStep2BackBtn.addEventListener('click',()=>showWithdrawStep(1)); withdrawStep2NextBtn.addEventListener('click',()=>{showWithdrawStep(3);completeWithdrawal();}); withdrawStep3CloseBtn.addEventListener('click',closeWithdrawModal); closeWithdrawModalButton?.addEventListener('click',closeWithdrawModal);
-upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b=>{b.addEventListener('click',e=>{selectedMultiplier=parseFloat(e.target.dataset.multiplier); const ch=parseFloat(e.target.dataset.chance); upgradeElements.chanceDisplay.textContent=`${ch}%`; upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn=>{btn.classList.remove('active-multiplier');if(!btn.classList.contains('button-secondary'))btn.classList.add('button-secondary');}); e.target.classList.add('active-multiplier'); if(e.target.classList.contains('button-secondary'))e.target.classList.remove('button-secondary');});}); const defMultBtn = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`); if(defMultBtn){defMultBtn.click();} /* Default select 1.5x */
+upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b=>{b.addEventListener('click',e=>{ selectedUpgradeMultiplier=parseFloat(e.target.dataset.multiplier); const ch=parseFloat(e.target.dataset.chance); upgradeElements.chanceDisplay.textContent=`${ch}%`; upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn=>{btn.classList.remove('active-multiplier');if(!btn.classList.contains('button-secondary'))btn.classList.add('button-secondary');}); e.target.classList.add('active-multiplier'); if(e.target.classList.contains('button-secondary'))e.target.classList.remove('button-secondary');});});
+const defMultBtn = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`); if(defMultBtn){defMultBtn.click(); selectedUpgradeMultiplier = 1.5;}
 upgradeElements.doUpgradeButton.addEventListener('click',handleUpgrade);
 inviteElements.copyRefLinkButton.addEventListener('click',()=>{navigator.clipboard.writeText(inviteElements.referralLink.value).then(()=>showTGNotification("Copied!",'success')).catch(()=>showTGNotification("Failed.",'error'));});
-inviteElements.withdrawReferralButton.addEventListener('click',async ()=>{try{const res=await apiRequest('/api/withdraw_referral_earnings','POST');if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;currentUser.referralEarningsPending=res.new_referral_earnings_pending;updateBalances();renderInvitePage();showTGNotification(res.message,'success');} else showTGNotification(res.message||"Failed.","error");}catch(e){}});
+inviteElements.withdrawReferralButton.addEventListener('click',async ()=>{try{const res=await apiRequest('/api/withdraw_referral_earnings','POST');if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;currentUser.referralEarningsPending=res.new_referral_earnings_pending;updateBalances();renderInvitePage();showTGNotification(res.message,'success');} else showTGNotification(res.message||"Failed.","error");}catch(e){showTGNotification("Withdrawal request failed.", "error");}});
 profileElements.sellAllButton?.addEventListener('click',sellAllItems);
 confirmPaymentSentButton?.addEventListener('click',verifyPaymentSent); cancelDepositButton?.addEventListener('click',closeDepositInstructionsModal);
 
-// --- Initialization ---
 async function fetchInitialUserData() { if (!Telegram.WebApp.initData) { console.warn("No initData."); updateUIBasedOnWallet(null); renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); navigateToPage('main-page'); return false; } try { const data = await apiRequest('/api/get_user_data', 'POST', {}); Object.assign(currentUser, data, {first_name: data.first_name || 'User'}); return true; } catch (e) { showTGNotification("Could not load profile.", 'error'); return false; } }
 async function initializeApp() {
-    console.log("App Init vFullFeatures");
+    console.log("App Init vFullFeatures-Fixes");
     const allImageUrls = new Set();
     casesData.forEach(c => { if (c.imageFilename && !c.isBackgroundCase) allImageUrls.add(IMAGE_BASE_URL + c.imageFilename); else if (c.bgImageFilename && c.isBackgroundCase && c.id !== 'black') allImageUrls.add(CASE_BG_IMAGE_BASE_URL + c.bgImageFilename); else if (c.id === 'black') allImageUrls.add('https://i.ibb.co/JR1nWpdn/image-1.png'); if (c.overlayPrizeName) allImageUrls.add(IMAGE_BASE_URL + generateImageFilename(c.overlayPrizeName)); c.prizes.forEach(p => allImageUrls.add(IMAGE_BASE_URL + p.imageFilename)); });
-    slotsData.forEach(s => { if(s.imageFilename) allImageUrls.add(IMAGE_BASE_URL + s.imageFilename); /* Add slot prize images if they are distinct */ });
-    allImageUrls.add(IMAGE_BASE_URL + TON_COIN_IMG); // Add TON coin image
+    slotsData.forEach(s => { if(s.imageFilename) allImageUrls.add(IMAGE_BASE_URL + s.imageFilename); });
+    allImageUrls.add(IMAGE_BASE_URL + TON_COIN_IMG);
     allImageUrls.forEach(url => { const img = new Image(); img.src = url;});
 
     if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton; let dataFetched = false;
