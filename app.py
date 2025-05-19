@@ -167,90 +167,172 @@ def encrypt_aes_cryptojs_compat(plain_text: str, secret_passphrase: str) -> str:
     encrypted_base64 = base64.b64encode(salted_ciphertext).decode('utf-8')
     return encrypted_base64
 
+import logging
+import json
+import time
+import base64
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
+from Crypto.Util.Padding import pad
+import hashlib
+from curl_cffi.requests import AsyncSession, RequestsError # Assuming this is the correct import
+
+logger = logging.getLogger(__name__)
+
+# --- Pure Python AES Encryption (CryptoJS Compatible) ---
+SALT_SIZE = 8
+KEY_SIZE = 32
+IV_SIZE = 16
+
+def derive_key_and_iv(passphrase: str, salt: bytes, key_length: int, iv_length: int) -> tuple[bytes, bytes]:
+    derived = b''
+    hasher = hashlib.md5()
+    hasher.update(passphrase.encode('utf-8'))
+    hasher.update(salt)
+    derived_block = hasher.digest()
+    derived += derived_block
+    while len(derived) < key_length + iv_length:
+        hasher = hashlib.md5()
+        hasher.update(derived_block)
+        hasher.update(passphrase.encode('utf-8'))
+        hasher.update(salt)
+        derived_block = hasher.digest()
+        derived += derived_block
+    key = derived[:key_length]
+    iv = derived[key_length : key_length + iv_length]
+    return key, iv
+
+def encrypt_aes_cryptojs_compat(plain_text: str, secret_passphrase: str) -> str:
+    salt = get_random_bytes(SALT_SIZE)
+    key, iv = derive_key_and_iv(secret_passphrase, salt, KEY_SIZE, IV_SIZE)
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    plain_text_bytes = plain_text.encode('utf-8')
+    padded_plain_text = pad(plain_text_bytes, AES.block_size, style='pkcs7')
+    ciphertext = cipher.encrypt(padded_plain_text)
+    salted_ciphertext = b"Salted__" + salt + ciphertext
+    encrypted_base64 = base64.b64encode(salted_ciphertext).decode('utf-8')
+    return encrypted_base64
+
+
 class TonnelGiftSender:
     def __init__(self, sender_auth_data: str, gift_secret_passphrase: str):
         self.passphrase_secret = gift_secret_passphrase
         self.authdata = sender_auth_data
-        self._session_instance = None
+        self._session_instance: AsyncSession | None = None
 
-    async def _get_session(self):
-        if self._session_instance is None or self._session_instance.closed:
-            self._session_instance = AsyncSession(impersonate="chrome110", http_version=2)
+    async def _get_session(self) -> AsyncSession:
+        if self._session_instance is None:
+            # According to curl_cffi.requests.AsyncSession docs (page 8-9 of your OCR),
+            # impersonate is not a direct constructor argument for AsyncSession itself.
+            # It's a parameter for the request methods (get, post, etc.) or Session.
+            # However, AsyncSession accepts **kwargs which unpack BaseSessionParams,
+            # and BaseSessionParams for Session includes 'impersonate'.
+            # So, it should be fine here. http_version is also usually per-request or Session wide.
+            self._session_instance = AsyncSession(impersonate="chrome110")
             logger.debug("Initialized new AsyncSession for TonnelGiftSender.")
         return self._session_instance
 
     async def _close_session_if_open(self):
-        if self._session_instance and not self._session_instance.closed:
+        if self._session_instance:
             logger.debug("Closing AsyncSession for TonnelGiftSender.")
-            await self._session_instance.close()
-            self._session_instance = None
+            try:
+                await self._session_instance.close()
+            except Exception as e_close:
+                logger.error(f"Error while closing AsyncSession: {e_close}")
+            finally:
+                self._session_instance = None # Always set to None after attempting to close
 
-    async def _make_request(self, method, url, headers=None, json_payload=None, timeout=30, is_initial_get=False):
+    async def _make_request(self, method: str, url: str, headers: dict | None = None, json_payload: dict | None = None, timeout: int = 30, is_initial_get: bool = False):
         session = await self._get_session()
         response_obj = None
+        # http_version can be a kwarg to request methods if needed, e.g. http_version="2"
+        # curl_cffi often defaults to HTTP/2 if server supports.
+
         try:
             logger.debug(f"Tonnel API Request: {method} {url} Headers: {headers} Payload: {json_payload}")
+            request_kwargs = {"headers": headers, "timeout": timeout}
+            if json_payload is not None and method.upper() == "POST":
+                request_kwargs["json"] = json_payload
+
             if method.upper() == "GET":
-                response_obj = await session.get(url, headers=headers, timeout=timeout)
+                response_obj = await session.get(url, **request_kwargs)
             elif method.upper() == "POST":
-                response_obj = await session.post(url, headers=headers, json=json_payload, timeout=timeout)
+                response_obj = await session.post(url, **request_kwargs)
             elif method.upper() == "OPTIONS":
-                response_obj = await session.options(url, headers=headers, timeout=timeout)
+                response_obj = await session.options(url, **request_kwargs)
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
 
-            logger.debug(f"Tonnel API Response: {method} {url} - Status: {response_obj.status_code}, Response Headers: {response_obj.headers}")
+            logger.debug(f"Tonnel API Response: {method} {url} - Status: {response_obj.status_code}, Response Headers: {dict(response_obj.headers)}")
 
-            if method.upper() != "OPTIONS":
-                response_obj.raise_for_status()
+            # For OPTIONS, a 2xx status is usually success, even if no body.
+            # We don't call raise_for_status() for OPTIONS immediately.
+            if method.upper() == "OPTIONS":
+                if 200 <= response_obj.status_code < 300:
+                    return {"status": "options_ok"}
+                else:
+                    # Log and raise if OPTIONS failed unexpectedly
+                    err_text_options = await response_obj.text()
+                    logger.error(f"Tonnel API OPTIONS request to {url} failed with status {response_obj.status_code}. Response: {err_text_options[:500]}")
+                    response_obj.raise_for_status() # Will raise an error
+                    return {"status": "error", "message": f"OPTIONS request failed: {response_obj.status_code}"}
 
-            if response_obj.status_code == 204:
+
+            # For other methods, raise HTTPError for bad responses (4xx or 5xx)
+            response_obj.raise_for_status()
+
+            if response_obj.status_code == 204: # No Content
                 return None
-
-            if method.upper() == "OPTIONS" and response_obj.status_code // 100 == 2:
-                return {"status": "options_ok"}
 
             content_type = response_obj.headers.get("Content-Type", "").lower()
             if "application/json" in content_type:
-                return response_obj.json()
-            else:
+                try:
+                    return response_obj.json()
+                except json.JSONDecodeError as je_err_inner: # Catch if content-type is json but body is not
+                    logger.error(f"Tonnel API JSONDecodeError (inner) for {method} {url}: {je_err_inner}", exc_info=False)
+                    err_text_json_decode = await response_obj.text()
+                    logger.error(f"Response body for inner JSONDecodeError: {err_text_json_decode[:500]}")
+                    # Treat as a specific type of error if JSON was expected but not parsable
+                    return {"status": "error", "message": "Invalid JSON in response despite Content-Type application/json", "raw_text": err_text_json_decode[:500]}
+
+            else: # Content-Type is not application/json
                 if is_initial_get:
                     logger.info(f"Tonnel API: Initial GET to {url} successful (Content-Type: {content_type}).")
                     return {"status": "get_ok_non_json"}
                 else:
                     responseText = await response_obj.text()
                     logger.warning(f"Tonnel API {method} {url} - Response is not JSON (Content-Type: {content_type}). Text: {responseText[:200]}")
-                    return {"status": "error", "message": "Response was not JSON", "content_type": content_type, "text_preview": responseText[:200]}
+                    return {"status": "error", "message": "Response was not JSON as expected", "content_type": content_type, "text_preview": responseText[:200]}
 
-        except RequestsError as re_err:
+        except RequestsError as re_err: # This is from curl_cffi.requests
             logger.error(f"Tonnel API RequestsError ({method} {url}): {re_err}", exc_info=False)
-            err_text = ""
-            if response_obj is not None:
+            err_text_req_err = ""
+            if response_obj is not None: # response_obj might exist even if raise_for_status was called
                 try:
-                    err_text = await response_obj.text()
+                    err_text_req_err = await response_obj.text()
                 except:
                     pass
-                logger.error(f"Response for RequestsError: {err_text}")
-            raise
-        except json.JSONDecodeError as je_err:
-            logger.error(f"Tonnel API JSONDecodeError ({method} {url}): {je_err}", exc_info=False)
-            err_text = ""
+                logger.error(f"Response body for RequestsError (status {response_obj.status_code if response_obj else 'N/A'}): {err_text_req_err[:500]}")
+            raise # Re-raise to be caught by the caller's try-except block
+        except json.JSONDecodeError as je_err: # Should be caught by inner try-except now, but as a fallback
+            logger.error(f"Tonnel API JSONDecodeError (outer) for {method} {url}: {je_err}", exc_info=False)
+            err_text_json_outer = ""
             if response_obj is not None:
                 try:
-                    err_text = await response_obj.text()
+                    err_text_json_outer = await response_obj.text()
                 except:
                     pass
-                logger.error(f"Response for JSONDecodeError: {err_text}")
+                logger.error(f"Response body for outer JSONDecodeError: {err_text_json_outer[:500]}")
             raise ValueError(f"Failed to decode JSON from {url}. Content-Type: {response_obj.headers.get('Content-Type', '') if response_obj else 'N/A'}") from je_err
         except Exception as e_gen:
             logger.error(f"Tonnel API general request error ({method} {url}): {type(e_gen).__name__} - {e_gen}", exc_info=False)
-            err_text = ""
+            err_text_general = ""
             if response_obj is not None:
                 try:
-                    err_text = await response_obj.text()
+                    err_text_general = await response_obj.text()
                 except:
                     pass
-                logger.error(f"Response for general error: {err_text}")
+                logger.error(f"Response body for general error: {err_text_general[:500]}")
             raise
 
     async def send_gift_to_user(self, gift_item_name: str, receiver_telegram_id: int):
@@ -258,59 +340,100 @@ class TonnelGiftSender:
         if not self.authdata:
             logger.error("TONNEL_SENDER_INIT_DATA not configured.")
             return {"status": "error", "message": "Tonnel sender not configured."}
-
         try:
-            await self._make_request("GET", "https://marketplace.tonnel.network/", is_initial_get=True)
+            # 1. Initial GET to marketplace (seems like a pre-step often done)
+            await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True)
             logger.info("Tonnel: Initial GET to marketplace.tonnel.network okay.")
 
-            filter_str = json.dumps({"price":{"$exists":True},"refunded":{"$ne":True},"buyer":{"$exists":False},"export_at":{"$exists":True},"gift_name":gift_item_name,"asset":"TON"})
-            page_gifts_payload = {"filter": filter_str, "limit":10, "page":1, "sort":'{"price":1,"gift_id":-1}'}
-            pg_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
+            # 2. Get available gifts (pageGifts)
+            filter_str = json.dumps({
+                "price": {"$exists": True},
+                "refunded": {"$ne": True},
+                "buyer": {"$exists": False},
+                "export_at": {"$exists": True},
+                "gift_name": gift_item_name,
+                "asset": "TON"
+            })
+            page_gifts_payload = {"filter": filter_str, "limit": 10, "page": 1, "sort": '{"price":1,"gift_id":-1}'}
+            pg_headers_options = { # Headers for OPTIONS specifically for pageGifts
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+                "Origin": "https://tonnel-gift.vercel.app", # This was the distinct one for this OPTIONS
+                "Referer": "https://tonnel-gift.vercel.app/"
+            }
+            pg_headers_post = { # Headers for the actual POST request
+                "Content-Type": "application/json",
+                "Origin": "https://marketplace.tonnel.network", # More common Origin for POSTs
+                "Referer": "https://marketplace.tonnel.network/"
+            }
+            await self._make_request(method="OPTIONS", url="https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers_options)
+            gifts_found_response = await self._make_request(method="POST", url="https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers_post, json_payload=page_gifts_payload)
 
-            await self._make_request("OPTIONS", "https://gifts2.tonnel.network/api/pageGifts", headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://tonnel-gift.vercel.app", "Referer":"https://tonnel-gift.vercel.app/"})
-            gifts_found = await self._make_request("POST", "https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers, json_payload=page_gifts_payload)
-
-            if not gifts_found or not isinstance(gifts_found, list) or len(gifts_found) == 0:
-                logger.warning(f"Tonnel: No gifts found for '{gift_item_name}'. Resp: {gifts_found}")
-                return {"status": "error", "message": f"No '{gift_item_name}' gifts on Tonnel."}
-            low_gift = gifts_found[0]
+            if not isinstance(gifts_found_response, list):
+                err_msg_gifts = gifts_found_response.get("message", "API error fetching gifts") if isinstance(gifts_found_response, dict) else "Unexpected format for gifts"
+                logger.error(f"Tonnel: Failed to fetch gifts for '{gift_item_name}'. Response: {gifts_found_response}")
+                return {"status": "error", "message": f"Could not fetch gift list: {err_msg_gifts}"}
+            if not gifts_found_response: # Empty list
+                logger.warning(f"Tonnel: No gifts found for '{gift_item_name}'. Response: {gifts_found_response}")
+                return {"status": "error", "message": f"No '{gift_item_name}' gifts currently available on Tonnel."}
+            
+            low_gift = gifts_found_response[0]
             logger.info(f"Tonnel: Found gift for '{gift_item_name}': ID {low_gift.get('gift_id')}, Price {low_gift.get('price')} TON")
 
+            # 3. UserInfo check
             user_info_payload = {"authData": self.authdata, "user": receiver_telegram_id}
-            ui_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/"}
-            await self._make_request("OPTIONS", "https://gifts2.tonnel.network/api/userInfo", headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/"})
-            user_check_resp = await self._make_request("POST", "https://gifts2.tonnel.network/api/userInfo", headers=ui_headers, json_payload=user_info_payload)
-            logger.info(f"Tonnel: UserInfo check response: {user_check_resp}")
-            if not user_check_resp or user_check_resp.get("status") != "success":
-                logger.warning(f"Tonnel: UserInfo check failed for receiver {receiver_telegram_id}. Resp: {user_check_resp}")
-                return {"status": "error", "message": f"Tonnel user check failed. {user_check_resp.get('message', '')}"}
+            ui_common_headers = { # Common headers for both OPTIONS and POST for userInfo
+                "Origin": "https://marketplace.tonnel.network",
+                "Referer": "https://marketplace.tonnel.network/"
+            }
+            ui_options_headers = {**ui_common_headers, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}
+            ui_post_headers = {**ui_common_headers, "Content-Type": "application/json"}
 
+            await self._make_request(method="OPTIONS", url="https://gifts2.tonnel.network/api/userInfo", headers=ui_options_headers)
+            user_check_resp = await self._make_request(method="POST", url="https://gifts2.tonnel.network/api/userInfo", headers=ui_post_headers, json_payload=user_info_payload)
+            logger.info(f"Tonnel: UserInfo check response: {user_check_resp}")
+
+            if not isinstance(user_check_resp, dict) or user_check_resp.get("status") != "success":
+                err_msg_user = user_check_resp.get("message", "Tonnel rejected user check.") if isinstance(user_check_resp, dict) else "Unknown user check error."
+                logger.warning(f"Tonnel: UserInfo check failed for receiver {receiver_telegram_id}. Resp: {user_check_resp}")
+                return {"status": "error", "message": f"Tonnel user check failed: {err_msg_user}"}
+
+            # 4. Encrypt timestamp
             time_now_ts_str = f"{int(time.time())}"
             encrypted_ts = encrypt_aes_cryptojs_compat(time_now_ts_str, self.passphrase_secret)
             logger.debug(f"Tonnel: Python AES Encrypted timestamp: {encrypted_ts[:20]}...")
 
+            # 5. Buy gift
             buy_gift_url = f"https://gifts.coffin.meme/api/buyGift/{low_gift['gift_id']}"
             buy_payload = {"anonymously": True, "asset": "TON", "authData": self.authdata, "price": low_gift['price'], "receiver": receiver_telegram_id, "showPrice": False, "timestamp": encrypted_ts}
-            buy_headers = {"Content-Type": "application/json", "Origin": "https://marketplace.tonnel.network", "Referer": "https://marketplace.tonnel.network/", "Host":"gifts.coffin.meme"}
+            buy_common_headers = { # Common headers for buyGift
+                "Origin": "https://marketplace.tonnel.network",
+                "Referer": "https://marketplace.tonnel.network/",
+                "Host": "gifts.coffin.meme"
+            }
+            buy_options_headers = {**buy_common_headers, "Access-Control-Request-Method": "POST", "Access-Control-Request-Headers": "content-type"}
+            buy_post_headers = {**buy_common_headers, "Content-Type": "application/json"}
 
-            await self._make_request("OPTIONS", buy_gift_url, headers={"Access-Control-Request-Method":"POST", "Access-Control-Request-Headers":"content-type", "Origin":"https://marketplace.tonnel.network", "Referer":"https://marketplace.tonnel.network/"})
-            purchase_resp = await self._make_request("POST", buy_gift_url, headers=buy_headers, json_payload=buy_payload, timeout=90)
+            await self._make_request(method="OPTIONS", url=buy_gift_url, headers=buy_options_headers)
+            purchase_resp = await self._make_request(method="POST", url=buy_gift_url, headers=buy_post_headers, json_payload=buy_payload, timeout=90)
             logger.info(f"Tonnel: BuyGift response for {low_gift['gift_id']} to {receiver_telegram_id}: {purchase_resp}")
 
-            if purchase_resp and purchase_resp.get("status") == "success":
+            if isinstance(purchase_resp, dict) and purchase_resp.get("status") == "success":
                 logger.info(f"Tonnel: Gift '{gift_item_name}' to user {receiver_telegram_id} success.")
                 return {"status": "success", "message": f"Gift '{gift_item_name}' sent!", "details": purchase_resp}
             else:
+                err_msg_buy = purchase_resp.get("message", "Tonnel rejected purchase.") if isinstance(purchase_resp, dict) else "Unknown purchase error."
                 logger.error(f"Tonnel: Failed to send gift '{gift_item_name}'. Resp: {purchase_resp}")
-                return {"status": "error", "message": f"Tonnel transfer failed. {purchase_resp.get('message', '')}"}
+                return {"status": "error", "message": f"Tonnel transfer failed: {err_msg_buy}"}
+
         except ValueError as ve:
-            logger.error(f"Tonnel: ValueError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {ve}", exc_info=True)
-            return {"status": "error", "message": f"Tonnel API communication error: {str(ve)}"}
+             logger.error(f"Tonnel: ValueError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {ve}", exc_info=True)
+             return {"status": "error", "message": f"Tonnel API communication error (ValueError): {str(ve)}"}
         except RequestsError as re_err_outer:
-            logger.error(f"Tonnel: RequestsError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {re_err_outer}", exc_info=True)
-            return {"status": "error", "message": f"Tonnel network error: {str(re_err_outer)}"}
+             logger.error(f"Tonnel: RequestsError during gift sending for '{gift_item_name}' to {receiver_telegram_id}: {re_err_outer}", exc_info=True)
+             return {"status": "error", "message": f"Tonnel network error: {str(re_err_outer)}"}
         except Exception as e:
-            logger.error(f"Tonnel: Unexpected error sending gift '{gift_item_name}' to {receiver_telegram_id}: {e}", exc_info=True)
+            logger.error(f"Tonnel: Unexpected error sending gift '{gift_item_name}' to {receiver_telegram_id}: {type(e).__name__} - {e}", exc_info=True)
             return {"status": "error", "message": f"Unexpected error during Tonnel withdrawal: {str(e)}"}
         finally:
             await self._close_session_if_open()
