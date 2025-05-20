@@ -581,3 +581,110 @@ def withdraw_referral_earnings_api():
     uid = auth["id"]; db = next(get_db())
     try:
         user = db.query(User).filter(User.id == uid).with_for_update().first()
+        if not user: return jsonify({"error": "User not found"}), 404
+        if user.referral_earnings_pending > 0:
+            withdrawn = Decimal(str(user.referral_earnings_pending)); user.ton_balance = float(Decimal(str(user.ton_balance)) + withdrawn); user.referral_earnings_pending = 0.0; db.commit()
+            return jsonify({"status": "success", "message": f"{withdrawn:.2f} TON withdrawn.", "new_balance_ton": user.ton_balance, "new_referral_earnings_pending": 0.0})
+        else: return jsonify({"status": "no_earnings", "message": "No earnings."})
+    except Exception as e: db.rollback(); logger.error(f"Withdraw ref error: {e}", exc_info=True); return jsonify({"error": "DB error."}), 500
+    finally: db.close()
+
+@app.route('/api/redeem_promocode', methods=['POST']) # Same
+def redeem_promocode_api():
+    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth: return jsonify({"error": "Auth failed"}), 401
+    uid = auth["id"]; data = flask_request.get_json(); code_txt = data.get('promocode_text', "").strip()
+    if not code_txt: return jsonify({"status": "error", "message": "Code empty."}), 400
+    db = next(get_db())
+    try:
+        user = db.query(User).filter(User.id == uid).with_for_update().first(); promo = db.query(PromoCode).filter(PromoCode.code_text == code_txt).with_for_update().first()
+        if not user: return jsonify({"status": "error", "message": "User not found."}), 404
+        if not promo: return jsonify({"status": "error", "message": "Invalid code."}), 404
+        if promo.activations_left <= 0: return jsonify({"status": "error", "message": "Code expired."}), 400
+        promo.activations_left -= 1; user.ton_balance = float(Decimal(str(user.ton_balance)) + Decimal(str(promo.ton_amount))); db.commit()
+        return jsonify({"status": "success", "message": f"Redeemed! +{promo.ton_amount:.2f} TON.", "new_balance_ton": user.ton_balance})
+    except Exception as e: db.rollback(); logger.error(f"Promo error: {e}", exc_info=True); return jsonify({"status": "error", "message": "DB error."}), 500
+    finally: db.close()
+
+@app.route('/api/withdraw_item_via_tonnel/<int:inventory_item_id>', methods=['POST']) # Same
+def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
+    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth: return jsonify({"status": "error", "message": "Auth failed"}), 401
+    player_id = auth["id"]; 
+    if not TONNEL_SENDER_INIT_DATA: return jsonify({"status": "error", "message": "Withdrawal unavailable."}), 500
+    db = next(get_db())
+    try:
+        item = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == player_id).with_for_update().first()
+        if not item or item.is_ton_prize: return jsonify({"status": "error", "message": "Item not found/withdrawable."}), 404
+        item_name_tonnel = item.nft.name if item.nft else item.item_name_override
+        client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET); result = {}
+        try:
+            loop = asyncio.get_event_loop()
+            if loop.is_running(): new_loop = asyncio.new_event_loop(); asyncio.set_event_loop(new_loop); result = new_loop.run_until_complete(client.send_gift_to_user(gift_item_name=item_name_tonnel, receiver_telegram_id=player_id))
+            else: result = loop.run_until_complete(client.send_gift_to_user(gift_item_name=item_name_tonnel, receiver_telegram_id=player_id))
+        except RuntimeError as e_rt_tonnel: logger.info(f"RuntimeError for asyncio in Tonnel withdraw, new loop: {e_rt_tonnel}"); new_loop = asyncio.new_event_loop(); asyncio.set_event_loop(new_loop); result = new_loop.run_until_complete(client.send_gift_to_user(gift_item_name=item_name_tonnel, receiver_telegram_id=player_id))
+        if result and result.get("status") == "success":
+            val_deducted = Decimal(str(item.current_value)); player_user = db.query(User).filter(User.id == player_id).with_for_update().first()
+            if player_user: player_user.total_won_ton = float(max(Decimal('0'), Decimal(str(player_user.total_won_ton)) - val_deducted))
+            db.delete(item); db.commit(); return jsonify({"status": "success", "message": f"Gift '{item_name_tonnel}' sent! {result.get('message', '')}", "details": result.get("details")})
+        else: db.rollback(); return jsonify({"status": "error", "message": f"Tonnel failed: {result.get('message', 'API error')}"}), 500
+    except Exception as e: db.rollback(); logger.error(f"Tonnel withdraw error: {e}", exc_info=True); return jsonify({"status": "error", "message": "Unexpected error."}), 500
+    finally: db.close()
+
+# --- Telegram Bot Handlers (Same as previous response) ---
+@bot.message_handler(commands=['start'])
+def send_welcome(message): # Same logic
+    logger.info(f"/start from {message.chat.id} ({message.from_user.username}) text: '{message.text}'"); db = next(get_db())
+    try:
+        uid = message.chat.id; tg_user = message.from_user; user = db.query(User).filter(User.id == uid).first(); is_new = not user
+        if is_new: user = User(id=uid, username=tg_user.username, first_name=tg_user.first_name, last_name=tg_user.last_name, referral_code=f"ref_{uid}_{random.randint(1000,9999)}"); db.add(user)
+        try:
+            parts = message.text.split(' '); 
+            if len(parts) > 1 and parts[1].startswith('startapp='):
+                param = parts[1].split('=', 1)[1]
+                if param.startswith('ref_') and (is_new or not user.referred_by_id) and user.referral_code != param:
+                    referrer = db.query(User).filter(User.referral_code == param, User.id != user.id).first()
+                    if referrer: user.referred_by_id = referrer.id; logger.info(f"User {uid} referred by {referrer.id} via {param}.");
+                        try: bot.send_message(referrer.id, f"🎉 Friend {user.first_name or user.username or user.id} joined via your link!")
+                        except Exception as e_notify_ref: logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify_ref}")
+                    else: logger.warning(f"Referral code {param} not found or self-ref by {uid}.")
+        except Exception as e_ref_link_proc: logger.error(f"Error processing deep link for {uid}: {e_ref_link_proc}")
+        updated_info = False
+        if user.username != tg_user.username: user.username = tg_user.username; updated_info = True
+        if user.first_name != tg_user.first_name: user.first_name = tg_user.first_name; updated_info = True
+        if user.last_name != tg_user.last_name: user.last_name = tg_user.last_name; updated_info = True
+        if is_new or updated_info or user.referred_by_id: db.commit(); 
+            if is_new: db.refresh(user); logger.info(f"User data for {uid} processed/committed.")
+        app_name_tg = MINI_APP_NAME or "app"; bot_un = bot.get_me().username; actual_url = f"https://t.me/{bot_un}/{app_name_tg}"
+        markup = types.InlineKeyboardMarkup(); web_app = types.WebAppInfo(url=actual_url)
+        btn = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app); markup.add(btn)
+        bot.send_message(message.chat.id, "Добро пожаловать в Pusik Gifts! 🎁\n\nНажмите кнопку ниже, чтобы начать!", reply_markup=markup)
+    except Exception as e_start_main: logger.error(f"Error in /start for {message.chat.id}: {e_start_main}", exc_info=True); bot.send_message(message.chat.id, "Error. Try later.")
+    finally: db.close()
+@bot.message_handler(func=lambda message: True)
+def echo_all(message): bot.reply_to(message, "Нажмите /start, чтобы открыть Pusik Gifts.")
+
+bot_polling_started = False; bot_polling_thread = None
+def run_bot_polling(): # Same
+    global bot_polling_started
+    if bot_polling_started: logger.info("Polling already running."); return
+    bot_polling_started = True; logger.info("Starting bot polling...")
+    for i_poll in range(3): 
+        try: bot.remove_webhook(); logger.info("Webhook removed."); break
+        except Exception as e_wh_rem: logger.warning(f"Webhook removal attempt {i_poll+1} failed: {e_wh_rem}"); time.sleep(2)
+    while bot_polling_started:
+        try: logger.debug("Calling infinity_polling..."); bot.infinity_polling(logger_level=logging.INFO, skip_pending=True, timeout=60, long_polling_timeout=30)
+        except telebot.apihelper.ApiTelegramException as e_api_poll_run: logger.error(f"TG API Exception (polling): {e_api_poll_run.error_code} - {e_api_poll_run.description}", exc_info=False); 
+            if e_api_poll_run.error_code in [401, 409]: logger.error("CRITICAL: Bot token/conflict. Stopping."); bot_polling_started = False
+            else: time.sleep(30)
+        except ConnectionError as e_conn_poll_run: logger.error(f"ConnectionError (polling): {e_conn_poll_run}", exc_info=False); time.sleep(60)
+        except Exception as e_gen_poll_run: logger.error(f"Unexpected error (polling): {type(e_gen_poll_run).__name__} - {e_gen_poll_run}", exc_info=True); time.sleep(60)
+        if not bot_polling_started: break
+        time.sleep(5) 
+    logger.info("Bot polling terminated.")
+
+if __name__ == '__main__': # Same
+    if BOT_TOKEN and not bot_polling_started and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        logger.info("Main process: Starting bot polling thread."); bot_polling_thread = threading.Thread(target=run_bot_polling, daemon=True); bot_polling_thread.start()
+    elif os.environ.get("WERKZEUG_RUN_MAIN") == "true": logger.info("Werkzeug reloader: Bot polling handled by main reloaded instance.")
+    logger.info("Starting Flask server..."); app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
