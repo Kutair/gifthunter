@@ -451,6 +451,18 @@ def generate_image_filename_from_name(name_str: str) -> str:
     cleaned = re.sub(r'\s+', '-', name_str.replace('&', 'and').replace("'", ""))
     return re.sub(r'-+', '-', cleaned) + '.png'
 
+UPDATED_FLOOR_PRICES = { 
+    'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 
+    'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 
+    'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 
+    'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 
+    'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 
+    'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 
+    'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 
+    'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 
+    'Love Potion': 5.4, 'Top Hat': 6.0 
+}
+
 KISSED_FROG_VARIANT_FLOORS = {
     "Happy Pepe": 500.0, "Tree Frog": 150.0, "Brewtoad": 150.0, "Puddles": 150.0, "Honeyhop": 150.0, "Melty Butter": 150.0, "Lucifrog": 150.0, 
     "Zodiak Croak": 150.0, "Count Croakula": 150.0, "Lilie Pond": 150.0, "Sweet Dream": 150.0, "Frogmaid": 150.0, "Rocky Hopper": 150.0,
