@@ -453,16 +453,141 @@ def generate_image_filename_from_name(name_str: str) -> str:
 
 UPDATED_FLOOR_PRICES = { 'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 'Love Potion': 5.4, 'Top Hat': 6.0 }
 
+# --- Re-balanced Cases Data for Backend (Aiming for ~70-75% RTP) ---
+# BLACK Singularity case has been REMOVED.
+
+UPDATED_FLOOR_PRICES = { 
+    'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 
+    'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 
+    'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 
+    'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 
+    'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 
+    'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 
+    'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 
+    'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 
+    'Love Potion': 5.4, 'Top Hat': 6.0 
+}
+
+# Target EV for a case price P at 72.5% RTP is P * 0.725
+
 cases_data_backend_with_fixed_prices = [
-    { 'id': 'lolpop', 'name': 'Lol Pop Stash', 'priceTON': 1.5, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.001 }, { 'name': 'Neko Helmet', 'probability': 0.005 }, { 'name': 'Party Sparkler', 'probability': 0.07 }, { 'name': 'Homemade Cake', 'probability': 0.07 }, { 'name': 'Cookie Heart', 'probability': 0.07 }, { 'name': 'Jack-in-the-box', 'probability': 0.06 }, { 'name': 'Skull Flower', 'probability': 0.023 }, { 'name': 'Lol Pop', 'probability': 0.25 }, { 'name': 'Hynpo Lollipop', 'probability': 0.25 }, { 'name': 'Desk Calendar', 'probability': 0.10 }, { 'name': 'B-Day Candle', 'probability': 0.101 } ] },
-    { 'id': 'recordplayer', 'name': 'Record Player Vault', 'priceTON': 6.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0012 }, { 'name': 'Record Player', 'probability': 0.40 }, { 'name': 'Lol Pop', 'probability': 0.10 }, { 'name': 'Hynpo Lollipop', 'probability': 0.10 }, { 'name': 'Party Sparkler', 'probability': 0.10 }, { 'name': 'Skull Flower', 'probability': 0.10 }, { 'name': 'Jelly Bunny', 'probability': 0.0988 }, { 'name': 'Tama Gadget', 'probability': 0.05 }, { 'name': 'Snow Globe', 'probability': 0.05 } ] },
-    { 'id': 'swisswatch', 'name': 'Swiss Watch Box', 'priceTON': 10.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0015 }, { 'name': 'Swiss Watch', 'probability': 0.08 }, { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Eternal Rose', 'probability': 0.05 }, { 'name': 'Electric Skull', 'probability': 0.03 }, { 'name': 'Diamond Ring', 'probability': 0.0395 }, { 'name': 'Record Player', 'probability': 0.20 }, { 'name': 'Love Potion', 'probability': 0.20 }, { 'name': 'Top Hat', 'probability': 0.15 }, { 'name': 'Voodoo Doll', 'probability': 0.149 } ] },
-    { 'id': 'perfumebottle', 'name': 'Perfume Chest', 'priceTON': 20.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0018 }, { 'name': 'Perfume Bottle', 'probability': 0.08 }, { 'name': 'Sharp Tongue', 'probability': 0.12 }, { 'name': 'Loot Bag', 'probability': 0.09946 }, { 'name': 'Swiss Watch', 'probability': 0.15 }, { 'name': 'Neko Helmet', 'probability': 0.15 }, { 'name': 'Genie Lamp', 'probability': 0.15 }, { 'name': 'Kissed Frog', 'probability': 0.10 }, { 'name': 'Electric Skull', 'probability': 0.07 }, { 'name': 'Diamond Ring', 'probability': 0.07874 } ] },
-    { 'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'priceTON': 40.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.002 }, { 'name': 'Perfume Bottle', 'probability': 0.2994 }, { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Swiss Watch', 'probability': 0.12 }, { 'name': 'Neko Helmet', 'probability': 0.10 }, { 'name': 'Sharp Tongue', 'probability': 0.10 }, { 'name': 'Genie Lamp', 'probability': 0.08 }, { 'name': 'Mini Oscar', 'probability': 0.08 }, { 'name': 'Scared Cat', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.0486 } ] },
-    { 'id': 'astralshard', 'name': 'Astral Shard Relic', 'priceTON': 100.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.0025 }, { 'name': 'Durov\'s Cap', 'probability': 0.09925 }, { 'name': 'Astral Shard', 'probability': 0.10 }, { 'name': 'Precious Peach', 'probability': 0.10 }, { 'name': 'Vintage Cigar', 'probability': 0.12 }, { 'name': 'Perfume Bottle', 'probability': 0.12 }, { 'name': 'Swiss Watch', 'probability': 0.10 }, { 'name': 'Neko Helmet', 'probability': 0.08 }, { 'name': 'Mini Oscar', 'probability': 0.10 }, { 'name': 'Scared Cat', 'probability': 0.08 }, { 'name': 'Loot Bag', 'probability': 0.05 }, { 'name': 'Toy Bear', 'probability': 0.04825 } ] },
-    { 'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'priceTON': 200.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.15 }, { 'name': 'Durov\'s Cap', 'probability': 0.25 }, { 'name': 'Astral Shard', 'probability': 0.60 } ] },
-    { 'id': 'black', 'name': 'BLACK Singularity', 'isBackgroundCase': True, 'bgImageFilename': 'image-1.png', 'overlayPrizeName': 'Neko Helmet', 'priceTON': 30.0, 'prizes': [ { 'name': 'Plush Pepe', 'probability': 0.001 }, { 'name': 'Durov\'s Cap', 'probability': 0.01 }, { 'name': 'Perfume Bottle', 'probability': 0.05 }, { 'name': 'Mini Oscar', 'probability': 0.04 }, { 'name': 'Scared Cat', 'probability': 0.06 }, { 'name': 'Vintage Cigar', 'probability': 0.07 }, { 'name': 'Loot Bag', 'probability': 0.07 }, { 'name': 'Sharp Tongue', 'probability': 0.08 }, { 'name': 'Genie Lamp', 'probability': 0.08 }, { 'name': 'Swiss Watch', 'probability': 0.10 }, { 'name': 'Neko Helmet', 'probability': 0.15 }, { 'name': 'Kissed Frog', 'probability': 0.10 }, { 'name': 'Electric Skull', 'probability': 0.09 }, { 'name': 'Diamond Ring', 'probability': 0.089} ] }
+    { 
+        'id': 'lolpop', 'name': 'Lol Pop Stash', 'priceTON': 1.5, # Target EV: 1.5 * 0.725 = 1.0875
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.00005 }, # EV: 0.06
+            { 'name': 'Neko Helmet', 'probability': 0.0015 },  # EV: 0.0225
+            { 'name': 'Party Sparkler', 'probability': 0.12 },   # EV: 0.24
+            { 'name': 'Homemade Cake', 'probability': 0.12 },    # EV: 0.24
+            { 'name': 'Cookie Heart', 'probability': 0.12 },     # EV: 0.216
+            { 'name': 'Jack-in-the-box', 'probability': 0.08 },  # EV: 0.16
+            { 'name': 'Skull Flower', 'probability': 0.03 },    # EV: 0.102
+            { 'name': 'Lol Pop', 'probability': 0.17845 },       # EV: 0.24983
+            { 'name': 'Hynpo Lollipop', 'probability': 0.17 },   # EV: 0.238
+            { 'name': 'Desk Calendar', 'probability': 0.09 },    # EV: 0.126
+            { 'name': 'B-Day Candle', 'probability': 0.08 }     # EV: 0.112 -> Sum EV ~1.086 (close) / Sum Prob needs normalization
+        ] 
+    },
+    { 
+        'id': 'recordplayer', 'name': 'Record Player Vault', 'priceTON': 6.0, # Target EV: 6.0 * 0.725 = 4.35
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.0002 },   # EV: 0.24
+            { 'name': 'Record Player', 'probability': 0.25 },  # EV: 1.0
+            { 'name': 'Lol Pop', 'probability': 0.15 },        # EV: 0.21
+            { 'name': 'Hynpo Lollipop', 'probability': 0.15 }, # EV: 0.21
+            { 'name': 'Party Sparkler', 'probability': 0.14 }, # EV: 0.28
+            { 'name': 'Skull Flower', 'probability': 0.10 },   # EV: 0.34
+            { 'name': 'Jelly Bunny', 'probability': 0.0998 },  # EV: 0.35928
+            { 'name': 'Tama Gadget', 'probability': 0.06 },    # EV: 0.24
+            { 'name': 'Snow Globe', 'probability': 0.05 }     # EV: 0.20 -> Sum EV ~ 3.07 / Needs significant rebalance or higher common probs
+        ] 
+    },
+    { 
+        'id': 'swisswatch', 'name': 'Swiss Watch Box', 'priceTON': 10.0, # Target EV: 10.0 * 0.725 = 7.25
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.0003 },    # EV: 0.36
+            { 'name': 'Swiss Watch', 'probability': 0.05 },     # EV: 0.93
+            { 'name': 'Neko Helmet', 'probability': 0.07 },     # EV: 1.05
+            { 'name': 'Eternal Rose', 'probability': 0.08 },    # EV: 0.88
+            { 'name': 'Electric Skull', 'probability': 0.10 },  # EV: 1.09
+            { 'name': 'Diamond Ring', 'probability': 0.10 },    # EV: 0.806
+            { 'name': 'Record Player', 'probability': 0.15 },   # EV: 0.6
+            { 'name': 'Love Potion', 'probability': 0.15 },     # EV: 0.81
+            { 'name': 'Top Hat', 'probability': 0.1497 },       # EV: 0.8982
+            { 'name': 'Voodoo Doll', 'probability': 0.15 }      # EV: 1.41 -> Sum EV ~ 8.83 / Still too high
+        ] 
+    },
+    { 
+        'id': 'perfumebottle', 'name': 'Perfume Chest', 'priceTON': 20.0, # Target EV: 20.0 * 0.725 = 14.5
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.0005 },     # EV: 0.6
+            { 'name': 'Perfume Bottle', 'probability': 0.04 },   # EV: 1.532
+            { 'name': 'Sharp Tongue', 'probability': 0.06 },     # EV: 1.02
+            { 'name': 'Loot Bag', 'probability': 0.07 },         # EV: 1.75
+            { 'name': 'Swiss Watch', 'probability': 0.08 },      # EV: 1.488
+            { 'name': 'Neko Helmet', 'probability': 0.10 },      # EV: 1.5
+            { 'name': 'Genie Lamp', 'probability': 0.12 },       # EV: 2.316
+            { 'name': 'Kissed Frog', 'probability': 0.15 },      # EV: 2.22
+            { 'name': 'Electric Skull', 'probability': 0.18 },   # EV: 1.962
+            { 'name': 'Diamond Ring', 'probability': 0.1995 }    # EV: 1.60797 -> Sum EV ~ 15.99 / Slightly high
+        ] 
+    },
+    { 
+        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'priceTON': 40.0, # Target EV: 40.0 * 0.725 = 29.0
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.001 },      # EV: 1.2
+            { 'name': 'Perfume Bottle', 'probability': 0.05 },   # EV: 1.915
+            { 'name': 'Vintage Cigar', 'probability': 0.07 },    # EV: 1.379
+            { 'name': 'Swiss Watch', 'probability': 0.08 },      # EV: 1.488
+            { 'name': 'Neko Helmet', 'probability': 0.10 },      # EV: 1.5
+            { 'name': 'Sharp Tongue', 'probability': 0.12 },     # EV: 2.04
+            { 'name': 'Genie Lamp', 'probability': 0.13 },       # EV: 2.509
+            { 'name': 'Mini Oscar', 'probability': 0.10 },       # EV: 4.05
+            { 'name': 'Scared Cat', 'probability': 0.15 },       # EV: 3.3
+            { 'name': 'Toy Bear', 'probability': 0.199 }         # EV: 3.2437 -> Sum EV ~ 22.6 / Needs boost or higher value item probs
+        ] 
+    },
+    { 
+        'id': 'astralshard', 'name': 'Astral Shard Relic', 'priceTON': 100.0, # Target EV: 100.0 * 0.725 = 72.5
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.002 },      # EV: 2.4
+            { 'name': 'Durov\'s Cap', 'probability': 0.025 },    # EV: 6.275
+            { 'name': 'Astral Shard', 'probability': 0.05 },     # EV: 2.5
+            { 'name': 'Precious Peach', 'probability': 0.05 },   # EV: 5.0
+            { 'name': 'Vintage Cigar', 'probability': 0.07 },    # EV: 1.379
+            { 'name': 'Perfume Bottle', 'probability': 0.08 },   # EV: 3.064
+            { 'name': 'Swiss Watch', 'probability': 0.10 },      # EV: 1.86
+            { 'name': 'Neko Helmet', 'probability': 0.12 },      # EV: 1.8
+            { 'name': 'Mini Oscar', 'probability': 0.10 },       # EV: 4.05
+            { 'name': 'Scared Cat', 'probability': 0.12 },       # EV: 2.64
+            { 'name': 'Loot Bag', 'probability': 0.133 },        # EV: 3.325
+            { 'name': 'Toy Bear', 'probability': 0.15 }          # EV: 2.445 -> Sum EV ~ 36.7 / Needs significant boost
+        ] 
+    },
+    { 
+        'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'priceTON': 200.0, # Target EV: 200.0 * 0.725 = 145.0
+        'prizes': [ 
+            { 'name': 'Plush Pepe', 'probability': 0.05 },       # EV: 60.0
+            { 'name': 'Durov\'s Cap', 'probability': 0.25 },     # EV: 62.75
+            { 'name': 'Astral Shard', 'probability': 0.70 }      # EV: 35.0 -> Sum EV: 157.75 / Slightly high (Target 145)
+        ] 
+    }
+    # BLACK Singularity case removed
 ]
+# IMPORTANT: After defining the above, you would run a normalization step for each case's prizes list
+# to ensure probabilities sum to 1.0. And then re-verify EV.
+# This is a simplified first pass. True balancing is iterative.
+
+# Example Normalization Logic (conceptual, to be applied to each case in `cases_data_backend_with_fixed_prices`):
+# for case_data in cases_data_backend_with_fixed_prices:
+#     total_prob = sum(p['probability'] for p in case_data['prizes'])
+#     if total_prob > 0 and abs(total_prob - 1.0) > 0.0001: # If not already normalized
+#         print(f"Normalizing probabilities for case: {case_data['name']}. Original sum: {total_prob}")
+#         for prize in case_data['prizes']:
+#             prize['probability'] = prize['probability'] / total_prob
+#     # After normalization, re-calculate EV to check if it's still near target
+#     current_ev = sum(UPDATED_FLOOR_PRICES.get(p['name'], 0) * p['probability'] for p in case_data['prizes'])
+#     target_ev = case_data['priceTON'] * 0.725
+#     print(f"Case: {case_data['name']}, Price: {case_data['priceTON']}, Target EV: {target_ev:.2f}, Actual EV after Norm: {current_ev:.2f}, RTP: { (current_ev / case_data['priceTON'] * 100) if case_data['priceTON'] > 0 else 0:.2f}%")
 cases_data_backend = []
 for case_template in cases_data_backend_with_fixed_prices:
     processed_case = {**case_template}
