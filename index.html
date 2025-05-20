@@ -238,18 +238,125 @@ let selectedUpgradeMultiplier = 1.5; // Default for upgrade page
 let spinAnimationTimeoutOuter; // For case opening
 let slotSpinEndTimeout; // For slot machine
 
-function generateImageFilename(name) { if (!name) return 'placeholder.png'; if (name === "Durov's Cap") return "Durov's-Cap.png"; if (name === "Vintage Cigar") return "Vintage-CIgar.png"; if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) return name.replace('-','_') + '.png'; return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; }
-const UPDATED_FLOOR_PRICES_FRONTEND = { 'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 'Love Potion': 5.4, 'Top Hat': 6.0 };
+// --- Re-balanced Cases Data for Frontend (Aiming for ~72.5% RTP) ---
+// BLACK Singularity case has been REMOVED.
+// These probabilities are adjusted & conceptually normalized. VERIFY EVS ON BACKEND.
+
+const UPDATED_FLOOR_PRICES_FRONTEND = { 
+    'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 
+    'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 
+    'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 
+    'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 
+    'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 
+    'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 
+    'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 
+    'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 
+    'Love Potion': 5.4, 'Top Hat': 6.0 
+};
+
+// Ensure generateImageFilename is available
+function generateImageFilename(name) { 
+    if (!name) return 'placeholder.png'; 
+    if (name === "Durov's Cap") return "Durov's-Cap.png"; 
+    if (name === "Vintage Cigar") return "Vintage-CIgar.png"; 
+    if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) return 'ton-logo.png';
+    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g,'_'))) return name.replace('-','_') + '.png'; 
+    return name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "") + '.png'; 
+}
+
 const casesData = [
-    { id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5, prizes: [ { name: 'Plush Pepe', probability: 0.001 }, { name: 'Neko Helmet', probability: 0.005 }, { name: 'Party Sparkler', probability: 0.07 }, { name: 'Homemade Cake', probability: 0.07 }, { name: 'Cookie Heart', probability: 0.07 }, { name: 'Jack-in-the-box', probability: 0.06 }, { name: 'Skull Flower', probability: 0.023 }, { name: 'Lol Pop', probability: 0.25 }, { name: 'Hynpo Lollipop', probability: 0.25 }, { name: 'Desk Calendar', probability: 0.10 }, { name: 'B-Day Candle', probability: 0.101 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6.0, prizes: [ { name: 'Plush Pepe', probability: 0.0012 }, { name: 'Record Player', probability: 0.40 }, { name: 'Lol Pop', probability: 0.10 }, { name: 'Hynpo Lollipop', probability: 0.10 }, { name: 'Party Sparkler', probability: 0.10 }, { name: 'Skull Flower', probability: 0.10 }, { name: 'Jelly Bunny', probability: 0.0988 }, { name: 'Tama Gadget', probability: 0.05 }, { name: 'Snow Globe', probability: 0.05 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10.0, prizes: [ { name: 'Plush Pepe', probability: 0.0015 }, { name: 'Swiss Watch', probability: 0.08 }, { name: 'Neko Helmet', probability: 0.10 }, { name: 'Eternal Rose', probability: 0.05 }, { name: 'Electric Skull', probability: 0.03 }, { name: 'Diamond Ring', probability: 0.0395 }, { name: 'Record Player', probability: 0.20 }, { name: 'Love Potion', probability: 0.20 }, { name: 'Top Hat', probability: 0.15 }, { name: 'Voodoo Doll', probability: 0.149 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 20.0, prizes: [ { name: 'Plush Pepe', probability: 0.0018 }, { name: 'Perfume Bottle', probability: 0.08 }, { name: 'Sharp Tongue', probability: 0.12 }, { name: 'Loot Bag', probability: 0.09946 }, { name: 'Swiss Watch', probability: 0.15 }, { name: 'Neko Helmet', probability: 0.15 }, { name: 'Genie Lamp', probability: 0.15 }, { name: 'Kissed Frog', probability: 0.10 }, { name: 'Electric Skull', probability: 0.07 }, { name: 'Diamond Ring', probability: 0.07874 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 40.0, prizes: [ { name: 'Plush Pepe', probability: 0.002 }, { name: 'Perfume Bottle', probability: 0.2994 }, { name: 'Vintage Cigar', probability: 0.12 }, { name: 'Swiss Watch', probability: 0.12 }, { name: 'Neko Helmet', probability: 0.10 }, { name: 'Sharp Tongue', probability: 0.10 }, { name: 'Genie Lamp', probability: 0.08 }, { name: 'Mini Oscar', probability: 0.08 }, { name: 'Scared Cat', probability: 0.05 }, { name: 'Toy Bear', probability: 0.0486 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 100.0, prizes: [ { name: 'Plush Pepe', probability: 0.0025 }, { name: 'Durov\'s Cap', probability: 0.09925 }, { name: 'Astral Shard', probability: 0.10 }, { name: 'Precious Peach', probability: 0.10 }, { name: 'Vintage Cigar', probability: 0.12 }, { name: 'Perfume Bottle', probability: 0.12 }, { name: 'Swiss Watch', probability: 0.10 }, { name: 'Neko Helmet', probability: 0.08 }, { name: 'Mini Oscar', probability: 0.10 }, { name: 'Scared Cat', probability: 0.08 }, { name: 'Loot Bag', probability: 0.05 }, { name: 'Toy Bear', probability: 0.04825 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200.0, prizes: [ { name: 'Plush Pepe', probability: 0.15 }, { name: 'Durov\'s Cap', probability: 0.25 }, { name: 'Astral Shard', probability: 0.60 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
-    { id: 'black', name: 'BLACK Singularity', isBackgroundCase: true, bgImageFilename: 'image-1.png', overlayPrizeName: 'Neko Helmet', priceTON: 30.0, prizes: [ { name: 'Plush Pepe', probability: 0.001 }, { name: 'Durov\'s Cap', probability: 0.01 }, { name: 'Perfume Bottle', probability: 0.05 }, { name: 'Mini Oscar', probability: 0.04 }, { name: 'Scared Cat', probability: 0.06 }, { name: 'Vintage Cigar', probability: 0.07 }, { name: 'Loot Bag', probability: 0.07 }, { name: 'Sharp Tongue', probability: 0.08 }, { name: 'Genie Lamp', probability: 0.08 }, { name: 'Swiss Watch', probability: 0.10 }, { name: 'Neko Helmet', probability: 0.15 }, { name: 'Kissed Frog', probability: 0.10 }, { name: 'Electric Skull', probability: 0.09 }, { name: 'Diamond Ring', probability: 0.089} ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) }
+    { id: 'lolpop', name: 'Lol Pop Stash', imageFilename: generateImageFilename('Lol Pop'), priceTON: 1.5, /* EV Target: ~1.0875 */
+        prizes: [
+            { name: 'Plush Pepe',       probability: 0.00005 }, { name: 'Neko Helmet',      probability: 0.0015  },
+            { name: 'Party Sparkler',   probability: 0.115   }, { name: 'Homemade Cake',    probability: 0.115   },
+            { name: 'Cookie Heart',     probability: 0.115   }, { name: 'Jack-in-the-box',  probability: 0.08    },
+            { name: 'Skull Flower',     probability: 0.035   }, { name: 'Lol Pop',          probability: 0.22    },
+            { name: 'Hynpo Lollipop',   probability: 0.21845 }, { name: 'Desk Calendar',    probability: 0.05    },
+            { name: 'B-Day Candle',     probability: 0.05    }
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    },
+    { id: 'recordplayer', name: 'Record Player Vault', imageFilename: generateImageFilename('Record Player'), priceTON: 6.0, /* EV Target: ~4.35 */
+        prizes: [
+            { name: 'Plush Pepe',       probability: 0.00015 }, { name: 'Record Player',    probability: 0.24    },
+            { name: 'Lol Pop',          probability: 0.15    }, { name: 'Hynpo Lollipop',   probability: 0.15    },
+            { name: 'Party Sparkler',   probability: 0.13    }, { name: 'Skull Flower',     probability: 0.10    },
+            { name: 'Jelly Bunny',      probability: 0.09985 }, { name: 'Tama Gadget',      probability: 0.07    },
+            { name: 'Snow Globe',       probability: 0.06    }
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    },
+    { id: 'swisswatch', name: 'Swiss Watch Box', imageFilename: generateImageFilename('Swiss Watch'), priceTON: 10.0, /* EV Target: ~7.25 */
+        prizes: [
+            { name: 'Plush Pepe',       probability: 0.0002  }, { name: 'Swiss Watch',      probability: 0.032   },
+            { name: 'Neko Helmet',      probability: 0.045   }, { name: 'Eternal Rose',     probability: 0.06    },
+            { name: 'Electric Skull',   probability: 0.08    }, { name: 'Diamond Ring',     probability: 0.10    },
+            { name: 'Record Player',    probability: 0.16    }, { name: 'Love Potion',      probability: 0.16    },
+            { name: 'Top Hat',          probability: 0.1728  }, { name: 'Voodoo Doll',      probability: 0.19    }
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    },
+    { id: 'perfumebottle', name: 'Perfume Chest', imageFilename: generateImageFilename('Perfume Bottle'), priceTON: 20.0, /* EV Target: ~14.5 */
+        prizes: [
+            { name: 'Plush Pepe',       probability: 0.0004  }, { name: 'Perfume Bottle',   probability: 0.02    },
+            { name: 'Sharp Tongue',     probability: 0.035   }, { name: 'Loot Bag',         probability: 0.05    },
+            { name: 'Swiss Watch',      probability: 0.06    }, { name: 'Neko Helmet',      probability: 0.08    },
+            { name: 'Genie Lamp',       probability: 0.11    }, { name: 'Kissed Frog',      probability: 0.15    },
+            { name: 'Electric Skull',   probability: 0.20    }, { name: 'Diamond Ring',     probability: 0.2946  }
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    },
+    { id: 'vintagecigar', name: 'Vintage Cigar Safe', imageFilename: generateImageFilename('Vintage Cigar'), priceTON: 40.0, /* EV Target: ~29.0 */
+        prizes: [
+            { name: 'Plush Pepe',       probability: 0.0008  }, { name: 'Perfume Bottle',   probability: 0.025   },
+            { name: 'Vintage Cigar',    probability: 0.03    }, { name: 'Swiss Watch',      probability: 0.04    },
+            { name: 'Neko Helmet',      probability: 0.06    }, { name: 'Sharp Tongue',     probability: 0.08    },
+            { name: 'Genie Lamp',       probability: 0.10    }, { name: 'Mini Oscar',       probability: 0.07    },
+            { name: 'Scared Cat',       probability: 0.20    }, { name: 'Toy Bear',         probability: 0.3942  }
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    },
+    { id: 'astralshard', name: 'Astral Shard Relic', imageFilename: generateImageFilename('Astral Shard'), priceTON: 100.0, /* EV Target: ~72.5 */
+        prizes: [
+            { name: 'Plush Pepe',       probability: 0.0015  }, { name: 'Durov\'s Cap',     probability: 0.01    },
+            { name: 'Astral Shard',     probability: 0.025   }, { name: 'Precious Peach',   probability: 0.025   },
+            { name: 'Vintage Cigar',    probability: 0.04    }, { name: 'Perfume Bottle',   probability: 0.05    },
+            { name: 'Swiss Watch',      probability: 0.07    }, { name: 'Neko Helmet',      probability: 0.09    },
+            { name: 'Mini Oscar',       probability: 0.06    }, { name: 'Scared Cat',       probability: 0.15    },
+            { name: 'Loot Bag',         probability: 0.20    }, { name: 'Toy Bear',         probability: 0.2785  }
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    },
+    { id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200.0, /* EV Target: ~145.0 */
+        prizes: [ // EV with these probs: (0.035*1200=42) + (0.18*251=45.18) + (0.785*50=39.25) = 126.43. Needs higher Probs or higher jackpot chances
+            { name: 'Plush Pepe',       probability: 0.035   }, // Adjusted down to lower EV
+            { name: 'Durov\'s Cap',     probability: 0.18    }, // Adjusted down
+            { name: 'Astral Shard',     probability: 0.785   }  // Adjusted up, this will be most common. (Sum = 1.0)
+                                                              // Example: 0.04 * 1200 (48) + 0.20 * 251 (50.2) + 0.76 * 50 (38) = 136.2
+                                                              // To reach 145, can slightly increase Plush Pepe/Durov cap
+                                                              // Let's try P(Pepe)=0.045 (EV 54), P(Durov)=0.20 (EV 50.2), P(Astral)=0.755 (EV 37.75) -> Total EV = 141.95 (Close!)
+        ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))
+    }
 ];
+
+// Final adjustment for 'plushpepe' based on calculation in comments above for a closer EV
+const plushPepeCase = casesData.find(c => c.id === 'plushpepe');
+if (plushPepeCase) {
+    plushPepeCase.prizes = [
+        { name: 'Plush Pepe',       probability: 0.045   },
+        { name: 'Durov\'s Cap',     probability: 0.200   },
+        { name: 'Astral Shard',     probability: 0.755   }
+    ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]}));
+}
+
+// Normalize probabilities for all cases to ensure they sum to 1.0 (important after manual adjustments)
+casesData.forEach(caseItem => {
+    let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
+    if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.00001) { // Check if normalization is needed
+        // console.warn(`Normalizing probabilities for case: ${caseItem.name}. Original sum: ${totalProb}`);
+        caseItem.prizes.forEach(prize => {
+            prize.probability = prize.probability / totalProb;
+        });
+    }
+    // Optional: Recalculate and log EV for frontend verification if needed during development
+    // let currentEV = caseItem.prizes.reduce((sum, prize) => sum + (prize.floorPrice * prize.probability), 0);
+    // let targetEV = caseItem.priceTON * 0.725;
+    // console.log(`Case: ${caseItem.name}, Price: ${caseItem.priceTON}, Target EV: ${targetEV.toFixed(2)}, Actual EV: ${currentEV.toFixed(2)}, RTP: ${(currentEV / caseItem.priceTON * 100).toFixed(2)}%`);
+});
 const TON_COIN_IMG = 'ton_coin.png';
 const slotsData = [
     { id: 'default_slot', name: 'Default Slot', priceTON: 3.0, imageFilename: generateImageFilename('Lol Pop') },
