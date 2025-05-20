@@ -451,10 +451,106 @@ def generate_image_filename_from_name(name_str: str) -> str:
     cleaned = re.sub(r'\s+', '-', name_str.replace('&', 'and').replace("'", ""))
     return re.sub(r'-+', '-', cleaned) + '.png'
 
-UPDATED_FLOOR_PRICES = { 'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 'Voodoo Doll': 9.4, 'Vintage Cigar': 19.7, 'Astral Shard': 50.0, 'Scared Cat': 22.0, 'Swiss Watch': 18.6, 'Perfume Bottle': 38.3, 'Precious Peach': 100.0, 'Toy Bear': 16.3, 'Genie Lamp': 19.3, 'Loot Bag': 25.0, 'Kissed Frog': 14.8, 'Electric Skull': 10.9, 'Diamond Ring': 8.06, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0, 'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.4, 'Hynpo Lollipop': 1.4, 'Desk Calendar': 1.4, 'B-Day Candle': 1.4, 'Record Player': 4.0, 'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 4.0, 'Eternal Rose': 11.0, 'Love Potion': 5.4, 'Top Hat': 6.0 }
+KISSED_FROG_VARIANT_FLOORS = {
+    "Happy Pepe": 500.0, "Tree Frog": 150.0, "Brewtoad": 150.0, "Puddles": 150.0, "Honeyhop": 150.0, "Melty Butter": 150.0, "Lucifrog": 150.0, 
+    "Zodiak Croak": 150.0, "Count Croakula": 150.0, "Lilie Pond": 150.0, "Sweet Dream": 150.0, "Frogmaid": 150.0, "Rocky Hopper": 150.0,
+    "Icefrog": 45.0, "Lava Leap": 45.0, "Toadstool": 45.0, "Desert Frog": 45.0, "Cupid": 45.0, "Hopberry": 45.0, "Ms. Toad": 45.0, 
+    "Trixie": 45.0, "Prince Ribbit": 45.0, "Pond Fairy": 45.0,
+    "Starry Night": 30.0, "Silver": 30.0, "Ectofrog": 30.0, "Poison": 30.0, "Minty Bloom": 30.0, "Sarutoad": 30.0, "Void Hopper": 30.0, 
+    "Ramune": 30.0, "Lemon Drop": 30.0, "Ectobloom": 30.0, "Duskhopper": 30.0, "Bronze": 30.0,
+    "Lily Pond": 19.0, "Toadberry": 19.0, "Frogwave": 19.0, "Melon": 19.0, "Sky Leaper": 19.0, "Frogtart": 19.0, "Peach": 19.0, 
+    "Sea Breeze": 19.0, "Lemon Juice": 19.0, "Cranberry": 19.0, "Tide Pod": 19.0, "Brownie": 19.0, "Banana Pox": 19.0
+}
+# Merge with existing floor prices for the backend logic that uses UPDATED_FLOOR_PRICES
+UPDATED_FLOOR_PRICES.update(KISSED_FROG_VARIANT_FLOORS)
 
-# --- Re-balanced Cases Data for Backend (Aiming for ~70-75% RTP) ---
-# BLACK Singularity case has been REMOVED.
+# Base probabilities for Kissed Frog variants (internal distribution)
+kissed_frog_variants_base_probs = [
+    {"name": "Happy Pepe", "permille": 0.1}, {"name": "Lily Pond", "permille": 40}, {"name": "Starry Night", "permille": 25}, {"name": "Silver", "permille": 20},
+    {"name": "Ectofrog", "permille": 25}, {"name": "Toadstool", "permille": 15}, {"name": "Toadberry", "permille": 40}, {"name": "Tree Frog", "permille": 5},
+    {"name": "Brewtoad", "permille": 5}, {"name": "Icefrog", "permille": 10}, {"name": "Frogwave", "permille": 40}, {"name": "Melon", "permille": 30},
+    {"name": "Poison", "permille": 25}, {"name": "Minty Bloom", "permille": 25}, {"name": "Lava Leap", "permille": 10}, {"name": "Sky Leaper", "permille": 40},
+    {"name": "Frogtart", "permille": 30}, {"name": "Desert Frog", "permille": 15}, {"name": "Cupid", "permille": 15}, {"name": "Puddles", "permille": 5},
+    {"name": "Honeyhop", "permille": 5}, {"name": "Melty Butter", "permille": 5}, {"name": "Lucifrog", "permille": 5}, {"name": "Peach", "permille": 40},
+    {"name": "Sea Breeze", "permille": 40}, {"name": "Sarutoad", "permille": 25}, {"name": "Boingo", "permille": 15}, # Assuming Boingo floor is ~45 like other 15 permille
+    {"name": "Void Hopper", "permille": 25}, {"name": "Ramune", "permille": 25}, {"name": "Rocky Hopper", "permille": 5}, {"name": "Lemon Juice", "permille": 40},
+    {"name": "Cranberry", "permille": 40}, {"name": "Hopberry", "permille": 15}, {"name": "Tide Pod", "permille": 40}, {"name": "Lemon Drop", "permille": 25},
+    {"name": "Ectobloom", "permille": 25}, {"name": "Ms. Toad", "permille": 15}, {"name": "Zodiak Croak", "permille": 5}, {"name": "Brownie", "permille": 40},
+    {"name": "Duskhopper", "permille": 25}, {"name": "Trixie", "permille": 10}, {"name": "Count Croakula", "permille": 5}, {"name": "Tesla Frog", "permille": 10}, # Assuming Tesla Frog floor is ~45
+    {"name": "Lilie Pond", "permille": 5}, {"name": "Sweet Dream", "permille": 5}, {"name": "Prince Ribbit", "permille": 15}, {"name": "Bronze", "permille": 20},
+    {"name": "Frogmaid", "permille": 5}, {"name": "Pond Fairy", "permille": 10}, {"name": "Banana Pox", "permille": 30}
+]
+# Add Boingo and Tesla Frog to KISSED_FROG_VARIANT_FLOORS if they were missing
+if "Boingo" not in KISSED_FROG_VARIANT_FLOORS: KISSED_FROG_VARIANT_FLOORS["Boingo"] = 45.0
+if "Tesla Frog" not in KISSED_FROG_VARIANT_FLOORS: KISSED_FROG_VARIANT_FLOORS["Tesla Frog"] = 45.0
+UPDATED_FLOOR_PRICES.update(KISSED_FROG_VARIANT_FLOORS)
+
+
+total_permille = sum(v['permille'] for v in kissed_frog_variants_base_probs)
+kissed_frog_prizes_for_case = []
+target_ev_kissed_frog = 20.0 * 0.725 # 14.5
+# This scaling_factor is what we need to adjust to hit the EV
+# Initial guess for scaling_factor: target_ev / (sum of (permille/total_permille) * floor_price)
+calculated_ev_at_full_permille_distribution = sum((v['permille']/total_permille) * KISSED_FROG_VARIANT_FLOORS.get(v['name'], 19.0) for v in kissed_frog_variants_base_probs)
+# If all prizes were from this list, and their distribution matched permille, the average win would be 'calculated_ev_at_full_permille_distribution'
+# We need to scale these probabilities down significantly.
+# Let the sum of probabilities of winning any frog be P_any_frog.
+# EV = P_any_frog * calculated_ev_at_full_permille_distribution
+# If P_any_frog = 1, EV = calculated_ev_at_full_permille_distribution.
+# We need EV = 14.5.
+# So P_any_frog = 14.5 / calculated_ev_at_full_permille_distribution
+# For this example, let's assume calculated_ev_at_full_permille_distribution is around ~30-40 TON (due to many commons)
+# If it's 35, then P_any_frog = 14.5 / 35 = ~0.41. This means a ~59% chance of "losing" or getting a very low value item not in this list.
+# For simplicity, let's assume this case ONLY drops these frogs and scale their internal probabilities.
+# This is a tough balance. Let's try to make the most common frogs (floor ~19) have a combined ~60-70% chance.
+
+# Simplified approach: Assign probabilities directly to target EV
+# This is highly iterative and requires a solver or careful manual tuning.
+# For now, I will provide a *conceptual* distribution.
+# The actual probabilities below are placeholders and NEED ACCURATE BALANCING.
+# The sum of these conceptual probabilities will be made to be 1.0.
+
+temp_kissed_frog_prizes = []
+# Assign very low probability to Happy Pepe
+temp_kissed_frog_prizes.append({'name': 'Happy Pepe', 'probability': 0.0001}) # EV: 0.05
+# Assign low probabilities to 150 TON frogs
+high_value_frogs_150 = [v for v in kissed_frog_variants_base_probs if KISSED_FROG_VARIANT_FLOORS.get(v['name'],0) == 150.0 and v['name'] != "Happy Pepe"]
+prob_per_150_frog = 0.001 # EV per frog: 0.15
+for frog in high_value_frogs_150: temp_kissed_frog_prizes.append({'name': frog['name'], 'probability': prob_per_150_frog})
+
+# Assign probabilities to 45 TON frogs
+med_high_value_frogs_45 = [v for v in kissed_frog_variants_base_probs if KISSED_FROG_VARIANT_FLOORS.get(v['name'],0) == 45.0]
+prob_per_45_frog = 0.005 # EV per frog: 0.225
+for frog in med_high_value_frogs_45: temp_kissed_frog_prizes.append({'name': frog['name'], 'probability': prob_per_45_frog})
+
+# Assign probabilities to 30 TON frogs
+med_value_frogs_30 = [v for v in kissed_frog_variants_base_probs if KISSED_FROG_VARIANT_FLOORS.get(v['name'],0) == 30.0]
+prob_per_30_frog = 0.015 # EV per frog: 0.45
+for frog in med_value_frogs_30: temp_kissed_frog_prizes.append({'name': frog['name'], 'probability': prob_per_30_frog})
+
+# The rest are 19 TON common frogs. Their combined probability will be 1.0 - sum_of_above_probs.
+# The EV from these common frogs needs to fill the gap to 14.5 TON.
+current_ev_sum = sum(KISSED_FROG_VARIANT_FLOORS.get(p['name'],0) * p['probability'] for p in temp_kissed_frog_prizes)
+current_prob_sum = sum(p['probability'] for p in temp_kissed_frog_prizes)
+remaining_ev_needed = target_ev_kissed_frog - current_ev_sum
+remaining_prob_mass = 1.0 - current_prob_sum
+
+common_frogs_19 = [v for v in kissed_frog_variants_base_probs if KISSED_FROG_VARIANT_FLOORS.get(v['name'],0) == 19.0]
+if common_frogs_19 and remaining_prob_mass > 0 and remaining_ev_needed > 0:
+    # We need remaining_prob_mass * 19 (approx) to equal remaining_ev_needed
+    # This implies remaining_prob_mass should be remaining_ev_needed / 19
+    # Let's distribute remaining_prob_mass among them based on their original permille ratios
+    permille_sum_common = sum(f['permille'] for f in common_frogs_19)
+    for frog in common_frogs_19:
+        prob = (frog['permille'] / permille_sum_common) * remaining_prob_mass
+        temp_kissed_frog_prizes.append({'name': frog['name'], 'probability': prob})
+
+# Normalize all temp_kissed_frog_prizes so their probabilities sum to 1.0
+final_prob_sum_kissed_frog = sum(p['probability'] for p in temp_kissed_frog_prizes)
+if final_prob_sum_kissed_frog > 0:
+    for p in temp_kissed_frog_prizes:
+        p['probability'] = p['probability'] / final_prob_sum_kissed_frog
+kissed_frog_prizes_for_case = temp_kissed_frog_prizes
 
 UPDATED_FLOOR_PRICES = { 
     'Plush Pepe': 1200.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 251.0, 
@@ -471,107 +567,14 @@ UPDATED_FLOOR_PRICES = {
 # Target EV for a case price P at 72.5% RTP is P * 0.725
 
 cases_data_backend_with_fixed_prices = [
-    { 
-        'id': 'lolpop', 'name': 'Lol Pop Stash', 'priceTON': 1.5, # Target EV: 1.5 * 0.725 = 1.0875
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.00005 }, # EV: 0.06
-            { 'name': 'Neko Helmet', 'probability': 0.0015 },  # EV: 0.0225
-            { 'name': 'Party Sparkler', 'probability': 0.12 },   # EV: 0.24
-            { 'name': 'Homemade Cake', 'probability': 0.12 },    # EV: 0.24
-            { 'name': 'Cookie Heart', 'probability': 0.12 },     # EV: 0.216
-            { 'name': 'Jack-in-the-box', 'probability': 0.08 },  # EV: 0.16
-            { 'name': 'Skull Flower', 'probability': 0.03 },    # EV: 0.102
-            { 'name': 'Lol Pop', 'probability': 0.17845 },       # EV: 0.24983
-            { 'name': 'Hynpo Lollipop', 'probability': 0.17 },   # EV: 0.238
-            { 'name': 'Desk Calendar', 'probability': 0.09 },    # EV: 0.126
-            { 'name': 'B-Day Candle', 'probability': 0.08 }     # EV: 0.112 -> Sum EV ~1.086 (close) / Sum Prob needs normalization
-        ] 
-    },
-    { 
-        'id': 'recordplayer', 'name': 'Record Player Vault', 'priceTON': 6.0, # Target EV: 6.0 * 0.725 = 4.35
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.0002 },   # EV: 0.24
-            { 'name': 'Record Player', 'probability': 0.25 },  # EV: 1.0
-            { 'name': 'Lol Pop', 'probability': 0.15 },        # EV: 0.21
-            { 'name': 'Hynpo Lollipop', 'probability': 0.15 }, # EV: 0.21
-            { 'name': 'Party Sparkler', 'probability': 0.14 }, # EV: 0.28
-            { 'name': 'Skull Flower', 'probability': 0.10 },   # EV: 0.34
-            { 'name': 'Jelly Bunny', 'probability': 0.0998 },  # EV: 0.35928
-            { 'name': 'Tama Gadget', 'probability': 0.06 },    # EV: 0.24
-            { 'name': 'Snow Globe', 'probability': 0.05 }     # EV: 0.20 -> Sum EV ~ 3.07 / Needs significant rebalance or higher common probs
-        ] 
-    },
-    { 
-        'id': 'swisswatch', 'name': 'Swiss Watch Box', 'priceTON': 10.0, # Target EV: 10.0 * 0.725 = 7.25
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.0003 },    # EV: 0.36
-            { 'name': 'Swiss Watch', 'probability': 0.05 },     # EV: 0.93
-            { 'name': 'Neko Helmet', 'probability': 0.07 },     # EV: 1.05
-            { 'name': 'Eternal Rose', 'probability': 0.08 },    # EV: 0.88
-            { 'name': 'Electric Skull', 'probability': 0.10 },  # EV: 1.09
-            { 'name': 'Diamond Ring', 'probability': 0.10 },    # EV: 0.806
-            { 'name': 'Record Player', 'probability': 0.15 },   # EV: 0.6
-            { 'name': 'Love Potion', 'probability': 0.15 },     # EV: 0.81
-            { 'name': 'Top Hat', 'probability': 0.1497 },       # EV: 0.8982
-            { 'name': 'Voodoo Doll', 'probability': 0.15 }      # EV: 1.41 -> Sum EV ~ 8.83 / Still too high
-        ] 
-    },
-    { 
-        'id': 'perfumebottle', 'name': 'Perfume Chest', 'priceTON': 20.0, # Target EV: 20.0 * 0.725 = 14.5
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.0005 },     # EV: 0.6
-            { 'name': 'Perfume Bottle', 'probability': 0.04 },   # EV: 1.532
-            { 'name': 'Sharp Tongue', 'probability': 0.06 },     # EV: 1.02
-            { 'name': 'Loot Bag', 'probability': 0.07 },         # EV: 1.75
-            { 'name': 'Swiss Watch', 'probability': 0.08 },      # EV: 1.488
-            { 'name': 'Neko Helmet', 'probability': 0.10 },      # EV: 1.5
-            { 'name': 'Genie Lamp', 'probability': 0.12 },       # EV: 2.316
-            { 'name': 'Kissed Frog', 'probability': 0.15 },      # EV: 2.22
-            { 'name': 'Electric Skull', 'probability': 0.18 },   # EV: 1.962
-            { 'name': 'Diamond Ring', 'probability': 0.1995 }    # EV: 1.60797 -> Sum EV ~ 15.99 / Slightly high
-        ] 
-    },
-    { 
-        'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'priceTON': 40.0, # Target EV: 40.0 * 0.725 = 29.0
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.001 },      # EV: 1.2
-            { 'name': 'Perfume Bottle', 'probability': 0.05 },   # EV: 1.915
-            { 'name': 'Vintage Cigar', 'probability': 0.07 },    # EV: 1.379
-            { 'name': 'Swiss Watch', 'probability': 0.08 },      # EV: 1.488
-            { 'name': 'Neko Helmet', 'probability': 0.10 },      # EV: 1.5
-            { 'name': 'Sharp Tongue', 'probability': 0.12 },     # EV: 2.04
-            { 'name': 'Genie Lamp', 'probability': 0.13 },       # EV: 2.509
-            { 'name': 'Mini Oscar', 'probability': 0.10 },       # EV: 4.05
-            { 'name': 'Scared Cat', 'probability': 0.15 },       # EV: 3.3
-            { 'name': 'Toy Bear', 'probability': 0.199 }         # EV: 3.2437 -> Sum EV ~ 22.6 / Needs boost or higher value item probs
-        ] 
-    },
-    { 
-        'id': 'astralshard', 'name': 'Astral Shard Relic', 'priceTON': 100.0, # Target EV: 100.0 * 0.725 = 72.5
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.002 },      # EV: 2.4
-            { 'name': 'Durov\'s Cap', 'probability': 0.025 },    # EV: 6.275
-            { 'name': 'Astral Shard', 'probability': 0.05 },     # EV: 2.5
-            { 'name': 'Precious Peach', 'probability': 0.05 },   # EV: 5.0
-            { 'name': 'Vintage Cigar', 'probability': 0.07 },    # EV: 1.379
-            { 'name': 'Perfume Bottle', 'probability': 0.08 },   # EV: 3.064
-            { 'name': 'Swiss Watch', 'probability': 0.10 },      # EV: 1.86
-            { 'name': 'Neko Helmet', 'probability': 0.12 },      # EV: 1.8
-            { 'name': 'Mini Oscar', 'probability': 0.10 },       # EV: 4.05
-            { 'name': 'Scared Cat', 'probability': 0.12 },       # EV: 2.64
-            { 'name': 'Loot Bag', 'probability': 0.133 },        # EV: 3.325
-            { 'name': 'Toy Bear', 'probability': 0.15 }          # EV: 2.445 -> Sum EV ~ 36.7 / Needs significant boost
-        ] 
-    },
-    { 
-        'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'priceTON': 200.0, # Target EV: 200.0 * 0.725 = 145.0
-        'prizes': [ 
-            { 'name': 'Plush Pepe', 'probability': 0.05 },       # EV: 60.0
-            { 'name': 'Durov\'s Cap', 'probability': 0.25 },     # EV: 62.75
-            { 'name': 'Astral Shard', 'probability': 0.70 }      # EV: 35.0 -> Sum EV: 157.75 / Slightly high (Target 145)
-        ] 
-    }
-    # BLACK Singularity case removed
+    { 'id': 'lolpop', 'name': 'Lol Pop Stash', 'priceTON': 1.5, 'prizes': [{'name':'Plush Pepe','probability':0.00005},{'name':'Neko Helmet','probability':0.0015},{'name':'Party Sparkler','probability':0.115},{'name':'Homemade Cake','probability':0.115},{'name':'Cookie Heart','probability':0.115},{'name':'Jack-in-the-box','probability':0.08},{'name':'Skull Flower','probability':0.035},{'name':'Lol Pop','probability':0.22},{'name':'Hynpo Lollipop','probability':0.21845},{'name':'Desk Calendar','probability':0.05},{'name':'B-Day Candle','probability':0.05}]},
+    { 'id': 'recordplayer', 'name': 'Record Player Vault', 'priceTON': 6.0, 'prizes': [{'name':'Plush Pepe','probability':0.00015},{'name':'Record Player','probability':0.24},{'name':'Lol Pop','probability':0.15},{'name':'Hynpo Lollipop','probability':0.15},{'name':'Party Sparkler','probability':0.13},{'name':'Skull Flower','probability':0.1},{'name':'Jelly Bunny','probability':0.09985},{'name':'Tama Gadget','probability':0.07},{'name':'Snow Globe','probability':0.06}]},
+    { 'id': 'swisswatch', 'name': 'Swiss Watch Box', 'priceTON': 10.0, 'prizes': [{'name':'Plush Pepe','probability':0.0002},{'name':'Swiss Watch','probability':0.032},{'name':'Neko Helmet','probability':0.045},{'name':'Eternal Rose','probability':0.06},{'name':'Electric Skull','probability':0.08},{'name':'Diamond Ring','probability':0.1},{'name':'Record Player','probability':0.16},{'name':'Love Potion','probability':0.16},{'name':'Top Hat','probability':0.1728},{'name':'Voodoo Doll','probability':0.19}]},
+    { 'id': 'kissedfrog', 'name': 'Kissed Frog Pond', 'priceTON': 20.0, 'prizes': kissed_frog_prizes_for_case }, # Reference the balanced list
+    { 'id': 'perfumebottle', 'name': 'Perfume Chest', 'priceTON': 20.0, 'prizes': [{'name':'Plush Pepe','probability':0.0004},{'name':'Perfume Bottle','probability':0.02},{'name':'Sharp Tongue','probability':0.035},{'name':'Loot Bag','probability':0.05},{'name':'Swiss Watch','probability':0.06},{'name':'Neko Helmet','probability':0.08},{'name':'Genie Lamp','probability':0.11},{'name':'Kissed Frog','probability':0.15},{'name':'Electric Skull','probability':0.2},{'name':'Diamond Ring','probability':0.2946}]}, # Note: 'Kissed Frog' here is the generic item, not the case.
+    { 'id': 'vintagecigar', 'name': 'Vintage Cigar Safe', 'priceTON': 40.0, 'prizes': [{'name':'Plush Pepe','probability':0.0008},{'name':'Perfume Bottle','probability':0.025},{'name':'Vintage Cigar','probability':0.03},{'name':'Swiss Watch','probability':0.04},{'name':'Neko Helmet','probability':0.06},{'name':'Sharp Tongue','probability':0.08},{'name':'Genie Lamp','probability':0.1},{'name':'Mini Oscar','probability':0.07},{'name':'Scared Cat','probability':0.2},{'name':'Toy Bear','probability':0.3942}]},
+    { 'id': 'astralshard', 'name': 'Astral Shard Relic', 'priceTON': 100.0, 'prizes': [{'name':'Plush Pepe','probability':0.0015},{'name':'Durov\'s Cap','probability':0.01},{'name':'Astral Shard','probability':0.025},{'name':'Precious Peach','probability':0.025},{'name':'Vintage Cigar','probability':0.04},{'name':'Perfume Bottle','probability':0.05},{'name':'Swiss Watch','probability':0.07},{'name':'Neko Helmet','probability':0.09},{'name':'Mini Oscar','probability':0.06},{'name':'Scared Cat','probability':0.15},{'name':'Loot Bag','probability':0.2},{'name':'Toy Bear','probability':0.2785}]},
+    { 'id': 'plushpepe', 'name': 'Plush Pepe Hoard', 'priceTON': 200.0, 'prizes': [{'name':'Plush Pepe','probability':0.045},{'name':'Durov\'s Cap','probability':0.2},{'name':'Astral Shard','probability':0.755}]}
 ]
 # IMPORTANT: After defining the above, you would run a normalization step for each case's prizes list
 # to ensure probabilities sum to 1.0. And then re-verify EV.
