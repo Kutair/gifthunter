@@ -61,13 +61,13 @@
         h3 { font-size: 1.15em; font-weight: 600; color: var(--text-secondary); margin-top: 24px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.8px; }
         .content-card { background-color: var(--surface-color); padding: 20px; border-radius: var(--main-border-radius); margin-bottom: 20px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .cases-grid, .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(150px, calc(50% - 10px - 1px)), 1fr)); gap: 20px; }
-        .case-card, .slot-card { background-image: var(--case-grad-default); border-radius: var(--main-border-radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border-color); overflow: hidden; position: relative; }
+        .case-card, .slot-card { background-image: var(--case-grad-default); border-radius: var(--main-border-radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border-color); overflow: hidden; position: relative; min-height: 230px; display: flex; flex-direction: column; justify-content: space-between;}
         .case-card:hover, .slot-card:hover { filter: brightness(1.12); transform: translateY(-6px) scale(1.02); box-shadow: var(--soft-shadow); }
         .case-image-display, .slot-image-display { width: 85px; height: 85px; margin: 0 auto 18px auto; background-color: transparent; border-radius: var(--button-border-radius); overflow: hidden; position: relative; display:flex; align-items:center; justify-content:center;}
         .case-image-display img, .slot-image-display img { display: block; width: 100%; height: 100%; object-fit: contain; }
         .case-image-display .overlay-image { position: absolute; width: 70%; height: 70%; top: 50%; left: 50%; transform: translate(-50%, -50%); object-fit: contain; pointer-events: none; filter: drop-shadow(0 3px 5px rgba(0,0,0,0.35)); }
         .case-name, .slot-name { font-weight: 600; font-size: 1.05em; margin-bottom: 8px; color: var(--text-primary); min-height: 2.5em; display: flex; align-items: center; justify-content: center; }
-        .case-price, .slot-price { font-size: 0.9em; font-weight: 500; color: var(--text-price-color); }
+        .case-price, .slot-price { font-size: 0.9em; font-weight: 500; color: var(--text-price-color); margin-top: auto; /* Pushes price to bottom if card uses flex column */ }
         
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(10, 10, 20, 0.75); backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%); overflow-y: auto; align-items: flex-start; justify-content: center; padding-top: 5vh; padding-bottom: 5vh; }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; }
@@ -92,16 +92,18 @@
         #win-overlay-prize-name { font-size: 1.5em; font-weight: 700; margin-bottom: 25px; color: var(--success-color); }
         .win-overlay-actions button { margin-bottom: 10px; }
 
-        #possible-prizes-display { padding-right: 0px; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; flex-shrink: 0; margin-top: 12px; }
+        #possible-prizes-display, #slot-possible-prizes-display { padding-right: 0px; display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px; flex-shrink: 0; margin-top: 12px; }
         .prize-card { background-color: var(--surface-hover-color); border-radius: var(--button-border-radius); padding: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border: 1px solid var(--border-color); text-align: center; min-height: 110px; }
         .prize-card-image-placeholder { width: 55px; height: 55px; background-color: transparent; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .prize-card-image-placeholder img { display: block; width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1; }
         .prize-card-name { font-size: 0.8em; font-weight: 500; color: var(--text-secondary); line-height: 1.25; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
         .prize-card-probability { position: absolute; top: 5px; right: 5px; background-color: var(--primary-color); color: var(--text-primary); font-size: 0.7em; font-weight: 600; padding: 2px 5px; border-radius: 5px; line-height: 1; }
-        #roulette-modal hr { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; flex-shrink: 0; }
-        #roulette-modal h4 { font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; flex-shrink: 0; }
-        #possible-prizes-display.black-singularity-style .prize-card-image-placeholder { background-image: var(--black-singularity-bg-image); background-size: cover; background-position: center; border: 1px solid rgba(70,70,80,0.7); }
-        #possible-prizes-display.black-singularity-style .prize-card { background-color: #1A1C2A; }
+        #roulette-modal hr, #slot-machine-modal hr { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; flex-shrink: 0; }
+        #roulette-modal h4, #slot-machine-modal h4 { font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; flex-shrink: 0; }
+        #possible-prizes-display.black-singularity-style .prize-card-image-placeholder,
+        #slot-possible-prizes-display.black-singularity-style .prize-card-image-placeholder { background-image: var(--black-singularity-bg-image); background-size: cover; background-position: center; border: 1px solid rgba(70,70,80,0.7); }
+        #possible-prizes-display.black-singularity-style .prize-card,
+        #slot-possible-prizes-display.black-singularity-style .prize-card { background-color: #1A1C2A; }
         
         #slot-machine-modal .modal-content { max-width: 480px; }
         #slot-reels-container { 
@@ -127,11 +129,12 @@
         .loader { border: 4px solid var(--surface-hover-color); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 22px auto; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         input[type="text"], input[type="number"], select { width: 100%; padding: 13px 15px; margin-bottom: 14px; border-radius: var(--button-border-radius); background-color: var(--surface-hover-color); color: var(--text-primary); border: 1px solid var(--border-color); font-size: 1em; font-weight: 500; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; } input[type="text"]::placeholder, input[type="number"]::placeholder { color: var(--text-placeholder); } input[type="text"]:focus, input[type="number"]:focus, select:focus { outline: none; border-color: var(--border-highlight); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.25); }
         .profile-header { text-align: center; margin-bottom: 28px; padding-top: 12px;} .profile-avatar-placeholder { width: 88px; height: 88px; border-radius: 50%; background-color: var(--surface-hover-color); display: flex; align-items: center; justify-content: center; font-size: 2.8em; font-weight: 600; color: var(--text-secondary); margin: 0 auto 14px auto; border: 3px solid var(--border-color); box-shadow: 0 2px 6px rgba(0,0,0,0.1); } .profile-info .username { font-size: 1.5em; font-weight: 600; margin-bottom: 5px;} .profile-info .userid { font-size: 0.9em; color: var(--text-secondary); }
+        #profile-wallet-address { text-align: left; word-break: break-all; line-height: 1.5; } /* For wallet address styling */
         .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; } .inventory-item { background-color: var(--surface-hover-color); border-radius: var(--button-border-radius); padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s; } .inventory-item:hover { transform: translateY(-3px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); } .inventory-item .item-image-display { width: 65px; height: 65px; margin: 0 auto 10px auto; background-color: transparent; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; position:relative; } .inventory-item .item-image-display img { display: block; width: 100%; height: 100%; object-fit: contain; position:relative; z-index: 1;} .inventory-item.black-singularity-item .item-image-display { background-image: var(--black-singularity-bg-image); background-size: cover; background-position: center; border: 1px solid rgba(70,70,80,0.7); } .inventory-item-name { font-size: 0.88em; font-weight: 500; margin-bottom: 5px; line-height: 1.35; } .inventory-item-value { font-size: 0.78em; color: var(--secondary-color); font-weight: 500; margin-bottom: 10px;} .inventory-item-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; } .inventory-item-actions .button { font-size: 0.78em; padding: 6px 9px; margin: 0; width: 100%; }
         #sell-all-button { margin-top: 18px; background-color: var(--danger-color); color: white; background-image: none; box-shadow: 0 3px 8px rgba(255, 59, 48, 0.35); } #sell-all-button:hover { filter: brightness(1.15); background-color: var(--danger-color); box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4); } #sell-all-button:active { filter: brightness(0.9); transform: scale(0.97); }
         #upgrade-chance-display { font-size: 2.8em; font-weight: 700; color: var(--text-primary); text-align:center; margin: 24px auto; padding: 18px; background-color: var(--surface-hover-color); border-radius: 50%; width:110px; height:110px; line-height: 74px; border: 4px solid var(--primary-color); box-shadow: 0 0 15px rgba(0,122,255,0.2); } .multiplier-buttons { display: flex; justify-content: center; gap: 10px; margin: 24px 0; flex-wrap: wrap; } .multiplier-buttons button { width: auto; flex-grow: 1; padding: 11px; font-size: 0.9em;} .multiplier-buttons button.active-multiplier { background: var(--primary-color); color: var(--text-primary); box-shadow: 0 2px 6px rgba(0,122,255,0.3); }
         .stats-box { display: flex; justify-content: space-around; margin: 24px 0; gap: 14px; } .stat-item { background-color: var(--surface-hover-color); padding: 14px; border-radius: var(--button-border-radius); flex: 1; text-align: center; border: 1px solid var(--border-color); } .stat-item .value { font-size: 1.6em; font-weight: 600; color: var(--primary-color); } .stat-item .label { font-size: 0.8em; color: var(--text-secondary); margin-top: 5px; } .invited-users-list div { padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em;} .invited-users-list div:last-child { border-bottom: none; }
-        .leaderboard-list { padding-left: 0; padding-right: 0; } .leaderboard-list .leader-entry { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color); transition: background-color 0.25s ease-out; position: relative; } .leaderboard-list .leader-entry:hover { background-color: rgba(255,255,255,0.04); } .leaderboard-list .leader-entry:last-child { border-bottom: none; } .leader-entry .rank { font-weight: 700; font-size: 1.05em; min-width: 40px; text-align: left; color: var(--text-secondary); margin-right: 5px; } .leader-entry .avatar-placeholder { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface-hover-color); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 1.2em; font-weight: 600; margin: 0 16px 0 10px; border: 2px solid var(--border-color); } .leader-entry .info { flex-grow: 1; } .leader-entry .info .name { font-weight: 600; font-size: 1.1em; color: var(--text-primary); margin-bottom: 3px; } .leader-entry .info .details { font-size: 0.85em; color: var(--text-secondary); line-height: 1.3; } .leader-entry .score { margin-left: auto; font-weight: 700; font-size: 1.05em; color: var(--primary-color); padding-left: 15px; text-align: right; } .leader-entry.current-user-entry { background-color: rgba(0, 122, 255, 0.12); } .leader-entry.current-user-entry .rank { color: var(--primary-color); } .leader-entry.current-user-entry .info .name { color: var(--primary-gradient-end); font-weight: 700; } .leader-entry.current-user-entry .score { color: var(--secondary-color); font-weight: 800; } .leader-entry.current-user-entry .avatar-placeholder { border-color: var(--primary-color); }
+        .leaderboard-list { padding-left: 0; padding-right: 0; } .leaderboard-list .leader-entry { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color); transition: background-color 0.25s ease-out; position: relative; } .leaderboard-list .leader-entry:hover { background-color: rgba(255,255,255,0.04); } .leaderboard-list .leader-entry:last-child { border-bottom: none; } .leader-entry .rank { font-weight: 700; font-size: 1.05em; min-width: 40px; text-align: left; color: var(--text-secondary); margin-right: 16px; } .leader-entry .avatar-placeholder { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface-hover-color); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 1.2em; font-weight: 600; margin: 0 16px 0 10px; border: 2px solid var(--border-color); } .leader-entry .info { flex-grow: 1; } .leader-entry .info .name { font-weight: 600; font-size: 1.1em; color: var(--text-primary); margin-bottom: 3px; } .leader-entry .info .details { font-size: 0.85em; color: var(--text-secondary); line-height: 1.3; } .leader-entry .score { margin-left: auto; font-weight: 700; font-size: 1.05em; color: var(--primary-color); padding-left: 15px; text-align: right; } .leader-entry.current-user-entry { background-color: rgba(0, 122, 255, 0.12); } .leader-entry.current-user-entry .rank { color: var(--primary-color); } .leader-entry.current-user-entry .info .name { color: var(--primary-gradient-end); font-weight: 700; } .leader-entry.current-user-entry .score { color: var(--secondary-color); font-weight: 800; } .leader-entry.current-user-entry .avatar-placeholder { border-color: var(--primary-color); }
         #deposit-instructions-modal .modal-body p { color: var(--text-secondary); font-size: 0.95em; line-height: 1.6; margin-bottom: 18px; } #deposit-instructions-modal .modal-body strong { color: var(--text-primary); font-weight: 600; } #deposit-instructions-modal #ton-transfer-link { margin-top: 10px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; } #deposit-instructions-modal #ton-transfer-link svg { width: 20px; height: 20px; fill: currentColor; } #deposit-status-message, #deposit-expiry-info { text-align: center; }
         .promocode-input-group { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; } .promocode-input-group input { flex-grow: 1; margin-bottom: 0; } .promocode-input-group button { flex-shrink: 0; padding: 13px 18px; width: auto; }
     </style>
@@ -159,7 +162,7 @@
 
         <nav id="app-nav">
             <button class="nav-button active" data-page="main-page"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Games</button>
-            <button class="nav-button" data-page="upgrade-page"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>Upgrade</button>
+            <button class="nav-button" data-page="upgrade-page"><svg viewBox="0 0 24 24"><path d="M7 18.5l5-5l5 5M7 13.5l5-5l5 5M7 8.5l5-5l5 5"/></svg>Upgrade</button>
             <button class="nav-button" data-page="invite-page"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Referrals</button>
             <button class="nav-button" data-page="leaderboard-page"><svg viewBox="0 0 24 24"><path d="M16,1H4C2.89,1 2,1.89 2,3V17H4V3H16V1M16.5,5H7.5C6.67,5 6,5.67 6,6.5V22.5L12,19.5L18,22.5V6.5C18,5.67 17.33,5 16.5,5M14,11H10V9H14V11M14,15H10V13H14V15Z"/></svg>Leaders</button>
             <button class="nav-button" data-page="profile-page"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Profile</button>
@@ -198,7 +201,8 @@
                 <button id="spin-slot-button" class="button">Spin Slot</button>
                 <button id="close-slot-modal-button" class="button button-secondary">Close</button>
             </div>
-             <div id="slot-prize-display"></div>
+            <div id="slot-prize-display"></div>
+            <hr><h4>Possible Prizes in this Slot:</h4><div id="slot-possible-prizes-display"></div>
         </div>
     </div>
 
@@ -225,6 +229,8 @@ const CASE_BG_IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyk
 const API_BASE_URL = 'https://case-hznb.onrender.com'; // Ensure this is correct for your deployment
 const BOT_USERNAME = 'caseKviBot';
 const MINI_APP_NAME = 'case';
+const TON_COIN_IMG_URL = 'https://cdn.prod.website-files.com/64a2a26178ac203cccd4a006/6730c392cdf19828e76e898d_ton-logo.png';
+
 
 const currentUser = { id: null, username: null, first_name: 'User', last_name: null, walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0, inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0, invited_friends_count: 0 };
 let currentOpenCaseOrSlot = null;
@@ -249,18 +255,35 @@ const casesData = [
     { id: 'plushpepe', name: 'Plush Pepe Hoard', imageFilename: generateImageFilename('Plush Pepe'), priceTON: 200.0, prizes: [ { name: 'Plush Pepe', probability: 0.15 }, { name: 'Durov\'s Cap', probability: 0.25 }, { name: 'Astral Shard', probability: 0.60 } ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) },
     { id: 'black', name: 'BLACK Singularity', isBackgroundCase: true, bgImageFilename: 'image-1.png', overlayPrizeName: 'Neko Helmet', priceTON: 30.0, prizes: [ { name: 'Plush Pepe', probability: 0.001 }, { name: 'Durov\'s Cap', probability: 0.01 }, { name: 'Perfume Bottle', probability: 0.05 }, { name: 'Mini Oscar', probability: 0.04 }, { name: 'Scared Cat', probability: 0.06 }, { name: 'Vintage Cigar', probability: 0.07 }, { name: 'Loot Bag', probability: 0.07 }, { name: 'Sharp Tongue', probability: 0.08 }, { name: 'Genie Lamp', probability: 0.08 }, { name: 'Swiss Watch', probability: 0.10 }, { name: 'Neko Helmet', probability: 0.15 }, { name: 'Kissed Frog', probability: 0.10 }, { name: 'Electric Skull', probability: 0.09 }, { name: 'Diamond Ring', probability: 0.089} ].map(p => ({...p, imageFilename: generateImageFilename(p.name), floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name]})) }
 ];
-const TON_COIN_IMG = 'ton_coin.png';
+
+// Enriched slotsData for frontend to show "Possible Prizes"
+// In a real app, this would come from backend or be more dynamically managed
 const slotsData = [
-    { id: 'default_slot', name: 'Default Slot', priceTON: 3.0, imageFilename: generateImageFilename('Lol Pop') },
-    { id: 'premium_slot', name: 'Premium Slot', priceTON: 10.0, imageFilename: generateImageFilename('Neko Helmet') }
+    { id: 'default_slot', name: 'Default Slot', priceTON: 3.0, imageFilename: generateImageFilename('Lol Pop'),
+      prize_pool_frontend_temp: [ // Simplified example pool
+        { name: "0.1 TON", probability: 0.10, imageFilename: generateImageFilename(null), is_ton_prize: true },
+        { name: "Lol Pop", probability: 0.15, imageFilename: generateImageFilename('Lol Pop') },
+        { name: "Party Sparkler", probability: 0.10, imageFilename: generateImageFilename('Party Sparkler') },
+        { name: "Cookie Heart", probability: 0.05, imageFilename: generateImageFilename('Cookie Heart') },
+      ].map(p => ({...p, floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name] || (p.is_ton_prize ? parseFloat(p.name.split(" ")[0]) : 0) }))
+    },
+    { id: 'premium_slot', name: 'Premium Slot', priceTON: 10.0, imageFilename: generateImageFilename('Neko Helmet'),
+      prize_pool_frontend_temp: [ // Simplified example pool
+        { name: "2 TON", probability: 0.05, imageFilename: generateImageFilename(null), is_ton_prize: true },
+        { name: "Neko Helmet", probability: 0.10, imageFilename: generateImageFilename('Neko Helmet') },
+        { name: "Swiss Watch", probability: 0.08, imageFilename: generateImageFilename('Swiss Watch') },
+        { name: "Sharp Tongue", probability: 0.05, imageFilename: generateImageFilename('Sharp Tongue') },
+      ].map(p => ({...p, floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[p.name] || (p.is_ton_prize ? parseFloat(p.name.split(" ")[0]) : 0) }))
+    }
 ];
+
 
 // --- DOM Elements ---
 const headerElements = { tonConnectButton: document.getElementById('ton-connect-button'), walletAddressDisplay: document.getElementById('wallet-address-display'), tonBalanceSpan: document.getElementById('ton-balance'), balanceDisplay: document.getElementById('balance')};
 const appNavButtons = document.querySelectorAll('.nav-button'); const pages = document.querySelectorAll('.page'); const casesGrid = document.getElementById('cases-grid'); const slotsGrid = document.getElementById('slots-grid');
 const rouletteModal = document.getElementById('roulette-modal'); const rouletteCaseName = document.getElementById('roulette-case-name'); const rouletteWheelContainer = document.getElementById('roulette-wheel-container'); const spinButton = document.getElementById('spin-button'); const closeRouletteButton = document.getElementById('close-roulette-button'); const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
 const winOverlayModal = document.getElementById('win-overlay-modal'); const winOverlayImageEl = document.getElementById('win-overlay-prize-image').querySelector('img'); const winOverlayNameEl = document.getElementById('win-overlay-prize-name'); const winOverlaySaveBtn = document.getElementById('win-overlay-save-button'); const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button'); const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
-const slotMachineModal = document.getElementById('slot-machine-modal'); const slotMachineName = document.getElementById('slot-machine-name'); const slotReelsContainer = document.getElementById('slot-reels-container'); const spinSlotButton = document.getElementById('spin-slot-button'); const closeSlotModalButton = document.getElementById('close-slot-modal-button'); const slotPriceDisplay = document.getElementById('slot-price-display'); const slotPrizeDisplay = document.getElementById('slot-prize-display');
+const slotMachineModal = document.getElementById('slot-machine-modal'); const slotMachineName = document.getElementById('slot-machine-name'); const slotReelsContainer = document.getElementById('slot-reels-container'); const spinSlotButton = document.getElementById('spin-slot-button'); const closeSlotModalButton = document.getElementById('close-slot-modal-button'); const slotPriceDisplay = document.getElementById('slot-price-display'); const slotPrizeDisplay = document.getElementById('slot-prize-display'); const slotPossiblePrizesDisplay = document.getElementById('slot-possible-prizes-display');
 const withdrawModal = document.getElementById('withdraw-modal'); const withdrawSteps = withdrawModal.querySelectorAll('.modal-step'); const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next'); const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next'); const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back'); const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close'); const withdrawStatusMessage = document.getElementById('withdraw-status-message'); const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
 const profileElements = { avatar: document.getElementById('profile-avatar'), username: document.getElementById('profile-username'), userid: document.getElementById('profile-userid'), balanceDisplay: document.getElementById('profile-balance-display'), walletAddress: document.getElementById('profile-wallet-address'), inventoryGrid: document.getElementById('inventory-grid'), inventoryCount: document.getElementById('inventory-count'), emptyInventoryMessage: document.getElementById('empty-inventory-message'), disconnectWalletButton: document.getElementById('disconnect-wallet-button'), depositAmountInput: document.getElementById('deposit-amount-input'), initiateDepositButton: document.getElementById('initiate-deposit-button'), sellAllButton: document.getElementById('sell-all-button'), sellAllValueSpan: document.getElementById('sell-all-value'), promocodeInput: document.getElementById('promocode-input'), redeemPromocodeButton: document.getElementById('redeem-promocode-button') };
 const upgradeElements = { inventorySelect: document.getElementById('upgrade-inventory-select'), multiplierButtons: document.getElementById('multiplier-buttons'), doUpgradeButton: document.getElementById('do-upgrade-button'), upgradeResult: document.getElementById('upgrade-result'), chanceDisplay: document.getElementById('upgrade-chance-display') };
@@ -290,13 +313,13 @@ function updateUIBasedOnWallet(wallet) { const connected = !!wallet; if (connect
 function renderCasesAndSlots() { renderCases(); renderSlots(); }
 function renderCases() { casesGrid.innerHTML = ''; if (!casesData || casesData.length === 0) { casesGrid.innerHTML = "<p>Loading cases...</p>"; return; } casesData.forEach(caseItem => { const card = document.createElement('div'); card.className = 'case-card'; card.dataset.caseId = caseItem.id; card.onclick = () => openRouletteModal(caseItem); const imgCont = document.createElement('div'); imgCont.className = 'case-image-display'; const img = document.createElement('img'); img.loading = 'lazy'; img.alt = caseItem.name; img.onerror = () => { imgCont.textContent = '❓'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';}; if (caseItem.id === 'black' && caseItem.isBackgroundCase) { img.src = 'https://i.ibb.co/JR1nWpdn/image-1.png'; } else if (caseItem.isBackgroundCase && caseItem.bgImageFilename) { img.src = CASE_BG_IMAGE_BASE_URL + caseItem.bgImageFilename; } else if (caseItem.imageFilename) { img.src = IMAGE_BASE_URL + caseItem.imageFilename; img.style.objectFit = 'contain';} else { imgCont.textContent = '🎁'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;'; } imgCont.appendChild(img); if (caseItem.isBackgroundCase && caseItem.overlayPrizeName) { const ovr = document.createElement('img'); ovr.src = IMAGE_BASE_URL + generateImageFilename(caseItem.overlayPrizeName); ovr.className = 'overlay-image'; ovr.loading = 'lazy'; imgCont.appendChild(ovr); } const nameEl = document.createElement('div'); nameEl.className = 'case-name'; nameEl.textContent = caseItem.name; const priceEl = document.createElement('div'); priceEl.className = 'case-price'; priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`; card.append(imgCont, nameEl, priceEl); casesGrid.appendChild(card); });}
 function renderSlots() { slotsGrid.innerHTML = ''; if (!slotsData || slotsData.length === 0) { slotsGrid.innerHTML = "<p>Loading slots...</p>"; return; } slotsData.forEach(slotItem => { const card = document.createElement('div'); card.className = 'slot-card'; card.dataset.slotId = slotItem.id; card.onclick = () => openSlotMachineModal(slotItem); const imgCont = document.createElement('div'); imgCont.className = 'slot-image-display'; const img = document.createElement('img'); img.loading = 'lazy'; img.alt = slotItem.name; img.onerror = () => { imgCont.textContent = '🎰'; imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';}; if (slotItem.imageFilename) { img.src = IMAGE_BASE_URL + slotItem.imageFilename; } else { imgCont.textContent = '🎰'; } imgCont.appendChild(img); const nameEl = document.createElement('div'); nameEl.className = 'slot-name'; nameEl.textContent = slotItem.name; const priceEl = document.createElement('div'); priceEl.className = 'slot-price'; priceEl.textContent = `${parseFloat(slotItem.priceTON).toFixed(1)} TON`; card.append(imgCont, nameEl, priceEl); slotsGrid.appendChild(card); });}
-function renderProfile() { profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?'; profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User'; profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...'; profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected'; profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none'; renderInventory(); }
-function renderInventory() { profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0; if (currentUser.inventory.length === 0) { profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none'; } else { profileElements.emptyInventoryMessage.style.display = 'none'; currentUser.inventory.forEach(item => { totalValue += item.currentValue || 0; const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item'; if (item.variant === 'black_singularity') itemDiv.classList.add('black-singularity-item'); const imgCont = document.createElement('div'); imgCont.className = 'item-image-display'; const img = document.createElement('img'); img.src = item.is_ton_prize ? IMAGE_BASE_URL + item.imageFilename : (item.imageFilename ? IMAGE_BASE_URL + item.imageFilename : ''); img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img); itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="convertToTon(${item.id})">Convert</button>`}</div>`; itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv); }); profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2); } profileElements.inventoryCount.textContent = currentUser.inventory.length; populateUpgradeInventorySelect(); }
+function renderProfile() { console.log("Rendering profile with currentUser:", JSON.parse(JSON.stringify(currentUser))); profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : (currentUser.username ? currentUser.username.charAt(0).toUpperCase() : '?'); profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User'; profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...'; profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected'; profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none'; renderInventory(); }
+function renderInventory() { profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0; if (currentUser.inventory.length === 0) { profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none'; } else { profileElements.emptyInventoryMessage.style.display = 'none'; currentUser.inventory.forEach(item => { totalValue += item.currentValue || 0; const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item'; if (item.variant === 'black_singularity') itemDiv.classList.add('black-singularity-item'); const imgCont = document.createElement('div'); imgCont.className = 'item-image-display'; const img = document.createElement('img'); img.src = item.is_ton_prize ? TON_COIN_IMG_URL : (item.imageFilename ? IMAGE_BASE_URL + item.imageFilename : ''); img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img); itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="convertToTon(${item.id})">Convert</button>`}</div>`; itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv); }); profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2); } profileElements.inventoryCount.textContent = currentUser.inventory.length; populateUpgradeInventorySelect(); }
 function populateUpgradeInventorySelect() { upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>'; currentUser.inventory.filter(item => !item.is_ton_prize).forEach(item => { const opt = document.createElement('option'); opt.value = item.id; opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`; upgradeElements.inventorySelect.appendChild(opt); }); }
 async function renderLeaderboard() { try {const leaders = await apiRequest('/api/get_leaderboard'); leaderboardList.innerHTML=''; leaders.forEach(l => { const entry = document.createElement('div'); entry.className = 'leader-entry'; if(l.user_id === currentUser.id) entry.classList.add('current-user-entry'); entry.innerHTML = `<div class="rank">${l.rank}</div><div class="avatar-placeholder">${l.avatarChar}</div><div class="info"><div class="name">${l.name}</div><div class="details">User ID: ${String(l.user_id).slice(0,6)}...</div></div><div class="score">${l.income.toFixed(2)} TON</div>`; leaderboardList.appendChild(entry);}); } catch(e){leaderboardList.innerHTML='<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>';}}
 function renderInvitePage() { inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}` : 'Loading...'; inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`; inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0; }
 
-function showWinOverlay(prizeItem) { lastWonPrizeForOverlay = prizeItem; winOverlayImageEl.src = prizeItem.is_ton_prize ? IMAGE_BASE_URL + prizeItem.imageFilename : (prizeItem.imageFilename ? IMAGE_BASE_URL + prizeItem.imageFilename : ''); winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`; if (prizeItem.is_ton_prize) { winOverlayConvertBtn.style.display = 'none'; } else { winOverlayConvertBtn.style.display = 'block'; winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2); } winOverlayModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton); Telegram.WebApp.HapticFeedback?.notificationOccurred('success'); }
+function showWinOverlay(prizeItem) { lastWonPrizeForOverlay = prizeItem; winOverlayImageEl.src = prizeItem.is_ton_prize ? TON_COIN_IMG_URL : (prizeItem.imageFilename ? IMAGE_BASE_URL + prizeItem.imageFilename : ''); winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`; if (prizeItem.is_ton_prize) { winOverlayConvertBtn.style.display = 'none'; } else { winOverlayConvertBtn.style.display = 'block'; winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2); } winOverlayModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton); Telegram.WebApp.HapticFeedback?.notificationOccurred('success'); }
 function closeWinOverlayModal() { if (tgBackButton) popTgBackButtonHandler(); winOverlayModal.classList.remove('active'); lastWonPrizeForOverlay = null; }
 
 function initializeRouletteVisuals(caseItem, multiplier) {
@@ -327,14 +350,14 @@ function initializeRouletteVisuals(caseItem, multiplier) {
 function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem; selectedCaseMultiplier = 1; updateCaseMultiplierButtons();
     rouletteCaseName.textContent = caseItem.name; updateSpinButtonText(); 
-    initializeRouletteVisuals(caseItem, selectedCaseMultiplier); // Initialize visuals here
-    possiblePrizesDisplay.innerHTML = ''; possiblePrizesDisplay.className = caseItem.id === 'black' ? 'black-singularity-style' : ''; 
+    initializeRouletteVisuals(caseItem, selectedCaseMultiplier); 
+    possiblePrizesDisplay.innerHTML = ''; possiblePrizesDisplay.className = caseItem.id === 'black' ? 'possible-prizes-display black-singularity-style' : 'possible-prizes-display'; 
     const prizeMap = new Map(); caseItem.prizes.forEach(p => { if (!p || !p.name) return; if (prizeMap.has(p.name)) prizeMap.set(p.name, { ...prizeMap.get(p.name), probability: prizeMap.get(p.name).probability + p.probability }); else prizeMap.set(p.name, { ...p }); });
     prizeMap.forEach((pData, name) => { const prob = pData.probability || 0; const card = document.createElement('div'); card.className = 'prize-card'; const imgCont = document.createElement('div'); imgCont.className = 'prize-card-image-placeholder'; const img = document.createElement('img'); img.src = IMAGE_BASE_URL + pData.imageFilename; img.alt = name; imgCont.appendChild(img); card.innerHTML = `<span class="prize-card-probability">${(prob*100).toFixed(prob<0.001?3:(prob<0.01?2:1))}%</span><span class="prize-card-name">${name}</span>`; card.insertBefore(imgCont, card.firstChild); possiblePrizesDisplay.appendChild(card); });
     rouletteModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton); Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 }
 function updateSpinButtonText() { if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) { const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier; spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`; } }
-function updateCaseMultiplierButtons() { caseMultiplierSelector.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier); if(parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary'); else btn.classList.add('button-secondary'); }); initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier); } // Re-initialize visuals on multiplier change
+function updateCaseMultiplierButtons() { caseMultiplierSelector.querySelectorAll('button').forEach(btn => { btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier); if(parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary'); else btn.classList.add('button-secondary'); }); initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier); } 
 function closeRouletteModal() { if (tgBackButton) popTgBackButtonHandler(); rouletteModal.classList.remove('active'); currentOpenCaseOrSlot = null; if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter); }
 
 async function spinRoulette() {
@@ -389,17 +412,15 @@ async function spinRoulette() {
 
 function initializeSlotReels(slotItem) {
     const reelSpinners = slotReelsContainer.querySelectorAll('.slot-reel-spinner');
-    let prizePoolForVisuals = [];
-    if (casesData.length > 0 && casesData[0].prizes) { prizePoolForVisuals = casesData[0].prizes.map(p => ({ name: p.name, imageFilename: p.imageFilename })); }
-    else { prizePoolForVisuals = [{ name: "Gift", imageFilename: generateImageFilename("Lol Pop") }]; }
-    if(prizePoolForVisuals.length === 0) prizePoolForVisuals.push({ name: "Default", imageFilename: TON_COIN_IMG });
+    let prizePoolForVisuals = slotItem.prize_pool_frontend_temp || []; // Use the enriched pool
+    if(prizePoolForVisuals.length === 0) prizePoolForVisuals.push({ name: "Default", imageFilename: generateImageFilename(null), is_ton_prize: true });
 
     const numVisualItemsPerReel = 30; const itemDisplayHeight = 100;
     const reelVisibleHeight = slotReelsContainer.querySelector('.slot-reel').clientHeight;
     reelSpinners.forEach(spinner => {
         spinner.innerHTML = ''; let visualReelSymbols = [];
         for (let i = 0; i < numVisualItemsPerReel; i++) visualReelSymbols.push(prizePoolForVisuals[Math.floor(Math.random() * prizePoolForVisuals.length)]);
-        visualReelSymbols.forEach(p => { const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item'; const img = document.createElement('img'); img.src = IMAGE_BASE_URL + (p.imageFilename || TON_COIN_IMG); img.alt = p.name; itemEl.appendChild(img); spinner.appendChild(itemEl); });
+        visualReelSymbols.forEach(p => { const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item'; const img = document.createElement('img'); img.src = p.is_ton_prize ? TON_COIN_IMG_URL : IMAGE_BASE_URL + (p.imageFilename || generateImageFilename(null)); img.alt = p.name; itemEl.appendChild(img); spinner.appendChild(itemEl); });
         const initialPosIdx = Math.floor(numVisualItemsPerReel / 2); 
         const initialScroll = (initialPosIdx * itemDisplayHeight) + (itemDisplayHeight / 2) - (reelVisibleHeight / 2);
         spinner.style.transition = 'none'; spinner.style.top = `-${initialScroll}px`;
@@ -409,7 +430,27 @@ function openSlotMachineModal(slotItem) {
     currentOpenCaseOrSlot = slotItem; slotMachineName.textContent = slotItem.name;
     slotPriceDisplay.textContent = `Cost: ${parseFloat(slotItem.priceTON).toFixed(1)} TON`;
     spinSlotButton.disabled = false; spinSlotButton.textContent = 'Spin Slot'; slotPrizeDisplay.innerHTML = '';
-    initializeSlotReels(slotItem); // Initialize visuals
+    initializeSlotReels(slotItem); 
+
+    // Populate "Possible Prizes" for slots
+    slotPossiblePrizesDisplay.innerHTML = '';
+    const prizesToShow = slotItem.prize_pool_frontend_temp || [];
+    prizesToShow.forEach(pData => {
+        const prob = pData.probability || 0;
+        const card = document.createElement('div'); card.className = 'prize-card';
+        const imgCont = document.createElement('div'); imgCont.className = 'prize-card-image-placeholder';
+        const img = document.createElement('img');
+        img.src = pData.is_ton_prize ? TON_COIN_IMG_URL : IMAGE_BASE_URL + (pData.imageFilename || generateImageFilename(null));
+        img.alt = pData.name;
+        imgCont.appendChild(img);
+        card.innerHTML = `<span class="prize-card-name">${pData.name}</span>`;
+        if (prob > 0) { // Show probability only if available and meaningful
+            card.innerHTML = `<span class="prize-card-probability">${(prob*100).toFixed(prob<0.001?3:(prob<0.01?2:1))}%</span>` + card.innerHTML;
+        }
+        card.insertBefore(imgCont, card.firstChild);
+        slotPossiblePrizesDisplay.appendChild(card);
+    });
+
     slotMachineModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeSlotModalWithBackButton);
 }
 function closeSlotModal() { if (tgBackButton) popTgBackButtonHandler(); slotMachineModal.classList.remove('active'); currentOpenCaseOrSlot = null; if(slotSpinEndTimeout) clearTimeout(slotSpinEndTimeout); }
@@ -427,11 +468,12 @@ async function spinSlotMachine() {
             result.reel_results.forEach((landedPrize, reelIndex) => {
                 if (reelElements[reelIndex]) {
                     const spinner = reelElements[reelIndex]; spinner.innerHTML = '';
-                    let visualReelItems = []; const prizePoolForVisuals = slotsData.find(s=>s.id === currentOpenCaseOrSlot.id)?.prize_pool_frontend_temp || casesData[0].prizes; 
+                    let visualReelItems = []; 
+                    const prizePoolForVisuals = currentOpenCaseOrSlot.prize_pool_frontend_temp || casesData[0].prizes; 
                     for(let i=0; i<20; i++) visualReelItems.push(prizePoolForVisuals[Math.floor(Math.random() * prizePoolForVisuals.length)]);
                     const targetIdx = Math.floor(visualReelItems.length * 0.8);
-                    visualReelItems[targetIdx] = landedPrize;
-                    visualReelItems.forEach(p => { const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item'; const img = document.createElement('img'); img.src = IMAGE_BASE_URL + (p.imageFilename || TON_COIN_IMG); img.alt = p.name; itemEl.appendChild(img); spinner.appendChild(itemEl); });
+                    visualReelItems[targetIdx] = landedPrize; // landedPrize from backend should have name, imageFilename, is_ton_prize
+                    visualReelItems.forEach(p => { const itemEl = document.createElement('div'); itemEl.className = 'slot-reel-item'; const img = document.createElement('img'); img.src = p.is_ton_prize ? TON_COIN_IMG_URL : IMAGE_BASE_URL + (p.imageFilename || generateImageFilename(null)); img.alt = p.name; itemEl.appendChild(img); spinner.appendChild(itemEl); });
                     const landingPosition = (targetIdx * itemDisplayHeight) + (itemDisplayHeight/2) - (reelHeight/2);
                     spinner.style.transition = 'none'; spinner.style.top = '0px'; void spinner.offsetWidth;
                     spinner.style.transition = `top ${2 + reelIndex * 0.5}s cubic-bezier(0.25,0.1,0.2,1)`;
@@ -489,19 +531,119 @@ inviteElements.withdrawReferralButton.addEventListener('click',async ()=>{try{co
 profileElements.sellAllButton?.addEventListener('click',sellAllItems);
 confirmPaymentSentButton?.addEventListener('click',verifyPaymentSent); cancelDepositButton?.addEventListener('click',closeDepositInstructionsModal);
 
-async function fetchInitialUserData() { if (!Telegram.WebApp.initData) { console.warn("No initData."); updateUIBasedOnWallet(null); renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); navigateToPage('main-page'); return false; } try { const data = await apiRequest('/api/get_user_data', 'POST', {}); Object.assign(currentUser, data, {first_name: data.first_name || 'User'}); return true; } catch (e) { showTGNotification("Could not load profile.", 'error'); return false; } }
+async function fetchInitialUserData() {
+    console.log("fetchInitialUserData called. Telegram.WebApp.initData:", Telegram.WebApp.initData ? "present" : "absent");
+    if (!Telegram.WebApp.initData) {
+        console.warn("No initData present when fetchInitialUserData was called.");
+        // Potentially update UI to reflect a guest state or prompt for connection if appropriate
+        // For now, it will just not fetch. renderProfile might show defaults.
+        updateUIBasedOnWallet(null); // Ensure wallet UI is also in disconnected state
+        renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage();
+        navigateToPage('main-page'); // Go to main page even if no user data
+        return false;
+    }
+    try {
+        const data = await apiRequest('/api/get_user_data', 'POST', {});
+        console.log("User data from API:", data);
+        if (data && typeof data === 'object') {
+            Object.assign(currentUser, data); // Merge fetched data into currentUser
+            // Ensure essential fields have fallbacks if not provided by API but expected by currentUser structure
+            currentUser.first_name = data.first_name || currentUser.first_name || (data.username ? '' : 'User');
+            currentUser.last_name = data.last_name || currentUser.last_name || '';
+            currentUser.username = data.username || currentUser.username || '';
+            currentUser.inventory = Array.isArray(data.inventory) ? data.inventory : [];
+            currentUser.tonBalance = typeof data.tonBalance === 'number' ? data.tonBalance : 0.0;
+            // ... other fields as necessary
+            console.log("currentUser after API data merge:", JSON.parse(JSON.stringify(currentUser)));
+            return true;
+        } else {
+            console.error("Received invalid or empty data from /api/get_user_data:", data);
+            showTGNotification("Could not load your profile data correctly.", 'error');
+            return false;
+        }
+    } catch (e) {
+        console.error("Error in fetchInitialUserData:", e);
+        showTGNotification("Could not load your profile: " + e.message, 'error');
+        return false;
+    }
+}
+
 async function initializeApp() {
-    console.log("App Init vFullFeatures-Fixes");
+    console.log("App Init vFullFeatures-Fixes-2");
     const allImageUrls = new Set();
     casesData.forEach(c => { if (c.imageFilename && !c.isBackgroundCase) allImageUrls.add(IMAGE_BASE_URL + c.imageFilename); else if (c.bgImageFilename && c.isBackgroundCase && c.id !== 'black') allImageUrls.add(CASE_BG_IMAGE_BASE_URL + c.bgImageFilename); else if (c.id === 'black') allImageUrls.add('https://i.ibb.co/JR1nWpdn/image-1.png'); if (c.overlayPrizeName) allImageUrls.add(IMAGE_BASE_URL + generateImageFilename(c.overlayPrizeName)); c.prizes.forEach(p => allImageUrls.add(IMAGE_BASE_URL + p.imageFilename)); });
     slotsData.forEach(s => { if(s.imageFilename) allImageUrls.add(IMAGE_BASE_URL + s.imageFilename); });
-    allImageUrls.add(IMAGE_BASE_URL + TON_COIN_IMG);
+    allImageUrls.add(TON_COIN_IMG_URL); // Add new TON coin image for preloading
     allImageUrls.forEach(url => { const img = new Image(); img.src = url;});
 
-    if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton; let dataFetched = false;
-    tonConnectUI.onStatusChange(async wallet => { updateUIBasedOnWallet(wallet); if (!dataFetched && Telegram.WebApp.initData) { if (await fetchInitialUserData()) { dataFetched = true; renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); navigateToPage('main-page'); }} });
-    if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) { Telegram.WebApp.ready(); Telegram.WebApp.expand(); Telegram.WebApp.enableClosingConfirmation(); const tgUser = Telegram.WebApp.initDataUnsafe?.user; if (tgUser && (!currentUser.id || currentUser.id !== tgUser.id)) { Object.assign(currentUser, {id: tgUser.id, username: tgUser.username, first_name: tgUser.first_name || 'User', last_name: tgUser.last_name}); if(!currentUser.referralCode) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;} try { const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25'; Telegram.WebApp.setHeaderColor(bg); Telegram.WebApp.setBackgroundColor(bg); } catch(e){} if (Telegram.WebApp.initData) { if (await fetchInitialUserData()) dataFetched = true; } else { updateUIBasedOnWallet(null); renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); navigateToPage('main-page'); } } else { if(!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2,8)}`; dataFetched = true; updateUIBasedOnWallet(null); renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); navigateToPage('main-page'); }
-    if (dataFetched) { renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); navigateToPage('main-page'); }
+    if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton;
+    let dataFetchedSuccessfully = false;
+
+    tonConnectUI.onStatusChange(async wallet => {
+        console.log("tonConnectUI.onStatusChange, wallet:", wallet);
+        updateUIBasedOnWallet(wallet);
+        // If user connects wallet AND data hasn't been fetched yet (e.g. initData was available but fetch failed, or some edge case)
+        // It's generally better to tie user data fetching to initData availability primarily.
+        // This placement might be redundant if initData path works, but can be a fallback.
+        if (wallet && !dataFetchedSuccessfully && Telegram.WebApp.initData) {
+            console.log("Wallet connected, attempting to fetch user data (if not already fetched).");
+            if (await fetchInitialUserData()) {
+                dataFetchedSuccessfully = true;
+                // Re-render parts that depend on user data and wallet status
+                renderHeader(); renderProfile(); renderInvitePage(); // renderLeaderboard might also need wallet for 'current user' highlight
+            }
+        }
+    });
+
+    if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        Telegram.WebApp.enableClosingConfirmation();
+        console.log("Telegram WebApp is ready. initDataUnsafe:", Telegram.WebApp.initDataUnsafe);
+
+        const tgUser = Telegram.WebApp.initDataUnsafe?.user;
+        if (tgUser) {
+            // Pre-populate some currentUser fields from initDataUnsafe as initial best guess
+            // This will be overwritten by more authoritative data from backend if fetchInitialUserData succeeds
+            if (!currentUser.id || currentUser.id !== tgUser.id) {
+                 Object.assign(currentUser, {id: tgUser.id, username: tgUser.username, first_name: tgUser.first_name || 'User', last_name: tgUser.last_name || ''});
+                 if(!currentUser.referralCode && currentUser.id) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+            }
+        }
+        
+        try { const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25'; Telegram.WebApp.setHeaderColor(bg); Telegram.WebApp.setBackgroundColor(bg); } catch(e){}
+        
+        if (Telegram.WebApp.initData) {
+            console.log("initData is present, calling fetchInitialUserData.");
+            if (await fetchInitialUserData()) {
+                dataFetchedSuccessfully = true;
+            }
+        } else {
+            console.log("No initData found. App will run in a limited mode or rely on wallet connection for user context if applicable.");
+            // Update UI for a guest/disconnected state if initData is truly absent
+            updateUIBasedOnWallet(null);
+        }
+    } else { // Fallback for environments where Telegram.WebApp might not be fully available (e.g. browser dev)
+        console.warn("Telegram WebApp context not fully available (e.g. initDataUnsafe is missing). Using fallback initialization.");
+        if(!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2,8)}`;
+        updateUIBasedOnWallet(null); // No wallet connected by default in this scenario
+    }
+    
+    // Always render basic UI elements, then profile/dynamic parts if data is available
+    renderHeader();
+    renderCasesAndSlots();
+    if (dataFetchedSuccessfully) {
+        renderProfile();
+        renderLeaderboard();
+        renderInvitePage();
+    } else {
+        // If data fetch failed or wasn't attempted, render profile with defaults
+        renderProfile(); // Will show 'User', '#...', etc.
+        renderLeaderboard(); // Might not highlight current user
+        renderInvitePage(); // Will show 'Loading...' for referral code
+    }
+    navigateToPage('main-page');
+    console.log("initializeApp finished. Final currentUser state:", JSON.parse(JSON.stringify(currentUser)));
 }
 document.addEventListener('DOMContentLoaded', initializeApp);
 </script>
