@@ -294,7 +294,69 @@ function showTGNotification(message,type='info'){Telegram.WebApp.showAlert?.(mes
 function renderHeader(){updateBalances();}
 function updateUIBasedOnWallet(wallet){const connected=!!wallet;if(connected){const addr=wallet.account.address;currentUser.walletAddressRaw=addr;const friendlyAddr=TonConnectSDK.toUserFriendlyAddress(addr,wallet.account.chain===TonConnectSDK.CHAIN.TESTNET);currentUser.walletAddress=friendlyAddr;headerElements.walletAddressDisplay.textContent=`${friendlyAddr.substring(0,5)}...${friendlyAddr.substring(friendlyAddr.length-4)}`;headerElements.walletAddressDisplay.classList.add('connected');headerElements.walletAddressDisplay.style.display='block';headerElements.balanceDisplay.classList.add('connected');headerElements.balanceDisplay.style.display='flex';headerElements.tonConnectButton.style.display='none';profileElements.walletAddress.textContent=friendlyAddr;profileElements.disconnectWalletButton.style.display='block';}else{currentUser.walletAddress=null;currentUser.walletAddressRaw=null;headerElements.walletAddressDisplay.classList.remove('connected');headerElements.walletAddressDisplay.style.display='none';headerElements.balanceDisplay.classList.remove('connected');headerElements.balanceDisplay.style.display='none';headerElements.tonConnectButton.style.display='block';profileElements.walletAddress.textContent='Not Connected';profileElements.disconnectWalletButton.style.display='none';}updateBalances();}
 function renderCasesAndSlots(){renderCases();renderSlots();}
-function renderCases(){casesGrid.innerHTML='';if(!casesData||casesData.length===0){casesGrid.innerHTML="<p>Loading cases...</p>";return;}
+function renderCases() {
+    casesGrid.innerHTML = '';
+    if (!casesData || casesData.length === 0) {
+        casesGrid.innerHTML = "<p>Loading cases...</p>";
+        return;
+    }
+    casesData.forEach(caseItem => {
+        const card = document.createElement('div');
+        card.className = 'case-card';
+        card.dataset.caseId = caseItem.id;
+        card.onclick = () => openRouletteModal(caseItem);
+
+        const imgCont = document.createElement('div');
+        imgCont.className = 'case-image-display';
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = caseItem.name;
+
+        // This onerror handler is responsible for showing '❓' if the image fails to load
+        img.onerror = () => {
+            imgCont.textContent = '❓';
+            imgCont.style.cssText = 'font-size:2.5em;display:flex;align-items:center;justify-content:center;';
+        };
+
+        // --- CORRECTED LOGIC FOR imgSrc ---
+        let imgSrcToUse = null;
+
+        // caseItem.imageFilename is expected to be the full URL from casesData definition
+        if (caseItem.imageFilename && typeof caseItem.imageFilename === 'string' && caseItem.imageFilename.startsWith('http')) {
+            imgSrcToUse = caseItem.imageFilename;
+        } else {
+            // This is a fallback if caseItem.imageFilename was missing, not a string, or not a valid URL.
+            // This should ideally not be hit if casesData is defined correctly for all cases.
+            console.warn(`Case ID ${caseItem.id} ('${caseItem.name}') has a missing or invalid 'imageFilename' property: '${caseItem.imageFilename}'. Attempting to generate image from the case's own name as a fallback.`);
+            imgSrcToUse = generateImageFilename(caseItem.name); // This will try to form a URL like ".../Case-Name.png"
+        }
+
+        // Set the image source if we determined a string URL, otherwise,
+        // the img.onerror (already set) will handle it if src is bad,
+        // or we can manually trigger onerror if imgSrcToUse isn't even a string.
+        if (typeof imgSrcToUse === 'string') {
+            img.src = imgSrcToUse;
+        } else {
+            // If imgSrcToUse is not a string (e.g., null or undefined after logic),
+            // manually call the onerror handler to display '❓'.
+            console.error(`Could not determine a string image source for case ID ${caseItem.id}. imgSrcToUse: ${imgSrcToUse}`);
+            img.onerror(); // Manually trigger the '❓' display
+        }
+        // --- END OF CORRECTED LOGIC ---
+
+        imgCont.appendChild(img);
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'case-name';
+        nameEl.textContent = caseItem.name;
+        const priceEl = document.createElement('div');
+        priceEl.className = 'case-price';
+        priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
+        
+        card.append(imgCont, nameEl, priceEl);
+        casesGrid.appendChild(card);
+    });
+}
 casesData.forEach(caseItem=>{const card=document.createElement('div');card.className='case-card';card.dataset.caseId=caseItem.id;card.onclick=()=>openRouletteModal(caseItem);const imgCont=document.createElement('div');imgCont.className='case-image-display';const img=document.createElement('img');img.loading='lazy';img.alt=caseItem.name;img.onerror=()=>{imgCont.textContent='❓';imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';};
 let imgSrc=generateImageFilename(caseItem.name); if(caseItem.id==='kissedfrog'&&caseItem.imageFilename&&caseItem.imageFilename.startsWith('https://')){imgSrc=caseItem.imageFilename;}else if(caseItem.imageFilename){imgSrc=generateImageFilename(caseItem.imageFilename); }else{imgCont.textContent='🎁';}
 img.src=imgSrc;img.style.objectFit='contain';imgCont.appendChild(img);
