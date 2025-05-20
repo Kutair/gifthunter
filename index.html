@@ -309,7 +309,7 @@ function generateImageFilename(nameOrUrl) {
 
     let filename = name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "");
     if (name === "Durov's Cap") filename = "Durov's-Cap";
-    if (name === "Vintage Cigar") filename = "Vintage-Cigar";
+    if (name === "Vintage Cigar") filename = "Vintage-CIgar";
     if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g, '_'))) filename = name.replace('-', '_');
     
     // Ensure it ends with a common image extension, default to .png
