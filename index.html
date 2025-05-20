@@ -316,7 +316,85 @@ async function spinRoulette(){if(!currentOpenCaseOrSlot)return;spinButton.disabl
 function initializeSlotReelsVisuals(slotItem){const reelSpinners=slotReelsContainer.querySelectorAll('.slot-reel-spinner');let prizePoolForVisuals=slotItem.prize_pool&&slotItem.prize_pool.length>0?slotItem.prize_pool:[{name:"Gift",imageFilename:generateImageFilename("Lol Pop"),is_ton_prize:false}];if(prizePoolForVisuals.length===0)prizePoolForVisuals.push({name:"Default",imageFilename:generateImageFilename("TON Prize"),is_ton_prize:true});const numVisualItemsPerReel=30;const reelContainerHeight=parseFloat(getComputedStyle(slotReelsContainer).height);const itemDisplayHeight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));reelSpinners.forEach(spinner=>{spinner.innerHTML='';let visualReelSymbols=[];for(let i=0;i<numVisualItemsPerReel;i++)visualReelSymbols.push(prizePoolForVisuals[Math.floor(Math.random()*prizePoolForVisuals.length)]);visualReelSymbols.forEach(p=>{const itemEl=document.createElement('div');itemEl.className='slot-reel-item';itemEl.style.height=`${itemDisplayHeight}px`;const img=document.createElement('img');img.src=generateImageFilename(p.name);img.alt=p.name;itemEl.appendChild(img);spinner.appendChild(itemEl);});const initialPosIdx=Math.floor(numVisualItemsPerReel/2);const initialScroll=(initialPosIdx*itemDisplayHeight)+(itemDisplayHeight/2)-(reelContainerHeight/2);spinner.style.transition='none';spinner.style.top=`-${initialScroll}px`;});}
 function openSlotMachineModal(slotItem){currentOpenCaseOrSlot=slotItem;slotMachineName.textContent=slotItem.name;slotPriceDisplay.textContent=`Cost: ${parseFloat(slotItem.priceTON).toFixed(1)} TON`;spinSlotButton.disabled=false;spinSlotButton.textContent='Spin Slot';slotPrizeDisplay.innerHTML='';initializeSlotReelsVisuals(slotItem);slotPossiblePrizesDisplay.innerHTML='';if(slotItem.prize_pool&&slotItem.prize_pool.length>0){slotItem.prize_pool.forEach(pData=>{const prob=pData.probability||0;const card=document.createElement('div');card.className='prize-card';const imgCont=document.createElement('div');imgCont.className='prize-card-image-placeholder';const img=document.createElement('img');img.src=generateImageFilename(pData.name);img.alt=pData.name;imgCont.appendChild(img);card.innerHTML=`<span class="prize-card-probability">${(prob*100).toFixed(1)}%</span><span class="prize-card-name">${pData.name}</span>`;card.insertBefore(imgCont,card.firstChild);slotPossiblePrizesDisplay.appendChild(card);});}else{slotPossiblePrizesDisplay.innerHTML="<p>No prize details.</p>";}slotMachineModal.classList.add('active');if(tgBackButton)pushTgBackButtonHandler(closeSlotModalWithBackButton);}
 function closeSlotModal(){if(tgBackButton)popTgBackButtonHandler();slotMachineModal.classList.remove('active');currentOpenCaseOrSlot=null;if(slotSpinEndTimeout)clearTimeout(slotSpinEndTimeout);}
-async function spinSlotMachine(){if(!currentOpenCaseOrSlot)return;spinSlotButton.disabled=true;spinSlotButton.textContent='Spinning...';slotPrizeDisplay.innerHTML='';try{const result=await apiRequest('/api/spin_slot','POST',{slot_id:currentOpenCaseOrSlot.id});spinSlotButton.disabled=false;spinSlotButton.textContent='Spin Slot';if(result.status==='success'){currentUser.tonBalance=result.new_balance_ton;updateBalances();const reelElements=slotReelsContainer.querySelectorAll('.slot-reel-spinner');const reelContainerHeight=parseFloat(getComputedStyle(slotReelsContainer).height);const itemDisplayHeight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));result.reel_results.forEach((landedPrize,reelIndex)=>{if(reelElements[reelIndex]){const spinner=reelElements[reelIndex];spinner.innerHTML='';let visualReelItems=[];const prizePoolForVisuals=currentOpenCaseOrSlot.prize_pool&¤tOpenCaseOrSlot.prize_pool.length>0?currentOpenCaseOrSlot.prize_pool:casesData[0].prizes;for(let i=0;i<30;i++)visualReelItems.push(prizePoolForVisuals[Math.floor(Math.random()*prizePoolForVisuals.length)]);const targetIdx=Math.floor(visualReelItems.length*0.8);visualReelItems[targetIdx]=landedPrize;visualReelItems.forEach(p=>{const itemEl=document.createElement('div');itemEl.className='slot-reel-item';itemEl.style.height=`${itemDisplayHeight}px`;const img=document.createElement('img');img.src=generateImageFilename(p.name);img.alt=p.name;itemEl.appendChild(img);spinner.appendChild(itemEl);});const landingPosition=(targetIdx*itemDisplayHeight)+(itemDisplayHeight/2)-(reelContainerHeight/2);spinner.style.transition='none';spinner.style.top='0px';void spinner.offsetWidth;spinner.style.transition=`top ${2+reelIndex*0.5}s cubic-bezier(0.25,0.1,0.2,1)`;spinner.style.top=`-${landingPosition}px`;}});const num_reels_from_backend=result.reel_results.length;const totalAnimationTime=2000+(num_reels_from_backend-1)*500;if(slotSpinEndTimeout)clearTimeout(slotSpinEndTimeout);slotSpinEndTimeout=setTimeout(()=>{if(result.won_prizes&&result.won_prizes.length>0){let displayMessage="";result.won_prizes.forEach((prize,index)=>{displayMessage+=`${prize.name}${index<result.won_prizes.length-1?', ':''}`;if(!prize.is_ton_prize){const existingItem=currentUser.inventory.find(invItem=>invItem.id===prize.id);if(!existingItem&&prize.id)currentUser.inventory.push({id:prize.id,name:prize.name,imageFilename:prize.imageFilename,currentValue:prize.currentValue,variant:prize.variant,is_ton_prize:false});}});showWinOverlay(result.won_prizes);if(result.won_prizes.length>1&&result.won_prizes.every(p=>p.is_ton_prize)){slotPrizeDisplay.textContent="Won: "+displayMessage+"!";slotPrizeDisplay.style.color='var(--success-color)';}else if(result.won_prizes.length===1&&result.won_prizes[0].is_ton_prize){slotPrizeDisplay.textContent="You Won: "+displayMessage+"!";slotPrizeDisplay.style.color='var(--success-color)';}showTGNotification("Spin result: "+displayMessage,'success');renderInventory();}else{slotPrizeDisplay.textContent="Try Again!";slotPrizeDisplay.style.color='var(--text-secondary)';}},totalAnimationTime+100);}else{showTGNotification(result.error||"Slot spin failed.",'error');}}catch(e){console.error("Slot spin error",e);spinSlotButton.disabled=false;spinSlotButton.textContent='Spin Slot';}}
+async function spinSlotMachine(){
+    if(!currentOpenCaseOrSlot) return;
+    spinSlotButton.disabled=true;
+    spinSlotButton.textContent='Spinning...';
+    slotPrizeDisplay.innerHTML='';
+    try {
+        const result=await apiRequest('/api/spin_slot','POST',{slot_id:currentOpenCaseOrSlot.id});
+        spinSlotButton.disabled=false;
+        spinSlotButton.textContent='Spin Slot';
+        if(result.status==='success'){
+            currentUser.tonBalance=result.new_balance_ton;
+            updateBalances();
+            const reelElements=slotReelsContainer.querySelectorAll('.slot-reel-spinner');
+            const reelContainerHeight=parseFloat(getComputedStyle(slotReelsContainer).height);
+            const itemDisplayHeight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));
+            result.reel_results.forEach((landedPrize,reelIndex)=>{
+                if(reelElements[reelIndex]){
+                    const spinner=reelElements[reelIndex];
+                    spinner.innerHTML='';
+                    let visualReelItems=[];
+                    const prizePoolForVisuals=currentOpenCaseOrSlot.prize_pool && currentOpenCaseOrSlot.prize_pool.length > 0 ? currentOpenCaseOrSlot.prize_pool : casesData[0].prizes;
+                    for(let i=0;i<30;i++)visualReelItems.push(prizePoolForVisuals[Math.floor(Math.random()*prizePoolForVisuals.length)]);
+                    const targetIdx=Math.floor(visualReelItems.length*0.8);
+                    visualReelItems[targetIdx]=landedPrize;
+                    visualReelItems.forEach(p=>{
+                        const itemEl=document.createElement('div');
+                        itemEl.className='slot-reel-item';
+                        itemEl.style.height=`${itemDisplayHeight}px`;
+                        const img=document.createElement('img');
+                        img.src=generateImageFilename(p.name);
+                        img.alt=p.name;
+                        itemEl.appendChild(img);
+                        spinner.appendChild(itemEl);
+                    });
+                    const landingPosition=(targetIdx*itemDisplayHeight)+(itemDisplayHeight/2)-(reelContainerHeight/2);
+                    spinner.style.transition='none';
+                    spinner.style.top='0px';
+                    void spinner.offsetWidth;
+                    spinner.style.transition=`top ${2+reelIndex*0.5}s cubic-bezier(0.25,0.1,0.2,1)`;
+                    spinner.style.top=`-${landingPosition}px`;
+                }
+            });
+            const num_reels_from_backend=result.reel_results.length;
+            const totalAnimationTime=2000+(num_reels_from_backend-1)*500;
+            if(slotSpinEndTimeout)clearTimeout(slotSpinEndTimeout);
+            slotSpinEndTimeout=setTimeout(()=>{
+                if(result.won_prizes&&result.won_prizes.length>0){
+                    let displayMessage="";
+                    result.won_prizes.forEach((prize,index)=>{
+                        displayMessage+=`${prize.name}${index<result.won_prizes.length-1?', ':''}`;
+                        if(!prize.is_ton_prize){
+                            const existingItem=currentUser.inventory.find(invItem=>invItem.id===prize.id);
+                            if(!existingItem&&prize.id)currentUser.inventory.push({id:prize.id,name:prize.name,imageFilename:prize.imageFilename,currentValue:prize.currentValue,variant:prize.variant,is_ton_prize:false});
+                        }
+                    });
+                    showWinOverlay(result.won_prizes);
+                    if(result.won_prizes.length>1&&result.won_prizes.every(p=>p.is_ton_prize)){
+                        slotPrizeDisplay.textContent="Won: "+displayMessage+"!";
+                        slotPrizeDisplay.style.color='var(--success-color)';
+                    }else if(result.won_prizes.length===1&&result.won_prizes[0].is_ton_prize){
+                        slotPrizeDisplay.textContent="You Won: "+displayMessage+"!";
+                        slotPrizeDisplay.style.color='var(--success-color)';
+                    }
+                    showTGNotification("Spin result: "+displayMessage,'success');
+                    renderInventory();
+                }else{
+                    slotPrizeDisplay.textContent="Try Again!";
+                    slotPrizeDisplay.style.color='var(--text-secondary)';
+                }
+            },totalAnimationTime+100);
+        }else{
+            showTGNotification(result.error||"Slot spin failed.",'error');
+        }
+    }catch(e){
+        console.error("Slot spin error",e);
+        spinSlotButton.disabled=false;
+        spinSlotButton.textContent='Spin Slot';
+    }
+}
 async function handleSingleConvert(itemId){const success=await convertItemToTon(itemId);if(success){showTGNotification("Item converted to TON!",'success');updateBalances();renderInventory();}}
 async function convertItemToTon(itemId){const itemInInventory=currentUser.inventory.find(i=>i.id===itemId);if(itemInInventory&&itemInInventory.is_ton_prize){showTGNotification("Cannot convert TON prize.","info");return false;}try{const res=await apiRequest('/api/convert_to_ton','POST',{inventory_item_id:parseInt(itemId)});if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;currentUser.inventory=currentUser.inventory.filter(i=>i.id!==parseInt(itemId));return true;}else{showTGNotification(res.error||res.message||'Failed.','error');return false;}}catch(e){showTGNotification("Conversion request failed.","error");return false;}}
 async function handleConvertAll(){if(lastWonPrizesForOverlay.length===0){showTGNotification("No items to convert.","warning");return;}let successCount=0;let failCount=0;const itemsToConvert=lastWonPrizesForOverlay.filter(p=>!p.is_ton_prize&&p.id);if(itemsToConvert.length===0){showTGNotification("No convertible items in this win.","info");closeWinOverlayModal();return;}for(const item of itemsToConvert){const success=await convertItemToTon(item.id);if(success)successCount++;else failCount++;}updateBalances();renderInventory();if(failCount>0)showTGNotification(`${successCount} item(s) converted. ${failCount} failed.`,'warning');else showTGNotification(`${successCount} item(s) converted to TON!`,'success');closeWinOverlayModal();}
