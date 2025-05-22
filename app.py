@@ -125,6 +125,23 @@ class PromoCode(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())
 
+class UserPromoCodeRedemption(Base):
+    __tablename__ = "user_promo_code_redemptions"
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    promo_code_id = Column(Integer, ForeignKey("promo_codes.id", ondelete="CASCADE"), nullable=False)
+    redeemed_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User")
+    promo_code = relationship("PromoCode")
+
+    # Ensure a user can only redeem a specific promo code once
+    __table_args__ = (UniqueConstraint('user_id', 'promo_code_id', name='uq_user_promo_redemption'),)
+
+# After defining all your models, make sure Base.metadata.create_all(bind=engine) is called
+# This will create the new table in your database.
+# You might need to run this once or handle migrations if you're using a migration tool.
+
 Base.metadata.create_all(bind=engine)
 
 # --- TonnelGiftSender (unchanged from original, ensure dependencies are installed if used) ---
@@ -900,26 +917,68 @@ def withdraw_referral_earnings_api(): # Unchanged
     finally: db.close()
 
 @app.route('/api/redeem_promocode', methods=['POST'])
-def redeem_promocode_api(): # Unchanged
+def redeem_promocode_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth: return jsonify({"error": "Auth failed"}), 401
-    uid = auth["id"]; data = flask_request.get_json(); code_txt = data.get('promocode_text', "").strip()
-    if not code_txt: return jsonify({"status":"error","message":"Promocode empty."}), 400
+    
+    uid = auth["id"]
+    data = flask_request.get_json()
+    code_txt = data.get('promocode_text', "").strip()
+
+    if not code_txt:
+        return jsonify({"status":"error","message":"Promocode cannot be empty."}), 400
+
     db = next(get_db())
     try:
         user = db.query(User).filter(User.id == uid).with_for_update().first()
+        if not user:
+            return jsonify({"status":"error","message":"User not found."}), 404
+
         promo = db.query(PromoCode).filter(PromoCode.code_text == code_txt).with_for_update().first()
-        if not user: return jsonify({"status":"error","message":"User not found."}), 404
-        if not promo: return jsonify({"status":"error","message":"Invalid promocode."}), 404
-        if promo.activations_left <= 0: return jsonify({"status":"error","message":"Promocode expired."}), 400
-        promo.activations_left -= 1
+        if not promo:
+            return jsonify({"status":"error","message":"Invalid promocode."}), 404
+
+        # Check if activations are left (if it's not an unlimited use code)
+        if promo.activations_left != -1 and promo.activations_left <= 0 : # Assuming -1 means infinite uses
+            return jsonify({"status":"error","message":"Promocode has no activations left."}), 400
+
+        # NEW CHECK: Has this user already redeemed this specific promo code?
+        existing_redemption = db.query(UserPromoCodeRedemption).filter(
+            UserPromoCodeRedemption.user_id == user.id,
+            UserPromoCodeRedemption.promo_code_id == promo.id
+        ).first()
+
+        if existing_redemption:
+            return jsonify({"status":"error","message":"You have already redeemed this promocode."}), 400
+
+        # Proceed with redemption
+        if promo.activations_left != -1: # Only decrement if not infinite
+            promo.activations_left -= 1
+        
         user.ton_balance = float(Decimal(str(user.ton_balance)) + Decimal(str(promo.ton_amount)))
+
+        # NEW: Record the redemption
+        new_redemption = UserPromoCodeRedemption(user_id=user.id, promo_code_id=promo.id)
+        db.add(new_redemption)
+        
         db.commit()
-        return jsonify({"status":"success","message":f"Promocode '{code_txt}' redeemed! +{promo.ton_amount:.2f} TON.","new_balance_ton":user.ton_balance})
+        
+        return jsonify({
+            "status":"success",
+            "message":f"Promocode '{code_txt}' redeemed! +{promo.ton_amount:.2f} TON.",
+            "new_balance_ton":user.ton_balance
+        })
+
+    except IntegrityError as ie: # Handles the UniqueConstraint violation if somehow tried to add twice
+        db.rollback()
+        logger.error(f"IntegrityError redeeming promocode (likely already redeemed concurrently): {ie}", exc_info=True)
+        return jsonify({"status":"error","message":"Promocode redemption failed. Please try again."}), 500
     except Exception as e:
-        db.rollback(); logger.error(f"Error redeeming promocode: {e}", exc_info=True)
-        return jsonify({"status":"error","message":"DB error."}), 500
-    finally: db.close()
+        db.rollback()
+        logger.error(f"Error redeeming promocode: {e}", exc_info=True)
+        return jsonify({"status":"error","message":"A server error occurred during promocode redemption."}), 500
+    finally:
+        db.close()
 
 @app.route('/api/withdraw_item_via_tonnel/<int:inventory_item_id>', methods=['POST'])
 def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id): # Unchanged
