@@ -289,36 +289,125 @@ let selectedUpgradeMultiplier=1.5;
 let spinAnimationTimeoutOuter;
 let slotSpinEndTimeout;
 
+const GIFT_NAME_TO_ID_MAP = {
+  "Santa Hat": "5983471780763796287",
+  "Signet Ring": "5936085638515261992",
+  "Precious Peach": "5933671725160989227",
+  "Plush Pepe": "5936013938331222567",
+  "Spiced Wine": "5913442287462908725",
+  "Jelly Bunny": "5915502858152706668",
+  "Durov's Cap": "5915521180483191380",
+  "Perfume Bottle": "5913517067138499193",
+  "Eternal Rose": "5882125812596999035",
+  "Berry Box": "5882252952218894938",
+  "Vintage Cigar": "5857140566201991735",
+  "Magic Potion": "5846226946928673709", // Assuming this is a gift name, if it's "Magic Potion" the gift name
+  "Kissed Frog": "5845776576658015084",
+  "Hex Pot": "5825801628657124140",
+  "Evil Eye": "5825480571261813595",
+  "Sharp Tongue": "5841689550203650524",
+  "Trapped Heart": "5841391256135008713",
+  "Skull Flower": "5839038009193792264",
+  "Scared Cat": "5837059369300132790",
+  "Spy Agaric": "5821261908354794038",
+  "Homemade Cake": "5783075783622787539",
+  "Genie Lamp": "5933531623327795414",
+  "Lunar Snake": "6028426950047957932",
+  "Party Sparkler": "6003643167683903930",
+  "Jester Hat": "5933590374185435592",
+  "Witch Hat": "5821384757304362229",
+  "Hanging Star": "5915733223018594841",
+  "Love Candle": "5915550639663874519",
+  "Cookie Heart": "6001538689543439169",
+  "Desk Calendar": "5782988952268964995",
+  "Jingle Bells": "6001473264306619020",
+  "Snow Mittens": "5980789805615678057",
+  "Voodoo Doll": "5836780359634649414",
+  "Mad Pumpkin": "5841632504448025405",
+  "Hypno Lollipop": "5825895989088617224", // Corrected from Hynpo
+  "B-Day Candle": "5782984811920491178",
+  "Bunny Muffin": "5935936766358847989",
+  "Astral Shard": "5933629604416717361",
+  "Flying Broom": "5837063436634161765",
+  "Crystal Ball": "5841336413697606412",
+  "Eternal Candle": "5821205665758053411",
+  "Swiss Watch": "5936043693864651359",
+  "Ginger Cookie": "5983484377902875708",
+  "Mini Oscar": "5879737836550226478",
+  "Lol Pop": "5170594532177215681",
+  "Ion Gem": "5843762284240831056",
+  "Star Notepad": "5936017773737018241",
+  "Loot Bag": "5868659926187901653",
+  "Love Potion": "5868348541058942091",
+  "Toy Bear": "5868220813026526561",
+  "Diamond Ring": "5868503709637411929",
+  "Sakura Flower": "5167939598143193218",
+  "Sleigh Bell": "5981026247860290310",
+  "Top Hat": "5897593557492957738",
+  "Record Player": "5856973938650776169",
+  "Winter Wreath": "5983259145522906006",
+  "Snow Globe": "5981132629905245483",
+  "Electric Skull": "5846192273657692751",
+  "Tama Gadget": "6023752243218481939",
+  "Candy Cane": "6003373314888696650",
+  "Neko Helmet": "5933793770951673155",
+  "Jack-in-the-Box": "6005659564635063386", // Corrected from Jack-in-the-box
+  "Easter Egg": "5773668482394620318",
+  "Bonded Ring": "5870661333703197240",
+  "Pet Snake": "6023917088358269866",
+  "Snake Box": "6023679164349940429",
+  "Xmas Stocking": "6003767644426076664",
+  "Big Year": "6028283532500009446",
+  "Holiday Drink": "6003735372041814769",
+  "Gem Signet": "5859442703032386168",
+  "Light Sword": "5897581235231785485"
+};
+    
 const UPDATED_FLOOR_PRICES_FRONTEND={'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':100.0,'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0};
 const KISSED_FROG_VARIANT_FLOORS={"Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,"Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,"Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,"Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,"Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,"Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,"Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,"Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,"Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0};
 Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
 
 function generateImageFilename(nameOrUrl) {
-    if (!nameOrUrl) return IMAGE_BASE_URL + 'placeholder.png';
+    if (!nameOrUrl) return IMAGE_BASE_URL + 'placeholder.png'; // Default placeholder
+
+    // 1. If it's already a full HTTP/HTTPS URL (e.g., for case card images from GitHub), use it directly.
     if (nameOrUrl.startsWith('http://') || nameOrUrl.startsWith('https://')) {
-        return nameOrUrl; // It's already a full URL
+        return nameOrUrl;
     }
 
-    const name = nameOrUrl; // Treat it as a name if not a URL
+    const name = nameOrUrl; // Treat it as a name if it's not a full URL
 
-    if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) return TON_COIN_FULL_URL;
+    // 2. Check for TON prize image
+    if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) {
+        return TON_COIN_FULL_URL;
+    }
+
+    // 3. Check the new GIFT_NAME_TO_ID_MAP for specific CDN URLs
+    if (GIFT_NAME_TO_ID_MAP[name]) {
+        const giftId = GIFT_NAME_TO_ID_MAP[name];
+        return `https://cdn.changes.tg/gifts/originals/${giftId}/Original.png`;
+    }
     
+    // 4. Special handling for Kissed Frog *variants* (prizes within the Kissed Frog case)
+    // Note: The main "Kissed Frog" case card image itself is handled by GIFT_NAME_TO_ID_MAP if "Kissed Frog" is a key there.
     if (Object.keys(KISSED_FROG_VARIANT_FLOORS).includes(name)) {
         return `https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/${name.replace(/\s/g, '%20')}.png`;
     }
 
+    // 5. Fallback to original IMAGE_BASE_URL logic for any other items not in the map
     let filename = name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "");
-    if (name === "Durov's Cap") filename = "Durov's-Cap";
-    if (name === "Vintage Cigar") filename = "Vintage-CIgar";
-    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g, '_'))) filename = name.replace('-', '_');
+    if (name === "Durov's Cap") filename = "Durov's-Cap"; // Keep specific overrides if needed
+    if (name === "Vintage Cigar") filename = "Vintage-Cigar";
+    // Add other specific overrides if necessary
+    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g, '_'))) {
+         filename = name.replace('-', '_');
+    }
     
-    // Ensure it ends with a common image extension, default to .png
     if (!/\.(jpeg|jpg|gif|png|svg)$/i.test(filename)) {
-        filename += '.png';
+        filename += '.png'; // Default to .png if no extension
     }
     return IMAGE_BASE_URL + filename;
 }
-
 
 const finalKissedFrogPrizesWithConsolation=[{name:"Happy Pepe",probability:0.0001},{name:"Tree Frog",probability:0.0005},{name:"Brewtoad",probability:0.0005},{name:"Puddles",probability:0.0005},{name:"Honeyhop",probability:0.0005},{name:"Melty Butter",probability:0.0005},{name:"Lucifrog",probability:0.0005},{name:"Zodiak Croak",probability:0.0005},{name:"Count Croakula",probability:0.0005},{name:"Lilie Pond",probability:0.0005},{name:"Sweet Dream",probability:0.0005},{name:"Frogmaid",probability:0.0005},{name:"Rocky Hopper",probability:0.0005},{name:"Icefrog",probability:0.002},{name:"Lava Leap",probability:0.002},{name:"Toadstool",probability:0.002},{name:"Desert Frog",probability:0.002},{name:"Cupid",probability:0.002},{name:"Hopberry",probability:0.002},{name:"Ms. Toad",probability:0.002},{name:"Trixie",probability:0.002},{name:"Prince Ribbit",probability:0.002},{name:"Pond Fairy",probability:0.002},{name:"Boingo",probability:0.002},{name:"Tesla Frog",probability:0.002},{name:"Starry Night",probability:0.007},{name:"Silver",probability:0.007},{name:"Ectofrog",probability:0.007},{name:"Poison",probability:0.007},{name:"Minty Bloom",probability:0.007},{name:"Sarutoad",probability:0.007},{name:"Void Hopper",probability:0.007},{name:"Ramune",probability:0.007},{name:"Lemon Drop",probability:0.007},{name:"Ectobloom",probability:0.007},{name:"Duskhopper",probability:0.007},{name:"Bronze",probability:0.007},{name:"Lily Pond",probability:0.04028},{name:"Toadberry",probability:0.04028},{name:"Frogwave",probability:0.04028},{name:"Melon",probability:0.04028},{name:"Sky Leaper",probability:0.04028},{name:"Frogtart",probability:0.04028},{name:"Peach",probability:0.04028},{name:"Sea Breeze",probability:0.04028},{name:"Lemon Juice",probability:0.04028},{name:"Cranberry",probability:0.04028},{name:"Tide Pod",probability:0.04028},{name:"Brownie",probability:0.04028},{name:"Banana Pox",probability:0.04024}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}));
 let currentProbSumForKF=finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
