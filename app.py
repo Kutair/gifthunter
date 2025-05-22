@@ -258,28 +258,120 @@ class TonnelGiftSender:
 
 
 TON_PRIZE_IMAGE_DEFAULT = "https://case-bot.com/images/actions/ton.svg" # UPDATED
+GIFT_NAME_TO_ID_MAP_PY = {
+  "Santa Hat": "5983471780763796287",
+  "Signet Ring": "5936085638515261992",
+  "Precious Peach": "5933671725160989227",
+  "Plush Pepe": "5936013938331222567",
+  "Spiced Wine": "5913442287462908725",
+  "Jelly Bunny": "5915502858152706668",
+  "Durov's Cap": "5915521180483191380", # Also "Durov\'s Cap"
+  "Perfume Bottle": "5913517067138499193",
+  "Eternal Rose": "5882125812596999035",
+  "Berry Box": "5882252952218894938",
+  "Vintage Cigar": "5857140566201991735",
+  "Magic Potion": "5846226946928673709",
+  "Kissed Frog": "5845776576658015084",
+  "Hex Pot": "5825801628657124140",
+  "Evil Eye": "5825480571261813595",
+  "Sharp Tongue": "5841689550203650524",
+  "Trapped Heart": "5841391256135008713",
+  "Skull Flower": "5839038009193792264",
+  "Scared Cat": "5837059369300132790",
+  "Spy Agaric": "5821261908354794038",
+  "Homemade Cake": "5783075783622787539",
+  "Genie Lamp": "5933531623327795414",
+  "Lunar Snake": "6028426950047957932",
+  "Party Sparkler": "6003643167683903930",
+  "Jester Hat": "5933590374185435592",
+  "Witch Hat": "5821384757304362229",
+  "Hanging Star": "5915733223018594841",
+  "Love Candle": "5915550639663874519",
+  "Cookie Heart": "6001538689543439169",
+  "Desk Calendar": "5782988952268964995",
+  "Jingle Bells": "6001473264306619020",
+  "Snow Mittens": "5980789805615678057",
+  "Voodoo Doll": "5836780359634649414",
+  "Mad Pumpkin": "5841632504448025405",
+  "Hypno Lollipop": "5825895989088617224",
+  "B-Day Candle": "5782984811920491178",
+  "Bunny Muffin": "5935936766358847989",
+  "Astral Shard": "5933629604416717361",
+  "Flying Broom": "5837063436634161765",
+  "Crystal Ball": "5841336413697606412",
+  "Eternal Candle": "5821205665758053411",
+  "Swiss Watch": "5936043693864651359",
+  "Ginger Cookie": "5983484377902875708",
+  "Mini Oscar": "5879737836550226478",
+  "Lol Pop": "5170594532177215681",
+  "Ion Gem": "5843762284240831056",
+  "Star Notepad": "5936017773737018241",
+  "Loot Bag": "5868659926187901653",
+  "Love Potion": "5868348541058942091",
+  "Toy Bear": "5868220813026526561",
+  "Diamond Ring": "5868503709637411929",
+  "Sakura Flower": "5167939598143193218",
+  "Sleigh Bell": "5981026247860290310",
+  "Top Hat": "5897593557492957738",
+  "Record Player": "5856973938650776169",
+  "Winter Wreath": "5983259145522906006",
+  "Snow Globe": "5981132629905245483",
+  "Electric Skull": "5846192273657692751",
+  "Tama Gadget": "6023752243218481939",
+  "Candy Cane": "6003373314888696650",
+  "Neko Helmet": "5933793770951673155",
+  "Jack-in-the-Box": "6005659564635063386",
+  "Easter Egg": "5773668482394620318",
+  "Bonded Ring": "5870661333703197240",
+  "Pet Snake": "6023917088358269866",
+  "Snake Box": "6023679164349940429",
+  "Xmas Stocking": "6003767644426076664",
+  "Big Year": "6028283532500009446",
+  "Holiday Drink": "6003735372041814769",
+  "Gem Signet": "5859442703032386168",
+  "Light Sword": "5897581235231785485"
+}
+# Also add "Durov's Cap" for python if it can appear as "Durov's Cap" in data
+GIFT_NAME_TO_ID_MAP_PY["Durov's Cap"] = "5915521180483191380"
 
 def generate_image_filename_from_name(name_str: str) -> str:
-    if not name_str: return 'placeholder.png'
-    
-    # Handle TON prize image
-    # Allow one dot for decimals, e.g., "0.1 TON" or "10 TON Prize"
-    if "TON" in name_str.upper() and ("PRIZE" in name_str.upper() or name_str.replace('.', '', 1).replace(' TON', '').isdigit()):
-        return TON_PRIZE_IMAGE_DEFAULT
+    if not name_str: return 'placeholder.png' # Default placeholder
 
-    if name_str == "Durov's Cap": return "Durov's-Cap.png"
-    if name_str == "Vintage Cigar": return "Vintage-Cigar.png" # Corrected typo
+    # 1. Handle TON prize image (this should be the SVG URL)
+    # Allow one dot for decimals, e.g., "0.1 TON" or "10 TON Prize"
+    if "TON" in name_str.upper() and ("PRIZE" in name_str.upper() or name_str.replace('.', '', 1).replace(' TON', '').strip().isdigit()):
+        return TON_PRIZE_IMAGE_DEFAULT # This is already your SVG URL
+
+    # 2. Check the new GIFT_NAME_TO_ID_MAP_PY for specific CDN URLs
+    gift_id = GIFT_NAME_TO_ID_MAP_PY.get(name_str)
+    if gift_id:
+        return f"https://cdn.changes.tg/gifts/originals/{gift_id}/Original.png"
     
-    # Specific color names (if they are meant to be filenames, not full item names)
+    # 3. Special handling for Kissed Frog *variants* (prizes within the Kissed Frog case)
+    # The main "Kissed Frog" case card image itself should ideally be handled by its `imageFilename` in `cases_data_backend`
+    # or by ensuring "Kissed Frog" is in GIFT_NAME_TO_ID_MAP_PY for its card image.
+    if name_str in KISSED_FROG_VARIANT_FLOORS: # KISSED_FROG_VARIANT_FLOORS should be defined globally
+        return f"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/{name_str.replace(' ', '%20')}.png"
+
+    # 4. Fallback to original filename generation for items not in the map
+    # This part might not be needed if all your displayable prize items are in the map
+    # or are TON prizes / Kissed Frog variants.
+    # If you have other items that need local filenames, keep this section.
+    
+    # Specific overrides for names that don't map well automatically
+    if name_str == "Durov's Cap": return "Durov's-Cap.png" # Python uses \' for apostrophe
+    if name_str == "Vintage Cigar": return "Vintage-Cigar.png" # Corrected typo
+
     name_str_rep = name_str.replace('-', '_')
     if name_str_rep in ['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black']: return name_str_rep + '.png'
     
     cleaned = re.sub(r'\s+', '-', name_str.replace('&', 'and').replace("'", ""))
     filename = re.sub(r'-+', '-', cleaned)
     
+    # Ensure it ends with a common image extension, default to .png
     if not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg')):
         filename += '.png'
-    return filename
+    return filename # This will return a relative path like "My-Item.png"
 
 
 UPDATED_FLOOR_PRICES = {'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':100.0,'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0}
