@@ -195,8 +195,6 @@
             <div id="main-page" class="page active">
                 <h2>Cases</h2>
                 <div id="cases-grid" class="cases-grid"></div>
-                <h2 style="margin-top: 40px;">Slots</h2>
-                <div id="slots-grid" class="slots-grid"></div>
             </div>
 
             <div id="upgrade-page" class="page"><h2>Upgrade Item</h2><div class="content-card"><p>Select an item:</p><select id="upgrade-inventory-select"><option value="">-- Choose --</option></select><div id="upgrade-chance-display">50%</div><p>Multiplier:</p><div id="multiplier-buttons" class="multiplier-buttons"><button class="button button-secondary" data-multiplier="1.5" data-chance="50">x1.5</button><button class="button button-secondary" data-multiplier="2" data-chance="35">x2</button><button class="button button-secondary" data-multiplier="3" data-chance="25">x3</button><button class="button button-secondary" data-multiplier="5" data-chance="15">x5</button><button class="button button-secondary" data-multiplier="10" data-chance="8">x10</button><button class="button button-secondary" data-multiplier="20" data-chance="3">x20</button></div><button id="do-upgrade-button" class="button">Attempt Upgrade</button><p id="upgrade-result"></p></div></div>
@@ -238,7 +236,7 @@
         </div>
     </div>
 
-    <div id="slot-machine-modal" class="modal">
+    <!--<div id="slot-machine-modal" class="modal">
         <div class="modal-content">
             <h3 id="slot-machine-name">Spinning Slot...</h3>
             <div id="slot-reels-container">
@@ -254,7 +252,7 @@
              <div id="slot-prize-display"></div>
              <hr><h4>Possible Symbols:</h4><div id="slot-possible-prizes-display"></div>
         </div>
-    </div>
+    </div>-->
 
     <div id="win-overlay-modal" class="modal">
         <div class="modal-content">
@@ -273,139 +271,46 @@
     <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
 
 <script>
-const IMAGE_BASE_URL='https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
-// const CASE_BG_IMAGE_BASE_URL='https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/bgs/'; // Not currently used explicitly for card backgrounds, CSS handles it.
-const API_BASE_URL='https://case-hznb.onrender.com';
-const BOT_USERNAME='caseKviBot';
-const MINI_APP_NAME='case';
-const TON_COIN_FULL_URL='https://case-bot.com/images/actions/ton.svg'; // UPDATED
-const currentUser={id:null,username:null,first_name:'User',last_name:null,walletAddress:null,walletAddressRaw:null,tonBalance:0.00,starBalance:0,inventory:[],referralCode:null,referralEarningsPending:0,total_won_ton:0,invited_friends_count:0};
-let currentOpenCaseOrSlot=null;
-let selectedCaseMultiplier=1;
-let itemToWithdraw=null;
-const upgradeChances={1.5:50,2:35,3:25,5:15,10:8,20:3};
-let lastWonPrizesForOverlay=[];
-let selectedUpgradeMultiplier=1.5;
+const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
+const API_BASE_URL = 'https://case-hznb.onrender.com';
+const BOT_USERNAME = 'caseKviBot';
+const MINI_APP_NAME = 'case';
+const TON_COIN_FULL_URL = 'https://case-bot.com/images/actions/ton.svg';
+
+const currentUser = {
+    id: null, username: null, first_name: 'User', last_name: null,
+    walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
+    inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0,
+    invited_friends_count: 0
+};
+let currentOpenCaseOrSlot = null; // Will only be used for cases now
+let selectedCaseMultiplier = 1;
+let itemToWithdraw = null;
+const upgradeChances = { 1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3 };
+let lastWonPrizesForOverlay = [];
+let selectedUpgradeMultiplier = 1.5;
 let spinAnimationTimeoutOuter;
-let slotSpinEndTimeout;
+// let slotSpinEndTimeout; // Removed slot related
 
 const GIFT_NAME_TO_ID_MAP = {
-  "Santa Hat": "5983471780763796287",
-  "Signet Ring": "5936085638515261992",
-  "Precious Peach": "5933671725160989227",
-  "Plush Pepe": "5936013938331222567",
-  "Spiced Wine": "5913442287462908725",
-  "Jelly Bunny": "5915502858152706668",
-  "Durov's Cap": "5915521180483191380",
-  "Perfume Bottle": "5913517067138499193",
-  "Eternal Rose": "5882125812596999035",
-  "Berry Box": "5882252952218894938",
-  "Vintage Cigar": "5857140566201991735",
-  "Magic Potion": "5846226946928673709", // Assuming this is a gift name, if it's "Magic Potion" the gift name
-  "Kissed Frog": "5845776576658015084",
-  "Hex Pot": "5825801628657124140",
-  "Evil Eye": "5825480571261813595",
-  "Sharp Tongue": "5841689550203650524",
-  "Trapped Heart": "5841391256135008713",
-  "Skull Flower": "5839038009193792264",
-  "Scared Cat": "5837059369300132790",
-  "Spy Agaric": "5821261908354794038",
-  "Homemade Cake": "5783075783622787539",
-  "Genie Lamp": "5933531623327795414",
-  "Lunar Snake": "6028426950047957932",
-  "Party Sparkler": "6003643167683903930",
-  "Jester Hat": "5933590374185435592",
-  "Witch Hat": "5821384757304362229",
-  "Hanging Star": "5915733223018594841",
-  "Love Candle": "5915550639663874519",
-  "Cookie Heart": "6001538689543439169",
-  "Desk Calendar": "5782988952268964995",
-  "Jingle Bells": "6001473264306619020",
-  "Snow Mittens": "5980789805615678057",
-  "Voodoo Doll": "5836780359634649414",
-  "Mad Pumpkin": "5841632504448025405",
-  "Hypno Lollipop": "5825895989088617224", // Corrected from Hynpo
-  "B-Day Candle": "5782984811920491178",
-  "Bunny Muffin": "5935936766358847989",
-  "Astral Shard": "5933629604416717361",
-  "Flying Broom": "5837063436634161765",
-  "Crystal Ball": "5841336413697606412",
-  "Eternal Candle": "5821205665758053411",
-  "Swiss Watch": "5936043693864651359",
-  "Ginger Cookie": "5983484377902875708",
-  "Mini Oscar": "5879737836550226478",
-  "Lol Pop": "5170594532177215681",
-  "Ion Gem": "5843762284240831056",
-  "Star Notepad": "5936017773737018241",
-  "Loot Bag": "5868659926187901653",
-  "Love Potion": "5868348541058942091",
-  "Toy Bear": "5868220813026526561",
-  "Diamond Ring": "5868503709637411929",
-  "Sakura Flower": "5167939598143193218",
-  "Sleigh Bell": "5981026247860290310",
-  "Top Hat": "5897593557492957738",
-  "Record Player": "5856973938650776169",
-  "Winter Wreath": "5983259145522906006",
-  "Snow Globe": "5981132629905245483",
-  "Electric Skull": "5846192273657692751",
-  "Tama Gadget": "6023752243218481939",
-  "Candy Cane": "6003373314888696650",
-  "Neko Helmet": "5933793770951673155",
-  "Jack-in-the-Box": "6005659564635063386", // Corrected from Jack-in-the-box
-  "Easter Egg": "5773668482394620318",
-  "Bonded Ring": "5870661333703197240",
-  "Pet Snake": "6023917088358269866",
-  "Snake Box": "6023679164349940429",
-  "Xmas Stocking": "6003767644426076664",
-  "Big Year": "6028283532500009446",
-  "Holiday Drink": "6003735372041814769",
-  "Gem Signet": "5859442703032386168",
-  "Light Sword": "5897581235231785485"
+  "Santa Hat": "5983471780763796287","Signet Ring": "5936085638515261992","Precious Peach": "5933671725160989227","Plush Pepe": "5936013938331222567","Spiced Wine": "5913442287462908725","Jelly Bunny": "5915502858152706668","Durov's Cap": "5915521180483191380","Perfume Bottle": "5913517067138499193","Eternal Rose": "5882125812596999035","Berry Box": "5882252952218894938","Vintage Cigar": "5857140566201991735","Magic Potion": "5846226946928673709", "Kissed Frog": "5845776576658015084","Hex Pot": "5825801628657124140","Evil Eye": "5825480571261813595","Sharp Tongue": "5841689550203650524","Trapped Heart": "5841391256135008713","Skull Flower": "5839038009193792264","Scared Cat": "5837059369300132790","Spy Agaric": "5821261908354794038","Homemade Cake": "5783075783622787539","Genie Lamp": "5933531623327795414","Lunar Snake": "6028426950047957932","Party Sparkler": "6003643167683903930","Jester Hat": "5933590374185435592","Witch Hat": "5821384757304362229","Hanging Star": "5915733223018594841","Love Candle": "5915550639663874519","Cookie Heart": "6001538689543439169","Desk Calendar": "5782988952268964995","Jingle Bells": "6001473264306619020","Snow Mittens": "5980789805615678057","Voodoo Doll": "5836780359634649414","Mad Pumpkin": "5841632504448025405","Hypno Lollipop": "5825895989088617224", "B-Day Candle": "5782984811920491178","Bunny Muffin": "5935936766358847989","Astral Shard": "5933629604416717361","Flying Broom": "5837063436634161765","Crystal Ball": "5841336413697606412","Eternal Candle": "5821205665758053411","Swiss Watch": "5936043693864651359","Ginger Cookie": "5983484377902875708","Mini Oscar": "5879737836550226478","Lol Pop": "5170594532177215681","Ion Gem": "5843762284240831056","Star Notepad": "5936017773737018241","Loot Bag": "5868659926187901653","Love Potion": "5868348541058942091","Toy Bear": "5868220813026526561","Diamond Ring": "5868503709637411929","Sakura Flower": "5167939598143193218","Sleigh Bell": "5981026247860290310","Top Hat": "5897593557492957738","Record Player": "5856973938650776169","Winter Wreath": "5983259145522906006","Snow Globe": "5981132629905245483","Electric Skull": "5846192273657692751","Tama Gadget": "6023752243218481939","Candy Cane": "6003373314888696650","Neko Helmet": "5933793770951673155","Jack-in-the-Box": "6005659564635063386","Easter Egg": "5773668482394620318","Bonded Ring": "5870661333703197240","Pet Snake": "6023917088358269866","Snake Box": "6023679164349940429","Xmas Stocking": "6003767644426076664","Big Year": "6028283532500009446","Holiday Drink": "6003735372041814769","Gem Signet": "5859442703032386168","Light Sword": "5897581235231785485"
 };
-    
 const UPDATED_FLOOR_PRICES_FRONTEND={'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':100.0,'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0};
 const KISSED_FROG_VARIANT_FLOORS={"Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,"Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,"Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,"Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,"Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,"Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,"Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,"Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,"Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0};
 Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
 
 function generateImageFilename(nameOrUrl) {
-    if (!nameOrUrl) return IMAGE_BASE_URL + 'placeholder.png'; // Default placeholder
-
-    // 1. If it's already a full HTTP/HTTPS URL (e.g., for case card images from GitHub), use it directly.
-    if (nameOrUrl.startsWith('http://') || nameOrUrl.startsWith('https://')) {
-        return nameOrUrl;
-    }
-
-    const name = nameOrUrl; // Treat it as a name if it's not a full URL
-
-    // 2. Check for TON prize image
-    if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) {
-        return TON_COIN_FULL_URL;
-    }
-
-    // 3. Check the new GIFT_NAME_TO_ID_MAP for specific CDN URLs
-    if (GIFT_NAME_TO_ID_MAP[name]) {
-        const giftId = GIFT_NAME_TO_ID_MAP[name];
-        return `https://cdn.changes.tg/gifts/originals/${giftId}/Original.png`;
-    }
-    
-    // 4. Special handling for Kissed Frog *variants* (prizes within the Kissed Frog case)
-    // Note: The main "Kissed Frog" case card image itself is handled by GIFT_NAME_TO_ID_MAP if "Kissed Frog" is a key there.
-    if (Object.keys(KISSED_FROG_VARIANT_FLOORS).includes(name)) {
-        return `https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/${name.replace(/\s/g, '%20')}.png`;
-    }
-
-    // 5. Fallback to original IMAGE_BASE_URL logic for any other items not in the map
+    if (!nameOrUrl) return IMAGE_BASE_URL + 'placeholder.png';
+    if (nameOrUrl.startsWith('http://') || nameOrUrl.startsWith('https://')) return nameOrUrl;
+    const name = nameOrUrl;
+    if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) return TON_COIN_FULL_URL;
+    if (GIFT_NAME_TO_ID_MAP[name]) return `https://cdn.changes.tg/gifts/originals/${GIFT_NAME_TO_ID_MAP[name]}/Original.png`;
+    if (Object.keys(KISSED_FROG_VARIANT_FLOORS).includes(name)) return `https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/${name.replace(/\s/g, '%20')}.png`;
     let filename = name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "");
-    if (name === "Durov's Cap") filename = "Durov's-Cap"; // Keep specific overrides if needed
+    if (name === "Durov's Cap") filename = "Durov's-Cap";
     if (name === "Vintage Cigar") filename = "Vintage-Cigar";
-    // Add other specific overrides if necessary
-    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g, '_'))) {
-         filename = name.replace('-', '_');
-    }
-    
-    if (!/\.(jpeg|jpg|gif|png|svg)$/i.test(filename)) {
-        filename += '.png'; // Default to .png if no extension
-    }
+    if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g, '_'))) filename = name.replace('-', '_');
+    if (!/\.(jpeg|jpg|gif|png|svg)$/i.test(filename)) filename += '.png';
     return IMAGE_BASE_URL + filename;
 }
 
@@ -421,215 +326,515 @@ const casesData=[
     {id:'swisswatch',name:'Swiss Watch Box',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg',priceTON:10.0,prizes:[{name:'Plush Pepe',probability:0.0002},{name:'Swiss Watch',probability:0.032},{name:'Neko Helmet',probability:0.045},{name:'Eternal Rose',probability:0.06},{name:'Electric Skull',probability:0.08},{name:'Diamond Ring',probability:0.1},{name:'Record Player',probability:0.16},{name:'Love Potion',probability:0.16},{name:'Top Hat',probability:0.1728},{name:'Voodoo Doll',probability:0.19}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))},
     {id:'kissedfrog',name:'Kissed Frog Pond',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',priceTON:20.0,prizes:finalKissedFrogPrizesWithConsolation},
     {id:'perfumebottle',name:'Perfume Chest',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg',priceTON:20.0,prizes:[{name:'Plush Pepe',probability:0.0004},{name:'Perfume Bottle',probability:0.02},{name:'Sharp Tongue',probability:0.035},{name:'Loot Bag',probability:0.05},{name:'Swiss Watch',probability:0.06},{name:'Neko Helmet',probability:0.08},{name:'Genie Lamp',probability:0.11},{name:'Kissed Frog',probability:0.15},{name:'Electric Skull',probability:0.2},{name:'Diamond Ring',probability:0.2946}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))},
-    {id:'vintagecigar',name:'Vintage Cigar Safe',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg',priceTON:40.0,prizes:[{name:'Perfume Bottle',probability:0.025},{name:'Vintage Cigar',probability:0.03},{name:'Swiss Watch',probability:0.04},{name:'Neko Helmet',probability:0.06},{name:'Sharp Tongue',probability:0.08},{name:'Genie Lamp',probability:0.1},{name:'Mini Oscar',probability:0.07},{name:'Scared Cat',probability:0.2},{name:'Toy Bear',probability:0.3942}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))},
-    {id:'astralshard',name:'Astral Shard Relic',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg',priceTON:100.0,prizes:[{name:'Plush Pepe',probability:0.0015},{name:"Durov's Cap",probability:0.01},{name:'Astral Shard',probability:0.025},{name:'Precious Peach',probability:0.025},{name:'Vintage Cigar',probability:0.04},{name:'Perfume Bottle',probability:0.05},{name:'Swiss Watch',probability:0.07},{name:'Neko Helmet',probability:0.09},{name:'Mini Oscar',probability:0.06},{name:'Scared Cat',probability:0.15},{name:'Loot Bag',probability:0.2},{name:'Toy Bear',probability:0.2785}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))},
-    {id:'plushpepe',name:'Plush Pepe Hoard',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg',priceTON:200.0,prizes:[{name:'Plush Pepe',probability:0.045},{name:"Durov's Cap",probability:0.2},{name:'Astral Shard',probability:0.755}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))}
+    {id:'vintagecigar',name:'Vintage Cigar Safe',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg',priceTON:40.0,prizes:[{name:'Plush Pepe',probability:0.0008},{name:'Perfume Bottle',probability:0.025},{name:'Vintage Cigar',probability:0.03},{name:'Swiss Watch',probability:0.04},{name:'Neko Helmet',probability:0.06},{name:'Sharp Tongue',probability:0.08},{name:'Genie Lamp',probability:0.1},{name:'Mini Oscar',probability:0.07},{name:'Scared Cat',probability:0.2},{name:'Toy Bear',probability:0.3942}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))},
+    {id:'astralshard',name:'Astral Shard Relic',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg',priceTON:100.0,prizes:[{name:'Plush Pepe',probability:0.0015},{name:'Durov\'s Cap',probability:0.01},{name:'Astral Shard',probability:0.025},{name:'Precious Peach',probability:0.025},{name:'Vintage Cigar',probability:0.04},{name:'Perfume Bottle',probability:0.05},{name:'Swiss Watch',probability:0.07},{name:'Neko Helmet',probability:0.09},{name:'Mini Oscar',probability:0.06},{name:'Scared Cat',probability:0.15},{name:'Loot Bag',probability:0.2},{name:'Toy Bear',probability:0.2785}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))},
+    {id:'plushpepe',name:'Plush Pepe Hoard',imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg',priceTON:200.0,prizes:[{name:'Plush Pepe',probability:0.045},{name:'Durov\'s Cap',probability:0.2},{name:'Astral Shard',probability:0.755}].map(p=>({...p,imageFilename:generateImageFilename(p.name),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND[p.name]}))}
 ];
-casesData.forEach(caseItem=>{let totalProb=caseItem.prizes.reduce((sum,prize)=>sum+prize.probability,0);if(totalProb>0&&Math.abs(totalProb-1.0)>0.00001){caseItem.prizes.forEach(prize=>{prize.probability=prize.probability/totalProb;});}});
-
-const defaultSlotPrizePoolForDisplay=[{name:"0.1 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:0.1,probability:0.10,is_ton_prize:true},{name:"0.25 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:0.25,probability:0.10,is_ton_prize:true},{name:"0.5 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:0.5,probability:0.10,is_ton_prize:true},{name:"1.0 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:1.0,probability:0.10,is_ton_prize:true},{name:"1.5 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:1.5,probability:0.10,is_ton_prize:true},{name:'Lol Pop',imageFilename:generateImageFilename('Lol Pop'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Lol Pop'],probability:0.05,is_ton_prize:false},{name:'Party Sparkler',imageFilename:generateImageFilename('Party Sparkler'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Party Sparkler'],probability:0.05,is_ton_prize:false},{name:'Cookie Heart',imageFilename:generateImageFilename('Cookie Heart'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Cookie Heart'],probability:0.05,is_ton_prize:false},{name:'Skull Flower',imageFilename:generateImageFilename('Skull Flower'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Skull Flower'],probability:0.05,is_ton_prize:false},{name:'Record Player',imageFilename:generateImageFilename('Record Player'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Record Player'],probability:0.03,is_ton_prize:false},];
-const premiumSlotPrizePoolForDisplay=[{name:"2 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:2.0,probability:0.08,is_ton_prize:true},{name:"3 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:3.0,probability:0.08,is_ton_prize:true},{name:"5 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:5.0,probability:0.08,is_ton_prize:true},{name:"10 TON",imageFilename:TON_COIN_FULL_URL,floorPrice:10.0,probability:0.06,is_ton_prize:true},{name:'Neko Helmet',imageFilename:generateImageFilename('Neko Helmet'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet'],probability:0.05,is_ton_prize:false},{name:'Swiss Watch',imageFilename:generateImageFilename('Swiss Watch'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Swiss Watch'],probability:0.05,is_ton_prize:false},{name:'Sharp Tongue',imageFilename:generateImageFilename('Sharp Tongue'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Sharp Tongue'],probability:0.04,is_ton_prize:false},{name:'Vintage Cigar',imageFilename:generateImageFilename('Vintage Cigar'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Vintage Cigar'],probability:0.03,is_ton_prize:false},{name:'Perfume Bottle',imageFilename:generateImageFilename('Perfume Bottle'),floorPrice:UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle'],probability:0.02,is_ton_prize:false},];
-const slotsData=[{id:'default_slot',name:'Default Slot',priceTON:3.0,imageFilename:generateImageFilename('Lol Pop'),prize_pool:defaultSlotPrizePoolForDisplay},{id:'premium_slot',name:'Premium Slot',priceTON:10.0,imageFilename:generateImageFilename('Neko Helmet'),prize_pool:premiumSlotPrizePoolForDisplay}];
-
-const headerElements={tonConnectButton:document.getElementById('ton-connect-button'),walletAddressDisplay:document.getElementById('wallet-address-display'),tonBalanceSpan:document.getElementById('ton-balance'),balanceDisplay:document.getElementById('balance')};
-const appNavButtons=document.querySelectorAll('.nav-button');const pages=document.querySelectorAll('.page');const casesGrid=document.getElementById('cases-grid');const slotsGrid=document.getElementById('slots-grid');
-const rouletteModal=document.getElementById('roulette-modal');const rouletteCaseName=document.getElementById('roulette-case-name');const rouletteWheelContainer=document.getElementById('roulette-wheel-container');const spinButton=document.getElementById('spin-button');const closeRouletteButton=document.getElementById('close-roulette-button');const possiblePrizesDisplay=document.getElementById('possible-prizes-display');const caseMultiplierSelector=document.querySelector('.case-multiplier-selector');
-const winOverlayModal=document.getElementById('win-overlay-modal');const winOverlayPrizeImageContainer=document.getElementById('win-overlay-prize-image');const winOverlayNameEl=document.getElementById('win-overlay-prize-name');const winOverlayPrizeDetailsEl=document.getElementById('win-overlay-prize-details');const winOverlaySaveBtn=document.getElementById('win-overlay-save-button');const winOverlayConvertBtn=document.getElementById('win-overlay-convert-button');const winOverlayConvertValue=document.getElementById('win-overlay-convert-value');
-const slotMachineModal=document.getElementById('slot-machine-modal');const slotMachineName=document.getElementById('slot-machine-name');const slotReelsContainer=document.getElementById('slot-reels-container');const spinSlotButton=document.getElementById('spin-slot-button');const closeSlotModalButton=document.getElementById('close-slot-modal-button');const slotPriceDisplay=document.getElementById('slot-price-display');const slotPrizeDisplay=document.getElementById('slot-prize-display');const slotPossiblePrizesDisplay=document.getElementById('slot-possible-prizes-display');
-const withdrawModal=document.getElementById('withdraw-modal');const withdrawSteps=withdrawModal.querySelectorAll('.modal-step');const withdrawStep1NextBtn=document.getElementById('withdraw-step1-next');const withdrawStep2NextBtn=document.getElementById('withdraw-step2-next');const withdrawStep2BackBtn=document.getElementById('withdraw-step2-back');const withdrawStep3CloseBtn=document.getElementById('withdraw-step3-close');const withdrawStatusMessage=document.getElementById('withdraw-status-message');const closeWithdrawModalButton=document.getElementById('close-withdraw-modal-button');
-const profileElements={avatar:document.getElementById('profile-avatar'),username:document.getElementById('profile-username'),userid:document.getElementById('profile-userid'),balanceDisplay:document.getElementById('profile-balance-display'),walletAddress:document.getElementById('profile-wallet-address'),inventoryGrid:document.getElementById('inventory-grid'),inventoryCount:document.getElementById('inventory-count'),emptyInventoryMessage:document.getElementById('empty-inventory-message'),disconnectWalletButton:document.getElementById('disconnect-wallet-button'),depositAmountInput:document.getElementById('deposit-amount-input'),initiateDepositButton:document.getElementById('initiate-deposit-button'),sellAllButton:document.getElementById('sell-all-button'),sellAllValueSpan:document.getElementById('sell-all-value'),promocodeInput:document.getElementById('promocode-input'),redeemPromocodeButton:document.getElementById('redeem-promocode-button')};
-const upgradeElements={inventorySelect:document.getElementById('upgrade-inventory-select'),multiplierButtons:document.getElementById('multiplier-buttons'),doUpgradeButton:document.getElementById('do-upgrade-button'),upgradeResult:document.getElementById('upgrade-result'),chanceDisplay:document.getElementById('upgrade-chance-display')};
-const inviteElements={referralLink:document.getElementById('referral-link'),copyRefLinkButton:document.getElementById('copy-ref-link-button'),referralBalance:document.getElementById('referral-balance'),invitedCount:document.getElementById('invited-count'),withdrawReferralButton:document.getElementById('withdraw-referral-button'),invitedUsersListDisplay:document.getElementById('invited-users-list-display')};
-const leaderboardList=document.getElementById('leaderboard-list');
-const depositInstructionsModal=document.getElementById('deposit-instructions-modal');const tonTransferLink=document.getElementById('ton-transfer-link');const confirmPaymentSentButton=document.getElementById('confirm-payment-sent-button');const cancelDepositButton=document.getElementById('cancel-deposit-button');const depositExpiryInfo=document.getElementById('deposit-expiry-info');const depositStatusMessageEl=document.getElementById('deposit-status-message');const depositLoader=document.getElementById('deposit-loader');
-let currentPendingDepositId=null;let depositExpiryInterval=null;let depositRecipientAddressRaw='';let depositCommentText='';
-const tonConnectUI=new TON_CONNECT_UI.TonConnectUI({manifestUrl:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json',buttonRootId:'ton-connect-button'});
-let tgBackButton=null;const backButtonHandlerStack=[];
-
-function _updateTgBackButton(){if(!tgBackButton)return;if(backButtonHandlerStack.length>0){const handler=backButtonHandlerStack[backButtonHandlerStack.length-1];tgBackButton.offClick();tgBackButton.onClick(handler);tgBackButton.show();}else{tgBackButton.hide();tgBackButton.offClick();}}
-function pushTgBackButtonHandler(handler){if(!tgBackButton)return;backButtonHandlerStack.push(handler);_updateTgBackButton();}
-function popTgBackButtonHandler(){if(!tgBackButton)return;if(backButtonHandlerStack.length>0)backButtonHandlerStack.pop();_updateTgBackButton();}
-function clearTgBackButtonStack(){if(!tgBackButton)return;backButtonHandlerStack.length=0;_updateTgBackButton();}
-function navigateBackToMainPage(){navigateToPage('main-page');}
-function closeRouletteModalWithBackButton(){closeRouletteModal();}
-function closeWinOverlayModalWithBackButton(){closeWinOverlayModal();}
-function closeSlotModalWithBackButton(){closeSlotModal();}
-function closeDepositModalWithBackButton(){closeDepositInstructionsModal();}
-async function apiRequest(endpoint,method='GET',body=null){const headers={'Content-Type':'application/json'};if(Telegram.WebApp.initData)headers['X-Telegram-Init-Data']=Telegram.WebApp.initData;const config={method,headers};if(body&&(method==='POST'||method==='PUT'))config.body=JSON.stringify(body);try{const response=await fetch(API_BASE_URL+endpoint,config);if(!response.ok){let errData;try{errData=await response.json();}catch(e){errData={error:`HTTP ${response.status}: ${response.statusText}`};}showTGNotification(errData.error||errData.message||`Request failed`,'error');throw new Error(errData.error||errData.message);}return response.status===204?null:await response.json();}catch(error){if(!(error.message.includes("HTTP")||error.message.includes("Request failed")))showTGNotification(`Network: ${error.message}`,'error');throw error;}}
-function updateBalances(){headerElements.tonBalanceSpan.textContent=`${currentUser.tonBalance.toFixed(2)}`;profileElements.balanceDisplay.innerHTML=`${currentUser.tonBalance.toFixed(2)} TON`;}
-function navigateToPage(pageId){pages.forEach(p=>p.classList.remove('active'));document.getElementById(pageId)?.classList.add('active');appNavButtons.forEach(b=>b.classList.toggle('active',b.dataset.page===pageId));if(tgBackButton){if(pageId==='main-page')clearTgBackButtonStack();else{while(backButtonHandlerStack.length>0&&backButtonHandlerStack[backButtonHandlerStack.length-1]!==navigateBackToMainPage)popTgBackButtonHandler();if(backButtonHandlerStack.length===0)pushTgBackButtonHandler(navigateBackToMainPage);}}window.scrollTo(0,0);}
-function showTGNotification(message,type='info'){Telegram.WebApp.showAlert?.(message);if(Telegram.WebApp.HapticFeedback){if(type==='success')Telegram.WebApp.HapticFeedback.notificationOccurred('success');else if(type==='error')Telegram.WebApp.HapticFeedback.notificationOccurred('error');else if(type==='warning')Telegram.WebApp.HapticFeedback.notificationOccurred('warning');}}
-function renderHeader(){updateBalances();}
-function updateUIBasedOnWallet(wallet){const connected=!!wallet;if(connected){const addr=wallet.account.address;currentUser.walletAddressRaw=addr;const friendlyAddr=TonConnectSDK.toUserFriendlyAddress(addr,wallet.account.chain===TonConnectSDK.CHAIN.TESTNET);currentUser.walletAddress=friendlyAddr;headerElements.walletAddressDisplay.textContent=`${friendlyAddr.substring(0,5)}...${friendlyAddr.substring(friendlyAddr.length-4)}`;headerElements.walletAddressDisplay.classList.add('connected');headerElements.walletAddressDisplay.style.display='block';headerElements.balanceDisplay.classList.add('connected');headerElements.balanceDisplay.style.display='flex';headerElements.tonConnectButton.style.display='none';profileElements.walletAddress.textContent=friendlyAddr;profileElements.disconnectWalletButton.style.display='block';}else{currentUser.walletAddress=null;currentUser.walletAddressRaw=null;headerElements.walletAddressDisplay.classList.remove('connected');headerElements.walletAddressDisplay.style.display='none';headerElements.balanceDisplay.classList.remove('connected');headerElements.balanceDisplay.style.display='none';headerElements.tonConnectButton.style.display='block';profileElements.walletAddress.textContent='Not Connected';profileElements.disconnectWalletButton.style.display='none';}updateBalances();}
-function renderCasesAndSlots(){renderCases();renderSlots();}
-function renderCases(){
-    casesGrid.innerHTML='';
-    if(!casesData||casesData.length===0){
-        casesGrid.innerHTML="<p>Loading cases...</p>";
-        return;
+casesData.forEach(caseItem => {
+    let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
+    if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.00001) {
+        caseItem.prizes.forEach(prize => { prize.probability = prize.probability / totalProb; });
     }
-    casesData.forEach(caseItem=>{
-        const card=document.createElement('div');
-        card.className='case-card';
-        card.dataset.caseId=caseItem.id;
-        card.onclick=()=>openRouletteModal(caseItem);
-        
-        const imgCont=document.createElement('div');
-        imgCont.className='case-image-display';
-        const img=document.createElement('img');
-        img.loading='lazy';
-        img.alt=caseItem.name; // Alt text is still useful
-        img.onerror=()=>{
-            imgCont.textContent='❓'; // Fallback text if image fails
-            imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);';
-        };
-        
-        // Use generateImageFilename which now handles full URLs correctly
-        img.src = generateImageFilename(caseItem.imageFilename || caseItem.name); // Fallback to name if imageFilename is missing
-        imgCont.appendChild(img);
+});
 
-        // Case name element is NOT added to the card for the main grid
-        // const nameEl=document.createElement('div');
-        // nameEl.className='case-name';
-        // nameEl.textContent=caseItem.name; 
+// REMOVED: Slot data constants (defaultSlotPrizePoolForDisplay, premiumSlotPrizePoolForDisplay, slotsData)
 
-        const priceEl=document.createElement('div');
-        priceEl.className='case-price';
-        priceEl.textContent=`${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
-        
-        card.append(imgCont, priceEl); // Only image container and price
-        casesGrid.appendChild(card);
+const headerElements = { tonConnectButton: document.getElementById('ton-connect-button'), walletAddressDisplay: document.getElementById('wallet-address-display'), tonBalanceSpan: document.getElementById('ton-balance'), balanceDisplay: document.getElementById('balance') };
+const appNavButtons = document.querySelectorAll('.nav-button'); const pages = document.querySelectorAll('.page'); const casesGrid = document.getElementById('cases-grid');
+// REMOVED: slotsGrid
+const rouletteModal = document.getElementById('roulette-modal'); const rouletteCaseName = document.getElementById('roulette-case-name'); const rouletteWheelContainer = document.getElementById('roulette-wheel-container'); const spinButton = document.getElementById('spin-button'); const closeRouletteButton = document.getElementById('close-roulette-button'); const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
+const winOverlayModal = document.getElementById('win-overlay-modal'); const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image'); const winOverlayNameEl = document.getElementById('win-overlay-prize-name'); const winOverlayPrizeDetailsEl = document.getElementById('win-overlay-prize-details'); const winOverlaySaveBtn = document.getElementById('win-overlay-save-button'); const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button'); const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
+// REMOVED: Slot machine modal element consts
+const withdrawModal = document.getElementById('withdraw-modal'); const withdrawSteps = withdrawModal.querySelectorAll('.modal-step'); const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next'); const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next'); const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back'); const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close'); const withdrawStatusMessage = document.getElementById('withdraw-status-message'); const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
+const profileElements = { avatar: document.getElementById('profile-avatar'), username: document.getElementById('profile-username'), userid: document.getElementById('profile-userid'), balanceDisplay: document.getElementById('profile-balance-display'), walletAddress: document.getElementById('profile-wallet-address'), inventoryGrid: document.getElementById('inventory-grid'), inventoryCount: document.getElementById('inventory-count'), emptyInventoryMessage: document.getElementById('empty-inventory-message'), disconnectWalletButton: document.getElementById('disconnect-wallet-button'), depositAmountInput: document.getElementById('deposit-amount-input'), initiateDepositButton: document.getElementById('initiate-deposit-button'), sellAllButton: document.getElementById('sell-all-button'), sellAllValueSpan: document.getElementById('sell-all-value'), promocodeInput: document.getElementById('promocode-input'), redeemPromocodeButton: document.getElementById('redeem-promocode-button') };
+const upgradeElements = { inventorySelect: document.getElementById('upgrade-inventory-select'), multiplierButtons: document.getElementById('multiplier-buttons'), doUpgradeButton: document.getElementById('do-upgrade-button'), upgradeResult: document.getElementById('upgrade-result'), chanceDisplay: document.getElementById('upgrade-chance-display') };
+const inviteElements = { referralLink: document.getElementById('referral-link'), copyRefLinkButton: document.getElementById('copy-ref-link-button'), referralBalance: document.getElementById('referral-balance'), invitedCount: document.getElementById('invited-count'), withdrawReferralButton: document.getElementById('withdraw-referral-button'), invitedUsersListDisplay: document.getElementById('invited-users-list-display') };
+const leaderboardList = document.getElementById('leaderboard-list');
+const depositInstructionsModal = document.getElementById('deposit-instructions-modal'); const tonTransferLink = document.getElementById('ton-transfer-link'); const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button'); const cancelDepositButton = document.getElementById('cancel-deposit-button'); const depositExpiryInfo = document.getElementById('deposit-expiry-info'); const depositStatusMessageEl = document.getElementById('deposit-status-message'); const depositLoader = document.getElementById('deposit-loader');
+let currentPendingDepositId = null; let depositExpiryInterval = null; let depositRecipientAddressRaw = ''; let depositCommentText = '';
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json', buttonRootId: 'ton-connect-button' });
+let tgBackButton = null; const backButtonHandlerStack = [];
+
+let dataFetchedSuccessfully = false;
+let tonConnectWalletInfo = null;
+
+
+function _updateTgBackButton() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) { const handler = backButtonHandlerStack[backButtonHandlerStack.length - 1]; tgBackButton.offClick(); tgBackButton.onClick(handler); tgBackButton.show(); } else { tgBackButton.hide(); tgBackButton.offClick(); } }
+function pushTgBackButtonHandler(handler) { if (!tgBackButton) return; backButtonHandlerStack.push(handler); _updateTgBackButton(); }
+function popTgBackButtonHandler() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) backButtonHandlerStack.pop(); _updateTgBackButton(); }
+function clearTgBackButtonStack() { if (!tgBackButton) return; backButtonHandlerStack.length = 0; _updateTgBackButton(); }
+function navigateBackToMainPage() { navigateToPage('main-page'); }
+function closeRouletteModalWithBackButton() { closeRouletteModal(); }
+function closeWinOverlayModalWithBackButton() { closeWinOverlayModal(); }
+// REMOVED: function closeSlotModalWithBackButton()
+function closeDepositModalWithBackButton() { closeDepositInstructionsModal(); }
+
+async function apiRequest(endpoint, method = 'GET', body = null) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (Telegram.WebApp.initData) headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData;
+    const config = { method, headers };
+    if (body && (method === 'POST' || method === 'PUT')) config.body = JSON.stringify(body);
+    try {
+        const response = await fetch(API_BASE_URL + endpoint, config);
+        if (!response.ok) {
+            let errData; try { errData = await response.json(); } catch (e) { errData = { error: `HTTP ${response.status}: ${response.statusText}` }; }
+            showTGNotification(errData.error || errData.message || `Request failed`, 'error'); throw new Error(errData.error || errData.message);
+        } return response.status === 204 ? null : await response.json();
+    } catch (error) {
+        if (!(error.message.includes("HTTP") || error.message.includes("Request failed"))) showTGNotification(`Network: ${error.message}`, 'error');
+        throw error;
+    }
+}
+function updateBalances() {
+    headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`;
+    profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
+}
+function navigateToPage(pageId) {
+    pages.forEach(p => p.classList.remove('active')); document.getElementById(pageId)?.classList.add('active');
+    appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
+    if (tgBackButton) { if (pageId === 'main-page') clearTgBackButtonStack(); else { while (backButtonHandlerStack.length > 0 && backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) popTgBackButtonHandler(); if (backButtonHandlerStack.length === 0) pushTgBackButtonHandler(navigateBackToMainPage); } }
+    window.scrollTo(0, 0);
+}
+function showTGNotification(message, type = 'info') {
+    Telegram.WebApp.showAlert?.(message);
+    if (Telegram.WebApp.HapticFeedback) {
+        if (type === 'success') Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+        else if (type === 'error') Telegram.WebApp.HapticFeedback.notificationOccurred('error');
+        else if (type === 'warning') Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
+    }
+}
+function renderHeader() { updateBalances(); }
+
+function updateUIBasedOnWallet(wallet) {
+    tonConnectWalletInfo = wallet;
+    const connected = !!wallet;
+
+    if (connected) {
+        const addr = wallet.account.address;
+        currentUser.walletAddressRaw = addr;
+        const friendlyAddr = TonConnectSDK.toUserFriendlyAddress(addr, wallet.account.chain === TonConnectSDK.CHAIN.TESTNET);
+        currentUser.walletAddress = friendlyAddr;
+        headerElements.walletAddressDisplay.textContent = `${friendlyAddr.substring(0, 5)}...${friendlyAddr.substring(friendlyAddr.length - 4)}`;
+        headerElements.walletAddressDisplay.classList.add('connected');
+        headerElements.walletAddressDisplay.style.display = 'block';
+        headerElements.balanceDisplay.classList.add('connected');
+        headerElements.balanceDisplay.style.display = 'flex';
+        headerElements.tonConnectButton.style.display = 'none';
+        profileElements.walletAddress.textContent = friendlyAddr;
+        profileElements.disconnectWalletButton.style.display = 'block';
+    } else {
+        currentUser.walletAddress = null;
+        currentUser.walletAddressRaw = null;
+        headerElements.walletAddressDisplay.classList.remove('connected');
+        headerElements.walletAddressDisplay.style.display = 'none';
+        headerElements.balanceDisplay.classList.remove('connected');
+        headerElements.balanceDisplay.style.display = 'none';
+        headerElements.tonConnectButton.style.display = 'block';
+        profileElements.walletAddress.textContent = 'Not Connected';
+        profileElements.disconnectWalletButton.style.display = 'none';
+    }
+
+    if (dataFetchedSuccessfully) {
+        updateBalances();
+        renderProfile(); // Also calls renderInventory which depends on currentUser.inventory
+    } else {
+        headerElements.tonBalanceSpan.textContent = `0.00`;
+        profileElements.balanceDisplay.innerHTML = `0.00 TON`;
+    }
+}
+
+function renderCasesAndSlots() { renderCases(); /* REMOVED: renderSlots(); */ }
+function renderCases() {
+    casesGrid.innerHTML = '';
+    if (!casesData || casesData.length === 0) { casesGrid.innerHTML = "<p>Loading cases...</p>"; return; }
+    casesData.forEach(caseItem => {
+        const card = document.createElement('div'); card.className = 'case-card'; card.dataset.caseId = caseItem.id;
+        card.onclick = () => openRouletteModal(caseItem);
+        const imgCont = document.createElement('div'); imgCont.className = 'case-image-display';
+        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = caseItem.name;
+        img.onerror = () => { imgCont.textContent = '❓'; imgCont.style.cssText = 'font-size:2.5em;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);'; };
+        img.src = generateImageFilename(caseItem.imageFilename || caseItem.name); imgCont.appendChild(img);
+        const priceEl = document.createElement('div'); priceEl.className = 'case-price';
+        priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
+        card.append(imgCont, priceEl); casesGrid.appendChild(card);
     });
 }
-function renderSlots(){slotsGrid.innerHTML='';if(!slotsData||slotsData.length===0){slotsGrid.innerHTML="<p>Loading slots...</p>";return;}slotsData.forEach(slotItem=>{const card=document.createElement('div');card.className='slot-card';card.dataset.slotId=slotItem.id;card.onclick=()=>openSlotMachineModal(slotItem);const imgCont=document.createElement('div');imgCont.className='slot-image-display';const img=document.createElement('img');img.loading='lazy';img.alt=slotItem.name;img.onerror=()=>{imgCont.textContent='🎰';imgCont.style.cssText='font-size:2.5em;display:flex;align-items:center;justify-content:center;';};img.src=generateImageFilename(slotItem.imageFilename || slotItem.name);imgCont.appendChild(img);const nameEl=document.createElement('div');nameEl.className='slot-name';nameEl.textContent=slotItem.name;const priceEl=document.createElement('div');priceEl.className='slot-price';priceEl.textContent=`${parseFloat(slotItem.priceTON).toFixed(1)} TON`;card.append(imgCont,nameEl,priceEl);slotsGrid.appendChild(card);});}
-function renderProfile(){profileElements.avatar.textContent=currentUser.first_name?currentUser.first_name.charAt(0).toUpperCase():'?';profileElements.username.textContent=(currentUser.first_name||currentUser.last_name)?`${currentUser.first_name||''} ${currentUser.last_name||''}`.trim():currentUser.username||'User';profileElements.userid.textContent=currentUser.id?`#${currentUser.id}`:'#...';profileElements.walletAddress.textContent=currentUser.walletAddress||'Not Connected';profileElements.disconnectWalletButton.style.display=currentUser.walletAddress?'block':'none';renderInventory();}
-function renderInventory(){profileElements.inventoryGrid.innerHTML='';let totalValue=0;if(currentUser.inventory.length===0){profileElements.emptyInventoryMessage.style.display='block';profileElements.sellAllButton.style.display='none';}else{profileElements.emptyInventoryMessage.style.display='none';currentUser.inventory.forEach(item=>{totalValue+=item.currentValue||0;const itemDiv=document.createElement('div');itemDiv.className='inventory-item';const imgCont=document.createElement('div');imgCont.className='item-image-display';const img=document.createElement('img');img.src=generateImageFilename(item.imageFilename || item.name);img.alt=item.name;img.loading='lazy';imgCont.appendChild(img);itemDiv.innerHTML=`<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue||0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize?'<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>':`<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="handleSingleConvert(${item.id})">Convert</button>`}</div>`;itemDiv.insertBefore(imgCont,itemDiv.firstChild);profileElements.inventoryGrid.appendChild(itemDiv);});profileElements.sellAllButton.style.display='block';profileElements.sellAllValueSpan.textContent=totalValue.toFixed(2);}profileElements.inventoryCount.textContent=currentUser.inventory.length;populateUpgradeInventorySelect();}
-function populateUpgradeInventorySelect(){upgradeElements.inventorySelect.innerHTML='<option value="">-- Choose Item --</option>';currentUser.inventory.filter(item=>!item.is_ton_prize).forEach(item=>{const opt=document.createElement('option');opt.value=item.id;opt.textContent=`${item.name} (${(item.currentValue||0).toFixed(2)} TON)`;upgradeElements.inventorySelect.appendChild(opt);});}
-async function renderLeaderboard(){try{const leaders=await apiRequest('/api/get_leaderboard');leaderboardList.innerHTML='';leaders.forEach(l=>{const entry=document.createElement('div');entry.className='leader-entry';if(l.user_id===currentUser.id)entry.classList.add('current-user-entry');entry.innerHTML=`<div class="rank">${l.rank}</div><div class="avatar-placeholder">${l.avatarChar}</div><div class="info"><div class="name">${l.name}</div><div class="details">User ID: ${String(l.user_id).slice(0,6)}...</div></div><div class="score">${l.income.toFixed(2)} TON</div>`;leaderboardList.appendChild(entry);});}catch(e){leaderboardList.innerHTML='<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>';}}
-function renderInvitePage(){inviteElements.referralLink.value=currentUser.referralCode?`https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}`:'Loading...';inviteElements.referralBalance.innerHTML=`${currentUser.referralEarningsPending.toFixed(2)} TON`;inviteElements.invitedCount.textContent=currentUser.invited_friends_count||0;}
-function showWinOverlay(wonPrizesArray){lastWonPrizesForOverlay=wonPrizesArray;winOverlayPrizeImageContainer.innerHTML='';winOverlayPrizeDetailsEl.innerHTML='';if(wonPrizesArray.length===1){const prizeItem=wonPrizesArray[0];const img=document.createElement('img');img.src=generateImageFilename(prizeItem.imageFilename || prizeItem.name);img.alt=prizeItem.name;winOverlayPrizeImageContainer.appendChild(img);winOverlayNameEl.textContent=`You Won: ${prizeItem.name}!`;winOverlayConvertBtn.style.display=prizeItem.is_ton_prize?'none':'block';if(!prizeItem.is_ton_prize){winOverlayConvertValue.textContent=(prizeItem.currentValue||0).toFixed(2);winOverlayConvertBtn.childNodes[0].nodeValue="Convert to ";}}else if(wonPrizesArray.length>1){winOverlayNameEl.textContent=`You Won ${wonPrizesArray.length} Items!`;let totalConvertValue=0;let canConvertAny=false;let prizeNamesHTML='';wonPrizesArray.forEach(prizeItem=>{const img=document.createElement('img');img.src=generateImageFilename(prizeItem.imageFilename || prizeItem.name);img.alt=prizeItem.name;winOverlayPrizeImageContainer.appendChild(img);prizeNamesHTML+=`<div>- ${prizeItem.name} (${(prizeItem.currentValue||0).toFixed(2)} TON)</div>`;if(!prizeItem.is_ton_prize){totalConvertValue+=(prizeItem.currentValue||0);canConvertAny=true;}});winOverlayPrizeDetailsEl.innerHTML=prizeNamesHTML;winOverlayConvertBtn.style.display=canConvertAny?'block':'none';if(canConvertAny){winOverlayConvertValue.textContent=totalConvertValue.toFixed(2);winOverlayConvertBtn.childNodes[0].nodeValue="Convert All to ";}}winOverlayModal.classList.add('active');if(tgBackButton)pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);Telegram.WebApp.HapticFeedback?.notificationOccurred('success');}
-function closeWinOverlayModal(){if(tgBackButton)popTgBackButtonHandler();winOverlayModal.classList.remove('active');lastWonPrizesForOverlay=[];}
-function initializeRouletteVisuals(caseItem,multiplier){rouletteWheelContainer.innerHTML='';const multiReelWrapper=document.createElement('div');multiReelWrapper.className='multi-reel-wrapper';if(!caseItem||!caseItem.prizes||caseItem.prizes.length===0){multiReelWrapper.innerHTML='<p style="text-align:center; color:var(--text-secondary); padding: 20px 0;">No prize data.</p>';rouletteWheelContainer.appendChild(multiReelWrapper);return;}for(let i=0;i<multiplier;i++){const reelVisualDiv=document.createElement('div');reelVisualDiv.className='roulette-individual-reel-row-visual';const spinnerReel=document.createElement('div');spinnerReel.className='roulette-spinner-reel';let defaultVisualItems=[];const numVisualItems=70;for(let j=0;j<numVisualItems;j++){const randomPrize=caseItem.prizes[Math.floor(Math.random()*caseItem.prizes.length)];defaultVisualItems.push({name:randomPrize.name,imageFilename:randomPrize.imageFilename,is_ton_prize:randomPrize.is_ton_prize});}defaultVisualItems.forEach(pData=>{const itemEl=document.createElement('div');itemEl.className='roulette-item';const img=document.createElement('img');img.src=generateImageFilename(pData.imageFilename || pData.name);img.alt=pData.name;itemEl.appendChild(img);spinnerReel.appendChild(itemEl);});reelVisualDiv.appendChild(spinnerReel);multiReelWrapper.appendChild(reelVisualDiv);}rouletteWheelContainer.appendChild(multiReelWrapper);}
-function openRouletteModal(caseItem){currentOpenCaseOrSlot=caseItem;selectedCaseMultiplier=1;updateCaseMultiplierButtons();rouletteCaseName.textContent=caseItem.name;updateSpinButtonText();initializeRouletteVisuals(caseItem,selectedCaseMultiplier);possiblePrizesDisplay.innerHTML='';const prizeMap=new Map();caseItem.prizes.forEach(p=>{if(!p||!p.name)return;if(prizeMap.has(p.name))prizeMap.set(p.name,{...prizeMap.get(p.name),probability:(prizeMap.get(p.name).probability||0)+(p.probability||0)});else prizeMap.set(p.name,{...p});});prizeMap.forEach((pData,name)=>{const prob=pData.probability||0;const card=document.createElement('div');card.className='prize-card';const imgCont=document.createElement('div');imgCont.className='prize-card-image-placeholder';const img=document.createElement('img');img.src=generateImageFilename(pData.imageFilename || pData.name);img.alt=name;imgCont.appendChild(img);card.innerHTML=`<span class="prize-card-probability">${(prob*100).toFixed(prob<0.0001?4:(prob<0.001?3:(prob<0.01?2:1)))}%</span><span class="prize-card-name">${name}</span>`;card.insertBefore(imgCont,card.firstChild);possiblePrizesDisplay.appendChild(card);});rouletteModal.classList.add('active');if(tgBackButton)pushTgBackButtonHandler(closeRouletteModalWithBackButton);Telegram.WebApp.HapticFeedback?.impactOccurred('light');}
-function updateSpinButtonText(){if(currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON){const totalPrice=parseFloat(currentOpenCaseOrSlot.priceTON)*selectedCaseMultiplier;spinButton.textContent=`Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;}}
-function updateCaseMultiplierButtons(){caseMultiplierSelector.querySelectorAll('button').forEach(btn=>{btn.classList.toggle('active-multiplier',parseInt(btn.dataset.multiplier)===selectedCaseMultiplier);if(parseInt(btn.dataset.multiplier)===selectedCaseMultiplier)btn.classList.remove('button-secondary');else btn.classList.add('button-secondary');});initializeRouletteVisuals(currentOpenCaseOrSlot,selectedCaseMultiplier);}
-function closeRouletteModal(){if(tgBackButton)popTgBackButtonHandler();rouletteModal.classList.remove('active');currentOpenCaseOrSlot=null;if(spinAnimationTimeoutOuter)clearTimeout(spinAnimationTimeoutOuter);}
-async function spinRoulette(){if(!currentOpenCaseOrSlot)return;spinButton.disabled=true;spinButton.textContent='Spinning...';const multiReelWrapper=rouletteWheelContainer.querySelector('.multi-reel-wrapper');if(!multiReelWrapper){showTGNotification("Roulette visuals wrapper not found.","error");spinButton.disabled=false;updateSpinButtonText();return;}const allReels=multiReelWrapper.querySelectorAll('.roulette-spinner-reel');if(allReels.length!==selectedCaseMultiplier){showTGNotification("Roulette visuals not ready.","error");spinButton.disabled=false;updateSpinButtonText();return;}try{const result=await apiRequest('/api/open_case','POST',{case_id:currentOpenCaseOrSlot.id,multiplier:selectedCaseMultiplier});spinButton.disabled=false;updateSpinButtonText();if(result.status==='success'&&result.won_prizes&&result.won_prizes.length>0){currentUser.tonBalance=result.new_balance_ton;updateBalances();if(spinAnimationTimeoutOuter)clearTimeout(spinAnimationTimeoutOuter);result.won_prizes.forEach((winner,index)=>{if(index>=allReels.length)return;const spinnerReel=allReels[index];spinnerReel.innerHTML='';let spinnerItemsForDisplay=[];const availablePrizes=currentOpenCaseOrSlot.prizes;const numVisualItems=70;for(let i=0;i<numVisualItems;i++){const rp=availablePrizes[Math.floor(Math.random()*availablePrizes.length)];spinnerItemsForDisplay.push({name:rp.name,imageFilename:rp.imageFilename,floorPrice:rp.floorPrice,is_ton_prize:rp.is_ton_prize});}const winnerVisualIdx=Math.floor(spinnerItemsForDisplay.length*0.85);spinnerItemsForDisplay[winnerVisualIdx]={name:winner.name,imageFilename:winner.imageFilename,floorPrice:winner.floorPrice,is_ton_prize:winner.is_ton_prize};spinnerItemsForDisplay.forEach(pData=>{const iEl=document.createElement('div');iEl.className='roulette-item';const im=document.createElement('img');im.src=generateImageFilename(pData.imageFilename || pData.name);im.alt=pData.name;iEl.appendChild(im);spinnerReel.appendChild(iEl);});const allItemsInThisSpinner=spinnerReel.querySelectorAll('.roulette-item');const itemHeight=allItemsInThisSpinner[0]?allItemsInThisSpinner[0].offsetHeight:parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));const rouletteRowVisibleHeight=spinnerReel.parentElement.clientHeight;let visualBiasOffsetPx=0;const BIAS_PERCENTAGE=0.30;const actualWinnerBaseFloorPrice=UPDATED_FLOOR_PRICES_FRONTEND[winner.name]||0;const itemAboveData=winnerVisualIdx>0?spinnerItemsForDisplay[winnerVisualIdx-1]:null;const itemBelowData=winnerVisualIdx<spinnerItemsForDisplay.length-1?spinnerItemsForDisplay[winnerVisualIdx+1]:null;let isNearPepeOrHighValue=false;if(itemAboveData){const aboveFloor=UPDATED_FLOOR_PRICES_FRONTEND[itemAboveData.name]||0;if(itemAboveData.name==='Plush Pepe'||aboveFloor>actualWinnerBaseFloorPrice*10){visualBiasOffsetPx=itemHeight*BIAS_PERCENTAGE;isNearPepeOrHighValue=true;}}if(!isNearPepeOrHighValue&&itemBelowData){const belowFloor=UPDATED_FLOOR_PRICES_FRONTEND[itemBelowData.name]||0;if(itemBelowData.name==='Plush Pepe'||belowFloor>actualWinnerBaseFloorPrice*10){visualBiasOffsetPx=-itemHeight*BIAS_PERCENTAGE;isNearPepeOrHighValue=true;}}if(!isNearPepeOrHighValue)visualBiasOffsetPx=(Math.random()-0.5)*(itemHeight*0.20);let scrollDist=(winnerVisualIdx*itemHeight)+(itemHeight/2)-(rouletteRowVisibleHeight/2)-visualBiasOffsetPx;spinnerReel.style.transition='none';spinnerReel.style.top='0px';void spinnerReel.offsetWidth;spinnerReel.style.transition=`top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;spinnerReel.style.top=`-${scrollDist}px`;});const animationDuration=6000;spinAnimationTimeoutOuter=setTimeout(()=>{result.won_prizes.forEach(wp=>{const existingItemIndex=currentUser.inventory.findIndex(invItem=>invItem.id===wp.id);if(existingItemIndex===-1&&wp.id){currentUser.inventory.push({id:wp.id,name:wp.name,imageFilename:wp.imageFilename,currentValue:wp.currentValue,variant:wp.variant,is_ton_prize:wp.is_ton_prize||false});}});renderInventory();showWinOverlay(result.won_prizes);},animationDuration+100);}else{showTGNotification(result.error||result.message||'Failed to open case.','error');}}catch(e){console.error("Spin roulette error",e);spinButton.disabled=false;updateSpinButtonText();showTGNotification("Error during spin. Try again.","error");}}
-function initializeSlotReelsVisuals(slotItem){const reelSpinners=slotReelsContainer.querySelectorAll('.slot-reel-spinner');let prizePoolForVisuals=slotItem.prize_pool&&slotItem.prize_pool.length>0?slotItem.prize_pool:[{name:"Gift",imageFilename:generateImageFilename("Lol Pop"),is_ton_prize:false}];if(prizePoolForVisuals.length===0)prizePoolForVisuals.push({name:"Default",imageFilename:generateImageFilename("TON Prize"),is_ton_prize:true});const numVisualItemsPerReel=30;const reelContainerHeight=parseFloat(getComputedStyle(slotReelsContainer).height);const itemDisplayHeight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));reelSpinners.forEach(spinner=>{spinner.innerHTML='';let visualReelSymbols=[];for(let i=0;i<numVisualItemsPerReel;i++)visualReelSymbols.push(prizePoolForVisuals[Math.floor(Math.random()*prizePoolForVisuals.length)]);visualReelSymbols.forEach(p=>{const itemEl=document.createElement('div');itemEl.className='slot-reel-item';itemEl.style.height=`${itemDisplayHeight}px`;const img=document.createElement('img');img.src=generateImageFilename(p.imageFilename || p.name);img.alt=p.name;itemEl.appendChild(img);spinner.appendChild(itemEl);});const initialPosIdx=Math.floor(numVisualItemsPerReel/2);const initialScroll=(initialPosIdx*itemDisplayHeight)+(itemDisplayHeight/2)-(reelContainerHeight/2);spinner.style.transition='none';spinner.style.top=`-${initialScroll}px`;});}
-function openSlotMachineModal(slotItem){currentOpenCaseOrSlot=slotItem;slotMachineName.textContent=slotItem.name;slotPriceDisplay.textContent=`Cost: ${parseFloat(slotItem.priceTON).toFixed(1)} TON`;spinSlotButton.disabled=false;spinSlotButton.textContent='Spin Slot';slotPrizeDisplay.innerHTML='';initializeSlotReelsVisuals(slotItem);slotPossiblePrizesDisplay.innerHTML='';if(slotItem.prize_pool&&slotItem.prize_pool.length>0){slotItem.prize_pool.forEach(pData=>{const prob=pData.probability||0;const card=document.createElement('div');card.className='prize-card';const imgCont=document.createElement('div');imgCont.className='prize-card-image-placeholder';const img=document.createElement('img');img.src=generateImageFilename(pData.imageFilename || pData.name);img.alt=pData.name;imgCont.appendChild(img);card.innerHTML=`<span class="prize-card-probability">${(prob*100).toFixed(1)}%</span><span class="prize-card-name">${pData.name}</span>`;card.insertBefore(imgCont,card.firstChild);slotPossiblePrizesDisplay.appendChild(card);});}else{slotPossiblePrizesDisplay.innerHTML="<p>No prize details.</p>";}slotMachineModal.classList.add('active');if(tgBackButton)pushTgBackButtonHandler(closeSlotModalWithBackButton);}
-function closeSlotModal(){if(tgBackButton)popTgBackButtonHandler();slotMachineModal.classList.remove('active');currentOpenCaseOrSlot=null;if(slotSpinEndTimeout)clearTimeout(slotSpinEndTimeout);}
-async function spinSlotMachine(){
-    if(!currentOpenCaseOrSlot) return;
-    spinSlotButton.disabled=true;
-    spinSlotButton.textContent='Spinning...';
-    slotPrizeDisplay.innerHTML='';
+// REMOVED: function renderSlots()
+
+function renderProfile() {
+    profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
+    profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User';
+    profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
+    profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
+    profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
+    renderInventory();
+}
+function renderInventory() {
+    profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0;
+    if (currentUser.inventory.length === 0) { profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none'; }
+    else {
+        profileElements.emptyInventoryMessage.style.display = 'none';
+        currentUser.inventory.forEach(item => {
+            totalValue += item.currentValue || 0;
+            const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item';
+            const imgCont = document.createElement('div'); imgCont.className = 'item-image-display';
+            const img = document.createElement('img'); img.src = generateImageFilename(item.imageFilename || item.name); img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img);
+            itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="handleSingleConvert(${item.id})">Convert</button>`}</div>`;
+            itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv);
+        });
+        profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
+    }
+    profileElements.inventoryCount.textContent = currentUser.inventory.length; populateUpgradeInventorySelect();
+}
+function populateUpgradeInventorySelect() {
+    upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
+    currentUser.inventory.filter(item => !item.is_ton_prize).forEach(item => {
+        const opt = document.createElement('option'); opt.value = item.id;
+        opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`; upgradeElements.inventorySelect.appendChild(opt);
+    });
+}
+async function renderLeaderboard() {
     try {
-        const result=await apiRequest('/api/spin_slot','POST',{slot_id:currentOpenCaseOrSlot.id});
-        spinSlotButton.disabled=false;
-        spinSlotButton.textContent='Spin Slot';
-        if(result.status==='success'){
-            currentUser.tonBalance=result.new_balance_ton;
-            updateBalances();
-            const reelElements=slotReelsContainer.querySelectorAll('.slot-reel-spinner');
-            const reelContainerHeight=parseFloat(getComputedStyle(slotReelsContainer).height);
-            const itemDisplayHeight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));
-            result.reel_results.forEach((landedPrize,reelIndex)=>{
-                if(reelElements[reelIndex]){
-                    const spinner=reelElements[reelIndex];
-                    spinner.innerHTML='';
-                    let visualReelItems=[];
-                    const prizePoolForVisuals=currentOpenCaseOrSlot.prize_pool && currentOpenCaseOrSlot.prize_pool.length > 0 ? currentOpenCaseOrSlot.prize_pool : casesData[0].prizes;
-                    for(let i=0;i<30;i++)visualReelItems.push(prizePoolForVisuals[Math.floor(Math.random()*prizePoolForVisuals.length)]);
-                    const targetIdx=Math.floor(visualReelItems.length*0.8);
-                    visualReelItems[targetIdx]=landedPrize;
-                    visualReelItems.forEach(p=>{
-                        const itemEl=document.createElement('div');
-                        itemEl.className='slot-reel-item';
-                        itemEl.style.height=`${itemDisplayHeight}px`;
-                        const img=document.createElement('img');
-                        img.src=generateImageFilename(p.imageFilename || p.name);
-                        img.alt=p.name;
-                        itemEl.appendChild(img);
-                        spinner.appendChild(itemEl);
-                    });
-                    const landingPosition=(targetIdx*itemDisplayHeight)+(itemDisplayHeight/2)-(reelContainerHeight/2);
-                    spinner.style.transition='none';
-                    spinner.style.top='0px';
-                    void spinner.offsetWidth;
-                    spinner.style.transition=`top ${2+reelIndex*0.5}s cubic-bezier(0.25,0.1,0.2,1)`;
-                    spinner.style.top=`-${landingPosition}px`;
-                }
+        const leaders = await apiRequest('/api/get_leaderboard'); leaderboardList.innerHTML = '';
+        leaders.forEach(l => {
+            const entry = document.createElement('div'); entry.className = 'leader-entry';
+            if (l.user_id === currentUser.id) entry.classList.add('current-user-entry');
+            entry.innerHTML = `<div class="rank">${l.rank}</div><div class="avatar-placeholder">${l.avatarChar}</div><div class="info"><div class="name">${l.name}</div><div class="details">User ID: ${String(l.user_id).slice(0, 6)}...</div></div><div class="score">${l.income.toFixed(2)} TON</div>`;
+            leaderboardList.appendChild(entry);
+        });
+    } catch (e) { leaderboardList.innerHTML = '<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>'; }
+}
+function renderInvitePage() {
+    inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}` : 'Loading...';
+    inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
+    inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0;
+}
+function showWinOverlay(wonPrizesArray) {
+    lastWonPrizesForOverlay = wonPrizesArray; winOverlayPrizeImageContainer.innerHTML = ''; winOverlayPrizeDetailsEl.innerHTML = '';
+    if (wonPrizesArray.length === 1) {
+        const prizeItem = wonPrizesArray[0]; const img = document.createElement('img');
+        img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name); img.alt = prizeItem.name; winOverlayPrizeImageContainer.appendChild(img);
+        winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`; winOverlayConvertBtn.style.display = prizeItem.is_ton_prize ? 'none' : 'block';
+        if (!prizeItem.is_ton_prize) { winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2); winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to "; }
+    } else if (wonPrizesArray.length > 1) {
+        winOverlayNameEl.textContent = `You Won ${wonPrizesArray.length} Items!`; let totalConvertValue = 0; let canConvertAny = false; let prizeNamesHTML = '';
+        wonPrizesArray.forEach(prizeItem => {
+            const img = document.createElement('img'); img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name); img.alt = prizeItem.name; winOverlayPrizeImageContainer.appendChild(img);
+            prizeNamesHTML += `<div>- ${prizeItem.name} (${(prizeItem.currentValue || 0).toFixed(2)} TON)</div>`;
+            if (!prizeItem.is_ton_prize) { totalConvertValue += (prizeItem.currentValue || 0); canConvertAny = true; }
+        });
+        winOverlayPrizeDetailsEl.innerHTML = prizeNamesHTML; winOverlayConvertBtn.style.display = canConvertAny ? 'block' : 'none';
+        if (canConvertAny) { winOverlayConvertValue.textContent = totalConvertValue.toFixed(2); winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to "; }
+    }
+    winOverlayModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
+    Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
+}
+function closeWinOverlayModal() { if (tgBackButton) popTgBackButtonHandler(); winOverlayModal.classList.remove('active'); lastWonPrizesForOverlay = []; }
+function initializeRouletteVisuals(caseItem, multiplier) {
+    rouletteWheelContainer.innerHTML = ''; const multiReelWrapper = document.createElement('div'); multiReelWrapper.className = 'multi-reel-wrapper';
+    if (!caseItem || !caseItem.prizes || caseItem.prizes.length === 0) { multiReelWrapper.innerHTML = '<p style="text-align:center; color:var(--text-secondary); padding: 20px 0;">No prize data.</p>'; rouletteWheelContainer.appendChild(multiReelWrapper); return; }
+    for (let i = 0; i < multiplier; i++) {
+        const reelVisualDiv = document.createElement('div'); reelVisualDiv.className = 'roulette-individual-reel-row-visual';
+        const spinnerReel = document.createElement('div'); spinnerReel.className = 'roulette-spinner-reel';
+        let defaultVisualItems = []; const numVisualItems = 70;
+        for (let j = 0; j < numVisualItems; j++) { const randomPrize = caseItem.prizes[Math.floor(Math.random() * caseItem.prizes.length)]; defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize }); }
+        defaultVisualItems.forEach(pData => { const itemEl = document.createElement('div'); itemEl.className = 'roulette-item'; const img = document.createElement('img'); img.src = generateImageFilename(pData.imageFilename || pData.name); img.alt = pData.name; itemEl.appendChild(img); spinnerReel.appendChild(itemEl); });
+        reelVisualDiv.appendChild(spinnerReel); multiReelWrapper.appendChild(reelVisualDiv);
+    } rouletteWheelContainer.appendChild(multiReelWrapper);
+}
+function openRouletteModal(caseItem) {
+    currentOpenCaseOrSlot = caseItem; selectedCaseMultiplier = 1; updateCaseMultiplierButtons();
+    rouletteCaseName.textContent = caseItem.name; updateSpinButtonText(); initializeRouletteVisuals(caseItem, selectedCaseMultiplier);
+    possiblePrizesDisplay.innerHTML = ''; const prizeMap = new Map();
+    caseItem.prizes.forEach(p => { if (!p || !p.name) return; if (prizeMap.has(p.name)) prizeMap.set(p.name, { ...prizeMap.get(p.name), probability: (prizeMap.get(p.name).probability || 0) + (p.probability || 0) }); else prizeMap.set(p.name, { ...p }); });
+    prizeMap.forEach((pData, name) => {
+        const prob = pData.probability || 0; const card = document.createElement('div'); card.className = 'prize-card';
+        const imgCont = document.createElement('div'); imgCont.className = 'prize-card-image-placeholder';
+        const img = document.createElement('img'); img.src = generateImageFilename(pData.imageFilename || pData.name); img.alt = name; imgCont.appendChild(img);
+        card.innerHTML = `<span class="prize-card-probability">${(prob * 100).toFixed(prob < 0.0001 ? 4 : (prob < 0.001 ? 3 : (prob < 0.01 ? 2 : 1)))}%</span><span class="prize-card-name">${name}</span>`;
+        card.insertBefore(imgCont, card.firstChild); possiblePrizesDisplay.appendChild(card);
+    });
+    rouletteModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
+    Telegram.WebApp.HapticFeedback?.impactOccurred('light');
+}
+function updateSpinButtonText() { if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) { const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier; spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`; } }
+function updateCaseMultiplierButtons() {
+    caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
+        btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier);
+        if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary'); else btn.classList.add('button-secondary');
+    }); initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier);
+}
+function closeRouletteModal() { if (tgBackButton) popTgBackButtonHandler(); rouletteModal.classList.remove('active'); currentOpenCaseOrSlot = null; if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter); }
+async function spinRoulette() {
+    if (!currentOpenCaseOrSlot) return; spinButton.disabled = true; spinButton.textContent = 'Spinning...';
+    const multiReelWrapper = rouletteWheelContainer.querySelector('.multi-reel-wrapper');
+    if (!multiReelWrapper) { showTGNotification("Roulette visuals wrapper not found.", "error"); spinButton.disabled = false; updateSpinButtonText(); return; }
+    const allReels = multiReelWrapper.querySelectorAll('.roulette-spinner-reel');
+    if (allReels.length !== selectedCaseMultiplier) { showTGNotification("Roulette visuals not ready.", "error"); spinButton.disabled = false; updateSpinButtonText(); return; }
+    try {
+        const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCaseOrSlot.id, multiplier: selectedCaseMultiplier });
+        spinButton.disabled = false; updateSpinButtonText();
+        if (result.status === 'success' && result.won_prizes && result.won_prizes.length > 0) {
+            currentUser.tonBalance = result.new_balance_ton; updateBalances();
+            if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+            result.won_prizes.forEach((winner, index) => {
+                if (index >= allReels.length) return; const spinnerReel = allReels[index]; spinnerReel.innerHTML = '';
+                let spinnerItemsForDisplay = []; const availablePrizes = currentOpenCaseOrSlot.prizes; const numVisualItems = 70;
+                for (let i = 0; i < numVisualItems; i++) { const rp = availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; spinnerItemsForDisplay.push({ name: rp.name, imageFilename: rp.imageFilename, floorPrice: rp.floorPrice, is_ton_prize: rp.is_ton_prize }); }
+                const winnerVisualIdx = Math.floor(spinnerItemsForDisplay.length * 0.85);
+                spinnerItemsForDisplay[winnerVisualIdx] = { name: winner.name, imageFilename: winner.imageFilename, floorPrice: winner.floorPrice, is_ton_prize: winner.is_ton_prize };
+                spinnerItemsForDisplay.forEach(pData => { const iEl = document.createElement('div'); iEl.className = 'roulette-item'; const im = document.createElement('img'); im.src = generateImageFilename(pData.imageFilename || pData.name); im.alt = pData.name; iEl.appendChild(im); spinnerReel.appendChild(iEl); });
+                const allItemsInThisSpinner = spinnerReel.querySelectorAll('.roulette-item');
+                const itemHeight = allItemsInThisSpinner[0] ? allItemsInThisSpinner[0].offsetHeight : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));
+                const rouletteRowVisibleHeight = spinnerReel.parentElement.clientHeight;
+                let visualBiasOffsetPx = 0; const BIAS_PERCENTAGE = 0.30; const actualWinnerBaseFloorPrice = UPDATED_FLOOR_PRICES_FRONTEND[winner.name] || 0;
+                const itemAboveData = winnerVisualIdx > 0 ? spinnerItemsForDisplay[winnerVisualIdx - 1] : null;
+                const itemBelowData = winnerVisualIdx < spinnerItemsForDisplay.length - 1 ? spinnerItemsForDisplay[winnerVisualIdx + 1] : null;
+                let isNearPepeOrHighValue = false;
+                if (itemAboveData) { const aboveFloor = UPDATED_FLOOR_PRICES_FRONTEND[itemAboveData.name] || 0; if (itemAboveData.name === 'Plush Pepe' || aboveFloor > actualWinnerBaseFloorPrice * 10) { visualBiasOffsetPx = itemHeight * BIAS_PERCENTAGE; isNearPepeOrHighValue = true; } }
+                if (!isNearPepeOrHighValue && itemBelowData) { const belowFloor = UPDATED_FLOOR_PRICES_FRONTEND[itemBelowData.name] || 0; if (itemBelowData.name === 'Plush Pepe' || belowFloor > actualWinnerBaseFloorPrice * 10) { visualBiasOffsetPx = -itemHeight * BIAS_PERCENTAGE; isNearPepeOrHighValue = true; } }
+                if (!isNearPepeOrHighValue) visualBiasOffsetPx = (Math.random() - 0.5) * (itemHeight * 0.20);
+                let scrollDist = (winnerVisualIdx * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx;
+                spinnerReel.style.transition = 'none'; spinnerReel.style.top = '0px'; void spinnerReel.offsetWidth;
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; spinnerReel.style.top = `-${scrollDist}px`;
             });
-            const num_reels_from_backend=result.reel_results.length;
-            const totalAnimationTime=2000+(num_reels_from_backend-1)*500;
-            if(slotSpinEndTimeout)clearTimeout(slotSpinEndTimeout);
-            slotSpinEndTimeout=setTimeout(()=>{
-                if(result.won_prizes&&result.won_prizes.length>0){
-                    let displayMessage="";
-                    result.won_prizes.forEach((prize,index)=>{
-                        displayMessage+=`${prize.name}${index<result.won_prizes.length-1?', ':''}`;
-                        if(!prize.is_ton_prize){
-                            const existingItem=currentUser.inventory.find(invItem=>invItem.id===prize.id);
-                            if(!existingItem&&prize.id)currentUser.inventory.push({id:prize.id,name:prize.name,imageFilename:prize.imageFilename,currentValue:prize.currentValue,variant:prize.variant,is_ton_prize:false});
-                        }
-                    });
-                    showWinOverlay(result.won_prizes);
-                    if(result.won_prizes.length>1&&result.won_prizes.every(p=>p.is_ton_prize)){
-                        slotPrizeDisplay.textContent="Won: "+displayMessage+"!";
-                        slotPrizeDisplay.style.color='var(--success-color)';
-                    }else if(result.won_prizes.length===1&&result.won_prizes[0].is_ton_prize){
-                        slotPrizeDisplay.textContent="You Won: "+displayMessage+"!";
-                        slotPrizeDisplay.style.color='var(--success-color)';
-                    }
-                    showTGNotification("Spin result: "+displayMessage,'success');
-                    renderInventory();
-                }else{
-                    slotPrizeDisplay.textContent="Try Again!";
-                    slotPrizeDisplay.style.color='var(--text-secondary)';
-                }
-            },totalAnimationTime+100);
-        }else{
-            showTGNotification(result.error||"Slot spin failed.",'error');
+            const animationDuration = 6000;
+            spinAnimationTimeoutOuter = setTimeout(() => {
+                result.won_prizes.forEach(wp => { const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id); if (existingItemIndex === -1 && wp.id) { currentUser.inventory.push({ id: wp.id, name: wp.name, imageFilename: wp.imageFilename, currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false }); } });
+                renderInventory(); showWinOverlay(result.won_prizes);
+            }, animationDuration + 100);
+        } else { showTGNotification(result.error || result.message || 'Failed to open case.', 'error'); }
+    } catch (e) { console.error("Spin roulette error", e); spinButton.disabled = false; updateSpinButtonText(); showTGNotification("Error during spin. Try again.", "error"); }
+}
+
+// REMOVED: Slot machine functions (initializeSlotReelsVisuals, openSlotMachineModal, closeSlotModal, spinSlotMachine)
+
+async function handleSingleConvert(itemId) { const success = await convertItemToTon(itemId); if (success) { showTGNotification("Item converted to TON!", 'success'); updateBalances(); renderInventory(); } }
+async function convertItemToTon(itemId) {
+    const itemInInventory = currentUser.inventory.find(i => i.id === itemId);
+    if (itemInInventory && itemInInventory.is_ton_prize) { showTGNotification("Cannot convert TON prize.", "info"); return false; }
+    try {
+        const res = await apiRequest('/api/convert_to_ton', 'POST', { inventory_item_id: parseInt(itemId) });
+        if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId)); return true; }
+        else { showTGNotification(res.error || res.message || 'Failed.', 'error'); return false; }
+    } catch (e) { showTGNotification("Conversion request failed.", "error"); return false; }
+}
+async function handleConvertAll() {
+    if (lastWonPrizesForOverlay.length === 0) { showTGNotification("No items to convert.", "warning"); return; }
+    let successCount = 0; let failCount = 0;
+    const itemsToConvert = lastWonPrizesForOverlay.filter(p => !p.is_ton_prize && p.id);
+    if (itemsToConvert.length === 0) { showTGNotification("No convertible items in this win.", "info"); closeWinOverlayModal(); return; }
+    for (const item of itemsToConvert) { const success = await convertItemToTon(item.id); if (success) successCount++; else failCount++; }
+    updateBalances(); renderInventory();
+    if (failCount > 0) showTGNotification(`${successCount} item(s) converted. ${failCount} failed.`, 'warning');
+    else showTGNotification(`${successCount} item(s) converted to TON!`, 'success');
+    closeWinOverlayModal();
+}
+async function handleUpgrade() {
+    const itemId = upgradeElements.inventorySelect.value;
+    if (!itemId) { showTGNotification("Select item.", 'warning'); return; }
+    upgradeElements.upgradeResult.textContent = "Attempting..."; upgradeElements.doUpgradeButton.disabled = true;
+    try {
+        const res = await apiRequest('/api/upgrade_item', 'POST', { inventory_item_id: parseInt(itemId), multiplier_str: selectedUpgradeMultiplier.toString() });
+        if (res.status === 'success') {
+            const upItem = res.item; const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemId));
+            if (idx !== -1) { currentUser.inventory[idx] = upItem; } else { currentUser.inventory.push(upItem); }
+            upgradeElements.upgradeResult.textContent = res.message; upgradeElements.upgradeResult.style.color = 'var(--success-color)'; showTGNotification("Success!", 'success');
+        } else {
+            if (res.item_lost) currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
+            upgradeElements.upgradeResult.textContent = res.message || "Upgrade failed."; upgradeElements.upgradeResult.style.color = 'var(--danger-color)'; showTGNotification(res.message || "Failed.", 'error');
         }
-    }catch(e){
-        console.error("Slot spin error",e);
-        spinSlotButton.disabled=false;
-        spinSlotButton.textContent='Spin Slot';
+        renderInventory(); updateBalances(); upgradeElements.doUpgradeButton.disabled = false; upgradeElements.inventorySelect.value = '';
+    } catch (e) { upgradeElements.upgradeResult.textContent = "Error."; upgradeElements.upgradeResult.style.color = 'var(--danger-color)'; upgradeElements.doUpgradeButton.disabled = false; }
+}
+async function sellAllItems() {
+    const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize);
+    if (!sellableItems.length) { showTGNotification("No sellable items.", "info"); return; }
+    const val = parseFloat(profileElements.sellAllValueSpan.textContent);
+    if (Telegram.WebApp.showConfirm) { Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => { if (ok) doSellAll(); }); }
+    else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) { doSellAll(); }
+}
+async function doSellAll() {
+    try {
+        const res = await apiRequest('/api/sell_all_items', 'POST');
+        if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize); updateBalances(); renderInventory(); showTGNotification(res.message, "success"); }
+        else showTGNotification(res.message || "Failed.", "error");
+    } catch (e) { showTGNotification("Sell all request failed.", "error"); }
+}
+function showWithdrawStep(step) { withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step)); }
+function startWithdrawalProcess(inventoryItemId) {
+    const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
+    if (!item || item.is_ton_prize) { showTGNotification("Item not found or not withdrawable.", "error"); return; }
+    itemToWithdraw = inventoryItemId; withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
+    showWithdrawStep(1); withdrawModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
+}
+async function completeWithdrawal() {
+    if (!itemToWithdraw) { showTGNotification("No item selected.", "error"); return; }
+    withdrawStatusMessage.textContent = "Processing Tonnel withdrawal..."; withdrawModal.querySelector('.loader').style.display = 'block';
+    try {
+        const res = await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`, 'POST');
+        if (res.status === 'success') {
+            const idx = currentUser.inventory.findIndex(i => i.id === itemToWithdraw);
+            if (idx !== -1) currentUser.inventory.splice(idx, 1);
+            renderInventory(); withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!"; withdrawStatusMessage.style.color = 'var(--success-color)'; showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success'); showWithdrawStep(3);
+        } else { withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error'); }
+    } catch (e) { withdrawStatusMessage.textContent = "Error processing withdrawal."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification("Error processing Tonnel withdrawal.", "error"); }
+    finally { withdrawModal.querySelector('.loader').style.display = 'none'; }
+}
+function closeWithdrawModal() { if (tgBackButton) popTgBackButtonHandler(); withdrawModal.classList.remove('active'); itemToWithdraw = null; showWithdrawStep(1); withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; withdrawStatusMessage.textContent = ""; withdrawModal.querySelector('.loader').style.display = 'none'; }
+async function initiateDepositProcedure() {
+    const amtTxt = profileElements.depositAmountInput.value;
+    if (!amtTxt.trim()) { showTGNotification("Enter amount.", "warning"); return; }
+    const amt = parseFloat(amtTxt);
+    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) { showTGNotification("Invalid amount. Min 0.1 TON", "error"); return; }
+    profileElements.initiateDepositButton.disabled = true; profileElements.initiateDepositButton.textContent = "Initializing...";
+    try {
+        const res = await apiRequest('/api/initiate_deposit', 'POST', { amount: amt });
+        profileElements.initiateDepositButton.disabled = false; profileElements.initiateDepositButton.textContent = "Deposit TON";
+        if (res.status === 'success') {
+            currentPendingDepositId = res.pending_deposit_id; depositRecipientAddressRaw = res.recipient_address; depositCommentText = res.comment;
+            const nanoAmt = res.final_amount_nano_ton || Math.round(parseFloat(res.amount_to_send) * 1e9);
+            tonTransferLink.href = `ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`;
+            startDepositExpiryTimer(res.expires_at); depositStatusMessageEl.textContent = ''; depositLoader.style.display = 'none';
+            confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = 'I Sent Funds';
+            depositInstructionsModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
+        } else showTGNotification(res.message || res.error || 'Failed.', 'error');
+    } catch (e) { profileElements.initiateDepositButton.disabled = false; profileElements.initiateDepositButton.textContent = "Deposit TON"; showTGNotification("Deposit init request failed.", "error"); }
+}
+function startDepositExpiryTimer(expiresISO) {
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval); const expiry = new Date(expiresISO).getTime();
+    function update() {
+        const now = new Date().getTime(); const dist = expiry - now;
+        if (dist < 0) { clearInterval(depositExpiryInterval); depositExpiryInfo.textContent = "Expired."; confirmPaymentSentButton.disabled = true; tonTransferLink.classList.add('button-secondary'); return; }
+        const m = Math.floor((dist % (1e3 * 60 * 60)) / (1e3 * 60)); const s = Math.floor((dist % (1e3 * 60)) / 1e3);
+        depositExpiryInfo.textContent = `Expires in ${m}m ${s}s.`; tonTransferLink.classList.remove('button-secondary');
+    } update(); depositExpiryInterval = setInterval(update, 1e3);
+}
+async function verifyPaymentSent() {
+    if (!currentPendingDepositId) { showTGNotification("No deposit.", "error"); return; }
+    confirmPaymentSentButton.disabled = true; confirmPaymentSentButton.textContent = "Verifying...";
+    depositLoader.style.display = 'block'; depositStatusMessageEl.textContent = 'Checking...';
+    try {
+        const res = await apiRequest('/api/verify_deposit', 'POST', { pending_deposit_id: currentPendingDepositId });
+        if (res.status === 'success') { showTGNotification(res.message, 'success'); currentUser.tonBalance = res.new_balance_ton; updateBalances(); renderProfile(); closeDepositInstructionsModal(); }
+        else if (res.status === 'pending') { depositStatusMessageEl.textContent = res.message; confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Check Again"; }
+        else {
+            showTGNotification(res.message || "Failed.", "error"); depositStatusMessageEl.textContent = res.message || "Failed.";
+            if (res.status === 'expired') tonTransferLink.classList.add('button-secondary');
+            else { confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Try Again"; }
+        }
+    } catch (e) { depositStatusMessageEl.textContent = 'Error verifying.'; confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Try Again"; showTGNotification("Verification request failed.", "error"); }
+    finally { if (depositLoader.style.display === 'block' && !depositStatusMessageEl.textContent.includes('Checking')) depositLoader.style.display = 'none'; }
+}
+function closeDepositInstructionsModal() { if (tgBackButton) popTgBackButtonHandler(); depositInstructionsModal.classList.remove('active'); if (depositExpiryInterval) clearInterval(depositExpiryInterval); currentPendingDepositId = null; profileElements.depositAmountInput.value = ''; tonTransferLink.href = '#'; depositStatusMessageEl.textContent = ''; depositLoader.style.display = 'none'; depositExpiryInfo.textContent = ''; }
+async function redeemPromocode() {
+    const code = profileElements.promocodeInput.value.trim();
+    if (!code) { showTGNotification("Enter code.", "warning"); return; }
+    profileElements.redeemPromocodeButton.disabled = true;
+    try {
+        const res = await apiRequest('/api/redeem_promocode', 'POST', { promocode_text: code });
+        if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; updateBalances(); showTGNotification(res.message, 'success'); profileElements.promocodeInput.value = ''; }
+        else showTGNotification(res.message || res.error || "Failed.", "error");
+    } catch (e) { showTGNotification("Promocode request failed.", "error"); }
+    finally { profileElements.redeemPromocodeButton.disabled = false; }
+}
+
+appNavButtons.forEach(b => b.addEventListener('click', () => navigateToPage(b.dataset.page)));
+spinButton.addEventListener('click', spinRoulette); closeRouletteButton.addEventListener('click', closeRouletteModal);
+winOverlaySaveBtn.addEventListener('click', closeWinOverlayModal);
+winOverlayConvertBtn.addEventListener('click', handleConvertAll);
+// REMOVED: Slot button event listeners
+caseMultiplierSelector.querySelectorAll('button').forEach(btn => { btn.addEventListener('click', e => { selectedCaseMultiplier = parseInt(e.target.dataset.multiplier); updateCaseMultiplierButtons(); updateSpinButtonText(); }); });
+profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect()); profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure); profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
+withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2)); withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1)); withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); }); withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal); closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
+upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b => { b.addEventListener('click', e => { selectedUpgradeMultiplier = parseFloat(e.target.dataset.multiplier); const ch = parseFloat(e.target.dataset.chance); upgradeElements.chanceDisplay.textContent = `${ch}%`; upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => { btn.classList.remove('active-multiplier'); if (!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary'); }); e.target.classList.add('active-multiplier'); if (e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary'); }); });
+const defMultBtnUpgrade = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`); if (defMultBtnUpgrade) { defMultBtnUpgrade.click(); selectedUpgradeMultiplier = 1.5; }
+upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
+inviteElements.copyRefLinkButton.addEventListener('click', () => { navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error')); });
+inviteElements.withdrawReferralButton.addEventListener('click', async () => { try { const res = await apiRequest('/api/withdraw_referral_earnings', 'POST'); if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; currentUser.referralEarningsPending = res.new_referral_earnings_pending; updateBalances(); renderInvitePage(); showTGNotification(res.message, 'success'); } else showTGNotification(res.message || "Failed.", "error"); } catch (e) { showTGNotification("Withdrawal request failed.", "error"); } });
+profileElements.sellAllButton?.addEventListener('click', sellAllItems);
+confirmPaymentSentButton?.addEventListener('click', verifyPaymentSent); cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
+
+async function fetchInitialUserData() {
+    if (!Telegram.WebApp.initData) {
+        dataFetchedSuccessfully = true; // No backend data, proceed with local state
+        // updateUIBasedOnWallet(null); // Will be called by initializeApp
+        return false;
+    }
+    try {
+        const data = await apiRequest('/api/get_user_data', 'POST', {});
+        Object.assign(currentUser, data);
+        currentUser.first_name = data.first_name || currentUser.first_name || 'User';
+        dataFetchedSuccessfully = true;
+        return true;
+    } catch (e) {
+        showTGNotification("Could not load profile.", 'error');
+        dataFetchedSuccessfully = false;
+        return false;
     }
 }
-async function handleSingleConvert(itemId){const success=await convertItemToTon(itemId);if(success){showTGNotification("Item converted to TON!",'success');updateBalances();renderInventory();}}
-async function convertItemToTon(itemId){const itemInInventory=currentUser.inventory.find(i=>i.id===itemId);if(itemInInventory&&itemInInventory.is_ton_prize){showTGNotification("Cannot convert TON prize.","info");return false;}try{const res=await apiRequest('/api/convert_to_ton','POST',{inventory_item_id:parseInt(itemId)});if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;currentUser.inventory=currentUser.inventory.filter(i=>i.id!==parseInt(itemId));return true;}else{showTGNotification(res.error||res.message||'Failed.','error');return false;}}catch(e){showTGNotification("Conversion request failed.","error");return false;}}
-async function handleConvertAll(){if(lastWonPrizesForOverlay.length===0){showTGNotification("No items to convert.","warning");return;}let successCount=0;let failCount=0;const itemsToConvert=lastWonPrizesForOverlay.filter(p=>!p.is_ton_prize&&p.id);if(itemsToConvert.length===0){showTGNotification("No convertible items in this win.","info");closeWinOverlayModal();return;}for(const item of itemsToConvert){const success=await convertItemToTon(item.id);if(success)successCount++;else failCount++;}updateBalances();renderInventory();if(failCount>0)showTGNotification(`${successCount} item(s) converted. ${failCount} failed.`,'warning');else showTGNotification(`${successCount} item(s) converted to TON!`,'success');closeWinOverlayModal();}
-async function handleUpgrade(){const itemId=upgradeElements.inventorySelect.value;if(!itemId){showTGNotification("Select item.",'warning');return;}upgradeElements.upgradeResult.textContent="Attempting...";upgradeElements.doUpgradeButton.disabled=true;try{const res=await apiRequest('/api/upgrade_item','POST',{inventory_item_id:parseInt(itemId),multiplier_str:selectedUpgradeMultiplier.toString()});if(res.status==='success'){const upItem=res.item;const idx=currentUser.inventory.findIndex(i=>i.id===parseInt(itemId));if(idx!==-1){currentUser.inventory[idx]=upItem;}else{currentUser.inventory.push(upItem);}upgradeElements.upgradeResult.textContent=res.message;upgradeElements.upgradeResult.style.color='var(--success-color)';showTGNotification("Success!",'success');}else{if(res.item_lost)currentUser.inventory=currentUser.inventory.filter(i=>i.id!==parseInt(itemId));upgradeElements.upgradeResult.textContent=res.message||"Upgrade failed.";upgradeElements.upgradeResult.style.color='var(--danger-color)';showTGNotification(res.message||"Failed.",'error');}renderInventory();updateBalances();upgradeElements.doUpgradeButton.disabled=false;upgradeElements.inventorySelect.value='';}catch(e){upgradeElements.upgradeResult.textContent="Error.";upgradeElements.upgradeResult.style.color='var(--danger-color)';upgradeElements.doUpgradeButton.disabled=false;}}
-async function sellAllItems(){const sellableItems=currentUser.inventory.filter(i=>!i.is_ton_prize);if(!sellableItems.length){showTGNotification("No sellable items.","info");return;}const val=parseFloat(profileElements.sellAllValueSpan.textContent);if(Telegram.WebApp.showConfirm){Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`,async(ok)=>{if(ok)doSellAll();});}else if(confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)){doSellAll();}}
-async function doSellAll(){try{const res=await apiRequest('/api/sell_all_items','POST');if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;currentUser.inventory=currentUser.inventory.filter(i=>i.is_ton_prize);updateBalances();renderInventory();showTGNotification(res.message,"success");}else showTGNotification(res.message||"Failed.","error");}catch(e){showTGNotification("Sell all request failed.","error");}}
-function showWithdrawStep(step){withdrawSteps.forEach((s,i)=>s.classList.toggle('active',i+1===step));}
-function startWithdrawalProcess(inventoryItemId){const item=currentUser.inventory.find(i=>i.id===parseInt(inventoryItemId));if(!item||item.is_ton_prize){showTGNotification("Item not found or not withdrawable.","error");return;}itemToWithdraw=inventoryItemId;withdrawModal.querySelector('h3').textContent=`Withdraw ${item.name}`;showWithdrawStep(1);withdrawModal.classList.add('active');if(tgBackButton)pushTgBackButtonHandler(closeWithdrawModalWithBackButton);}
-async function completeWithdrawal(){if(!itemToWithdraw){showTGNotification("No item selected.","error");return;}withdrawStatusMessage.textContent="Processing Tonnel withdrawal...";withdrawModal.querySelector('.loader').style.display='block';try{const res=await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`,'POST');if(res.status==='success'){const idx=currentUser.inventory.findIndex(i=>i.id===itemToWithdraw);if(idx!==-1)currentUser.inventory.splice(idx,1);renderInventory();withdrawStatusMessage.textContent=res.message||"Tonnel withdrawal initiated!";withdrawStatusMessage.style.color='var(--success-color)';showTGNotification(res.message||"Tonnel withdrawal initiated!",'success');showWithdrawStep(3);}else{withdrawStatusMessage.textContent=res.message||res.error||"Tonnel withdrawal failed.";withdrawStatusMessage.style.color='var(--danger-color)';showTGNotification(res.message||res.error||"Tonnel withdrawal failed.",'error');}}catch(e){withdrawStatusMessage.textContent="Error processing withdrawal.";withdrawStatusMessage.style.color='var(--danger-color)';showTGNotification("Error processing Tonnel withdrawal.","error");}finally{withdrawModal.querySelector('.loader').style.display='none';}}
-function closeWithdrawModal(){if(tgBackButton)popTgBackButtonHandler();withdrawModal.classList.remove('active');itemToWithdraw=null;showWithdrawStep(1);withdrawModal.querySelector('h3').textContent="Withdraw Gift";withdrawStatusMessage.textContent="";withdrawModal.querySelector('.loader').style.display='none';}
-async function initiateDepositProcedure(){const amtTxt=profileElements.depositAmountInput.value;if(!amtTxt.trim()){showTGNotification("Enter amount.","warning");return;}const amt=parseFloat(amtTxt);if(isNaN(amt)||amt<=0||amt<0.1||amt>10000){showTGNotification("Invalid amount. Min 0.1 TON","error");return;}profileElements.initiateDepositButton.disabled=true;profileElements.initiateDepositButton.textContent="Initializing...";try{const res=await apiRequest('/api/initiate_deposit','POST',{amount:amt});profileElements.initiateDepositButton.disabled=false;profileElements.initiateDepositButton.textContent="Deposit TON";if(res.status==='success'){currentPendingDepositId=res.pending_deposit_id;depositRecipientAddressRaw=res.recipient_address;depositCommentText=res.comment;const nanoAmt=res.final_amount_nano_ton||Math.round(parseFloat(res.amount_to_send)*1e9);tonTransferLink.href=`ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`;startDepositExpiryTimer(res.expires_at);depositStatusMessageEl.textContent='';depositLoader.style.display='none';confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent='I Sent Funds';depositInstructionsModal.classList.add('active');if(tgBackButton)pushTgBackButtonHandler(closeDepositModalWithBackButton);}else showTGNotification(res.message||res.error||'Failed.','error');}catch(e){profileElements.initiateDepositButton.disabled=false;profileElements.initiateDepositButton.textContent="Deposit TON";showTGNotification("Deposit init request failed.","error");}}
-function startDepositExpiryTimer(expiresISO){if(depositExpiryInterval)clearInterval(depositExpiryInterval);const expiry=new Date(expiresISO).getTime();function update(){const now=new Date().getTime();const dist=expiry-now;if(dist<0){clearInterval(depositExpiryInterval);depositExpiryInfo.textContent="Expired.";confirmPaymentSentButton.disabled=true;tonTransferLink.classList.add('button-secondary');return;}const m=Math.floor((dist%(1e3*60*60))/(1e3*60));const s=Math.floor((dist%(1e3*60))/1e3);depositExpiryInfo.textContent=`Expires in ${m}m ${s}s.`;tonTransferLink.classList.remove('button-secondary');}update();depositExpiryInterval=setInterval(update,1e3);}
-async function verifyPaymentSent(){if(!currentPendingDepositId){showTGNotification("No deposit.","error");return;}confirmPaymentSentButton.disabled=true;confirmPaymentSentButton.textContent="Verifying...";depositLoader.style.display='block';depositStatusMessageEl.textContent='Checking...';try{const res=await apiRequest('/api/verify_deposit','POST',{pending_deposit_id:currentPendingDepositId});if(res.status==='success'){showTGNotification(res.message,'success');currentUser.tonBalance=res.new_balance_ton;updateBalances();renderProfile();closeDepositInstructionsModal();}else if(res.status==='pending'){depositStatusMessageEl.textContent=res.message;confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Check Again";}else{showTGNotification(res.message||"Failed.","error");depositStatusMessageEl.textContent=res.message||"Failed.";if(res.status==='expired')tonTransferLink.classList.add('button-secondary');else{confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Try Again";}}}catch(e){depositStatusMessageEl.textContent='Error verifying.';confirmPaymentSentButton.disabled=false;confirmPaymentSentButton.textContent="Try Again";showTGNotification("Verification request failed.","error");}finally{if(depositLoader.style.display==='block'&&!depositStatusMessageEl.textContent.includes('Checking'))depositLoader.style.display='none';}}
-function closeDepositInstructionsModal(){if(tgBackButton)popTgBackButtonHandler();depositInstructionsModal.classList.remove('active');if(depositExpiryInterval)clearInterval(depositExpiryInterval);currentPendingDepositId=null;profileElements.depositAmountInput.value='';tonTransferLink.href='#';depositStatusMessageEl.textContent='';depositLoader.style.display='none';depositExpiryInfo.textContent='';}
-async function redeemPromocode(){const code=profileElements.promocodeInput.value.trim();if(!code){showTGNotification("Enter code.","warning");return;}profileElements.redeemPromocodeButton.disabled=true;try{const res=await apiRequest('/api/redeem_promocode','POST',{promocode_text:code});if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;updateBalances();showTGNotification(res.message,'success');profileElements.promocodeInput.value='';}else showTGNotification(res.message||res.error||"Failed.","error");}catch(e){showTGNotification("Promocode request failed.","error");}finally{profileElements.redeemPromocodeButton.disabled=false;}}
-appNavButtons.forEach(b=>b.addEventListener('click',()=>navigateToPage(b.dataset.page)));
-spinButton.addEventListener('click',spinRoulette);closeRouletteButton.addEventListener('click',closeRouletteModal);
-winOverlaySaveBtn.addEventListener('click',closeWinOverlayModal);
-winOverlayConvertBtn.addEventListener('click',handleConvertAll);
-spinSlotButton.addEventListener('click',spinSlotMachine);closeSlotModalButton.addEventListener('click',closeSlotModal);
-caseMultiplierSelector.querySelectorAll('button').forEach(btn=>{btn.addEventListener('click',e=>{selectedCaseMultiplier=parseInt(e.target.dataset.multiplier);updateCaseMultiplierButtons();updateSpinButtonText();});});
-profileElements.disconnectWalletButton.addEventListener('click',()=>tonConnectUI.disconnect());profileElements.initiateDepositButton.addEventListener('click',initiateDepositProcedure);profileElements.redeemPromocodeButton.addEventListener('click',redeemPromocode);
-withdrawStep1NextBtn.addEventListener('click',()=>showWithdrawStep(2));withdrawStep2BackBtn.addEventListener('click',()=>showWithdrawStep(1));withdrawStep2NextBtn.addEventListener('click',()=>{showWithdrawStep(3);completeWithdrawal();});withdrawStep3CloseBtn.addEventListener('click',closeWithdrawModal);closeWithdrawModalButton?.addEventListener('click',closeWithdrawModal);
-upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b=>{b.addEventListener('click',e=>{selectedUpgradeMultiplier=parseFloat(e.target.dataset.multiplier);const ch=parseFloat(e.target.dataset.chance);upgradeElements.chanceDisplay.textContent=`${ch}%`;upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn=>{btn.classList.remove('active-multiplier');if(!btn.classList.contains('button-secondary'))btn.classList.add('button-secondary');});e.target.classList.add('active-multiplier');if(e.target.classList.contains('button-secondary'))e.target.classList.remove('button-secondary');});});
-const defMultBtnUpgrade=upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`);if(defMultBtnUpgrade){defMultBtnUpgrade.click();selectedUpgradeMultiplier=1.5;}
-upgradeElements.doUpgradeButton.addEventListener('click',handleUpgrade);
-inviteElements.copyRefLinkButton.addEventListener('click',()=>{navigator.clipboard.writeText(inviteElements.referralLink.value).then(()=>showTGNotification("Copied!",'success')).catch(()=>showTGNotification("Failed.",'error'));});
-inviteElements.withdrawReferralButton.addEventListener('click',async()=>{try{const res=await apiRequest('/api/withdraw_referral_earnings','POST');if(res.status==='success'){currentUser.tonBalance=res.new_balance_ton;currentUser.referralEarningsPending=res.new_referral_earnings_pending;updateBalances();renderInvitePage();showTGNotification(res.message,'success');}else showTGNotification(res.message||"Failed.","error");}catch(e){showTGNotification("Withdrawal request failed.","error");}});
-profileElements.sellAllButton?.addEventListener('click',sellAllItems);
-confirmPaymentSentButton?.addEventListener('click',verifyPaymentSent);cancelDepositButton?.addEventListener('click',closeDepositInstructionsModal);
-async function fetchInitialUserData(){if(!Telegram.WebApp.initData){updateUIBasedOnWallet(null);renderHeader();renderCasesAndSlots();renderProfile();renderLeaderboard();renderInvitePage();navigateToPage('main-page');return false;}try{const data=await apiRequest('/api/get_user_data','POST',{});Object.assign(currentUser,data);currentUser.first_name=data.first_name||currentUser.first_name||'User';return true;}catch(e){showTGNotification("Could not load profile.","error");return false;}}
-async function initializeApp(){const allImageUrls=new Set();casesData.forEach(c=>{const mainImgSrc = c.imageFilename || (c.name ? generateImageFilename(c.name) : null); if(mainImgSrc) allImageUrls.add(mainImgSrc); if(c.overlayPrizeName)allImageUrls.add(generateImageFilename(c.overlayPrizeName));c.prizes.forEach(p=>{if(p.is_ton_prize)allImageUrls.add(TON_COIN_FULL_URL);else allImageUrls.add(generateImageFilename(p.imageFilename || p.name));});});slotsData.forEach(s=>{const mainSlotImgSrc = s.imageFilename || (s.name ? generateImageFilename(s.name) : null); if(mainSlotImgSrc) allImageUrls.add(mainSlotImgSrc);s.prize_pool.forEach(p=>{if(p.is_ton_prize)allImageUrls.add(TON_COIN_FULL_URL);else allImageUrls.add(generateImageFilename(p.imageFilename||p.name));});});allImageUrls.add(TON_COIN_FULL_URL);allImageUrls.forEach(url=>{const img=new Image();img.src=url;});if(Telegram.WebApp.BackButton)tgBackButton=Telegram.WebApp.BackButton;let dataFetchedSuccessfully=false;if(Telegram.WebApp&&Telegram.WebApp.initDataUnsafe){Telegram.WebApp.ready();Telegram.WebApp.expand();Telegram.WebApp.enableClosingConfirmation();const tgUser=Telegram.WebApp.initDataUnsafe.user;if(tgUser){currentUser.id=tgUser.id;currentUser.username=tgUser.username;currentUser.first_name=tgUser.first_name||'User';currentUser.last_name=tgUser.last_name;if(!currentUser.referralCode)currentUser.referralCode=`ref_${currentUser.id.toString().slice(-6)}`;}try{const bg=getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim()||'#181A25';Telegram.WebApp.setHeaderColor(bg);Telegram.WebApp.setBackgroundColor(bg);}catch(e){}}else{if(!currentUser.referralCode)currentUser.referralCode=`ref_BRWSR${Math.random().toString(36).substring(2,8)}`;}if(Telegram.WebApp.initData){try{dataFetchedSuccessfully=await fetchInitialUserData();}catch(error){dataFetchedSuccessfully=false;}}else{updateUIBasedOnWallet(null);}tonConnectUI.onStatusChange(async wallet=>{updateUIBasedOnWallet(wallet);if(!dataFetchedSuccessfully&&Telegram.WebApp.initData){try{dataFetchedSuccessfully=await fetchInitialUserData();if(dataFetchedSuccessfully){renderHeader();renderProfile();renderInvitePage();renderLeaderboard();}}catch(error){}}else if(dataFetchedSuccessfully){renderHeader();renderProfile();}});renderHeader();renderCasesAndSlots();renderProfile();renderLeaderboard();renderInvitePage();navigateToPage('main-page');}
-document.addEventListener('DOMContentLoaded',initializeApp);
+
+async function initializeApp() {
+    const allImageUrls = new Set();
+    casesData.forEach(c => {
+        const mainImgSrc = c.imageFilename || (c.name ? generateImageFilename(c.name) : null); if (mainImgSrc) allImageUrls.add(mainImgSrc);
+        if (c.overlayPrizeName) allImageUrls.add(generateImageFilename(c.overlayPrizeName));
+        c.prizes.forEach(p => { if (p.is_ton_prize) allImageUrls.add(TON_COIN_FULL_URL); else allImageUrls.add(generateImageFilename(p.imageFilename || p.name)); });
+    });
+    // REMOVED: Slots image preloading
+    allImageUrls.add(TON_COIN_FULL_URL);
+    allImageUrls.forEach(url => { const img = new Image(); img.src = url; });
+
+    if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton;
+
+    if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        Telegram.WebApp.enableClosingConfirmation();
+        const tgUser = Telegram.WebApp.initDataUnsafe.user;
+        if (tgUser) {
+            currentUser.id = tgUser.id;
+            currentUser.username = tgUser.username;
+            currentUser.first_name = tgUser.first_name || 'User';
+            currentUser.last_name = tgUser.last_name;
+            if (!currentUser.referralCode) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
+        }
+        try {
+            const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25';
+            Telegram.WebApp.setHeaderColor(bg);
+            Telegram.WebApp.setBackgroundColor(bg);
+        } catch (e) { /* ignore */ }
+    } else {
+        if (!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2, 8)}`;
+    }
+
+    tonConnectUI.onStatusChange(async wallet => {
+        updateUIBasedOnWallet(wallet); // Update wallet display first
+        if (dataFetchedSuccessfully) { // If user data is already loaded, re-render relevant parts
+            renderHeader();
+            renderProfile();
+        }
+    });
+
+    if (Telegram.WebApp.initData) {
+        await fetchInitialUserData();
+    } else {
+        dataFetchedSuccessfully = true; // No backend data, mark as "fetched"
+    }
+    
+    // Call updateUIBasedOnWallet again AFTER data fetch attempt to ensure balance is correct
+    // It uses the tonConnectWalletInfo which would have been set if onStatusChange fired,
+    // or the current wallet from tonConnectUI as a fallback.
+    updateUIBasedOnWallet(tonConnectWalletInfo || tonConnectUI.wallet);
+
+    renderHeader();
+    renderCasesAndSlots(); // Will only render cases
+    renderProfile();
+    renderLeaderboard();
+    renderInvitePage();
+    navigateToPage('main-page');
+}
+document.addEventListener('DOMContentLoaded', initializeApp);
 </script>
 </body>
 </html>
