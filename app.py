@@ -496,12 +496,19 @@ def open_case_api():
         if Decimal(str(user.ton_balance)) < total_cost: return jsonify({"error": f"Not enough TON. Need {total_cost:.2f}"}), 400
         user.ton_balance = float(Decimal(str(user.ton_balance)) - total_cost)
         prizes_in_case = tcase['prizes']; won_prizes_list = []; total_value_this_spin = Decimal('0')
-        for _ in range(multiplier):
+        for _i_loop_multiplier in range(multiplier): # Use a named loop variable
             rv = random.random(); cprob = 0; chosen_prize_info = None
-            for p_info in prizes_in_case: cprob += p_info['probability'];_ = None;yield _ # Dummy yield for linter
-            if rv <= cprob: chosen_prize_info = p_info; break
-            if not chosen_prize_info: chosen_prize_info = random.choice(prizes_in_case) if prizes_in_case else None
-            if not chosen_prize_info: logger.error(f"Could not choose prize for case {cid}"); continue
+            for p_info in prizes_in_case:
+                cprob += p_info['probability']
+                if rv <= cprob:
+                    chosen_prize_info = p_info
+                    break # Exit inner loop once prize is chosen
+            if not chosen_prize_info and prizes_in_case: # Fallback if not chosen due to float precision, and list is not empty
+                chosen_prize_info = random.choice(prizes_in_case)
+            
+            if not chosen_prize_info: # If still not chosen (e.g. empty prize list)
+                logger.error(f"Could not choose prize for case {cid} in multiplier loop {_i_loop_multiplier+1}")
+                continue # Skip to next iteration of multiplier loop
             
             # chosen_prize_info['name'] now includes " (X%)" for Kissed Frog models
             dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
@@ -771,34 +778,59 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
 
 # --- Bot Handlers ---
 @bot.message_handler(commands=['start'])
+# --- Bot Handlers ---
+@bot.message_handler(commands=['start'])
 def send_welcome(message):
     db = next(get_db())
     try:
         user_id = message.chat.id; tg_user_obj = message.from_user
         user = db.query(User).filter(User.id == user_id).first(); created_now = False
-        if not user: created_now = True; user = User(id=user_id,username=tg_user_obj.username,first_name=tg_user_obj.first_name,last_name=tg_user_obj.last_name,referral_code=f"ref_{user_id}_{random.randint(1000,9999)}"); db.add(user)
+        if not user:
+            created_now = True
+            user = User(id=user_id,username=tg_user_obj.username,first_name=tg_user_obj.first_name,last_name=tg_user_obj.last_name,referral_code=f"ref_{user_id}_{random.randint(1000,9999)}")
+            db.add(user)
         try: 
-            command_parts = message.text.split(' ');_ = None; yield _ # Dummy yield
+            command_parts = message.text.split(' ')
             if len(command_parts) > 1 and command_parts[1].startswith('startapp='):
                 start_param_value = command_parts[1].split('=')[1]
-                if start_param_value.startswith('ref_') and (created_now or not user.referred_by_id) and user.referral_code != start_param_value: 
-                    referrer = db.query(User).filter(User.referral_code == start_param_value, User.id != user.id).first()
-                    if referrer: user.referred_by_id = referrer.id;_ = None; yield _ # Dummy yield
-                    try: bot.send_message(referrer.id, f"🎉 Friend {user.first_name or user.username or user.id} joined via your link!")
-                    except Exception as e_notify: logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
-        except Exception as e_param: logger.error(f"Error processing start param for {user_id}: {e_param}")
+                if start_param_value.startswith('ref_'):
+                    referrer_code = start_param_value
+                    if (created_now or not user.referred_by_id) and user.referral_code != referrer_code : 
+                        referrer = db.query(User).filter(User.referral_code == referrer_code, User.id != user.id).first()
+                        if referrer:
+                            user.referred_by_id = referrer.id
+                            try: # Nested try for sending message to referrer
+                                bot.send_message(referrer.id, f"🎉 Friend {user.first_name or user.username or user.id} joined via your link!")
+                            except Exception as e_notify: # More specific exception handling
+                                logger.warning(f"Failed to notify referrer {referrer.id}: {e_notify}")
+        except Exception as e_param: # Catch errors from processing start_param
+            logger.error(f"Error processing start param for {user_id}: {e_param}")
+
         updated_fields = False 
         if user.username != tg_user_obj.username: user.username = tg_user_obj.username; updated_fields = True
         if user.first_name != tg_user_obj.first_name: user.first_name = tg_user_obj.first_name; updated_fields = True
         if user.last_name != tg_user_obj.last_name: user.last_name = tg_user_obj.last_name; updated_fields = True
+        
         if created_now or updated_fields or (user.referred_by_id and created_now): 
-            try: db.commit()
-            except Exception as e_commit: db.rollback(); logger.error(f"Error committing user {user_id}: {e_commit}")
-        markup = types.InlineKeyboardMarkup(); web_app_info = types.WebAppInfo(url=WEBAPP_URL)
-        app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info); markup.add(app_button)
+            try: # Nested try for commit
+                db.commit()
+            except Exception as e_commit: # More specific exception handling
+                db.rollback()
+                logger.error(f"Error committing user {user_id}: {e_commit}")
+            
+        markup = types.InlineKeyboardMarkup()
+        web_app_info = types.WebAppInfo(url=WEBAPP_URL)
+        app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info)
+        markup.add(app_button)
         bot.send_message(message.chat.id, "Добро пожаловать в Pusik Gifts! 🎁\n\nНажмите кнопку ниже, чтобы начать!", reply_markup=markup)
-    except Exception as e_start: logger.error(f"General error in /start for chat {message.chat.id}: {e_start}", exc_info=True); bot.send_message(message.chat.id, "An error occurred. Try again.")
-    finally: db.close()
+    except Exception as e_start: # General catch for the whole function
+        logger.error(f"General error in /start for chat {message.chat.id}: {e_start}", exc_info=True)
+        try:
+            bot.send_message(message.chat.id, "An error occurred. Try again.")
+        except Exception as e_send_err:
+            logger.error(f"Failed to send error message to chat {message.chat.id}: {e_send_err}")
+    finally:
+        db.close()
 
 @bot.message_handler(func=lambda message: True)
 def echo_all(message): bot.reply_to(message, "Нажмите /start, чтобы открыть Pusik Gifts.")
@@ -807,16 +839,33 @@ if __name__ == '__main__':
     if BOT_TOKEN and WEBHOOK_URL_BASE and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         logger.info("Attempting to set webhook...")
         time.sleep(2) 
-        try: bot.remove_webhook(); logger.info("Existing webhook removed (if any).")
-        except Exception as e_rem_wh: logger.warning(f"Could not remove existing webhook: {e_rem_wh}")
-        time.sleep(0.5)
-        webhook_url_full = f"{WEBHOOK_URL_BASE.rstrip('/')}{WEBHOOK_PATH}"; logger.info(f"Setting webhook for bot to: {webhook_url_full}")
         try:
-            if bot.set_webhook(url=webhook_url_full): logger.info("Webhook set successfully.")
-            else: logger.error("FAILED to set webhook. Check telebot logs.")
-        except Exception as e_set_wh: logger.error(f"Exception while setting webhook: {e_set_wh}", exc_info=True)
+            bot.remove_webhook()
+            logger.info("Existing webhook removed (if any).")
+        except Exception as e_rem_wh:
+            logger.warning(f"Could not remove existing webhook: {e_rem_wh}")
+        
+        time.sleep(0.5) # Brief pause
+        
+        webhook_url_full = f"{WEBHOOK_URL_BASE.rstrip('/')}{WEBHOOK_PATH}"
+        logger.info(f"Setting webhook for bot to: {webhook_url_full}")
+        
+        try:
+            if bot.set_webhook(url=webhook_url_full):
+                logger.info("Webhook set successfully.")
+            else:
+                logger.error("FAILED to set webhook. Check telebot logs for details.")
+                logger.info("Ensure your WEBHOOK_URL_BASE is publicly accessible (HTTPS) and correct.")
+        except Exception as e_set_wh:
+            logger.error(f"Exception while setting webhook: {e_set_wh}", exc_info=True)
+
     elif not WEBHOOK_URL_BASE and os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        logger.warning("WEBHOOK_URL_BASE not set. Webhook NOT configured.");_ = None; yield _ # Dummy yield
-        try: logger.info("Removing any existing webhook..."); bot.remove_webhook()
-        except Exception as e_rem_fallback: logger.warning(f"Could not remove existing webhook during fallback: {e_rem_fallback}")
+        logger.warning("WEBHOOK_URL_BASE environment variable not set. Webhook NOT configured.")
+        logger.warning("Bot will not receive updates from Telegram via webhook.")
+        try:
+            logger.info("Removing any existing webhook to prevent issues...")
+            bot.remove_webhook()
+        except Exception as e_rem_fallback:
+            logger.warning(f"Could not remove existing webhook during fallback: {e_rem_fallback}")
+    
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False, use_reloader=True)
