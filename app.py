@@ -466,25 +466,58 @@ def get_db():
     finally: db.close()
 
 def validate_init_data(init_data_str: str, bot_token: str) -> dict | None:
+    logger.debug(f"Attempting to validate initData: {init_data_str[:200]}...") # Log start of initData
     try:
-        if not init_data_str: return None
+        if not init_data_str:
+            logger.warning("validate_init_data: init_data_str is empty or None.")
+            return None
+
         parsed_data = dict(parse_qs(init_data_str))
-        if not all(k in parsed_data for k in ['hash', 'user', 'auth_date']): return None
+        
+        required_keys = ['hash', 'user', 'auth_date']
+        missing_keys = [k for k in required_keys if k not in parsed_data]
+        if missing_keys:
+            logger.warning(f"validate_init_data: Missing keys in parsed_data: {missing_keys}. Parsed: {list(parsed_data.keys())}")
+            return None
+
         hash_received = parsed_data.pop('hash')[0]
         auth_date_ts = int(parsed_data['auth_date'][0])
-        if (int(dt.now(timezone.utc).timestamp()) - auth_date_ts) > AUTH_DATE_MAX_AGE_SECONDS: return None
+        current_ts = int(dt.now(timezone.utc).timestamp())
+
+        if (current_ts - auth_date_ts) > AUTH_DATE_MAX_AGE_SECONDS:
+            logger.warning(f"validate_init_data: auth_date expired. auth_date_ts: {auth_date_ts}, current_ts: {current_ts}, diff: {current_ts - auth_date_ts}s, max_age: {AUTH_DATE_MAX_AGE_SECONDS}s")
+            return None
+
         data_check_string_parts = [f"{k}={parsed_data[k][0]}" for k in sorted(parsed_data.keys())]
         data_check_string = "\n".join(data_check_string_parts)
+
         secret_key = hmac.new("WebAppData".encode(), bot_token.encode(), hashlib.sha256).digest()
         calculated_hash_hex = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+
         if calculated_hash_hex == hash_received:
-            user_info_dict = json.loads(unquote(parsed_data['user'][0]))
-            if 'id' not in user_info_dict: return None
-            user_info_dict['id'] = int(user_info_dict['id']) 
+            user_info_str_unquoted = unquote(parsed_data['user'][0])
+            try:
+                user_info_dict = json.loads(user_info_str_unquoted)
+            except json.JSONDecodeError as je:
+                logger.error(f"validate_init_data: Failed to parse user JSON: {user_info_str_unquoted}. Error: {je}")
+                return None
+            
+            if 'id' not in user_info_dict:
+                logger.warning(f"validate_init_data: 'id' not found in user_info_dict. User data: {user_info_dict}")
+                return None
+            
+            user_info_dict['id'] = int(user_info_dict['id']) # Ensure id is int
+            logger.info(f"validate_init_data: Hash matched for user ID: {user_info_dict.get('id')}. Auth successful.")
             return user_info_dict
-        else: return None
+        else:
+            logger.warning(f"validate_init_data: Hash mismatch.")
+            logger.debug(f"Received Hash: {hash_received}")
+            logger.debug(f"Calculated Hash: {calculated_hash_hex}")
+            logger.debug(f"Data Check String: {data_check_string[:500]}") # Log part of the string used for hashing
+            logger.debug(f"BOT_TOKEN used for secret_key (first 5 chars): {bot_token[:5]}...")
+            return None
     except Exception as e_validate:
-        logger.error(f"initData validation error: {e_validate}", exc_info=True)
+        logger.error(f"validate_init_data: General exception: {e_validate}", exc_info=True)
         return None
 
 @app.route('/')
