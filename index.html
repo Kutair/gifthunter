@@ -534,18 +534,57 @@ function initializeRouletteVisuals(caseItem, multiplier) {
     } rouletteWheelContainer.appendChild(multiReelWrapper);
 }
 function openRouletteModal(caseItem) {
-    currentOpenCaseOrSlot = caseItem; selectedCaseMultiplier = 1; updateCaseMultiplierButtons();
-    rouletteCaseName.textContent = caseItem.name; updateSpinButtonText(); initializeRouletteVisuals(caseItem, selectedCaseMultiplier);
-    possiblePrizesDisplay.innerHTML = ''; const prizeMap = new Map();
-    caseItem.prizes.forEach(p => { if (!p || !p.name) return; if (prizeMap.has(p.name)) prizeMap.set(p.name, { ...prizeMap.get(p.name), probability: (prizeMap.get(p.name).probability || 0) + (p.probability || 0) }); else prizeMap.set(p.name, { ...p }); });
-    prizeMap.forEach((pData, name) => {
-        const prob = pData.probability || 0; const card = document.createElement('div'); card.className = 'prize-card';
-        const imgCont = document.createElement('div'); imgCont.className = 'prize-card-image-placeholder';
-        const img = document.createElement('img'); img.src = generateImageFilename(pData.imageFilename || pData.name); img.alt = name; imgCont.appendChild(img);
-        card.innerHTML = `<span class="prize-card-probability">${(prob * 100).toFixed(prob < 0.0001 ? 4 : (prob < 0.001 ? 3 : (prob < 0.01 ? 2 : 1)))}%</span><span class="prize-card-name">${name}</span>`;
-        card.insertBefore(imgCont, card.firstChild); possiblePrizesDisplay.appendChild(card);
+    currentOpenCaseOrSlot = caseItem;
+    selectedCaseMultiplier = 1;
+    updateCaseMultiplierButtons();
+
+    rouletteCaseName.textContent = caseItem.name;
+    updateSpinButtonText();
+    initializeRouletteVisuals(caseItem, selectedCaseMultiplier);
+
+    possiblePrizesDisplay.innerHTML = '';
+    const prizeMap = new Map();
+
+    // Aggregate prizes and their total probabilities/data
+    caseItem.prizes.forEach(p => {
+        if (!p || !p.name) return;
+        if (prizeMap.has(p.name)) {
+            // If prize already in map, update its probability and take average/first floorPrice
+            // For this display, we'll just keep the latest floorPrice if there were duplicates,
+            // or assume unique entries for 'name' based on backend structure.
+            prizeMap.set(p.name, {
+                ...prizeMap.get(p.name),
+                probability: (prizeMap.get(p.name).probability || 0) + (p.probability || 0),
+                floorPrice: p.floorPrice // Keep original floorPrice from current prize iteration
+            });
+        } else {
+            prizeMap.set(p.name, { ...p });
+        }
     });
-    rouletteModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
+
+    // Render prize cards
+    prizeMap.forEach((pData, name) => {
+        const card = document.createElement('div');
+        card.className = 'prize-card';
+
+        const imgCont = document.createElement('div');
+        imgCont.className = 'prize-card-image-placeholder';
+        const img = document.createElement('img');
+        img.src = generateImageFilename(pData.imageFilename || pData.name);
+        img.alt = name;
+        imgCont.appendChild(img);
+
+        // CORRECTED LINE: Display floor price instead of probability
+        // Ensure floorPrice is a number before toFixed
+        const displayPrice = (pData.floorPrice !== undefined && pData.floorPrice !== null) ? parseFloat(pData.floorPrice).toFixed(2) : 'N/A';
+        card.innerHTML = `<span class="prize-card-probability">${displayPrice} TON</span><span class="prize-card-name">${name}</span>`;
+        
+        card.insertBefore(imgCont, card.firstChild);
+        possiblePrizesDisplay.appendChild(card);
+    });
+
+    rouletteModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 }
 function updateSpinButtonText() { if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) { const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier; spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`; } }
