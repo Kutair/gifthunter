@@ -155,7 +155,13 @@
         .prize-card-image-placeholder { width: 55px; height: 55px; background-color: transparent; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
         .prize-card-image-placeholder img { display: block; width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1; }
         .prize-card-name { font-size: 0.8em; font-weight: 500; color: var(--text-secondary); line-height: 1.25; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
-        .prize-card-probability { position: absolute; top: 5px; right: 5px; background-color: var(--primary-color); color: var(--text-primary); font-size: 0.7em; font-weight: 600; padding: 2px 5px; border-radius: 5px; line-height: 1; }
+       /* Corrected CSS part */
+        .prize-card-price { /* Renamed class */
+            position: absolute; top: 5px; right: 5px;
+            background-color: var(--primary-color); /* You can change this color if you want the price label to stand out differently */
+            color: var(--text-primary);
+            font-size: 0.7em; font-weight: 600; padding: 2px 5px; border-radius: 5px; line-height: 1;
+        }
         #roulette-modal hr, #slot-machine-modal hr { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; flex-shrink: 0; }
         #roulette-modal h4, #slot-machine-modal h4 { font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; flex-shrink: 0; }
         
@@ -533,11 +539,11 @@ function initializeRouletteVisuals(caseItem, multiplier) {
         reelVisualDiv.appendChild(spinnerReel); multiReelWrapper.appendChild(reelVisualDiv);
     } rouletteWheelContainer.appendChild(multiReelWrapper);
 }
+// Corrected JavaScript part
 function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem;
     selectedCaseMultiplier = 1;
     updateCaseMultiplierButtons();
-
     rouletteCaseName.textContent = caseItem.name;
     updateSpinButtonText();
     initializeRouletteVisuals(caseItem, selectedCaseMultiplier);
@@ -545,25 +551,23 @@ function openRouletteModal(caseItem) {
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
 
-    // Aggregate prizes and their total probabilities/data
+    // Aggregate prizes by name to sum probabilities if duplicates exist (though less likely with fixed prizes)
     caseItem.prizes.forEach(p => {
         if (!p || !p.name) return;
         if (prizeMap.has(p.name)) {
-            // If prize already in map, update its probability and take average/first floorPrice
-            // For this display, we'll just keep the latest floorPrice if there were duplicates,
-            // or assume unique entries for 'name' based on backend structure.
+            // If needed, you might combine other properties for display here
             prizeMap.set(p.name, {
                 ...prizeMap.get(p.name),
-                probability: (prizeMap.get(p.name).probability || 0) + (p.probability || 0),
-                floorPrice: p.floorPrice // Keep original floorPrice from current prize iteration
+                probability: (prizeMap.get(p.name).probability || 0) + (p.probability || 0)
             });
         } else {
             prizeMap.set(p.name, { ...p });
         }
     });
 
-    // Render prize cards
     prizeMap.forEach((pData, name) => {
+        // const prob = pData.probability || 0; // Old: probability
+        const floorPrice = pData.floorPrice || 0; // New: floor price
         const card = document.createElement('div');
         card.className = 'prize-card';
 
@@ -574,10 +578,9 @@ function openRouletteModal(caseItem) {
         img.alt = name;
         imgCont.appendChild(img);
 
-        // CORRECTED LINE: Display floor price instead of probability
-        // Ensure floorPrice is a number before toFixed
-        const displayPrice = (pData.floorPrice !== undefined && pData.floorPrice !== null) ? parseFloat(pData.floorPrice).toFixed(2) : 'N/A';
-        card.innerHTML = `<span class="prize-card-probability">${displayPrice} TON</span><span class="prize-card-name">${name}</span>`;
+        // Changed class from prize-card-probability to prize-card-price
+        // Changed content from percentage to TON value
+        card.innerHTML = `<span class="prize-card-price">${floorPrice.toFixed(2)} TON</span><span class="prize-card-name">${name}</span>`;
         
         card.insertBefore(imgCont, card.firstChild);
         possiblePrizesDisplay.appendChild(card);
