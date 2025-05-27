@@ -41,6 +41,58 @@ PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
 RTP_TARGET = Decimal('0.85') # 85% Return to Player target for all cases and slots
 
+KISS_FROG_MODEL_STATIC_PERCENTAGES = {
+    "Brewtoad": 0.5,
+    "Zodiak Croak": 0.5,
+    "Rocky Hopper": 0.5,
+    "Puddles": 0.5,
+    "Lucifrog": 0.5,
+    "Honeyhop": 0.5,
+    "Count Croakula": 0.5,
+    "Lilie Pond": 0.5,
+    "Frogmaid": 0.5,
+    "Happy Pepe": 0.5,
+    "Melty Butter": 0.5,
+    "Sweet Dream": 0.5,
+    "Tree Frog": 0.5,
+    "Lava Leap": 1.0,
+    "Tesla Frog": 1.0,
+    "Trixie": 1.0,
+    "Pond Fairy": 1.0,
+    "Icefrog": 1.0,
+    "Hopberry": 1.5,
+    "Boingo": 1.5,
+    "Prince Ribbit": 1.5,
+    "Toadstool": 1.5,
+    "Cupid": 1.5,
+    "Ms. Toad": 1.5,
+    "Desert Frog": 1.5,
+    "Silver": 2.0,
+    "Bronze": 2.0,
+    "Poison": 2.5,
+    "Ramune": 2.5,
+    "Lemon Drop": 2.5,
+    "Minty Bloom": 2.5,
+    "Void Hopper": 2.5,
+    "Sarutoad": 2.5,
+    "Duskhopper": 2.5,
+    "Starry Night": 2.5,
+    "Ectofrog": 2.5,
+    "Ectobloom": 2.5,
+    "Melon": 3.0,
+    "Banana Pox": 3.0,
+    "Frogtart": 3.0,
+    "Sea Breeze": 4.0,
+    "Sky Leaper": 4.0,
+    "Toadberry": 4.0,
+    "Peach": 4.0,
+    "Lily Pond": 4.0,
+    "Frogwave": 4.0,
+    "Cranberry": 4.0,
+    "Lemon Juice": 4.0,
+    "Tide Pod": 4.0,
+    "Brownie": 4.0,
+}
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -267,7 +319,34 @@ class TonnelGiftSender:
             await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True)
 
             # Step 2: Find the cheapest available gift item on Tonnel Market
-            filter_str = json.dumps({"price":{"$exists":True},"refunded":{"$ne":True},"buyer":{"$exists":False},"export_at":{"$exists":True},"gift_name":gift_item_name,"asset":"TON"})
+            
+            # Initialize common filter parts
+            filter_dict = {
+                "price": {"$exists": True},
+                "refunded": {"$ne": True},
+                "buyer": {"$exists": False},
+                "export_at": {"$exists": True},
+                "asset": "TON",
+            }
+
+            # Check if the requested item is a Kissed Frog variant and needs the 'model' filter
+            if gift_item_name in KISS_FROG_MODEL_STATIC_PERCENTAGES:
+                # It's a Kissed Frog variant, so add the specific gift_name and model fields
+                static_percentage_val = KISS_FROG_MODEL_STATIC_PERCENTAGES[gift_item_name]
+                
+                # Format the percentage to one decimal place if it's .0, otherwise as is.
+                # This ensures "1.0" becomes "1%", not "1.0%".
+                # rstrip('0').rstrip('.') will handle 1.0 -> 1 and 0.5 -> 0.5
+                formatted_percentage = f"{static_percentage_val:.1f}".rstrip('0').rstrip('.')
+
+                filter_dict["gift_name"] = "Kissed Frog"  # Always "Kissed Frog" for variants
+                filter_dict["model"] = f"{gift_item_name} ({formatted_percentage}%)"
+            else:
+                # It's a regular NFT, use its name directly in the 'gift_name' filter
+                filter_dict["gift_name"] = gift_item_name
+
+            filter_str = json.dumps(filter_dict)
+
             page_gifts_payload = {"filter":filter_str,"limit":10,"page":1,"sort":'{"price":1,"gift_id":-1}'}
             pg_headers_options = {"Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type","Origin":"https://tonnel-gift.vercel.app","Referer":"https://tonnel-gift.vercel.app/"}
             pg_headers_post = {"Content-Type":"application/json","Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/"}
@@ -370,7 +449,6 @@ def generate_image_filename_from_name(name_str: str) -> str:
     if not filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.svg')):
         filename += '.png'
     return filename
-
 
 # --- Floor Prices for all known NFTs (and Kissed Frog variants) ---
 UPDATED_FLOOR_PRICES = {
