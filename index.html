@@ -376,7 +376,8 @@ const currentUser = {
     id: null, username: null, first_name: 'User', last_name: null,
     walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
     inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0,
-    invited_friends_count: 0
+    invited_friends_count: 0,
+    photo_url: null // <-- ADD THIS FIELD TO currentUser
 };
 let currentOpenCaseOrSlot = null; // Will only be used for cases now
 let selectedCaseMultiplier = 1;
@@ -556,7 +557,23 @@ function renderCases() {
 // REMOVED: function renderSlots()
 
 function renderProfile() {
-    profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
+    // Clear any previous content in the avatar placeholder
+    profileElements.avatar.innerHTML = ''; 
+
+    if (currentUser.photo_url) {
+        const img = document.createElement('img');
+        img.src = currentUser.photo_url;
+        img.alt = currentUser.first_name ? `${currentUser.first_name}'s avatar` : 'User Avatar';
+        img.style.width = '100%'; // Make image fill the placeholder
+        img.style.height = '100%';
+        img.style.objectFit = 'cover'; // Cover the area without distortion
+        img.style.borderRadius = 'inherit'; // Inherit border-radius from parent
+        profileElements.avatar.appendChild(img);
+    } else {
+        // Fallback to text initial if no photo URL is available
+        profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
+    }
+
     profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User';
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
     profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
@@ -922,47 +939,62 @@ async function fetchInitialUserData() {
     }
 }
 
+// --- MODIFIED initializeApp FUNCTION (FULL) ---
 async function initializeApp() {
     // Start with a loading status message
     updateLoadingStatus("Initializing application...");
 
-    // Preload images (your existing code)
+    // Preload images
     const allImageUrls = new Set();
     casesData.forEach(c => {
         const mainImgSrc = c.imageFilename || (c.name ? generateImageFilename(c.name) : null); if (mainImgSrc) allImageUrls.add(mainImgSrc);
         if (c.overlayPrizeName) allImageUrls.add(generateImageFilename(c.overlayPrizeName));
         c.prizes.forEach(p => { if (p.is_ton_prize) allImageUrls.add(TON_COIN_FULL_URL); else allImageUrls.add(generateImageFilename(p.imageFilename || p.name)); });
     });
-    // REMOVED: slots image preloading, as per previous request
+    // Removed: slots image preloading, as per previous request
     allImageUrls.add(TON_COIN_FULL_URL);
     allImageUrls.forEach(url => { const img = new Image(); img.src = url; });
 
+    // Initialize Telegram WebApp BackButton
     if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton;
 
+    // Check if running inside Telegram Mini App and get user data
     if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
         updateLoadingStatus("Connecting to Telegram Mini App...");
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
         Telegram.WebApp.enableClosingConfirmation();
+        
         const tgUser = Telegram.WebApp.initDataUnsafe.user;
         if (tgUser) {
             currentUser.id = tgUser.id;
             currentUser.username = tgUser.username;
             currentUser.first_name = tgUser.first_name || 'User';
             currentUser.last_name = tgUser.last_name;
+            currentUser.photo_url = tgUser.photo_url || null; // Store photo_url if available
+            
             // Ensure referral code is set for new users, even if not explicitly referred
             if (!currentUser.referralCode) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
         }
+        
+        // Apply Telegram WebApp colors from CSS variables
         try {
             const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25';
             Telegram.WebApp.setHeaderColor(bg);
             Telegram.WebApp.setBackgroundColor(bg);
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+            // Ignore errors if Telegram.WebApp methods are not available or fail
+            console.warn("Failed to set Telegram WebApp colors:", e);
+        }
     } else {
-        // Fallback for non-Telegram environments
+        // Fallback for non-Telegram environments (e.g., direct browser access)
+        console.warn("Not running inside Telegram WebApp. Using fallback data.");
         if (!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2, 8)}`;
+        // Provide a placeholder photo_url for browser testing
+        currentUser.photo_url = 'https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png'; 
     }
 
+    // Set up TonConnect UI status change listener
     updateLoadingStatus("Authenticating wallet...");
     tonConnectUI.onStatusChange(async wallet => {
         // This callback can fire before initial user data is fully loaded.
@@ -976,34 +1008,35 @@ async function initializeApp() {
         }
     });
 
+    // Fetch initial user data from your backend
     updateLoadingStatus("Loading user data...");
     if (Telegram.WebApp.initData) {
-        await fetchInitialUserData(); // This sets dataFetchedSuccessfully
+        await fetchInitialUserData(); // This sets dataFetchedSuccessfully based on API response
     } else {
-        dataFetchedSuccessfully = true; // No backend data to fetch, so mark as "fetched"
+        dataFetchedSuccessfully = true; // No backend data to fetch (e.g., browser mode), so mark as "fetched"
     }
     
     // Ensure UI is updated based on wallet status after initial user data fetch attempt
     // This catches cases where onStatusChange might not have fired yet, or needs a refresh
     updateUIBasedOnWallet(tonConnectWalletInfo || tonConnectUI.wallet);
 
+    // Render main game content and sections
     updateLoadingStatus("Loading game content...");
     renderHeader(); // Renders header (including balance)
     renderCasesAndSlots(); // Renders cases (and slots if you re-add them)
-    renderProfile(); // Renders profile page (including inventory)
-    renderLeaderboard(); // Fetches and renders leaderboard
-    renderInvitePage(); // Renders referral page
+    renderProfile(); // Renders profile page (including inventory and avatar)
+    renderLeaderboard(); // Fetches and renders leaderboard data
+    renderInvitePage(); // Renders referral page content
 
-    // Navigate to the main page after everything is loaded
+    // Navigate to the default main page after everything is loaded
     navigateToPage('main-page');
 
-    // --- NEW: Hide loading screen after everything is loaded and rendered ---
+    // Hide the loading screen after all content is loaded and rendered
     updateLoadingStatus("Ready!");
     if (loadingScreen) {
-        // Add the 'hidden' class which has opacity and visibility transitions
         loadingScreen.classList.add('hidden');
         // Optional: Remove the element from DOM after transition to be super clean
-        // setTimeout(() => { loadingScreen.remove(); }, 600); // 100ms more than transition duration
+        // setTimeout(() => { loadingScreen.remove(); }, 600); // 100ms more than the CSS transition duration
     }
 }
     
