@@ -843,7 +843,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Mad Pumpkin','probability':0.04}
     ]},
     {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg','prizes':kissed_frog_processed_prizes},
-    {'id':'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON:20.0,'prizes':[
+    {'id':'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON': 20.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0004},{'name':'Perfume Bottle','probability':0.02},
         {'name':'Sharp Tongue','probability':0.035},{'name':'Loot Bag','probability':0.05},
         {'name':'Swiss Watch','probability':0.06},{'name':'Neko Helmet','probability':0.08},
@@ -879,8 +879,16 @@ cases_data_backend_with_fixed_prices_raw = [
 cases_data_backend = []
 for case_template in cases_data_backend_with_fixed_prices_raw:
     processed_case = {**case_template}
-    processed_case['prizes'] = calculate_rtp_probabilities(processed_case, UPDATED_FLOOR_PRICES)
-    cases_data_backend.append(processed_case)
+    try:
+        processed_case['prizes'] = calculate_rtp_probabilities(processed_case, UPDATED_FLOOR_PRICES)
+        cases_data_backend.append(processed_case)
+    except Exception as e:
+        # Log the error and skip this case if RTP calculation fails
+        case_id = case_template.get('id', 'N/A')
+        case_name = case_template.get('name', 'Unnamed Case')
+        logger.error(f"Failed to process case '{case_name}' (ID: {case_id}) for RTP. Skipping this case. Error: {e}", exc_info=True)
+        # This will cause the case to be 'not found' by the API if requested.
+        # You might want to add a dummy case or a specific error message if this happens frequently.
 
 DEFAULT_SLOT_TON_PRIZES = [
     {'name': "0.1 TON", 'value': 0.1, 'is_ton_prize': True, 'probability': 0.1},
