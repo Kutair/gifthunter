@@ -1074,18 +1074,26 @@ function closeRouletteModal() {
     allReelContainers.forEach(container => container.classList.remove('active'));
 }
 
+function getItemValue(prizeObject) {
+    if (prizeObject.is_ton_prize) {
+        return prizeObject.currentValue || prizeObject.value || 0; // Use 'value' for TON prizes
+    }
+    // For NFT items, prizeObject should already have floorPrice from `caseItem.prizes`
+    return prizeObject.floorPrice || prizeObject.currentValue || 0; 
+}
+    
 // MODIFIED spinRoulette FUNCTION
 async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return;
     spinButton.disabled = true;
     spinButton.textContent = 'Spinning...';
+    Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
     const activeSpinners = allReelContainers
                                 .filter(container => container.classList.contains('active'))
                                 .map(container => container.querySelector('.roulette-spinner-reel'));
     
-    // Safety check: Ensure we have active spinners to animate
     if (activeSpinners.length === 0) {
         showTGNotification("No active reels to spin. Please select a multiplier.", "error");
         spinButton.disabled = false;
@@ -1093,41 +1101,42 @@ async function spinRoulette() {
         return;
     }
 
-    const availablePrizes = currentOpenCaseOrSlot.prizes;
-    const initialNumItemsPerReel = 70; // Base number of items per reel before spin
-    const targetWinIndex = initialNumItemsPerReel + 5; // Winning item will land here + some offset to ensure it's below current view
+    const availablePrizes = currentOpenCaseOrSlot.prizes; // These already have floor_price from backend RTP calculation
+    const initialNumItemsPerReel = 70; 
     const additionalItemsToAppend = 100; // Add this many random items to the end of each reel for a smoother scroll
 
     // Pre-spin setup: Extend each active reel with random items and prepare for winner
     activeSpinners.forEach((spinnerReel, reelIndex) => {
-        let currentItems = Array.from(spinnerReel.children).map(el => ({
-            name: el.querySelector('img').alt,
-            imageFilename: el.querySelector('img').src,
-            is_ton_prize: false // We don't have this info easily from existing DOM
-        }));
+        let currentItemsData = []; // Store prize objects, not just HTML elements
 
-        // Append new random items for the spin duration
-        for (let j = 0; j < additionalItemsToAppend; j++) {
+        // Fill the reel with random prizes from the case for visual spin
+        for (let j = 0; j < initialNumItemsPerReel + additionalItemsToAppend; j++) {
             const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-            currentItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize });
+            currentItemsData.push(randomPrize); // Push the full prize object
         }
         
         // Clear and re-populate the reel with the extended list
         spinnerReel.innerHTML = '';
-        currentItems.forEach(pData => {
+        currentItemsData.forEach(pData => {
             const itemEl = document.createElement('div');
             itemEl.className = 'roulette-item';
             const img = document.createElement('img');
             img.src = generateImageFilename(pData.imageFilename || pData.name);
             img.alt = pData.name;
             itemEl.appendChild(img);
+            // Store the full prize data on the element for later inspection (e.g., floorPrice)
+            itemEl.dataset.prizeData = JSON.stringify({
+                name: pData.name,
+                imageFilename: pData.imageFilename,
+                is_ton_prize: pData.is_ton_prize,
+                floorPrice: pData.floor_price, // Use floor_price from backend
+                value: pData.value // For TON prizes that might have a 'value' key
+            });
             spinnerReel.appendChild(itemEl);
         });
 
-        // Ensure the reel is ready for transition from its current visual state
+        // Reset reel position immediately to 0 for initial display
         spinnerReel.style.transition = 'none';
-        // The top position needs to be reset to '0px' relative to the new, longer list.
-        // This is safe because the visual content will be scrolled past the initial screen.
         spinnerReel.style.top = '0px'; 
         void spinnerReel.offsetWidth; // Force reflow
     });
@@ -1146,44 +1155,110 @@ async function spinRoulette() {
 
             const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
             const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
+            const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window for the payline
 
             activeSpinners.forEach((spinnerReel, index) => {
-                let currentReelItems = Array.from(spinnerReel.children);
-                let visualWinningPrizeForThisReel = result.won_prizes[index] || // Use actual won prize if available
-                                                  (index === 0 && result.won_prizes[0]) || // Ensure first reel gets the first won item
-                                                  availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; // Fallback to random if no more won prizes
+                let currentReelItemsDOMElements = Array.from(spinnerReel.children);
+                // The prize that *actually won* for this reel (from backend result)
+                const actualWonPrizeBackendData = result.won_prizes[index] || 
+                                                  (index === 0 && result.won_prizes[0]); // Fallback for single win
 
-                // Replace an item in the reel with the intended visual winner
-                const actualWinnerPositionInReel = initialNumItemsPerReel + Math.floor(additionalItemsToAppend / 2); // Place winner far down
-                if (currentReelItems[actualWinnerPositionInReel]) {
-                    const imgElement = currentReelItems[actualWinnerPositionInReel].querySelector('img');
-                    imgElement.src = generateImageFilename(visualWinningPrizeForThisReel.imageFilename || visualWinningPrizeForThisReel.name);
-                    imgElement.alt = visualWinningPrizeForThisReel.name;
-                    currentReelItems[actualWinnerPositionInReel].dataset.isWinner = 'true'; // Mark it for potential styling
-                } else {
-                    // Fallback if index calculation is off, simply put it somewhere
-                    console.warn(`Could not place winning item at target index ${actualWinnerPositionInReel}. Placing randomly.`);
-                    const randomSpot = Math.floor(Math.random() * (currentReelItems.length - 10)) + 5; // Near middle
-                    const imgElement = currentReelItems[randomSpot].querySelector('img');
-                    imgElement.src = generateImageFilename(visualWinningPrizeForThisReel.imageFilename || visualWinningPrizeForThisReel.name);
-                    imgElement.alt = visualWinningPrizeForThisReel.name;
-                    currentReelItems[randomSpot].dataset.isWinner = 'true';
+                if (!actualWonPrizeBackendData) {
+                    console.warn(`No won prize data for reel ${index}. Skipping animation for this reel.`);
+                    return; // Skip animation if no won prize data for this reel
                 }
 
-                // Calculate scroll distance
-                let visualBiasOffsetPx = (Math.random() - 0.5) * (itemHeight * 0.20); // Small random bias
-                let scrollDist = (actualWinnerPositionInReel * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx;
+                // --- 1. Place the actual winning prize at a determined "landing zone"
+                // Pick a position far enough down the reel to ensure smooth scrolling
+                const actualWinnerPositionInReel = initialNumItemsPerReel + 5; 
+                if (currentReelItemsDOMElements[actualWinnerPositionInReel]) {
+                    const targetEl = currentReelItemsDOMElements[actualWinnerPositionInReel];
+                    const imgElement = targetEl.querySelector('img');
+                    imgElement.src = generateImageFilename(actualWonPrizeBackendData.imageFilename || actualWonPrizeBackendData.name);
+                    imgElement.alt = actualWonPrizeBackendData.name;
+                    targetEl.dataset.isWinner = 'true';
+                    // Update the dataset.prizeData of the winning element with *actual* won prize data
+                    targetEl.dataset.prizeData = JSON.stringify(actualWonPrizeBackendData);
+                } else {
+                    console.warn(`Could not place winning item at target index ${actualWinnerPositionInReel}. Reel may be too short or index is off.`);
+                }
 
-                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;
+                // --- 2. Calculate base scroll distance to center the winning item
+                let scrollDist = (actualWinnerPositionInReel * itemHeight) + (itemHeight / 2) - centerOffset;
+
+                // --- 3. Add a random visual bias within the winning item's height
+                // This makes the stop position slightly random *within* the item.
+                const randomBiasRange = itemHeight * 0.4; // Up to 40% of item height deviation from center
+                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2); // Random value between -range/2 and +range/2
+                scrollDist += visualBiasOffsetPx;
+
+                // --- 4. Implement Nudge towards more expensive nearby items
+                const nudgeRange = 3; // Check 3 items above and 3 items below
+                const winningItemValue = getItemValue(actualWonPrizeBackendData);
+                let nudgeValueThreshold = winningItemValue * 1.5; // Nudge towards items 1.5x more expensive
+
+                let bestNudgeCandidate = null;
+                let maxNudgeAmount = itemHeight * 0.4; // Max nudge amount within the item
+                
+                // Scan for expensive items above and below the winning item
+                for (let j = 1; j <= nudgeRange; j++) {
+                    const idxAbove = actualWinnerPositionInReel - j;
+                    const idxBelow = actualWinnerPositionInReel + j;
+
+                    // Check item above
+                    if (idxAbove >= 0 && currentReelItemsDOMElements[idxAbove]) {
+                        try {
+                            const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData);
+                            const itemAboveValue = getItemValue(itemAboveData);
+                            if (itemAboveValue > nudgeValueThreshold && itemAboveValue > (bestNudgeCandidate ? getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)) : 0)) {
+                                bestNudgeCandidate = { item: currentReelItemsDOMElements[idxAbove], direction: 'above', distance: j };
+                            }
+                        } catch (e) { /* ignore parse errors */ }
+                    }
+
+                    // Check item below
+                    if (idxBelow < currentReelItemsDOMElements.length && currentReelItemsDOMElements[idxBelow]) {
+                        try {
+                            const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData);
+                            const itemBelowValue = getItemValue(itemBelowData);
+                            if (itemBelowValue > nudgeValueThreshold && itemBelowValue > (bestNudgeCandidate ? getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)) : 0)) {
+                                bestNudgeCandidate = { item: currentReelItemsDOMElements[idxBelow], direction: 'below', distance: j };
+                            }
+                        } catch (e) { /* ignore parse errors */ }
+                    }
+                }
+
+                // Apply the nudge
+                if (bestNudgeCandidate) {
+                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1)); // Closer items nudge more
+                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); // Clamp to max nudge
+
+                    if (bestNudgeCandidate.direction === 'above') {
+                        scrollDist -= nudgeMagnitude; // Move reel UP, payline lands lower on winner (closer to item above)
+                        console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name}`);
+                    } else { // 'below'
+                        scrollDist += nudgeMagnitude; // Move reel DOWN, payline lands higher on winner (closer to item below)
+                        console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name}`);
+                    }
+                }
+
+                // --- 5. Clamp the final scroll position to ensure payline stays within the winning item
+                // This ensures the payline always appears *on* the winning item.
+                const minScrollPosForWinner = (actualWinnerPositionInReel * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
+                const maxScrollPosForWinner = (actualWinnerPositionInReel * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
+                scrollDist = Math.max(minScrollPosForWinner, Math.min(maxScrollPosForWinner, scrollDist));
+
+                // Apply animation
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; // Slower, smoother ease-out
                 spinnerReel.style.top = `-${scrollDist}px`;
             });
 
             const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
-                // Update user inventory with ALL won prizes from the backend (1x, 2x, or 3x items)
+                // Update user inventory with ALL won prizes from the backend
                 result.won_prizes.forEach(wp => {
                     const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
-                    if (existingItemIndex === -1 && wp.id) {
+                    if (existingItemIndex === -1 && wp.id) { // Only add if it's a new item (not TON)
                         currentUser.inventory.push({ 
                             id: wp.id, 
                             name: wp.name, 
@@ -1202,23 +1277,19 @@ async function spinRoulette() {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
                     const itemHeight = spinnerReel.querySelector('.roulette-item').offsetHeight;
                     
-                    // Estimate the index of the top visible item after scroll
                     const topVisibleItemIndex = Math.floor(Math.abs(currentTop) / itemHeight);
                     
-                    // Keep items around the winning spot (e.g., 5 items before and 5 items after)
-                    const startIndex = Math.max(0, topVisibleItemIndex - (Math.ceil(rouletteRowVisibleHeight / itemHeight) * 2));
-                    const endIndex = Math.min(spinnerReel.children.length, topVisibleItemIndex + (Math.ceil(rouletteRowVisibleHeight / itemHeight) * 3));
+                    const startIndex = Math.max(0, topVisibleItemIndex - 5); // Keep 5 items before visible top
+                    const endIndex = Math.min(spinnerReel.children.length, topVisibleItemIndex + (Math.ceil(rouletteRowVisibleHeight / itemHeight) * 2)); // Keep visible + 2 screens below
                     
                     const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
                     
-                    // Re-add them to reel
                     spinnerReel.innerHTML = '';
                     itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
 
-                    // Adjust top position to account for removed items
-                    spinnerReel.style.transition = 'none'; // Temporarily disable transition
+                    spinnerReel.style.transition = 'none';
                     spinnerReel.style.top = `${currentTop + (startIndex * itemHeight)}px`;
-                    void spinnerReel.offsetWidth; // Force reflow
+                    void spinnerReel.offsetWidth; 
                 });
 
             }, animationDuration + 100);
