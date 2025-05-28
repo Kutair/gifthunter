@@ -452,6 +452,7 @@
     <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.488 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
 
 <script>
+// Global Constants and Data Definitions
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const API_BASE_URL = 'https://case-hznb.onrender.com';
 const BOT_USERNAME = 'pusikGiftsBot';
@@ -471,7 +472,7 @@ let itemToWithdraw = null;
 const upgradeChances = { 1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3 };
 let lastWonPrizesForOverlay = [];
 let selectedUpgradeMultiplier = 1.5;
-let spinAnimationTimeoutOuter;
+let spinAnimationTimeoutOuter = null; // Initialize as null for safety
 
 const GIFT_NAME_TO_ID_MAP = {
   "Santa Hat": "5983471780763796287","Signet Ring": "5936085638515261992","Precious Peach": "5933671725160989227","Plush Pepe": "5936013938331222567","Spiced Wine": "5913442287462908725","Jelly Bunny": "5915502858152706668","Durov's Cap": "5915521180483191380","Perfume Bottle": "5913517067138499193","Eternal Rose": "5882125812596999035","Berry Box": "5882252952218894938","Vintage Cigar": "5857140566201991735","Magic Potion": "5846226946928673709", "Kissed Frog": "5845776576658015084","Hex Pot": "5825801628657124140","Evil Eye": "5825480571261813595","Sharp Tongue": "5841689550203650524","Trapped Heart": "5841391256135008713","Skull Flower": "5839038009193792264","Scared Cat": "5837059369300132790","Spy Agaric": "5821261908354794038","Homemade Cake": "5783075783622787539","Genie Lamp": "5933531623327795414","Lunar Snake": "6028426950047957932","Party Sparkler": "6003643167683903930","Jester Hat": "5933590374185435592","Witch Hat": "5821384757304362229","Hanging Star": "5915733223018594841","Love Candle": "5915550639663874519","Cookie Heart": "6001538689543439169","Desk Calendar": "5782988952268964995","Jingle Bells": "6001473264306619020","Snow Mittens": "5980789805615678057","Voodoo Doll": "5836780359634649414","Mad Pumpkin": "5841632504448025405","Hypno Lollipop": "5825895989088617224", "B-Day Candle": "5782984811920491178","Bunny Muffin": "5935936766358847989","Astral Shard": "5933629604416717361","Flying Broom": "5837063436634161765","Crystal Ball": "5841336413697606412","Eternal Candle": "5821205665758053411","Swiss Watch": "5936043693864651359","Ginger Cookie": "5983484377902875708","Mini Oscar": "5879737836550226478","Lol Pop": "5170594532177215681","Ion Gem": "5843762284240831056","Star Notepad": "5936017773737018241","Loot Bag": "5868659926187901653","Love Potion": "5868348541058942091","Toy Bear": "5868220813026526561","Diamond Ring": "5868503709637411929","Sakura Flower": "5167939598143193218","Sleigh Bell": "5981026247860290310","Top Hat": "5897593557492957738","Record Player": "5856973938650776169","Winter Wreath": "5983259145522906006","Snow Globe": "5981132629905245483","Electric Skull": "5846192273657692751","Tama Gadget": "6023752243218481939","Candy Cane": "6003373314888696650","Neko Helmet": "5933793770951673155","Jack-in-the-Box": "6005659564635063386","Easter Egg": "5773668482394620318","Bonded Ring": "5870661333703197240","Pet Snake": "6023917088358269866","Snake Box": "6023679164349940429","Xmas Stocking": "6003767644426076664","Big Year": "6028283532500009446","Holiday Drink": "6003735372041814769","Gem Signet": "5859442703032386168","Light Sword": "5897581235231785485"
@@ -495,16 +496,10 @@ function generateImageFilename(nameOrUrl) {
     return IMAGE_BASE_URL + filename;
 }
 
-const finalKissedFrogPrizesWithConsolation=[{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}];
-let currentProbSumForKF=finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
-let remainingProbForConsolation=1.0-currentProbSumForKF;
-if(remainingProbForConsolation>0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
-finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
-
-const casesData=[{id:'lolpop',name:'Lol Pop Stash',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg',priceTON:2.0,prizes:[{name:'Plush Pepe',probability:0.0000454},{name:'Neko Helmet',probability:0.001362},{name:'Party Sparkler',probability:0.081816},{name:'Homemade Cake',probability:0.081816},{name:'Cookie Heart',probability:0.081816},{name:'Jack-in-the-box',probability:0.081816},{name:'Skull Flower',probability:0.0357945},{name:'Lol Pop',probability:0.153405},{name:'Hynpo Lollipop',probability:0.153405},{name:'Desk Calendar',probability:0.0454378},{name:'B-Day Candle',probability:0.0454378},{name:'Candy Cane',probability:0.0454378},{name:'Easter Egg',probability:0.0454378},{name:'Jingle Bells',probability:0.0454378},{name:'Lunar Snake',probability:0.0454378},{name:'Santa Hat',probability:0.0454378},{name:'Jester Hat',probability:0.0454378},{name:'Spiced Wine',probability:0.0454378},{name:'Winter Wreath',probability:0.0454378}]},{id:'recordplayer',name:'Record Player Vault',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg',priceTON:6.0,prizes:[{name:'Plush Pepe',probability:0.0001594},{name:'Record Player',probability:0.15942},{name:'Lol Pop',probability:0.10628},{name:'Hynpo Lollipop',probability:0.10628},{name:'Party Sparkler',probability:0.10628},{name:'Skull Flower',probability:0.085024},{name:'Jelly Bunny',probability:0.085024},{name:'Tama Gadget',probability:0.074404},{name:'Snow Globe',probability:0.06378},{name:'Bunny Muffin',probability:0.03189},{name:'Berry Box',probability:0.03189},{name:'Crystal Ball',probability:0.03189},{name:'Eternal Candle',probability:0.03189},{name:'Evil Eye',probability:0.03189},{name:'Flying Broom',probability:0.03189},{name:'Hex Pot',probability:0.03189},{name:'Pet Snake',probability:0.03189},{name:'Snow Mittens',probability:0.03189},{name:'Spy Agaric',probability:0.03189},{name:'Star Notepad',probability:0.03189},{name:'Ginger Cookie',probability:0.03189}]},{id:'swisswatch',name:'Swiss Watch Box',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg',priceTON:10.0,prizes:[{name:'Plush Pepe',probability:0.0001994},{name:'Swiss Watch',probability:0.031904},{name:'Neko Helmet',probability:0.044865},{name:'Eternal Rose',probability:0.05982},{name:'Electric Skull',probability:0.07976},{name:'Diamond Ring',probability:0.0997},{name:'Record Player',probability:0.11964},{name:'Love Potion',probability:0.11964},{name:'Top Hat',probability:0.11964},{name:'Voodoo Doll',probability:0.14955},{name:'Love Candle',probability:0.03988},{name:'Signet Ring',probability:0.03988},{name:'Sleigh Bell',probability:0.03988},{name:'Trapped Heart',probability:0.03988},{name:'Mad Pumpkin',probability:0.03988}]},{id:'kissedfrog',name:'Kissed Frog Pond',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',priceTON:20.0,prizes:[{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}];
-let currentProbSumForKF=finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
-let remainingProbForConsolation=1.0-currentProbSumForKF;
-if(remainingProbForConsolation>0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
+const finalKissedFrogPrizesWithConsolation = [{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}];
+let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
+let remainingProbForConsolation = 1.0 - currentProbSumForKF;
+if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
 finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
 
 const casesData=[{id:'lolpop',name:'Lol Pop Stash',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg',priceTON:2.0,prizes:[{name:'Plush Pepe',probability:0.0000454},{name:'Neko Helmet',probability:0.001362},{name:'Party Sparkler',probability:0.081816},{name:'Homemade Cake',probability:0.081816},{name:'Cookie Heart',probability:0.081816},{name:'Jack-in-the-box',probability:0.081816},{name:'Skull Flower',probability:0.0357945},{name:'Lol Pop',probability:0.153405},{name:'Hynpo Lollipop',probability:0.153405},{name:'Desk Calendar',probability:0.0454378},{name:'B-Day Candle',probability:0.0454378},{name:'Candy Cane',probability:0.0454378},{name:'Easter Egg',probability:0.0454378},{name:'Jingle Bells',probability:0.0454378},{name:'Lunar Snake',probability:0.0454378},{name:'Santa Hat',probability:0.0454378},{name:'Jester Hat',probability:0.0454378},{name:'Spiced Wine',probability:0.0454378},{name:'Winter Wreath',probability:0.0454378}]},{id:'recordplayer',name:'Record Player Vault',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg',priceTON:6.0,prizes:[{name:'Plush Pepe',probability:0.0001594},{name:'Record Player',probability:0.15942},{name:'Lol Pop',probability:0.10628},{name:'Hynpo Lollipop',probability:0.10628},{name:'Party Sparkler',probability:0.10628},{name:'Skull Flower',probability:0.085024},{name:'Jelly Bunny',probability:0.085024},{name:'Tama Gadget',probability:0.074404},{name:'Snow Globe',probability:0.06378},{name:'Bunny Muffin',probability:0.03189},{name:'Berry Box',probability:0.03189},{name:'Crystal Ball',probability:0.03189},{name:'Eternal Candle',probability:0.03189},{name:'Evil Eye',probability:0.03189},{name:'Flying Broom',probability:0.03189},{name:'Hex Pot',probability:0.03189},{name:'Pet Snake',probability:0.03189},{name:'Snow Mittens',probability:0.03189},{name:'Spy Agaric',probability:0.03189},{name:'Star Notepad',probability:0.03189},{name:'Ginger Cookie',probability:0.03189}]},{id:'swisswatch',name:'Swiss Watch Box',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg',priceTON:10.0,prizes:[{name:'Plush Pepe',probability:0.0001994},{name:'Swiss Watch',probability:0.031904},{name:'Neko Helmet',probability:0.044865},{name:'Eternal Rose',probability:0.05982},{name:'Electric Skull',probability:0.07976},{name:'Diamond Ring',probability:0.0997},{name:'Record Player',probability:0.11964},{name:'Love Potion',probability:0.11964},{name:'Top Hat',probability:0.11964},{name:'Voodoo Doll',probability:0.14955},{name:'Love Candle',probability:0.03988},{name:'Signet Ring',probability:0.03988},{name:'Sleigh Bell',probability:0.03988},{name:'Trapped Heart',probability:0.03988},{name:'Mad Pumpkin',probability:0.03988}]},{id:'kissedfrog',name:'Kissed Frog Pond',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',priceTON:20.0,prizes:[{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}]},{id:'perfumebottle',name:'Perfume Chest',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg',priceTON:20.0,prizes:[{name:'Plush Pepe',probability:0.000402},{name:'Perfume Bottle',probability:0.0201000},{name:'Sharp Tongue',probability:0.0351750},{name:'Loot Bag',probability:0.05025},{name:'Swiss Watch',probability:0.0603000},{name:'Neko Helmet',probability:0.0804000},{name:'Genie Lamp',probability:0.1105500},{name:'Kissed Frog',probability:0.1507500},{name:'Electric Skull',probability:0.2010000},{name:'Diamond Ring',probability:0.2010000},{name:'Magic Potion',probability:0.05025},{name:'Ion Gem',probability:0.0402000}]},{id:'vintagecigar',name:'Vintage Cigar Safe',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg',priceTON:40.0,prizes:[{name:'Plush Pepe',probability:0.000804},{name:'Perfume Bottle',probability:0.0251250},{name:'Vintage Cigar',probability:0.0301500},{name:'Swiss Watch',probability:0.0402000},{name:'Neko Helmet',probability:0.0603000},{name:'Sharp Tongue',probability:0.0804000},{name:'Genie Lamp',probability:0.1005000},{name:'Mini Oscar',probability:0.07035},{name:'Scared Cat',probability:0.2010000},{name:'Toy Bear',probability:0.3957930},{name:'Precious Peach',probability:0.0201000}]},{id:'astralshard',name:'Astral Shard Relic',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg',priceTON:100.0,prizes:[{name:'Plush Pepe',probability:0.0015075},{name:'Durov\'s Cap',probability:0.0100500},{name:'Astral Shard',probability:0.0251250},{name:'Precious Peach',probability:0.05025},{name:'Vintage Cigar',probability:0.0402000},{name:'Perfume Bottle',probability:0.05025},{name:'Swiss Watch',probability:0.07035},{name:'Neko Helmet',probability:0.09045},{name:'Mini Oscar',probability:0.0603000},{name:'Scared Cat',probability:0.1507500},{name:'Loot Bag',probability:0.2010000},{name:'Toy Bear',probability:0.2010000},{name:'Ion Gem',probability:0.03015},{name:'Magic Potion',probability:0.03015}]},{id:'plushpepe',name:'Plush Pepe Hoard',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg',priceTON:200.0,prizes:[{name:'Plush Pepe',probability:0.0454395},{name:'Durov\'s Cap',probability:0.2019445},{name:'Astral Shard',probability:0.4038890},{name:'Precious Peach',probability:0.3029168}]}];
@@ -515,41 +510,146 @@ casesData.forEach(caseItem => {
     }
 });
 
-const headerElements = { tonConnectButton: document.getElementById('ton-connect-button'), walletAddressDisplay: document.getElementById('wallet-address-display'), tonBalanceSpan: document.getElementById('ton-balance'), balanceDisplay: document.getElementById('balance') };
-const appNavButtons = document.querySelectorAll('.nav-button'); const pages = document.querySelectorAll('.page'); const casesGrid = document.getElementById('cases-grid');
+// DOM Element References
+const headerElements = {
+    tonConnectButton: document.getElementById('ton-connect-button'),
+    walletAddressDisplay: document.getElementById('wallet-address-display'),
+    tonBalanceSpan: document.getElementById('ton-balance'),
+    balanceDisplay: document.getElementById('balance')
+};
+const appNavButtons = document.querySelectorAll('.nav-button');
+const pages = document.querySelectorAll('.page');
+const casesGrid = document.getElementById('cases-grid');
 const loadingScreen = document.getElementById('loading-screen');
 const loadingStatusText = document.getElementById('loading-status');
-const rouletteModal = document.getElementById('roulette-modal'); const rouletteCaseName = document.getElementById('roulette-case-name'); const rouletteWheelContainer = document.getElementById('roulette-wheel-container'); const spinButton = document.getElementById('spin-button'); const closeRouletteButton = document.getElementById('close-roulette-button'); const possiblePrizesDisplay = document.getElementById('possible-prizes-display'); const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
+const rouletteModal = document.getElementById('roulette-modal');
+const rouletteCaseName = document.getElementById('roulette-case-name');
+const rouletteWheelContainer = document.getElementById('roulette-wheel-container');
+const spinButton = document.getElementById('spin-button');
+const closeRouletteButton = document.getElementById('close-roulette-button');
+const possiblePrizesDisplay = document.getElementById('possible-prizes-display');
+const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
 
-// NEW GLOBAL REFERENCES FOR REELS
+// NEW GLOBAL REFERENCES FOR REELS (for the 3-reel slot machine visual)
+// These elements are guaranteed to exist in the HTML structure now.
 const rouletteReel1 = document.getElementById('roulette-reel-1').querySelector('.roulette-spinner-reel');
 const rouletteReel2 = document.getElementById('roulette-reel-2').querySelector('.roulette-spinner-reel');
 const rouletteReel3 = document.getElementById('roulette-reel-3').querySelector('.roulette-spinner-reel');
 
+const winOverlayModal = document.getElementById('win-overlay-modal');
+const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image');
+const winOverlayNameEl = document.getElementById('win-overlay-prize-name');
+const winOverlayPrizeDetailsEl = document.getElementById('win-overlay-prize-details');
+const winOverlaySaveBtn = document.getElementById('win-overlay-save-button');
+const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button');
+const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
 
-const winOverlayModal = document.getElementById('win-overlay-modal'); const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image'); const winOverlayNameEl = document.getElementById('win-overlay-prize-name'); const winOverlayPrizeDetailsEl = document.getElementById('win-overlay-prize-details'); const winOverlaySaveBtn = document.getElementById('win-overlay-save-button'); const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button'); const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
-const withdrawModal = document.getElementById('withdraw-modal'); const withdrawSteps = withdrawModal.querySelectorAll('.modal-step'); const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next'); const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next'); const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back'); const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close'); const withdrawStatusMessage = document.getElementById('withdraw-status-message'); const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
-const profileElements = { avatar: document.getElementById('profile-avatar'), username: document.getElementById('profile-username'), userid: document.getElementById('profile-userid'), balanceDisplay: document.getElementById('profile-balance-display'), walletAddress: document.getElementById('profile-wallet-address'), inventoryGrid: document.getElementById('inventory-grid'), inventoryCount: document.getElementById('inventory-count'), emptyInventoryMessage: document.getElementById('empty-inventory-message'), disconnectWalletButton: document.getElementById('disconnect-wallet-button'), depositAmountInput: document.getElementById('deposit-amount-input'), initiateDepositButton: document.getElementById('initiate-deposit-button'), sellAllButton: document.getElementById('sell-all-button'), sellAllValueSpan: document.getElementById('sell-all-value'), promocodeInput: document.getElementById('promocode-input'), redeemPromocodeButton: document.getElementById('redeem-promocode-button') };
-const upgradeElements = { inventorySelect: document.getElementById('upgrade-inventory-select'), multiplierButtons: document.getElementById('multiplier-buttons'), doUpgradeButton: document.getElementById('do-upgrade-button'), upgradeResult: document.getElementById('upgrade-result'), chanceDisplay: document.getElementById('upgrade-chance-display') };
-const inviteElements = { referralLink: document.getElementById('referral-link'), copyRefLinkButton: document.getElementById('copy-ref-link-button'), referralBalance: document.getElementById('referral-balance'), invitedCount: document.getElementById('invited-count'), withdrawReferralButton: document.getElementById('withdraw-referral-button'), invitedUsersListDisplay: document.getElementById('invited-users-list-display') };
+const withdrawModal = document.getElementById('withdraw-modal');
+const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
+const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
+const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
+const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
+const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close');
+const withdrawStatusMessage = document.getElementById('withdraw-status-message');
+const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
+
+const profileElements = {
+    avatar: document.getElementById('profile-avatar'),
+    username: document.getElementById('profile-username'),
+    userid: document.getElementById('profile-userid'),
+    balanceDisplay: document.getElementById('profile-balance-display'),
+    walletAddress: document.getElementById('profile-wallet-address'),
+    inventoryGrid: document.getElementById('inventory-grid'),
+    inventoryCount: document.getElementById('inventory-count'),
+    emptyInventoryMessage: document.getElementById('empty-inventory-message'),
+    disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
+    depositAmountInput: document.getElementById('deposit-amount-input'),
+    initiateDepositButton: document.getElementById('initiate-deposit-button'),
+    sellAllButton: document.getElementById('sell-all-button'),
+    sellAllValueSpan: document.getElementById('sell-all-value'),
+    promocodeInput: document.getElementById('promocode-input'),
+    redeemPromocodeButton: document.getElementById('redeem-promocode-button')
+};
+const upgradeElements = {
+    inventorySelect: document.getElementById('upgrade-inventory-select'),
+    multiplierButtons: document.getElementById('multiplier-buttons'),
+    doUpgradeButton: document.getElementById('do-upgrade-button'),
+    upgradeResult: document.getElementById('upgrade-result'),
+    chanceDisplay: document.getElementById('upgrade-chance-display')
+};
+const inviteElements = {
+    referralLink: document.getElementById('referral-link'),
+    copyRefLinkButton: document.getElementById('copy-ref-link-button'),
+    referralBalance: document.getElementById('referral-balance'),
+    invitedCount: document.getElementById('invited-count'),
+    withdrawReferralButton: document.getElementById('withdraw-referral-button'),
+    invitedUsersListDisplay: document.getElementById('invited-users-list-display')
+};
 const leaderboardList = document.getElementById('leaderboard-list');
-const depositInstructionsModal = document.getElementById('deposit-instructions-modal'); const tonTransferLink = document.getElementById('ton-transfer-link'); const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button'); const cancelDepositButton = document.getElementById('cancel-deposit-button'); const depositExpiryInfo = document.getElementById('deposit-expiry-info'); const depositStatusMessageEl = document.getElementById('deposit-status-message'); const depositLoader = document.getElementById('deposit-loader');
-let currentPendingDepositId = null; let depositExpiryInterval = null; let depositRecipientAddressRaw = ''; let depositCommentText = '';
-const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({ manifestUrl: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json', buttonRootId: 'ton-connect-button' });
-let tgBackButton = null; const backButtonHandlerStack = [];
+const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
+const tonTransferLink = document.getElementById('ton-transfer-link');
+const confirmPaymentSentButton = document.getElementById('confirm-payment-sent-button');
+const cancelDepositButton = document.getElementById('cancel-deposit-button');
+const depositExpiryInfo = document.getElementById('deposit-expiry-info');
+const depositStatusMessageEl = document.getElementById('deposit-status-message');
+const depositLoader = document.getElementById('deposit-loader');
+
+let currentPendingDepositId = null;
+let depositExpiryInterval = null;
+let depositRecipientAddressRaw = '';
+let depositCommentText = '';
+
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/tonconnect-manifest.json',
+    buttonRootId: 'ton-connect-button'
+});
+let tgBackButton = null;
+const backButtonHandlerStack = [];
 
 let dataFetchedSuccessfully = false;
 let tonConnectWalletInfo = null;
 
 
-function _updateTgBackButton() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) { const handler = backButtonHandlerStack[backButtonHandlerStack.length - 1]; tgBackButton.offClick(); tgBackButton.onClick(handler); tgBackButton.show(); } else { tgBackButton.hide(); tgBackButton.offClick(); } }
-function pushTgBackButtonHandler(handler) { if (!tgBackButton) return; backButtonHandlerStack.push(handler); _updateTgBackButton(); }
-function popTgBackButtonHandler() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) backButtonHandlerStack.pop(); _updateTgBackButton(); }
-function clearTgBackButtonStack() { if (!tgBackButton) return; backButtonHandlerStack.length = 0; _updateTgBackButton(); }
-function navigateBackToMainPage() { navigateToPage('main-page'); }
-function closeRouletteModalWithBackButton() { closeRouletteModal(); }
-function closeWinOverlayModalWithBackButton() { closeWinOverlayModal(); }
-function closeDepositModalWithBackButton() { closeDepositInstructionsModal(); }
+// Utility Functions
+function _updateTgBackButton() {
+    if (!tgBackButton) return;
+    if (backButtonHandlerStack.length > 0) {
+        const handler = backButtonHandlerStack[backButtonHandlerStack.length - 1];
+        tgBackButton.offClick();
+        tgBackButton.onClick(handler);
+        tgBackButton.show();
+    } else {
+        tgBackButton.hide();
+        tgBackButton.offClick();
+    }
+}
+function pushTgBackButtonHandler(handler) {
+    if (!tgBackButton) return;
+    backButtonHandlerStack.push(handler);
+    _updateTgBackButton();
+}
+function popTgBackButtonHandler() {
+    if (!tgBackButton) return;
+    if (backButtonHandlerStack.length > 0) backButtonHandlerStack.pop();
+    _updateTgBackButton();
+}
+function clearTgBackButtonStack() {
+    if (!tgBackButton) return;
+    backButtonHandlerStack.length = 0;
+    _updateTgBackButton();
+}
+function navigateBackToMainPage() {
+    navigateToPage('main-page');
+}
+function closeRouletteModalWithBackButton() {
+    closeRouletteModal();
+}
+function closeWinOverlayModalWithBackButton() {
+    closeWinOverlayModal();
+}
+function closeDepositModalWithBackButton() {
+    closeDepositInstructionsModal();
+}
 
 function updateLoadingStatus(message) {
     if (loadingStatusText) {
@@ -566,23 +666,42 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         const response = await fetch(API_BASE_URL + endpoint, config);
         if (!response.ok) {
             let errData; try { errData = await response.json(); } catch (e) { errData = { error: `HTTP ${response.status}: ${response.statusText}` }; }
-            showTGNotification(errData.error || errData.message || `Request failed`, 'error'); throw new Error(errData.error || errData.message);
-        } return response.status === 204 ? null : await response.json();
+            showTGNotification(errData.error || errData.message || `Request failed`, 'error');
+            throw new Error(errData.error || errData.message);
+        }
+        return response.status === 204 ? null : await response.json();
     } catch (error) {
-        if (!(error.message.includes("HTTP") || error.message.includes("Request failed"))) showTGNotification(`Network: ${error.message}`, 'error');
+        if (!(error.message.includes("HTTP") || error.message.includes("Request failed"))) {
+            showTGNotification(`Network: ${error.message}`, 'error');
+        }
         throw error;
     }
 }
+
 function updateBalances() {
     headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`;
     profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
 }
+
 function navigateToPage(pageId) {
-    pages.forEach(p => p.classList.remove('active')); document.getElementById(pageId)?.classList.add('active');
+    pages.forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId)?.classList.add('active');
     appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
-    if (tgBackButton) { if (pageId === 'main-page') clearTgBackButtonStack(); else { while (backButtonHandlerStack.length > 0 && backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) popTgBackButtonHandler(); if (backButtonHandlerStack.length === 0) pushTgBackButtonHandler(navigateBackToMainPage); } }
+    if (tgBackButton) {
+        if (pageId === 'main-page') {
+            clearTgBackButtonStack();
+        } else {
+            while (backButtonHandlerStack.length > 0 && backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) {
+                popTgBackButtonHandler();
+            }
+            if (backButtonHandlerStack.length === 0) {
+                pushTgBackButtonHandler(navigateBackToMainPage);
+            }
+        }
+    }
     window.scrollTo(0, 0);
 }
+
 function showTGNotification(message, type = 'info') {
     Telegram.WebApp.showAlert?.(message);
     if (Telegram.WebApp.HapticFeedback) {
@@ -591,7 +710,10 @@ function showTGNotification(message, type = 'info') {
         else if (type === 'warning') Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
     }
 }
-function renderHeader() { updateBalances(); }
+
+function renderHeader() {
+    updateBalances();
+}
 
 function updateUIBasedOnWallet(wallet) {
     tonConnectWalletInfo = wallet;
@@ -631,20 +753,34 @@ function updateUIBasedOnWallet(wallet) {
     }
 }
 
-function renderCasesAndSlots() { renderCases(); }
+function renderCasesAndSlots() {
+    renderCases();
+}
+
 function renderCases() {
     casesGrid.innerHTML = '';
-    if (!casesData || casesData.length === 0) { casesGrid.innerHTML = "<p>Loading cases...</p>"; return; }
+    if (!casesData || casesData.length === 0) {
+        casesGrid.innerHTML = "<p>Loading cases...</p>";
+        return;
+    }
     casesData.forEach(caseItem => {
-        const card = document.createElement('div'); card.className = 'case-card'; card.dataset.caseId = caseItem.id;
+        const card = document.createElement('div');
+        card.className = 'case-card';
+        card.dataset.caseId = caseItem.id;
         card.onclick = () => openRouletteModal(caseItem);
-        const imgCont = document.createElement('div'); imgCont.className = 'case-image-display';
-        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = caseItem.name;
+        const imgCont = document.createElement('div');
+        imgCont.className = 'case-image-display';
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = caseItem.name;
         img.onerror = () => { imgCont.textContent = '❓'; imgCont.style.cssText = 'font-size:2.5em;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);'; };
-        img.src = generateImageFilename(caseItem.imageFilename || caseItem.name); imgCont.appendChild(img);
-        const priceEl = document.createElement('div'); priceEl.className = 'case-price';
+        img.src = generateImageFilename(caseItem.imageFilename || caseItem.name);
+        imgCont.appendChild(img);
+        const priceEl = document.createElement('div');
+        priceEl.className = 'case-price';
         priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
-        card.append(imgCont, priceEl); casesGrid.appendChild(card);
+        card.append(imgCont, priceEl);
+        casesGrid.appendChild(card);
     });
 }
 
@@ -672,69 +808,120 @@ function renderProfile() {
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
     renderInventory();
 }
+
 function renderInventory() {
-    profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0;
-    if (currentUser.inventory.length === 0) { profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none'; }
-    else {
+    profileElements.inventoryGrid.innerHTML = '';
+    let totalValue = 0;
+    if (currentUser.inventory.length === 0) {
+        profileElements.emptyInventoryMessage.style.display = 'block';
+        profileElements.sellAllButton.style.display = 'none';
+    } else {
         profileElements.emptyInventoryMessage.style.display = 'none';
         currentUser.inventory.forEach(item => {
             totalValue += item.currentValue || 0;
-            const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item';
-            const imgCont = document.createElement('div'); imgCont.className = 'item-image-display';
-            const img = document.createElement('img'); img.src = generateImageFilename(item.imageFilename || item.name); img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img);
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'inventory-item';
+            const imgCont = document.createElement('div');
+            imgCont.className = 'item-image-display';
+            const img = document.createElement('img');
+            img.src = generateImageFilename(item.imageFilename || item.name);
+            img.alt = item.name;
+            img.loading = 'lazy';
+            imgCont.appendChild(img);
             itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="handleSingleConvert(${item.id})">Convert</button>`}</div>`;
-            itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv);
+            itemDiv.insertBefore(imgCont, itemDiv.firstChild);
+            profileElements.inventoryGrid.appendChild(itemDiv);
         });
-        profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
+        profileElements.sellAllButton.style.display = 'block';
+        profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
     }
-    profileElements.inventoryCount.textContent = currentUser.inventory.length; populateUpgradeInventorySelect();
+    profileElements.inventoryCount.textContent = currentUser.inventory.length;
+    populateUpgradeInventorySelect();
 }
+
 function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.filter(item => !item.is_ton_prize).forEach(item => {
-        const opt = document.createElement('option'); opt.value = item.id;
-        opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`; upgradeElements.inventorySelect.appendChild(opt);
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`;
+        upgradeElements.inventorySelect.appendChild(opt);
     });
 }
+
 async function renderLeaderboard() {
     try {
-        const leaders = await apiRequest('/api/get_leaderboard'); leaderboardList.innerHTML = '';
+        const leaders = await apiRequest('/api/get_leaderboard');
+        leaderboardList.innerHTML = '';
         leaders.forEach(l => {
-            const entry = document.createElement('div'); entry.className = 'leader-entry';
+            const entry = document.createElement('div');
+            entry.className = 'leader-entry';
             if (l.user_id === currentUser.id) entry.classList.add('current-user-entry');
             entry.innerHTML = `<div class="rank">${l.rank}</div><div class="avatar-placeholder">${l.avatarChar}</div><div class="info"><div class="name">${l.name}</div><div class="details">User ID: ${String(l.user_id).slice(0, 6)}...</div></div><div class="score">${l.income.toFixed(2)} TON</div>`;
             leaderboardList.appendChild(entry);
         });
-    } catch (e) { leaderboardList.innerHTML = '<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>'; }
+    } catch (e) {
+        leaderboardList.innerHTML = '<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>';
+    }
 }
+
 function renderInvitePage() {
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
     inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0;
 }
+
 function showWinOverlay(wonPrizesArray) {
-    lastWonPrizesForOverlay = wonPrizesArray; winOverlayPrizeImageContainer.innerHTML = ''; winOverlayPrizeDetailsEl.innerHTML = '';
+    lastWonPrizesForOverlay = wonPrizesArray;
+    winOverlayPrizeImageContainer.innerHTML = '';
+    winOverlayPrizeDetailsEl.innerHTML = '';
     if (wonPrizesArray.length === 1) {
-        const prizeItem = wonPrizesArray[0]; const img = document.createElement('img');
-        img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name); img.alt = prizeItem.name; winOverlayPrizeImageContainer.appendChild(img);
-        winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`; winOverlayConvertBtn.style.display = prizeItem.is_ton_prize ? 'none' : 'block';
-        if (!prizeItem.is_ton_prize) { winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2); winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to "; }
+        const prizeItem = wonPrizesArray[0];
+        const img = document.createElement('img');
+        img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
+        img.alt = prizeItem.name;
+        winOverlayPrizeImageContainer.appendChild(img);
+        winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`;
+        winOverlayConvertBtn.style.display = prizeItem.is_ton_prize ? 'none' : 'block';
+        if (!prizeItem.is_ton_prize) {
+            winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2);
+            winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to ";
+        }
     } else if (wonPrizesArray.length > 1) {
-        winOverlayNameEl.textContent = `You Won ${wonPrizesArray.length} Items!`; let totalConvertValue = 0; let canConvertAny = false; let prizeNamesHTML = '';
+        winOverlayNameEl.textContent = `You Won ${wonPrizesArray.length} Items!`;
+        let totalConvertValue = 0;
+        let canConvertAny = false;
+        let prizeNamesHTML = '';
         wonPrizesArray.forEach(prizeItem => {
-            const img = document.createElement('img'); img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name); img.alt = prizeItem.name; winOverlayPrizeImageContainer.appendChild(img);
+            const img = document.createElement('img');
+            img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
+            img.alt = prizeItem.name;
+            winOverlayPrizeImageContainer.appendChild(img);
             prizeNamesHTML += `<div>- ${prizeItem.name} (${(prizeItem.currentValue || 0).toFixed(2)} TON)</div>`;
-            if (!prizeItem.is_ton_prize) { totalConvertValue += (prizeItem.currentValue || 0); canConvertAny = true; }
+            if (!prizeItem.is_ton_prize) {
+                totalConvertValue += (prizeItem.currentValue || 0);
+                canConvertAny = true;
+            }
         });
-        winOverlayPrizeDetailsEl.innerHTML = prizeNamesHTML; winOverlayConvertBtn.style.display = canConvertAny ? 'block' : 'none';
-        if (canConvertAny) { winOverlayConvertValue.textContent = totalConvertValue.toFixed(2); winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to "; }
+        winOverlayPrizeDetailsEl.innerHTML = prizeNamesHTML;
+        winOverlayConvertBtn.style.display = canConvertAny ? 'block' : 'none';
+        if (canConvertAny) {
+            winOverlayConvertValue.textContent = totalConvertValue.toFixed(2);
+            winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to ";
+        }
     }
-    winOverlayModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
+    winOverlayModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
 }
-function closeWinOverlayModal() { if (tgBackButton) popTgBackButtonHandler(); winOverlayModal.classList.remove('active'); lastWonPrizesForOverlay = []; }
 
-// --- MODIFIED initializeRouletteVisuals FUNCTION ---
+function closeWinOverlayModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    winOverlayModal.classList.remove('active');
+    lastWonPrizesForOverlay = [];
+}
+
+// MODIFIED initializeRouletteVisuals FUNCTION
 function initializeRouletteVisuals(caseItem, multiplier) { // Multiplier parameter is now primarily for context/cost calculation, not visual reels
     // Get all the spinner reel elements
     const allSpinnerReels = [
@@ -774,7 +961,7 @@ function initializeRouletteVisuals(caseItem, multiplier) { // Multiplier paramet
         spinnerReel.style.top = '0px';
     });
 }
-// Corrected JavaScript part for openRouletteModal
+
 function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem;
     selectedCaseMultiplier = 1;
@@ -842,19 +1029,33 @@ function openRouletteModal(caseItem) {
     if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 }
-function updateSpinButtonText() { if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) { const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier; spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`; } }
+
+function updateSpinButtonText() {
+    if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) {
+        const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
+        spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
+    }
+}
+
 function updateCaseMultiplierButtons() {
     caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
         btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier);
-        if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary'); else btn.classList.add('button-secondary');
+        if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary');
+        else btn.classList.add('button-secondary');
     }); 
     // Re-initialize visuals only if the multiplier selection changes, not for every button click for the same multiplier
     // This is already implicitly handled by the toggleClass, but the initializeRouletteVisuals call might be redundant if the selectedMultiplier doesn't actually change
     initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier);
 }
-function closeRouletteModal() { if (tgBackButton) popTgBackButtonHandler(); rouletteModal.classList.remove('active'); currentOpenCaseOrSlot = null; if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter); }
 
-// --- MODIFIED spinRoulette FUNCTION ---
+function closeRouletteModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    rouletteModal.classList.remove('active');
+    currentOpenCaseOrSlot = null;
+    if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+}
+
+// MODIFIED spinRoulette FUNCTION
 async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return; // Ensure a case is selected
     spinButton.disabled = true; // Disable spin button during animation
@@ -870,7 +1071,7 @@ async function spinRoulette() {
         const numVisualItems = 70; // Ensure enough for animation
 
         // Repopulate with random items before the spin
-        for (let i = 0; i < numVisualItems; i++) {
+        for (let j = 0; j < numVisualItems; j++) {
             const rp = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
             tempVisualItems.push({ name: rp.name, imageFilename: rp.imageFilename, floorPrice: rp.floorPrice, is_ton_prize: rp.is_ton_prize });
         }
@@ -1014,154 +1215,387 @@ async function spinRoulette() {
         console.error("Spin roulette error", e);
         spinButton.disabled = false;
         updateSpinButtonText();
-        showTGNotification("Error during spin. Please try again.", "error"); // Corrected: closing quote fixed
+        showTGNotification("Error during spin. Please try again.", "error");
     }
 }
 
-async function handleSingleConvert(itemId) { const success = await convertItemToTon(itemId); if (success) { showTGNotification("Item converted to TON!", 'success'); updateBalances(); renderInventory(); } }
+async function handleSingleConvert(itemId) {
+    const success = await convertItemToTon(itemId);
+    if (success) {
+        showTGNotification("Item converted to TON!", 'success');
+        updateBalances();
+        renderInventory();
+    }
+}
+
 async function convertItemToTon(itemId) {
     const itemInInventory = currentUser.inventory.find(i => i.id === itemId);
-    if (itemInInventory && itemInInventory.is_ton_prize) { showTGNotification("Cannot convert TON prize.", "info"); return false; }
+    if (itemInInventory && itemInInventory.is_ton_prize) {
+        showTGNotification("Cannot convert TON prize.", "info");
+        return false;
+    }
     try {
         const res = await apiRequest('/api/convert_to_ton', 'POST', { inventory_item_id: parseInt(itemId) });
-        if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId)); return true; }
-        else { showTGNotification(res.error || res.message || 'Failed.', 'error'); return false; }
-    } catch (e) { showTGNotification("Conversion request failed.", "error"); return false; }
+        if (res.status === 'success') {
+            currentUser.tonBalance = res.new_balance_ton;
+            currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
+            return true;
+        } else {
+            showTGNotification(res.error || res.message || 'Failed.', 'error');
+            return false;
+        }
+    } catch (e) {
+        showTGNotification("Conversion request failed.", "error");
+        return false;
+    }
 }
+
 async function handleConvertAll() {
-    if (lastWonPrizesForOverlay.length === 0) { showTGNotification("No items to convert.", "warning"); return; }
-    let successCount = 0; let failCount = 0;
+    if (lastWonPrizesForOverlay.length === 0) {
+        showTGNotification("No items to convert.", "warning");
+        return;
+    }
+    let successCount = 0;
+    let failCount = 0;
     const itemsToConvert = lastWonPrizesForOverlay.filter(p => !p.is_ton_prize && p.id);
-    if (itemsToConvert.length === 0) { showTGNotification("No convertible items in this win.", "info"); closeWinOverlayModal(); return; }
-    for (const item of itemsToConvert) { const success = await convertItemToTon(item.id); if (success) successCount++; else failCount++; }
-    updateBalances(); renderInventory();
+    if (itemsToConvert.length === 0) {
+        showTGNotification("No convertible items in this win.", "info");
+        closeWinOverlayModal();
+        return;
+    }
+    for (const item of itemsToConvert) {
+        const success = await convertItemToTon(item.id);
+        if (success) successCount++;
+        else failCount++;
+    }
+    updateBalances();
+    renderInventory();
     if (failCount > 0) showTGNotification(`${successCount} item(s) converted. ${failCount} failed.`, 'warning');
     else showTGNotification(`${successCount} item(s) converted to TON!`, 'success');
     closeWinOverlayModal();
 }
+
 async function handleUpgrade() {
     const itemId = upgradeElements.inventorySelect.value;
-    if (!itemId) { showTGNotification("Select item.", 'warning'); return; }
-    upgradeElements.upgradeResult.textContent = "Attempting..."; upgradeElements.doUpgradeButton.disabled = true;
+    if (!itemId) {
+        showTGNotification("Select item.", 'warning');
+        return;
+    }
+    upgradeElements.upgradeResult.textContent = "Attempting...";
+    upgradeElements.doUpgradeButton.disabled = true;
     try {
         const res = await apiRequest('/api/upgrade_item', 'POST', { inventory_item_id: parseInt(itemId), multiplier_str: selectedUpgradeMultiplier.toString() });
         if (res.status === 'success') {
-            const upItem = res.item; const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemId));
-            if (idx !== -1) { currentUser.inventory[idx] = upItem; } else { currentUser.inventory.push(upItem); }
-            upgradeElements.upgradeResult.textContent = res.message; upgradeElements.upgradeResult.style.color = 'var(--success-color)'; showTGNotification("Success!", 'success');
+            const upItem = res.item;
+            const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemId));
+            if (idx !== -1) {
+                currentUser.inventory[idx] = upItem;
+            } else {
+                currentUser.inventory.push(upItem);
+            }
+            upgradeElements.upgradeResult.textContent = res.message;
+            upgradeElements.upgradeResult.style.color = 'var(--success-color)';
+            showTGNotification("Success!", 'success');
         } else {
             if (res.item_lost) currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
-            upgradeElements.upgradeResult.textContent = res.message || "Upgrade failed."; upgradeElements.upgradeResult.style.color = 'var(--danger-color)'; showTGNotification(res.message || "Failed.", 'error');
+            upgradeElements.upgradeResult.textContent = res.message || "Upgrade failed.";
+            upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
+            showTGNotification(res.message || "Failed.", 'error');
         }
-        renderInventory(); updateBalances(); upgradeElements.doUpgradeButton.disabled = false; upgradeElements.inventorySelect.value = '';
-    } catch (e) { upgradeElements.upgradeResult.textContent = "Error."; upgradeElements.upgradeResult.style.color = 'var(--danger-color)'; upgradeElements.doUpgradeButton.disabled = false; }
+        renderInventory();
+        updateBalances();
+        upgradeElements.doUpgradeButton.disabled = false;
+        upgradeElements.inventorySelect.value = '';
+    } catch (e) {
+        upgradeElements.upgradeResult.textContent = "Error.";
+        upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
+        upgradeElements.doUpgradeButton.disabled = false;
+    }
 }
+
 async function sellAllItems() {
     const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize);
-    if (!sellableItems.length) { showTGNotification("No sellable items.", "info"); return; }
+    if (!sellableItems.length) {
+        showTGNotification("No sellable items.", "info");
+        return;
+    }
     const val = parseFloat(profileElements.sellAllValueSpan.textContent);
-    if (Telegram.WebApp.showConfirm) { Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => { if (ok) doSellAll(); }); }
-    else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) { doSellAll(); }
+    if (Telegram.WebApp.showConfirm) {
+        Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => {
+            if (ok) doSellAll();
+        });
+    } else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) {
+        doSellAll();
+    }
 }
+
 async function doSellAll() {
     try {
         const res = await apiRequest('/api/sell_all_items', 'POST');
-        if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize); updateBalances(); renderInventory(); showTGNotification(res.message, "success"); }
-        else showTGNotification(res.message || "Failed.", "error");
-    } catch (e) { showTGNotification("Sell all request failed.", "error"); }
+        if (res.status === 'success') {
+            currentUser.tonBalance = res.new_balance_ton;
+            currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize);
+            updateBalances();
+            renderInventory();
+            showTGNotification(res.message, "success");
+        } else showTGNotification(res.message || "Failed.", "error");
+    } catch (e) {
+        showTGNotification("Sell all request failed.", "error");
+    }
 }
-function showWithdrawStep(step) { withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step)); }
+
+function showWithdrawStep(step) {
+    withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step));
+}
+
 function startWithdrawalProcess(inventoryItemId) {
     const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
-    if (!item || item.is_ton_prize) { showTGNotification("Item not found or not withdrawable.", "error"); return; }
-    itemToWithdraw = inventoryItemId; withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
-    showWithdrawStep(1); withdrawModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
+    if (!item || item.is_ton_prize) {
+        showTGNotification("Item not found or not withdrawable.", "error");
+        return;
+    }
+    itemToWithdraw = inventoryItemId;
+    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
+    showWithdrawStep(1);
+    withdrawModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
 }
+
 async function completeWithdrawal() {
-    if (!itemToWithdraw) { showTGNotification("No item selected.", "error"); return; }
-    withdrawStatusMessage.textContent = "Processing Tonnel withdrawal..."; withdrawModal.querySelector('.loader').style.display = 'block';
+    if (!itemToWithdraw) {
+        showTGNotification("No item selected.", "error");
+        return;
+    }
+    withdrawStatusMessage.textContent = "Processing Tonnel withdrawal...";
+    withdrawModal.querySelector('.loader').style.display = 'block';
     try {
         const res = await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`, 'POST');
         if (res.status === 'success') {
             const idx = currentUser.inventory.findIndex(i => i.id === itemToWithdraw);
             if (idx !== -1) currentUser.inventory.splice(idx, 1);
-            renderInventory(); withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!"; withdrawStatusMessage.style.color = 'var(--success-color)'; showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success'); showWithdrawStep(3);
-        } else { withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error'); }
-    } catch (e) { withdrawStatusMessage.textContent = "Error processing withdrawal."; withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification("Error processing Tonnel withdrawal.", "error"); }
-    finally { withdrawModal.querySelector('.loader').style.display = 'none'; }
+            renderInventory();
+            withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!";
+            withdrawStatusMessage.style.color = 'var(--success-color)';
+            showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success');
+            showWithdrawStep(3);
+        } else {
+            withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed.";
+            withdrawStatusMessage.style.color = 'var(--danger-color)';
+            showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error');
+        }
+    } catch (e) {
+        withdrawStatusMessage.textContent = "Error processing withdrawal.";
+        withdrawStatusMessage.style.color = 'var(--danger-color)';
+        showTGNotification("Error processing Tonnel withdrawal.", "error");
+    } finally {
+        withdrawModal.querySelector('.loader').style.display = 'none';
+    }
 }
-function closeWithdrawModal() { if (tgBackButton) popTgBackButtonHandler(); withdrawModal.classList.remove('active'); itemToWithdraw = null; showWithdrawStep(1); withdrawModal.querySelector('h3').textContent = "Withdraw Gift"; withdrawStatusMessage.textContent = ""; withdrawModal.querySelector('.loader').style.display = 'none'; }
+
+function closeWithdrawModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    withdrawModal.classList.remove('active');
+    itemToWithdraw = null;
+    showWithdrawStep(1);
+    withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
+    withdrawStatusMessage.textContent = "";
+    withdrawModal.querySelector('.loader').style.display = 'none';
+}
+
 async function initiateDepositProcedure() {
     const amtTxt = profileElements.depositAmountInput.value;
-    if (!amtTxt.trim()) { showTGNotification("Enter amount.", "warning"); return; }
+    if (!amtTxt.trim()) {
+        showTGNotification("Enter amount.", "warning");
+        return;
+    }
     const amt = parseFloat(amtTxt);
-    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) { showTGNotification("Invalid amount. Min 0.1 TON", "error"); return; }
-    profileElements.initiateDepositButton.disabled = true; profileElements.initiateDepositButton.textContent = "Initializing...";
+    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) {
+        showTGNotification("Invalid amount. Min 0.1 TON", "error");
+        return;
+    }
+    profileElements.initiateDepositButton.disabled = true;
+    profileElements.initiateDepositButton.textContent = "Initializing...";
     try {
         const res = await apiRequest('/api/initiate_deposit', 'POST', { amount: amt });
-        profileElements.initiateDepositButton.disabled = false; profileElements.initiateDepositButton.textContent = "Deposit TON";
+        profileElements.initiateDepositButton.disabled = false;
+        profileElements.initiateDepositButton.textContent = "Deposit TON";
         if (res.status === 'success') {
-            currentPendingDepositId = res.pending_deposit_id; depositRecipientAddressRaw = res.recipient_address; depositCommentText = res.comment;
+            currentPendingDepositId = res.pending_deposit_id;
+            depositRecipientAddressRaw = res.recipient_address;
+            depositCommentText = res.comment;
             const nanoAmt = res.final_amount_nano_ton || Math.round(parseFloat(res.amount_to_send) * 1e9);
             tonTransferLink.href = `ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`;
-            startDepositExpiryTimer(res.expires_at); depositStatusMessageEl.textContent = ''; depositLoader.style.display = 'none';
-            confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = 'I Sent Funds';
-            depositInstructionsModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
+            startDepositExpiryTimer(res.expires_at);
+            depositStatusMessageEl.textContent = '';
+            depositLoader.style.display = 'none';
+            confirmPaymentSentButton.disabled = false;
+            confirmPaymentSentButton.textContent = 'I Sent Funds';
+            depositInstructionsModal.classList.add('active');
+            if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
         } else showTGNotification(res.message || res.error || 'Failed.', 'error');
-    } catch (e) { profileElements.initiateDepositButton.disabled = false; profileElements.initiateDepositButton.textContent = "Deposit TON"; showTGNotification("Deposit init request failed.", "error"); }
+    } catch (e) {
+        profileElements.initiateDepositButton.disabled = false;
+        profileElements.initiateDepositButton.textContent = "Deposit TON";
+        showTGNotification("Deposit init request failed.", "error");
+    }
 }
+
 function startDepositExpiryTimer(expiresISO) {
-    if (depositExpiryInterval) clearInterval(depositExpiryInterval); const expiry = new Date(expiresISO).getTime();
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval);
+    const expiry = new Date(expiresISO).getTime();
     function update() {
-        const now = new Date().getTime(); const dist = expiry - now;
-        if (dist < 0) { clearInterval(depositExpiryInterval); depositExpiryInfo.textContent = "Expired."; confirmPaymentSentButton.disabled = true; tonTransferLink.classList.add('button-secondary'); return; }
-        const m = Math.floor((dist % (1e3 * 60 * 60)) / (1e3 * 60)); const s = Math.floor((dist % (1e3 * 60)) / 1e3);
-        depositExpiryInfo.textContent = `Expires in ${m}m ${s}s.`; tonTransferLink.classList.remove('button-secondary');
-    } update(); depositExpiryInterval = setInterval(update, 1e3);
+        const now = new Date().getTime();
+        const dist = expiry - now;
+        if (dist < 0) {
+            clearInterval(depositExpiryInterval);
+            depositExpiryInfo.textContent = "Expired.";
+            confirmPaymentSentButton.disabled = true;
+            tonTransferLink.classList.add('button-secondary');
+            return;
+        }
+        const m = Math.floor((dist % (1e3 * 60 * 60)) / (1e3 * 60));
+        const s = Math.floor((dist % (1e3 * 60)) / 1e3);
+        depositExpiryInfo.textContent = `Expires in ${m}m ${s}s.`;
+        tonTransferLink.classList.remove('button-secondary');
+    }
+    update();
+    depositExpiryInterval = setInterval(update, 1e3);
 }
+
 async function verifyPaymentSent() {
-    if (!currentPendingDepositId) { showTGNotification("No deposit.", "error"); return; }
-    confirmPaymentSentButton.disabled = true; confirmPaymentSentButton.textContent = "Verifying...";
-    depositLoader.style.display = 'block'; depositStatusMessageEl.textContent = 'Checking...';
+    if (!currentPendingDepositId) {
+        showTGNotification("No deposit.", "error");
+        return;
+    }
+    confirmPaymentSentButton.disabled = true;
+    confirmPaymentSentButton.textContent = "Verifying...";
+    depositLoader.style.display = 'block';
+    depositStatusMessageEl.textContent = 'Checking...';
     try {
         const res = await apiRequest('/api/verify_deposit', 'POST', { pending_deposit_id: currentPendingDepositId });
-        if (res.status === 'success') { showTGNotification(res.message, 'success'); currentUser.tonBalance = res.new_balance_ton; updateBalances(); renderProfile(); closeDepositInstructionsModal(); }
-        else if (res.status === 'pending') { depositStatusMessageEl.textContent = res.message; confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Check Again"; }
-        else {
-            showTGNotification(res.message || "Failed.", "error"); depositStatusMessageEl.textContent = res.message || "Failed.";
+        if (res.status === 'success') {
+            showTGNotification(res.message, 'success');
+            currentUser.tonBalance = res.new_balance_ton;
+            updateBalances();
+            renderProfile();
+            closeDepositInstructionsModal();
+        } else if (res.status === 'pending') {
+            depositStatusMessageEl.textContent = res.message;
+            confirmPaymentSentButton.disabled = false;
+            confirmPaymentSentButton.textContent = "Check Again";
+        } else {
+            showTGNotification(res.message || "Failed.", "error");
+            depositStatusMessageEl.textContent = res.message || "Failed.";
             if (res.status === 'expired') tonTransferLink.classList.add('button-secondary');
-            else { confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Try Again"; }
+            else {
+                confirmPaymentSentButton.disabled = false;
+                confirmPaymentSentButton.textContent = "Try Again";
+            }
         }
-    } catch (e) { depositStatusMessageEl.textContent = 'Error verifying.'; confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Try Again"; showTGNotification("Verification request failed.", "error"); }
-    finally { if (depositLoader.style.display === 'block' && !depositStatusMessageEl.textContent.includes('Checking')) depositLoader.style.display = 'none'; }
+    } catch (e) {
+        depositStatusMessageEl.textContent = 'Error verifying.';
+        confirmPaymentSentButton.disabled = false;
+        confirmPaymentSentButton.textContent = "Try Again";
+        showTGNotification("Verification request failed.", "error");
+    } finally {
+        if (depositLoader.style.display === 'block' && !depositStatusMessageEl.textContent.includes('Checking')) depositLoader.style.display = 'none';
+    }
 }
-function closeDepositInstructionsModal() { if (tgBackButton) popTgBackButtonHandler(); depositInstructionsModal.classList.remove('active'); if (depositExpiryInterval) clearInterval(depositExpiryInterval); currentPendingDepositId = null; profileElements.depositAmountInput.value = ''; tonTransferLink.href = '#'; depositStatusMessageEl.textContent = ''; depositLoader.style.display = 'none'; depositExpiryInfo.textContent = ''; }
+
+function closeDepositInstructionsModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    depositInstructionsModal.classList.remove('active');
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval);
+    currentPendingDepositId = null;
+    profileElements.depositAmountInput.value = '';
+    tonTransferLink.href = '#';
+    depositStatusMessageEl.textContent = '';
+    depositLoader.style.display = 'none';
+    depositExpiryInfo.textContent = '';
+}
+
 async function redeemPromocode() {
     const code = profileElements.promocodeInput.value.trim();
-    if (!code) { showTGNotification("Enter code.", "warning"); return; }
+    if (!code) {
+        showTGNotification("Enter code.", "warning");
+        return;
+    }
     profileElements.redeemPromocodeButton.disabled = true;
     try {
         const res = await apiRequest('/api/redeem_promocode', 'POST', { promocode_text: code });
-        if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; updateBalances(); showTGNotification(res.message, 'success'); profileElements.promocodeInput.value = ''; }
-        else showTGNotification(res.message || res.error || "Failed.", "error");
-    } catch (e) { showTGNotification("Promocode request failed.", "error"); }
-    finally { profileElements.redeemPromocodeButton.disabled = false; }
+        if (res.status === 'success') {
+            currentUser.tonBalance = res.new_balance_ton;
+            updateBalances();
+            showTGNotification(res.message, 'success');
+            profileElements.promocodeInput.value = '';
+        } else showTGNotification(res.message || res.error || "Failed.", "error");
+    } catch (e) {
+        showTGNotification("Promocode request failed.", "error");
+    } finally {
+        profileElements.redeemPromocodeButton.disabled = false;
+    }
 }
 
+// Event Listeners
 appNavButtons.forEach(b => b.addEventListener('click', () => navigateToPage(b.dataset.page)));
-spinButton.addEventListener('click', spinRoulette); closeRouletteButton.addEventListener('click', closeRouletteModal);
+spinButton.addEventListener('click', spinRoulette);
+closeRouletteButton.addEventListener('click', closeRouletteModal);
 winOverlaySaveBtn.addEventListener('click', closeWinOverlayModal);
 winOverlayConvertBtn.addEventListener('click', handleConvertAll);
-caseMultiplierSelector.querySelectorAll('button').forEach(btn => { btn.addEventListener('click', e => { selectedCaseMultiplier = parseInt(e.target.dataset.multiplier); updateCaseMultiplierButtons(); updateSpinButtonText(); }); });
-profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect()); profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure); profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
-withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2)); withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1)); withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); }); withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal); closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
-upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b => { b.addEventListener('click', e => { selectedUpgradeMultiplier = parseFloat(e.target.dataset.multiplier); const ch = parseFloat(e.target.dataset.chance); upgradeElements.chanceDisplay.textContent = `${ch}%`; upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => { btn.classList.remove('active-multiplier'); if (!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary'); }); e.target.classList.add('active-multiplier'); if (e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary'); }); });
-const defMultBtnUpgrade = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`); if (defMultBtnUpgrade) { defMultBtnUpgrade.click(); selectedUpgradeMultiplier = 1.5; }
+caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', e => {
+        selectedCaseMultiplier = parseInt(e.target.dataset.multiplier);
+        updateCaseMultiplierButtons();
+        updateSpinButtonText();
+    });
+});
+profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect());
+profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
+profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
+withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
+withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
+withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); });
+withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
+closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
+upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', e => {
+        selectedUpgradeMultiplier = parseFloat(e.target.dataset.multiplier);
+        const ch = parseFloat(e.target.dataset.chance);
+        upgradeElements.chanceDisplay.textContent = `${ch}%`;
+        upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
+            btn.classList.remove('active-multiplier');
+            if (!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
+        });
+        e.target.classList.add('active-multiplier');
+        if (e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary');
+    });
+});
+const defMultBtnUpgrade = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`);
+if (defMultBtnUpgrade) {
+    defMultBtnUpgrade.click();
+    selectedUpgradeMultiplier = 1.5;
+}
 upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
-inviteElements.copyRefLinkButton.addEventListener('click', () => { navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error')); });
-inviteElements.withdrawReferralButton.addEventListener('click', async () => { try { const res = await apiRequest('/api/withdraw_referral_earnings', 'POST'); if (res.status === 'success') { currentUser.tonBalance = res.new_balance_ton; currentUser.referralEarningsPending = res.new_referral_earnings_pending; updateBalances(); renderInvitePage(); showTGNotification(res.message, 'success'); } else showTGNotification(res.message || "Failed.", "error"); } catch (e) { showTGNotification("Withdrawal request failed.", "error"); } });
+inviteElements.copyRefLinkButton.addEventListener('click', () => {
+    navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error'));
+});
+inviteElements.withdrawReferralButton.addEventListener('click', async () => {
+    try {
+        const res = await apiRequest('/api/withdraw_referral_earnings', 'POST');
+        if (res.status === 'success') {
+            currentUser.tonBalance = res.new_balance_ton;
+            currentUser.referralEarningsPending = res.new_referral_earnings_pending;
+            updateBalances();
+            renderInvitePage();
+            showTGNotification(res.message, 'success');
+        } else showTGNotification(res.message || "Failed.", "error");
+    } catch (e) {
+        showTGNotification("Withdrawal request failed.", "error");
+    }
+});
 profileElements.sellAllButton?.addEventListener('click', sellAllItems);
-confirmPaymentSentButton?.addEventListener('click', verifyPaymentSent); cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
+confirmPaymentSentButton?.addEventListener('click', verifyPaymentSent);
+cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
 
 async function fetchInitialUserData() {
     if (!Telegram.WebApp.initData) {
