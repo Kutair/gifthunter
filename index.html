@@ -607,6 +607,8 @@ const depositExpiryInfo = document.getElementById('deposit-expiry-info');
 const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
 
+const VISUAL_ITEMS_PER_REEL_INITIAL = 10; // Number of items to initially populate each reel
+const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70; // Additional items appended for the spin to ensure enough length
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
 let depositRecipientAddressRaw = '';
@@ -937,12 +939,15 @@ function closeWinOverlayModal() {
 // MODIFIED initializeRouletteVisuals FUNCTION
 function initializeRouletteVisuals(caseItem, multiplier) {
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
-
+    // We assume roulette-item height is fixed for initial calc. Get from CSS if needed.
+    const itemHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height').replace('px', '')) || 80; 
+    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260; // Assuming this is set up
+    
     // Hide all reels initially
     allReelContainers.forEach(container => container.classList.remove('active'));
 
     // Determine available prizes, with a fallback for empty cases
-    let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floorPrice: 0 }];
+    let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floor_price: 0 }];
 
     // Show and populate only the necessary number of reels
     for (let i = 0; i < multiplier; i++) {
@@ -950,31 +955,38 @@ function initializeRouletteVisuals(caseItem, multiplier) {
         if (reelContainer) {
             reelContainer.classList.add('active'); // Make this reel visible
             const spinnerReel = reelContainer.querySelector('.roulette-spinner-reel');
-            spinnerReel.innerHTML = ''; // Clear existing items
+            spinnerReel.innerHTML = ''; // Clear existing items when a case is opened/multiplier changed
 
-            let defaultVisualItems = [];
-            const numVisualItems = 70; // Sufficient number of items for a smooth scrolling effect
-
-            // Fill the reel with random prizes from the case
-            for (let j = 0; j < numVisualItems; j++) {
+            let defaultVisualItemsData = [];
+            // Populate with initial items to make it look ready
+            for (let j = 0; j < VISUAL_ITEMS_PER_REEL_INITIAL; j++) {
                 const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-                defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize });
+                defaultVisualItemsData.push(randomPrize);
             }
             
             // Append visual items to the reel
-            defaultVisualItems.forEach(pData => {
+            defaultVisualItemsData.forEach(pData => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
                 const img = document.createElement('img');
                 img.src = generateImageFilename(pData.imageFilename || pData.name);
                 img.alt = pData.name;
                 itemEl.appendChild(img);
+                // Store full prize data on the element for later inspection (e.g., floorPrice for nudging)
+                itemEl.dataset.prizeData = JSON.stringify({
+                    name: pData.name, imageFilename: pData.imageFilename,
+                    is_ton_prize: pData.is_ton_prize, floorPrice: pData.floor_price, value: pData.value 
+                });
                 spinnerReel.appendChild(itemEl);
             });
 
-            // Reset reel position immediately to 0 for initial display (this is fine now as we're always re-populating)
-            spinnerReel.style.transition = 'none';
-            spinnerReel.style.top = '0px';
+            // Set initial reel position to center one of the items
+            // This makes it look like it's already "on" something without needing to spin.
+            spinnerReel.style.transition = 'none'; // Ensure no transition on initial load
+            const middleItemIndex = Math.floor(VISUAL_ITEMS_PER_REEL_INITIAL / 2);
+            // Calculate offset to bring the middle of the middle item to the center of the visible roulette area
+            const initialScrollOffset = (middleItemIndex * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2);
+            spinnerReel.style.top = `-${initialScrollOffset}px`;
             void spinnerReel.offsetWidth; // Force reflow
         }
     }
@@ -1101,44 +1113,34 @@ async function spinRoulette() {
         return;
     }
 
-    const availablePrizes = currentOpenCaseOrSlot.prizes; // These already have floor_price from backend RTP calculation
-    const initialNumItemsPerReel = 70; 
-    const additionalItemsToAppend = 100; // Add this many random items to the end of each reel for a smoother scroll
+    const availablePrizes = currentOpenCaseOrSlot.prizes; 
+    
+    // Dynamically get item height and visible reel height (they might change or be affected by padding)
+    const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
+    const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
+    const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window for the payline
 
-    // Pre-spin setup: Extend each active reel with random items and prepare for winner
+    // Prepare reels for spin: Append buffer items and winning item
     activeSpinners.forEach((spinnerReel, reelIndex) => {
-        let currentItemsData = []; // Store prize objects, not just HTML elements
+        // Remove existing transitions to prevent flicker when appending
+        spinnerReel.style.transition = 'none'; 
+        void spinnerReel.offsetWidth; // Force reflow
 
-        // Fill the reel with random prizes from the case for visual spin
-        for (let j = 0; j < initialNumItemsPerReel + additionalItemsToAppend; j++) {
+        // Append a buffer of random items to make the spin visually longer
+        for (let j = 0; j < VISUAL_ITEMS_PER_REEL_SPIN_BUFFER; j++) {
             const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-            currentItemsData.push(randomPrize); // Push the full prize object
-        }
-        
-        // Clear and re-populate the reel with the extended list
-        spinnerReel.innerHTML = '';
-        currentItemsData.forEach(pData => {
             const itemEl = document.createElement('div');
             itemEl.className = 'roulette-item';
             const img = document.createElement('img');
-            img.src = generateImageFilename(pData.imageFilename || pData.name);
-            img.alt = pData.name;
+            img.src = generateImageFilename(randomPrize.imageFilename || randomPrize.name);
+            img.alt = randomPrize.name;
             itemEl.appendChild(img);
-            // Store the full prize data on the element for later inspection (e.g., floorPrice)
             itemEl.dataset.prizeData = JSON.stringify({
-                name: pData.name,
-                imageFilename: pData.imageFilename,
-                is_ton_prize: pData.is_ton_prize,
-                floorPrice: pData.floor_price, // Use floor_price from backend
-                value: pData.value // For TON prizes that might have a 'value' key
+                name: randomPrize.name, imageFilename: randomPrize.imageFilename,
+                is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floor_price, value: randomPrize.value
             });
             spinnerReel.appendChild(itemEl);
-        });
-
-        // Reset reel position immediately to 0 for initial display
-        spinnerReel.style.transition = 'none';
-        spinnerReel.style.top = '0px'; 
-        void spinnerReel.offsetWidth; // Force reflow
+        }
     });
 
     try {
@@ -1153,41 +1155,36 @@ async function spinRoulette() {
 
             if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
 
-            const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
-            const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
-            const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window for the payline
-
             activeSpinners.forEach((spinnerReel, index) => {
                 let currentReelItemsDOMElements = Array.from(spinnerReel.children);
-                // The prize that *actually won* for this reel (from backend result)
                 const actualWonPrizeBackendData = result.won_prizes[index] || 
                                                   (index === 0 && result.won_prizes[0]); // Fallback for single win
 
                 if (!actualWonPrizeBackendData) {
                     console.warn(`No won prize data for reel ${index}. Skipping animation for this reel.`);
-                    return; // Skip animation if no won prize data for this reel
+                    return; 
                 }
 
                 // --- 1. Place the actual winning prize at a determined "landing zone"
-                // Pick a position far enough down the reel to ensure smooth scrolling
-                const actualWinnerPositionInReel = initialNumItemsPerReel + 5; 
-                if (currentReelItemsDOMElements[actualWinnerPositionInReel]) {
-                    const targetEl = currentReelItemsDOMElements[actualWinnerPositionInReel];
+                // The winning item will land at the end of the initial items + a buffer offset
+                // This ensures it appears after the initial set, but not at the very end of the *newly added* buffer
+                const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2); 
+
+                if (currentReelItemsDOMElements[landingSpotIndex]) {
+                    const targetEl = currentReelItemsDOMElements[landingSpotIndex];
                     const imgElement = targetEl.querySelector('img');
                     imgElement.src = generateImageFilename(actualWonPrizeBackendData.imageFilename || actualWonPrizeBackendData.name);
                     imgElement.alt = actualWonPrizeBackendData.name;
                     targetEl.dataset.isWinner = 'true';
-                    // Update the dataset.prizeData of the winning element with *actual* won prize data
                     targetEl.dataset.prizeData = JSON.stringify(actualWonPrizeBackendData);
                 } else {
-                    console.warn(`Could not place winning item at target index ${actualWinnerPositionInReel}. Reel may be too short or index is off.`);
+                    console.warn(`Could not place winning item at target index ${landingSpotIndex}. Reel may be too short or index is off.`);
                 }
 
                 // --- 2. Calculate base scroll distance to center the winning item
-                let scrollDist = (actualWinnerPositionInReel * itemHeight) + (itemHeight / 2) - centerOffset;
+                let scrollDist = (landingSpotIndex * itemHeight) + (itemHeight / 2) - centerOffset;
 
                 // --- 3. Add a random visual bias within the winning item's height
-                // This makes the stop position slightly random *within* the item.
                 const randomBiasRange = itemHeight * 0.4; // Up to 40% of item height deviation from center
                 let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2); // Random value between -range/2 and +range/2
                 scrollDist += visualBiasOffsetPx;
@@ -1202,18 +1199,18 @@ async function spinRoulette() {
                 
                 // Scan for expensive items above and below the winning item
                 for (let j = 1; j <= nudgeRange; j++) {
-                    const idxAbove = actualWinnerPositionInReel - j;
-                    const idxBelow = actualWinnerPositionInReel + j;
+                    const idxAbove = landingSpotIndex - j;
+                    const idxBelow = landingSpotIndex + j;
 
                     // Check item above
                     if (idxAbove >= 0 && currentReelItemsDOMElements[idxAbove]) {
                         try {
                             const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData);
                             const itemAboveValue = getItemValue(itemAboveData);
-                            if (itemAboveValue > nudgeValueThreshold && itemAboveValue > (bestNudgeCandidate ? getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)) : 0)) {
+                            if (itemAboveValue > nudgeValueThreshold && (!bestNudgeCandidate || itemAboveValue > getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)))) {
                                 bestNudgeCandidate = { item: currentReelItemsDOMElements[idxAbove], direction: 'above', distance: j };
                             }
-                        } catch (e) { /* ignore parse errors */ }
+                        } catch (e) { /* ignore parse errors for robustness */ }
                     }
 
                     // Check item below
@@ -1221,10 +1218,10 @@ async function spinRoulette() {
                         try {
                             const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData);
                             const itemBelowValue = getItemValue(itemBelowData);
-                            if (itemBelowValue > nudgeValueThreshold && itemBelowValue > (bestNudgeCandidate ? getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)) : 0)) {
+                            if (itemBelowValue > nudgeValueThreshold && (!bestNudgeCandidate || itemBelowValue > getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)))) {
                                 bestNudgeCandidate = { item: currentReelItemsDOMElements[idxBelow], direction: 'below', distance: j };
                             }
-                        } catch (e) { /* ignore parse errors */ }
+                        } catch (e) { /* ignore parse errors for robustness */ }
                     }
                 }
 
@@ -1234,18 +1231,19 @@ async function spinRoulette() {
                     nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); // Clamp to max nudge
 
                     if (bestNudgeCandidate.direction === 'above') {
-                        scrollDist -= nudgeMagnitude; // Move reel UP, payline lands lower on winner (closer to item above)
-                        console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name}`);
+                        // Move reel UP (scrollDist decreases), payline lands lower on winner (closer to item above)
+                        scrollDist -= nudgeMagnitude; 
+                        console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
                     } else { // 'below'
-                        scrollDist += nudgeMagnitude; // Move reel DOWN, payline lands higher on winner (closer to item below)
-                        console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name}`);
+                        // Move reel DOWN (scrollDist increases), payline lands higher on winner (closer to item below)
+                        scrollDist += nudgeMagnitude; 
+                        console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
                     }
                 }
 
                 // --- 5. Clamp the final scroll position to ensure payline stays within the winning item
-                // This ensures the payline always appears *on* the winning item.
-                const minScrollPosForWinner = (actualWinnerPositionInReel * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
-                const maxScrollPosForWinner = (actualWinnerPositionInReel * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
+                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
+                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
                 scrollDist = Math.max(minScrollPosForWinner, Math.min(maxScrollPosForWinner, scrollDist));
 
                 // Apply animation
@@ -1258,14 +1256,11 @@ async function spinRoulette() {
                 // Update user inventory with ALL won prizes from the backend
                 result.won_prizes.forEach(wp => {
                     const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
-                    if (existingItemIndex === -1 && wp.id) { // Only add if it's a new item (not TON)
+                    // Add item only if it's new (and has an ID, to avoid adding TON prizes to inventory list)
+                    if (existingItemIndex === -1 && wp.id) { 
                         currentUser.inventory.push({ 
-                            id: wp.id, 
-                            name: wp.name, 
-                            imageFilename: wp.imageFilename, 
-                            currentValue: wp.currentValue, 
-                            variant: wp.variant, 
-                            is_ton_prize: wp.is_ton_prize || false 
+                            id: wp.id, name: wp.name, imageFilename: wp.imageFilename, 
+                            currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false 
                         });
                     }
                 });
@@ -1275,21 +1270,26 @@ async function spinRoulette() {
                 // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
                 activeSpinners.forEach(spinnerReel => {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
-                    const itemHeight = spinnerReel.querySelector('.roulette-item').offsetHeight;
+                    // Recalculate itemHeight for robustness, though it should be constant for the same reel
+                    const itemHeightCalc = spinnerRereel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
                     
-                    const topVisibleItemIndex = Math.floor(Math.abs(currentTop) / itemHeight);
+                    // Estimate the index of the item that is now at the top of the visible window
+                    const itemsScrolledPast = Math.floor(Math.abs(currentTop) / itemHeightCalc);
                     
-                    const startIndex = Math.max(0, topVisibleItemIndex - 5); // Keep 5 items before visible top
-                    const endIndex = Math.min(spinnerReel.children.length, topVisibleItemIndex + (Math.ceil(rouletteRowVisibleHeight / itemHeight) * 2)); // Keep visible + 2 screens below
+                    // Keep items around the final stopping point for visual continuity
+                    // Example: Keep 10 items before the stopped item and (visible items * 2) after
+                    const startIndex = Math.max(0, itemsScrolledPast - 10); 
+                    const endIndex = Math.min(spinnerReel.children.length, itemsScrolledPast + 10 + Math.ceil(rouletteRowVisibleHeight / itemHeightCalc) * 2);
                     
                     const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
                     
-                    spinnerReel.innerHTML = '';
+                    spinnerReel.innerHTML = ''; // Clear and re-populate with trimmed list
                     itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
 
-                    spinnerReel.style.transition = 'none';
-                    spinnerReel.style.top = `${currentTop + (startIndex * itemHeight)}px`;
-                    void spinnerReel.offsetWidth; 
+                    spinnerReel.style.transition = 'none'; 
+                    // Adjust top position to account for removed items
+                    spinnerReel.style.top = `${currentTop + (startIndex * itemHeightCalc)}px`;
+                    void spinnerReel.offsetWidth; // Force reflow
                 });
 
             }, animationDuration + 100);
@@ -1304,7 +1304,7 @@ async function spinRoulette() {
         showTGNotification("Error during spin. Please try again.", "error");
     }
 }
-
+    
 async function handleSingleConvert(itemId) {
     const success = await convertItemToTon(itemId);
     if (success) {
