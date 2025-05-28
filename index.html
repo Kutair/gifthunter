@@ -153,22 +153,6 @@
             padding: 10px; /* Internal padding to give space around the reels */
         }
 
-        /* The central payline indicator */
-        #roulette-wheel-container::before {
-            content: '';
-            position: absolute;
-            left: 10px; /* Aligned with container padding */
-            right: 10px; /* Aligned with container padding */
-            top: 50%; /* Vertically center the line */
-            height: 3px;
-            background-color: var(--primary-color);
-            opacity: 0.9;
-            transform: translateY(-50%);
-            z-index: 2; /* Ensure it's above the spinning reels */
-            pointer-events: none; /* Make sure it doesn't interfere with clicks */
-            border-radius: 2px;
-        }
-
         /* Styling for each individual reel column */
         .roulette-individual-reel-row-visual {
             flex: 1; /* Each reel takes equal width within the flex container */
@@ -178,6 +162,27 @@
             background-color: var(--surface-hover-color); /* Background for individual reels */
             border-radius: var(--button-border-radius); /* Rounded corners for each reel */
             border: 1px solid rgba(255,255,255,0.05); /* Subtle border for visual separation */
+            display: none; /* Hidden by default, shown by JS based on multiplier */
+        }
+        .roulette-individual-reel-row-visual.active {
+            display: block; /* Show the reel when active */
+            /* If using flex for this also: display: flex; flex-direction: column; */
+        }
+
+        /* The central payline indicator FOR EACH REEL */
+        .roulette-individual-reel-row-visual::before {
+            content: '';
+            position: absolute;
+            left: 0; /* Aligned to reel edge */
+            right: 0; /* Aligned to reel edge */
+            top: 50%; /* Vertically center the line */
+            height: 3px;
+            background-color: var(--primary-color);
+            opacity: 0.9;
+            transform: translateY(-50%);
+            z-index: 2; /* Ensure it's above the spinning reels */
+            pointer-events: none; /* Make sure it doesn't interfere with clicks */
+            border-radius: 2px;
         }
         
         /* The actual spinning content inside each reel */
@@ -211,11 +216,19 @@
             object-fit: contain; /* Ensures image fits within bounds */
         }
 
-        /* Roulette multiplier buttons margin fix */
+        /* Roulette multiplier buttons margin fix and horizontal layout */
         .case-multiplier-selector {
+            display: flex; /* Ensure horizontal layout */
+            justify-content: center;
+            gap: 10px; /* Space between buttons */
             margin-top: 25px; /* Added margin-top for space above buttons */
             margin-bottom: 15px; /* Existing margin-bottom */
-            /* ... rest of your existing .case-multiplier-selector styles ... */
+        }
+        .case-multiplier-selector button {
+            width: auto; /* Allow buttons to size based on content */
+            flex-grow: 1; /* Distribute space evenly */
+            padding: 10px 15px; /* Adjusted padding for smaller size */
+            font-size: 0.9em;
         }
         
         #win-overlay-modal .modal-content { max-width: 360px; }
@@ -449,7 +462,7 @@
     </div>
 
     <div id="withdraw-modal" class="modal"><div class="modal-content"><h3>Withdraw Gift</h3><div class="modal-body"><div id="withdraw-step-1" class="modal-step active"><p>To withdraw your NFT item, it will be sent as a gift via Tonnel Market. Please ensure you have Tonnel app/bot accessible.</p><a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel Gifts</a><button id="withdraw-step1-next" class="button button-secondary">Continue</button></div><div id="withdraw-step-2" class="modal-step"><p>Your item will be sent to your Telegram account via Tonnel's gifting system. This may take a few moments. Click 'Confirm' to proceed.</p><button id="withdraw-step2-next" class="button">Confirm & Send Gift</button><button id="withdraw-step2-back" class="button button-secondary">Back</button></div><div id="withdraw-step-3" class="modal-step"><p>Finalizing withdrawal...</p><div class="loader"></div><p id="withdraw-status-message"></p><button id="withdraw-step3-close" class="button button-secondary">Close</button></div></div><button id="close-withdraw-modal-button" class="button button-secondary">Close Window</button></div></div>
-    <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.488 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
+    <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
 
 <script>
 // Global Constants and Data Definitions
@@ -532,9 +545,9 @@ const caseMultiplierSelector = document.querySelector('.case-multiplier-selector
 
 // NEW GLOBAL REFERENCES FOR REELS (for the 3-reel slot machine visual)
 // These elements are guaranteed to exist in the HTML structure now.
-const rouletteReel1 = document.getElementById('roulette-reel-1').querySelector('.roulette-spinner-reel');
-const rouletteReel2 = document.getElementById('roulette-reel-2').querySelector('.roulette-spinner-reel');
-const rouletteReel3 = document.getElementById('roulette-reel-3').querySelector('.roulette-spinner-reel');
+const rouletteReel1 = document.getElementById('roulette-reel-1'); // Get the parent container
+const rouletteReel2 = document.getElementById('roulette-reel-2'); // Get the parent container
+const rouletteReel3 = document.getElementById('roulette-reel-3'); // Get the parent container
 
 const winOverlayModal = document.getElementById('win-overlay-modal');
 const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image');
@@ -922,53 +935,57 @@ function closeWinOverlayModal() {
 }
 
 // MODIFIED initializeRouletteVisuals FUNCTION
-function initializeRouletteVisuals(caseItem, multiplier) { // Multiplier parameter is now primarily for context/cost calculation, not visual reels
-    // Get all the spinner reel elements
-    const allSpinnerReels = [
-        document.getElementById('roulette-reel-1').querySelector('.roulette-spinner-reel'),
-        document.getElementById('roulette-reel-2').querySelector('.roulette-spinner-reel'),
-        document.getElementById('roulette-reel-3').querySelector('.roulette-spinner-reel')
-    ];
+function initializeRouletteVisuals(caseItem, multiplier) {
+    const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
+
+    // Hide all reels initially
+    allReelContainers.forEach(container => container.classList.remove('active'));
 
     // Determine available prizes, with a fallback for empty cases
     let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floorPrice: 0 }];
 
-    // Populate each of the three visual reels
-    allSpinnerReels.forEach(spinnerReel => {
-        spinnerReel.innerHTML = ''; // Clear any existing items in this reel
-        let defaultVisualItems = [];
-        const numVisualItems = 70; // Sufficient number of items for a smooth scrolling effect
+    // Show and populate only the necessary number of reels
+    for (let i = 0; i < multiplier; i++) {
+        const reelContainer = allReelContainers[i];
+        if (reelContainer) {
+            reelContainer.classList.add('active'); // Make this reel visible
+            const spinnerReel = reelContainer.querySelector('.roulette-spinner-reel');
+            spinnerReel.innerHTML = ''; // Clear existing items
 
-        // Fill the reel with random prizes from the case
-        for (let j = 0; j < numVisualItems; j++) {
-            const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-            defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize });
+            let defaultVisualItems = [];
+            const numVisualItems = 70; // Sufficient number of items for a smooth scrolling effect
+
+            // Fill the reel with random prizes from the case
+            for (let j = 0; j < numVisualItems; j++) {
+                const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+                defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize });
+            }
+            
+            // Append visual items to the reel
+            defaultVisualItems.forEach(pData => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'roulette-item';
+                const img = document.createElement('img');
+                img.src = generateImageFilename(pData.imageFilename || pData.name);
+                img.alt = pData.name;
+                itemEl.appendChild(img);
+                spinnerReel.appendChild(itemEl);
+            });
+
+            // Reset reel position immediately to 0 for initial display (this is fine now as we're always re-populating)
+            spinnerReel.style.transition = 'none';
+            spinnerReel.style.top = '0px';
+            void spinnerReel.offsetWidth; // Force reflow
         }
-        
-        // Append visual items to the reel
-        defaultVisualItems.forEach(pData => {
-            const itemEl = document.createElement('div');
-            itemEl.className = 'roulette-item';
-            const img = document.createElement('img');
-            img.src = generateImageFilename(pData.imageFilename || pData.name);
-            img.alt = pData.name;
-            itemEl.appendChild(img);
-            spinnerReel.appendChild(itemEl);
-        });
-
-        // Reset reel position immediately to 0 for initial display
-        spinnerReel.style.transition = 'none';
-        spinnerReel.style.top = '0px';
-    });
+    }
 }
 
 function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem;
-    selectedCaseMultiplier = 1;
-    updateCaseMultiplierButtons();
+    selectedCaseMultiplier = 1; // Default to 1x when opening
+    updateCaseMultiplierButtons(); // This will call initializeRouletteVisuals with 1x
     rouletteCaseName.textContent = caseItem.name;
     updateSpinButtonText();
-    initializeRouletteVisuals(caseItem, selectedCaseMultiplier); // This now populates 3 reels
 
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
@@ -1043,8 +1060,7 @@ function updateCaseMultiplierButtons() {
         if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary');
         else btn.classList.add('button-secondary');
     }); 
-    // Re-initialize visuals only if the multiplier selection changes, not for every button click for the same multiplier
-    // This is already implicitly handled by the toggleClass, but the initializeRouletteVisuals call might be redundant if the selectedMultiplier doesn't actually change
+    // Re-initialize visuals based on the NEW selected multiplier
     initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier);
 }
 
@@ -1053,144 +1069,121 @@ function closeRouletteModal() {
     rouletteModal.classList.remove('active');
     currentOpenCaseOrSlot = null;
     if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+    // Ensure all reels are hidden when closing the modal
+    const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
+    allReelContainers.forEach(container => container.classList.remove('active'));
 }
 
 // MODIFIED spinRoulette FUNCTION
 async function spinRoulette() {
-    if (!currentOpenCaseOrSlot) return; // Ensure a case is selected
-    spinButton.disabled = true; // Disable spin button during animation
-    spinButton.textContent = 'Spinning...'; // Update button text
+    if (!currentOpenCaseOrSlot) return;
+    spinButton.disabled = true;
+    spinButton.textContent = 'Spinning...';
 
-    const allSpinnerReels = [rouletteReel1, rouletteReel2, rouletteReel3];
+    const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
+    const activeSpinners = allReelContainers
+                                .filter(container => container.classList.contains('active'))
+                                .map(container => container.querySelector('.roulette-spinner-reel'));
+    
+    // Safety check: Ensure we have active spinners to animate
+    if (activeSpinners.length === 0) {
+        showTGNotification("No active reels to spin. Please select a multiplier.", "error");
+        spinButton.disabled = false;
+        updateSpinButtonText();
+        return;
+    }
+
     const availablePrizes = currentOpenCaseOrSlot.prizes;
+    const initialNumItemsPerReel = 70; // Base number of items per reel before spin
+    const targetWinIndex = initialNumItemsPerReel + 5; // Winning item will land here + some offset to ensure it's below current view
+    const additionalItemsToAppend = 100; // Add this many random items to the end of each reel for a smoother scroll
 
-    // --- Pre-spin Setup: Clear and reset all reels immediately for a fresh animation ---
-    allSpinnerReels.forEach(spinnerReel => {
-        spinnerReel.innerHTML = ''; // Clear current items
-        let tempVisualItems = [];
-        const numVisualItems = 70; // Ensure enough for animation
+    // Pre-spin setup: Extend each active reel with random items and prepare for winner
+    activeSpinners.forEach((spinnerReel, reelIndex) => {
+        let currentItems = Array.from(spinnerReel.children).map(el => ({
+            name: el.querySelector('img').alt,
+            imageFilename: el.querySelector('img').src,
+            is_ton_prize: false // We don't have this info easily from existing DOM
+        }));
 
-        // Repopulate with random items before the spin
-        for (let j = 0; j < numVisualItems; j++) {
-            const rp = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-            tempVisualItems.push({ name: rp.name, imageFilename: rp.imageFilename, floorPrice: rp.floorPrice, is_ton_prize: rp.is_ton_prize });
+        // Append new random items for the spin duration
+        for (let j = 0; j < additionalItemsToAppend; j++) {
+            const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+            currentItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize });
         }
-        tempVisualItems.forEach(pData => {
-            const iEl = document.createElement('div');
-            iEl.className = 'roulette-item';
-            const im = document.createElement('img');
-            im.src = generateImageFilename(pData.imageFilename || pData.name);
-            im.alt = pData.name;
-            iEl.appendChild(im);
-            spinnerReel.appendChild(iEl);
-        });
         
-        // Reset position and force reflow before starting animation
+        // Clear and re-populate the reel with the extended list
+        spinnerReel.innerHTML = '';
+        currentItems.forEach(pData => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'roulette-item';
+            const img = document.createElement('img');
+            img.src = generateImageFilename(pData.imageFilename || pData.name);
+            img.alt = pData.name;
+            itemEl.appendChild(img);
+            spinnerReel.appendChild(itemEl);
+        });
+
+        // Ensure the reel is ready for transition from its current visual state
         spinnerReel.style.transition = 'none';
-        spinnerReel.style.top = '0px';
-        void spinnerReel.offsetWidth; // Force browser to render changes before starting transition
+        // The top position needs to be reset to '0px' relative to the new, longer list.
+        // This is safe because the visual content will be scrolled past the initial screen.
+        spinnerReel.style.top = '0px'; 
+        void spinnerReel.offsetWidth; // Force reflow
     });
 
     try {
-        // --- Backend Call ---
         const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCaseOrSlot.id, multiplier: selectedCaseMultiplier });
         
-        spinButton.disabled = false; // Re-enable button
-        updateSpinButtonText(); // Reset button text
+        spinButton.disabled = false;
+        updateSpinButtonText();
 
         if (result.status === 'success' && result.won_prizes && result.won_prizes.length > 0) {
             currentUser.tonBalance = result.new_balance_ton;
-            updateBalances(); // Update user balance display
+            updateBalances();
 
-            if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter); // Clear any previous timeouts
+            if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
 
-            // --- Visual Animation Logic ---
-            // The first prize won from the backend's list will be the visual target for the MIDDLE reel.
-            const visualWinningPrize = result.won_prizes[0]; 
+            const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
+            const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
 
-            // Calculate item dimensions for scrolling
-            const middleSpinner = rouletteReel2; // This is the central reel
-            const itemHeight = middleSpinner.querySelector('.roulette-item') ? middleSpinner.querySelector('.roulette-item').offsetHeight : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));
-            const rouletteRowVisibleHeight = middleSpinner.parentElement.clientHeight;
-            const numVisualItems = middleSpinner.children.length; // Number of items currently in the reel
-            
-            // Re-populate the middle reel to ensure the winning item is at a specific index
-            middleSpinner.innerHTML = '';
-            let middleReelItems = [];
-            const winnerVisualIdx = Math.floor(numVisualItems * 0.85); // Target position near the bottom for visual stop
-            
-            // Fill middle reel with random items, placing the actual visual winner at the target index
-            for (let i = 0; i < numVisualItems; i++) {
-                if (i === winnerVisualIdx) {
-                    middleReelItems.push({ 
-                        name: visualWinningPrize.name, 
-                        imageFilename: visualWinningPrize.imageFilename, 
-                        floorPrice: visualWinningPrize.floorPrice, 
-                        is_ton_prize: visualWinningPrize.is_ton_prize 
-                    });
+            activeSpinners.forEach((spinnerReel, index) => {
+                let currentReelItems = Array.from(spinnerReel.children);
+                let visualWinningPrizeForThisReel = result.won_prizes[index] || // Use actual won prize if available
+                                                  (index === 0 && result.won_prizes[0]) || // Ensure first reel gets the first won item
+                                                  availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; // Fallback to random if no more won prizes
+
+                // Replace an item in the reel with the intended visual winner
+                const actualWinnerPositionInReel = initialNumItemsPerReel + Math.floor(additionalItemsToAppend / 2); // Place winner far down
+                if (currentReelItems[actualWinnerPositionInReel]) {
+                    const imgElement = currentReelItems[actualWinnerPositionInReel].querySelector('img');
+                    imgElement.src = generateImageFilename(visualWinningPrizeForThisReel.imageFilename || visualWinningPrizeForThisReel.name);
+                    imgElement.alt = visualWinningPrizeForThisReel.name;
+                    currentReelItems[actualWinnerPositionInReel].dataset.isWinner = 'true'; // Mark it for potential styling
                 } else {
-                    const rp = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-                    middleReelItems.push({ name: rp.name, imageFilename: rp.imageFilename, floorPrice: rp.floorPrice, is_ton_prize: rp.is_ton_prize });
+                    // Fallback if index calculation is off, simply put it somewhere
+                    console.warn(`Could not place winning item at target index ${actualWinnerPositionInReel}. Placing randomly.`);
+                    const randomSpot = Math.floor(Math.random() * (currentReelItems.length - 10)) + 5; // Near middle
+                    const imgElement = currentReelItems[randomSpot].querySelector('img');
+                    imgElement.src = generateImageFilename(visualWinningPrizeForThisReel.imageFilename || visualWinningPrizeForThisReel.name);
+                    imgElement.alt = visualWinningPrizeForThisReel.name;
+                    currentReelItems[randomSpot].dataset.isWinner = 'true';
                 }
-            }
-            middleReelItems.forEach(pData => {
-                const iEl = document.createElement('div');
-                iEl.className = 'roulette-item';
-                const im = document.createElement('img');
-                im.src = generateImageFilename(pData.imageFilename || pData.name);
-                im.alt = pData.name;
-                iEl.appendChild(im);
-                middleSpinner.appendChild(iEl);
+
+                // Calculate scroll distance
+                let visualBiasOffsetPx = (Math.random() - 0.5) * (itemHeight * 0.20); // Small random bias
+                let scrollDist = (actualWinnerPositionInReel * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx;
+
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;
+                spinnerReel.style.top = `-${scrollDist}px`;
             });
 
-            // Calculate the scroll distance for the MIDDLE reel to land on its target
-            let visualBiasOffsetPx = 0;
-            const BIAS_PERCENTAGE = 0.30; // Amount of bias for visual appeal
-            const actualWinnerBaseFloorPrice = UPDATED_FLOOR_PRICES_FRONTEND[visualWinningPrize.name] || 0;
-            const itemAboveData = winnerVisualIdx > 0 ? middleReelItems[winnerVisualIdx - 1] : null;
-            const itemBelowData = winnerVisualIdx < middleReelItems.length - 1 ? middleReelItems[winnerVisualIdx + 1] : null;
-            let isNearPepeOrHighValue = false;
-            
-            // Add subtle visual bias based on surrounding items (optional, but can enhance feel)
-            if (itemAboveData) {
-                const aboveFloor = UPDATED_FLOOR_PRICES_FRONTEND[itemAboveData.name] || 0;
-                if (itemAboveData.name === 'Plush Pepe' || aboveFloor > actualWinnerBaseFloorPrice * 10) {
-                    visualBiasOffsetPx = itemHeight * BIAS_PERCENTAGE;
-                    isNearPepeOrHighValue = true;
-                }
-            }
-            if (!isNearPepeOrHighValue && itemBelowData) {
-                const belowFloor = UPDATED_FLOOR_PRICES_FRONTEND[itemBelowData.name] || 0;
-                if (itemBelowData.name === 'Plush Pepe' || belowFloor > actualWinnerBaseFloorPrice * 10) {
-                    visualBiasOffsetPx = -itemHeight * BIAS_PERCENTAGE;
-                    isNearPepeOrHighValue = true;
-                }
-            }
-            if (!isNearPepeOrHighValue) {
-                visualBiasOffsetPx = (Math.random() - 0.5) * (itemHeight * 0.20);
-            }
-            
-            let middleScrollDist = (winnerVisualIdx * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx;
-
-            // Animate all three reels (left, middle, right)
-            const animationDuration = 6000; // 6 seconds for the animation
-            allSpinnerReels.forEach((spinner, index) => {
-                let currentScrollDist = middleScrollDist;
-                // For side reels (left and right), add a small random offset
-                // This makes them stop at slightly different positions, enhancing the "slot" feel
-                if (index !== 1) { // If it's not the middle reel (index 1)
-                    currentScrollDist += (Math.random() - 0.5) * (itemHeight * 5); // Add a random offset
-                }
-                spinner.style.transition = `top ${animationDuration / 1000}s cubic-bezier(0.25, 0.1, 0.2, 1)`;
-                spinner.style.top = `-${currentScrollDist}px`;
-            });
-
-            // --- Post-animation Actions ---
+            const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
                 // Update user inventory with ALL won prizes from the backend (1x, 2x, or 3x items)
                 result.won_prizes.forEach(wp => {
                     const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
-                    if (existingItemIndex === -1 && wp.id) { // Only add if it's a new item and has an ID
+                    if (existingItemIndex === -1 && wp.id) {
                         currentUser.inventory.push({ 
                             id: wp.id, 
                             name: wp.name, 
@@ -1201,17 +1194,39 @@ async function spinRoulette() {
                         });
                     }
                 });
-                renderInventory(); // Re-render inventory to show new items
-                
-                // Show the "You Won!" overlay with ALL won prizes
-                showWinOverlay(result.won_prizes); 
-            }, animationDuration + 100); // Wait slightly longer than animation to ensure it finishes
+                renderInventory();
+                showWinOverlay(result.won_prizes);
+
+                // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
+                activeSpinners.forEach(spinnerReel => {
+                    const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
+                    const itemHeight = spinnerReel.querySelector('.roulette-item').offsetHeight;
+                    
+                    // Estimate the index of the top visible item after scroll
+                    const topVisibleItemIndex = Math.floor(Math.abs(currentTop) / itemHeight);
+                    
+                    // Keep items around the winning spot (e.g., 5 items before and 5 items after)
+                    const startIndex = Math.max(0, topVisibleItemIndex - (Math.ceil(rouletteRowVisibleHeight / itemHeight) * 2));
+                    const endIndex = Math.min(spinnerReel.children.length, topVisibleItemIndex + (Math.ceil(rouletteRowVisibleHeight / itemHeight) * 3));
+                    
+                    const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
+                    
+                    // Re-add them to reel
+                    spinnerReel.innerHTML = '';
+                    itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
+
+                    // Adjust top position to account for removed items
+                    spinnerReel.style.transition = 'none'; // Temporarily disable transition
+                    spinnerReel.style.top = `${currentTop + (startIndex * itemHeight)}px`;
+                    void spinnerReel.offsetWidth; // Force reflow
+                });
+
+            }, animationDuration + 100);
+
         } else {
-            // Handle unsuccessful spin
             showTGNotification(result.error || result.message || 'Failed to open case.', 'error');
         }
     } catch (e) {
-        // Handle any errors during the spin process
         console.error("Spin roulette error", e);
         spinButton.disabled = false;
         updateSpinButtonText();
