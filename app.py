@@ -869,7 +869,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Loot Bag','probability':0.2},{'name':'Toy Bear','probability':0.2},
         {'name':'Ion Gem','probability':0.03}, {'name':'Magic Potion','probability':0.03}
     ]},
-    {'id':'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg',priceTON:200.0,'prizes':[
+    {'id':'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON': 200.0,'prizes':[
         {'name':'Plush Pepe','probability':0.045},{'name':'Durov\'s Cap','probability':0.2},
         {'name':'Astral Shard','probability':0.4},
         {'name':'Precious Peach','probability':0.3}
