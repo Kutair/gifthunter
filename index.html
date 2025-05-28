@@ -465,6 +465,7 @@
     <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
 
 <script>
+
 // Global Constants and Data Definitions
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
 const API_BASE_URL = 'https://case-hznb.onrender.com';
@@ -510,12 +511,6 @@ function generateImageFilename(nameOrUrl) {
 }
 
 const finalKissedFrogPrizesWithConsolation = [{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}];
-let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
-let remainingProbForConsolation = 1.0 - currentProbSumForKF;
-if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
-finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
-
-const casesData=[{id:'lolpop',name:'Lol Pop Stash',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg',priceTON:2.0,prizes:[{name:'Plush Pepe',probability:0.0000454},{name:'Neko Helmet',probability:0.001362},{name:'Party Sparkler',probability:0.081816},{name:'Homemade Cake',probability:0.081816},{name:'Cookie Heart',probability:0.081816},{name:'Jack-in-the-box',probability:0.081816},{name:'Skull Flower',probability:0.0357945},{name:'Lol Pop',probability:0.153405},{name:'Hynpo Lollipop',probability:0.153405},{name:'Desk Calendar',probability:0.0454378},{name:'B-Day Candle',probability:0.0454378},{name:'Candy Cane',probability:0.0454378},{name:'Easter Egg',probability:0.0454378},{name:'Jingle Bells',probability:0.0454378},{name:'Lunar Snake',probability:0.0454378},{name:'Santa Hat',probability:0.0454378},{name:'Jester Hat',probability:0.0454378},{name:'Spiced Wine',probability:0.0454378},{name:'Winter Wreath',probability:0.0454378}]},{id:'recordplayer',name:'Record Player Vault',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg',priceTON:6.0,prizes:[{name:'Plush Pepe',probability:0.0001594},{name:'Record Player',probability:0.15942},{name:'Lol Pop',probability:0.10628},{name:'Hynpo Lollipop',probability:0.10628},{name:'Party Sparkler',probability:0.10628},{name:'Skull Flower',probability:0.085024},{name:'Jelly Bunny',probability:0.085024},{name:'Tama Gadget',probability:0.074404},{name:'Snow Globe',probability:0.06378},{name:'Bunny Muffin',probability:0.03189},{name:'Berry Box',probability:0.03189},{name:'Crystal Ball',probability:0.03189},{name:'Eternal Candle',probability:0.03189},{name:'Evil Eye',probability:0.03189},{name:'Flying Broom',probability:0.03189},{name:'Hex Pot',probability:0.03189},{name:'Pet Snake',probability:0.03189},{name:'Snow Mittens',probability:0.03189},{name:'Spy Agaric',probability:0.03189},{name:'Star Notepad',probability:0.03189},{name:'Ginger Cookie',probability:0.03189}]},{id:'swisswatch',name:'Swiss Watch Box',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg',priceTON:10.0,prizes:[{name:'Plush Pepe',probability:0.0001994},{name:'Swiss Watch',probability:0.031904},{name:'Neko Helmet',probability:0.044865},{name:'Eternal Rose',probability:0.05982},{name:'Electric Skull',probability:0.07976},{name:'Diamond Ring',probability:0.0997},{name:'Record Player',probability:0.11964},{name:'Love Potion',probability:0.11964},{name:'Top Hat',probability:0.11964},{name:'Voodoo Doll',probability:0.14955},{name:'Love Candle',probability:0.03988},{name:'Signet Ring',probability:0.03988},{name:'Sleigh Bell',probability:0.03988},{name:'Trapped Heart',probability:0.03988},{name:'Mad Pumpkin',probability:0.03988}]},{id:'kissedfrog',name:'Kissed Frog Pond',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',priceTON:20.0,prizes:[{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}];
 let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
 let remainingProbForConsolation = 1.0 - currentProbSumForKF;
 if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
@@ -969,7 +964,7 @@ function initializeRouletteVisuals(caseItem, multiplier) {
     let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floorPrice: 0 }];
 
     // Show and populate only the necessary number of reels
-    for (let i = 0; i < multiplier; i++) {
+    for (let i = 0; i < multiplier; i++) { // Loop based on the multiplier (1, 2, or 3)
         const reelContainer = allReelContainers[i];
         if (reelContainer) {
             reelContainer.classList.add('active'); // Make this reel visible
@@ -982,7 +977,7 @@ function initializeRouletteVisuals(caseItem, multiplier) {
             // Fill the reel with random prizes from the case
             for (let j = 0; j < numVisualItems; j++) {
                 const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-                defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize });
+                defaultVisualItems.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floorPrice });
             }
             
             // Append visual items to the reel
@@ -992,6 +987,9 @@ function initializeRouletteVisuals(caseItem, multiplier) {
                 const img = document.createElement('img');
                 img.src = generateImageFilename(pData.imageFilename || pData.name);
                 img.alt = pData.name;
+                // Store prize data on the element for later reference (e.g., floor price)
+                itemEl.dataset.prizeName = pData.name;
+                itemEl.dataset.floorPrice = pData.floorPrice || 0; 
                 itemEl.appendChild(img);
                 spinnerReel.appendChild(itemEl);
             });
@@ -1105,7 +1103,6 @@ async function spinRoulette() {
     spinButton.textContent = 'Spinning...';
 
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
-    // Filter for only the currently visible reels
     const activeSpinners = allReelContainers
                                 .filter(container => container.classList.contains('active'))
                                 .map(container => container.querySelector('.roulette-spinner-reel'));
@@ -1119,34 +1116,56 @@ async function spinRoulette() {
     }
 
     const availablePrizes = currentOpenCaseOrSlot.prizes;
-    const initialNumItemsInView = 3; // Corresponds to --roulette-visible-items
-    const animationItemsCount = 70; // Number of items to append for the animation distance
+    const itemsToPrepend = 20; // Number of items to append before the winning sequence for smooth start
+    const itemsForAnimation = 100; // Total number of items to show in the animation sequence (after prepend)
+
+    // Store the initial states (current top position) of the reels
+    const initialTops = activeSpinners.map(spinner => parseFloat(spinner.style.top.replace('px', '')) || 0);
 
     // Pre-spin setup: Extend each active reel with random items and prepare for winner
     activeSpinners.forEach((spinnerReel, reelIndex) => {
-        const currentTopPx = parseFloat(spinnerReel.style.top.replace('px', '') || '0');
-        const itemHeight = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));
-        
-        // Append new random items to simulate longer reel
-        let itemsToAdd = [];
-        for (let j = 0; j < animationItemsCount; j++) {
-            const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-            itemsToAdd.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, floorPrice: randomPrize.floorPrice, is_ton_prize: randomPrize.is_ton_prize });
-        }
+        let currentItemsData = [];
+        // Extract current visual items' data (name, floorPrice) to recreate them properly
+        Array.from(spinnerReel.children).forEach(el => {
+            currentItemsData.push({
+                name: el.dataset.prizeName || el.querySelector('img').alt,
+                imageFilename: el.querySelector('img').src,
+                floorPrice: parseFloat(el.dataset.floorPrice) || 0 // Retrieve stored floor price
+            });
+        });
 
-        // Create DOM elements for new items and append them
-        itemsToAdd.forEach(pData => {
+        // Add random items BEFORE existing ones to create a buffer for seamless looping visual
+        let newItemsBuffer = [];
+        for (let j = 0; j < itemsToPrepend; j++) {
+            const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+            newItemsBuffer.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floorPrice });
+        }
+        currentItemsData = newItemsBuffer.concat(currentItemsData);
+
+        // Add more random items to fill out the animation
+        for (let j = 0; j < itemsForAnimation; j++) {
+            const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
+            currentItemsData.push({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floorPrice });
+        }
+        
+        // Clear and re-populate the reel with the extended list
+        spinnerReel.innerHTML = '';
+        currentItemsData.forEach(pData => {
             const itemEl = document.createElement('div');
             itemEl.className = 'roulette-item';
             const img = document.createElement('img');
             img.src = generateImageFilename(pData.imageFilename || pData.name);
             img.alt = pData.name;
+            itemEl.dataset.prizeName = pData.name;
+            itemEl.dataset.floorPrice = pData.floorPrice || 0;
             itemEl.appendChild(img);
             spinnerReel.appendChild(itemEl);
         });
 
-        // Ensure transition is reset for smooth start
+        // Set the initial top position immediately (no transition)
+        // Adjust for the items we prepended
         spinnerReel.style.transition = 'none';
+        spinnerReel.style.top = `${initialTops[reelIndex] - (itemsToPrepend * itemHeight)}px`;
         void spinnerReel.offsetWidth; // Force reflow
     });
 
@@ -1162,96 +1181,77 @@ async function spinRoulette() {
 
             if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
 
+            // Calculate item dimensions for scrolling
             const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
             const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
+            const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window
+
+            const BIAS_STRENGTH_PX = itemHeight * 0.3; // How strong the bias towards expensive items is
 
             activeSpinners.forEach((spinnerReel, index) => {
                 let currentReelItems = Array.from(spinnerReel.children);
-                let visualWinningPrizeForThisReel;
+                let visualWinningPrizeForThisReel = result.won_prizes[index] || // Use actual won prize if available based on multiplier
+                                                  (index === 0 && result.won_prizes[0]) || // Ensure first reel gets the first won item if only one is won
+                                                  availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; // Fallback to random if no more actual won prizes
 
-                // For the main winning reel (center or first reel), use the actual won item.
-                // For other reels (index > 0 for 2x/3x), just pick a random item for visual purposes.
-                if (index < result.won_prizes.length) { 
-                    visualWinningPrizeForThisReel = result.won_prizes[index]; 
-                } else {
-                    visualWinningPrizeForThisReel = availablePrizes[Math.floor(Math.random() * availablePrizes.length)]; 
-                }
+                // Find the exact index where the winning item will be placed for this specific reel
+                const winningItemInsertIndex = itemsToPrepend + Math.floor(initialNumItemsPerReel / 2) + index * 5; // A spot far enough down
 
-                // Replace an item far down the reel with the intended visual winner
-                // This ensures a long scroll animation without clearing previous items
-                const insertionIndex = currentReelItems.length - 10; // Place winner 10 items from the end
-                if (currentReelItems[insertionIndex]) {
-                    const imgElement = currentReelItems[insertionIndex].querySelector('img');
+                // Update the image and data of the chosen element in the reel to be the winning item
+                if (currentReelItems[winningItemInsertIndex]) {
+                    const imgElement = currentReelItems[winningItemInsertIndex].querySelector('img');
                     imgElement.src = generateImageFilename(visualWinningPrizeForThisReel.imageFilename || visualWinningPrizeForThisReel.name);
                     imgElement.alt = visualWinningPrizeForThisReel.name;
-                    currentReelItems[insertionIndex].classList.add('is-winning'); // Mark for styling
+                    currentReelItems[winningItemInsertIndex].dataset.prizeName = visualWinningPrizeForThisReel.name;
+                    currentReelItems[winningItemInsertIndex].dataset.floorPrice = visualWinningPrizeForThisReel.floorPrice || 0;
                 } else {
-                    // Fallback if insertionIndex is out of bounds (shouldn't happen with numVisualItems >= 70)
-                    console.warn(`Could not place winning item at target index ${insertionIndex}. Placing randomly.`);
-                    const randomSpot = Math.floor(Math.random() * (currentReelItems.length / 2)) + Math.floor(currentReelItems.length / 4);
+                    console.warn(`Could not place winning item at target index ${winningItemInsertIndex}. Placing randomly.`);
+                    const randomSpot = Math.floor(Math.random() * (currentReelItems.length - 10)) + 5;
                     const imgElement = currentReelItems[randomSpot].querySelector('img');
                     imgElement.src = generateImageFilename(visualWinningPrizeForThisReel.imageFilename || visualWinningPrizeForThisReel.name);
                     imgElement.alt = visualWinningPrizeForThisReel.name;
-                    currentReelItems[randomSpot].classList.add('is-winning');
+                    currentReelItems[randomSpot].dataset.prizeName = visualWinningPrizeForThisReel.name;
+                    currentReelItems[randomSpot].dataset.floorPrice = visualWinningPrizeForThisReel.floorPrice || 0;
+                    // Adjust winningItemInsertIndex if we fell back
+                    winningItemInsertIndex = randomSpot;
                 }
 
-                // Calculate the scroll distance for THIS reel to land on its target
-                const currentOffset = parseFloat(spinnerReel.style.top.replace('px', '')) || 0; // Current scroll position
-
-                // 1. Random position WITHIN the winning item's visual area (0 to itemHeight)
-                const randomOffsetWithinItem = Math.random() * itemHeight;
-
-                // 2. Near-miss bias for expensive items
-                let visualBiasOffsetPx = 0;
-                const BIAS_PERCENTAGE = 0.30; // Max percentage of itemHeight to shift
+                // --- Advanced Visual Bias Logic ---
+                let finalBias = (Math.random() - 0.5) * (itemHeight * 0.1); // Small random wobble
                 
-                // Check item ABOVE the winning line
-                const itemAbove = currentReelItems[insertionIndex - 1];
-                if (itemAbove) {
-                    const itemNameAbove = itemAbove.querySelector('img').alt;
-                    const floorPriceAbove = UPDATED_FLOOR_PRICES_FRONTEND[itemNameAbove] || 0;
-                    // Check if the item above is significantly more expensive than the winning item
-                    if (floorPriceAbove > (UPDATED_FLOOR_PRICES_FRONTEND[visualWinningPrizeForThisReel.name] || 0) * 2) { 
-                        visualBiasOffsetPx = itemHeight * BIAS_PERCENTAGE; // Shift target UP (reel stops higher, payline moves down towards item above)
-                    }
-                }
-                // Check item BELOW the winning line (only if no strong bias from above)
-                if (visualBiasOffsetPx === 0) {
-                    const itemBelow = currentReelItems[insertionIndex + 1];
-                    if (itemBelow) {
-                        const itemNameBelow = itemBelow.querySelector('img').alt;
-                        const floorPriceBelow = UPDATED_FLOOR_PRICES_FRONTEND[itemNameBelow] || 0;
-                        // Check if the item below is significantly more expensive than the winning item
-                        if (floorPriceBelow > (UPDATED_FLOOR_PRICES_FRONTEND[visualWinningPrizeForThisReel.name] || 0) * 2) { 
-                            visualBiasOffsetPx = -itemHeight * BIAS_PERCENTAGE; // Shift target DOWN (reel stops lower, payline moves up towards item below)
-                        }
-                    }
+                const currentItemFloorPrice = parseFloat(currentReelItems[winningItemInsertIndex].dataset.floorPrice);
+                const NEIGHBOR_VALUE_THRESHOLD = currentItemFloorPrice * 10; // E.g., 10x the winner's value
+
+                const itemAbove = currentReelItems[winningItemInsertIndex - 1];
+                const itemBelow = currentReelItems[winningItemInsertIndex + 1];
+
+                let neighborFound = false;
+
+                if (itemAbove && parseFloat(itemAbove.dataset.floorPrice) >= NEIGHBOR_VALUE_THRESHOLD) {
+                    finalBias = -BIAS_STRENGTH_PX; // Bias downwards to show big prize just above
+                    neighborFound = true;
+                } else if (itemBelow && parseFloat(itemBelow.dataset.floorPrice) >= NEIGHBOR_VALUE_THRESHOLD) {
+                    finalBias = BIAS_STRENGTH_PX; // Bias upwards to show big prize just below
+                    neighborFound = true;
                 }
                 
-                // If no strong expensive near-miss, add a tiny random wobble to center
-                if (visualBiasOffsetPx === 0) {
-                    visualBiasOffsetPx = (Math.random() - 0.5) * (itemHeight * 0.10); // Small random wobble
+                // If a "Plush Pepe" (or other specific super high-value item) is a neighbor
+                if (!neighborFound && itemAbove && itemAbove.dataset.prizeName === 'Plush Pepe') {
+                    finalBias = -BIAS_STRENGTH_PX;
+                    neighborFound = true;
+                } else if (!neighborFound && itemBelow && itemBelow.dataset.prizeName === 'Plush Pepe') {
+                    finalBias = BIAS_STRENGTH_PX;
+                    neighborFound = true;
                 }
 
-                // The target position for the *top edge* of the visual winning item on the reel.
-                const targetWinningItemTop = (insertionIndex * itemHeight);
-
-                // Calculate the final scroll distance from the reel's current top position
-                // `currentTopPx` is negative, so adding it accounts for already scrolled distance.
-                // We want `targetWinningItemTop + randomOffsetWithinItem - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx`
-                // to be the new `top` value relative to the start of the entire reel.
-                // So the amount to scroll *from current position* is:
-                let scrollAmountFromCurrent = (targetWinningItemTop + randomOffsetWithinItem - (rouletteRowVisibleHeight / 2) - visualBiasOffsetPx) - Math.abs(currentOffset);
+                // Calculate the final scroll position from the current position
+                // Calculate distance to move from current '0px' relative to the prepended items
+                // This means: (target index + offset) * itemHeight - center of visible area - bias
+                const targetScrollDistance = (winningItemInsertIndex * itemHeight) + (itemHeight / 2) - centerOffset + finalBias;
                 
-                // Ensure we scroll a minimum number of full spins for visual effect
-                const minimumScrollSpins = 5; // Ensure at least 5 full rotations visible items spin past
-                const minimumScrollDistance = minimumScrollSpins * rouletteRowVisibleHeight;
-                if (scrollAmountFromCurrent < minimumScrollDistance) {
-                    scrollAmountFromCurrent = minimumScrollDistance + (Math.random() * itemHeight * 2); // Add some randomness for variety
-                }
-
+                // Apply the animation
                 spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;
-                spinnerReel.style.top = `${currentOffset - scrollAmountFromCurrent}px`; // Apply the new top position relative to current
+                spinnerReel.style.top = `-${targetScrollDistance}px`;
             });
 
             const animationDuration = 6000;
@@ -1278,31 +1278,31 @@ async function spinRoulette() {
                 // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
                 activeSpinners.forEach(spinnerReel => {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
-                    const itemHeight = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height'));
-                    
-                    // Determine which item index is now at the top of the visible area
-                    const actualVisibleTopItemIndex = Math.floor(Math.abs(currentTop) / itemHeight);
-                    
-                    // Keep a few items before and after the visible window for continuity
-                    const itemsToKeepBefore = 5; // Items to keep above the visible area
-                    const itemsToKeepAfter = 5; // Items to keep below the visible area
+                    const itemHeight = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 0;
+                    if (itemHeight === 0) return; // Prevent division by zero if reel is empty
 
-                    const startIndex = Math.max(0, actualVisibleTopItemIndex - itemsToKeepBefore);
-                    const endIndex = Math.min(spinnerReel.children.length, actualVisibleTopItemIndex + initialNumItemsInView + itemsToKeepAfter);
+                    // Estimate the index of the top visible item after spin
+                    const topVisibleItemIndex = Math.floor(Math.abs(currentTop) / itemHeight);
                     
-                    const itemsToCopy = Array.from(spinnerReel.children).slice(startIndex, endIndex);
+                    // Define a buffer of items to keep (e.g., 5 items before and 5 items after the visible window)
+                    const bufferItems = Math.ceil(rouletteRowVisibleHeight / itemHeight) + 5;
+
+                    const startIndex = Math.max(0, topVisibleItemIndex - bufferItems);
+                    const endIndex = Math.min(spinnerReel.children.length, topVisibleItemIndex + bufferItems);
                     
-                    // Reset reel to only contain these visible/near-visible items
+                    const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
+                    
+                    // Re-add them to reel
                     spinnerReel.innerHTML = '';
-                    itemsToCopy.forEach(itemEl => spinnerReel.appendChild(itemEl));
+                    itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
 
-                    // Adjust the top position to account for the items removed from the beginning
-                    spinnerReel.style.transition = 'none'; // Disable transition for the reset
+                    // Adjust top position to account for removed items
+                    spinnerReel.style.transition = 'none'; // Temporarily disable transition
                     spinnerReel.style.top = `${currentTop + (startIndex * itemHeight)}px`;
                     void spinnerReel.offsetWidth; // Force reflow
                 });
 
-            }, animationDuration + 100); // Wait slightly longer than animation to ensure it finishes
+            }, animationDuration + 100);
 
         } else {
             showTGNotification(result.error || result.message || 'Failed to open case.', 'error');
@@ -1624,7 +1624,7 @@ async function redeemPromocode() {
             updateBalances();
             showTGNotification(res.message, 'success');
             profileElements.promocodeInput.value = '';
-        } else showTGNotification(res.message || "Failed.", "error");
+        } else showTGNotification(res.message || res.error || "Failed.", "error");
     } catch (e) {
         showTGNotification("Promocode request failed.", "error");
     } finally {
@@ -1812,3 +1812,6 @@ async function initializeApp() {
 }
     
 document.addEventListener('DOMContentLoaded', initializeApp);
+</script>
+</body>
+</html>
