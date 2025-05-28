@@ -769,6 +769,7 @@ kissed_frog_processed_prizes = calculate_rtp_probabilities(
 
 # Backend cases data (initial templates - will be adjusted by RTP function)
 cases_data_backend_with_fixed_prices_raw = [
+    # ... (existing case definitions) ...
     {'id':'lolpop','name':'Lol Pop Stash','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg','priceTON':2.0,'prizes':[
         {'name':'Plush Pepe','probability':0.00005}, {'name':'Neko Helmet','probability':0.0015},
         {'name':'Party Sparkler','probability':0.08}, {'name':'Homemade Cake','probability':0.08},
@@ -794,7 +795,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Snow Mittens','probability':0.03}, {'name':'Spy Agaric','probability':0.03},
         {'name':'Star Notepad','probability':0.03}, {'name':'Ginger Cookie','probability':0.03},
     ]},
-    {'id':'swisswatch','name':'Swiss Watch Box','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg','priceTON':10.0,'prizes':[
+    {'id':'swisswatch','name':'Swiss Watch Box','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg','priceTON:10.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0002},{'name':'Swiss Watch','probability':0.032},
         {'name':'Neko Helmet','probability':0.045},{'name':'Eternal Rose','probability':0.06},
         {'name':'Electric Skull','probability':0.08},{'name':'Diamond Ring','probability':0.1},
@@ -805,7 +806,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Mad Pumpkin','probability':0.04}
     ]},
     {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg','prizes':kissed_frog_processed_prizes},
-    {'id':'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON':20.0,'prizes':[
+    {'id':'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON:20.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0004},{'name':'Perfume Bottle','probability':0.02},
         {'name':'Sharp Tongue','probability':0.035},{'name':'Loot Bag','probability':0.05},
         {'name':'Swiss Watch','probability':0.06},{'name':'Neko Helmet','probability':0.08},
@@ -831,11 +832,48 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Loot Bag','probability':0.2},{'name':'Toy Bear','probability':0.2},
         {'name':'Ion Gem','probability':0.03}, {'name':'Magic Potion','probability':0.03}
     ]},
-    {'id':'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON':200.0,'prizes':[
+    {'id':'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg',priceTON:200.0,'prizes':[
         {'name':'Plush Pepe','probability':0.045},{'name':'Durov\'s Cap','probability':0.2},
         {'name':'Astral Shard','probability':0.4},
         {'name':'Precious Peach','probability':0.3}
-    ]}
+    ]},
+    { # NEW: Girl's Collection
+        'id': 'girls_collection',
+        'name': 'Girl\'s Collection',
+        'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg',
+        'priceTON': 8.0,
+        'prizes': [
+            {'name': 'Loot Bag', 'probability': 1.0},
+            {'name': 'Neko Helmet', 'probability': 1.0},
+            {'name': 'Genie Lamp', 'probability': 1.0},
+            {'name': 'Eternal Rose', 'probability': 1.0},
+            {'name': 'Sharp Tongue', 'probability': 1.0},
+            {'name': 'Toy Bear', 'probability': 1.0},
+            {'name': 'Star Notepad', 'probability': 1.0},
+            {'name': 'Bunny Muffin', 'probability': 1.0},
+            {'name': 'Berry Box', 'probability': 1.0},
+            {'name': 'Sakura Flower', 'probability': 1.0},
+            {'name': 'Cookie Heart', 'probability': 1.0}
+        ]
+    },
+    { # NEW: Men's Collection
+        'id': 'mens_collection',
+        'name': 'Men\'s Collection',
+        'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/men.jpg',
+        'priceTON': 8.0,
+        'prizes': [
+            {'name': 'Durov\'s Cap', 'probability': 1.0},
+            {'name': 'Signet Ring', 'probability': 1.0},
+            {'name': 'Swiss Watch', 'probability': 1.0},
+            {'name': 'Vintage Cigar', 'probability': 1.0},
+            {'name': 'Mini Oscar', 'probability': 1.0},
+            {'name': 'Perfume Bottle', 'probability': 1.0},
+            {'name': 'Scared Cat', 'probability': 1.0},
+            {'name': 'Record Player', 'probability': 1.0},
+            {'name': 'Top Hat', 'probability': 1.0},
+            {'name': 'Spiced Wine', 'probability': 1.0}
+        ]
+    }
 ]
 
 cases_data_backend = []
