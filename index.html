@@ -357,65 +357,6 @@
             background-color: rgba(0,122,255,0.2);
             color: var(--text-primary);
         }
-
-        .demo-mode-toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: center; /* Center the toggle and text */
-            gap: 10px;
-            margin-bottom: 15px; /* Space above buttons */
-            padding: 5px 0;
-        }
-        
-        /* Hidden checkbox */
-        .demo-mode-checkbox-hidden {
-            display: none;
-        }
-        
-        /* The switch - the box around the slider */
-        .demo-mode-checkbox-label {
-            position: relative;
-            display: inline-block;
-            width: 48px; /* Width of the toggle */
-            height: 28px; /* Height of the toggle */
-            background-color: var(--surface-hover-color);
-            border-radius: 28px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            border: 1px solid var(--border-color);
-            flex-shrink: 0; /* Prevent label from shrinking */
-        }
-        
-        /* The slider */
-        .demo-mode-checkbox-label .slider {
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 24px; /* Size of the circle handle */
-            height: 24px;
-            background-color: var(--text-secondary);
-            border-radius: 50%;
-            transition: transform 0.3s, background-color 0.3s;
-        }
-        
-        /* When checked, move slider and change background */
-        .demo-mode-checkbox-hidden:checked + .demo-mode-checkbox-label {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-        }
-        
-        .demo-mode-checkbox-hidden:checked + .demo-mode-checkbox-label .slider {
-            transform: translateX(20px); /* Move slider to the right */
-            background-color: var(--text-primary);
-        }
-        
-        /* Text next to the toggle */
-        .demo-mode-text {
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 1.0em;
-            user-select: none; /* Prevent text selection */
-        }
     </style>
 </head>
 <body>
@@ -482,15 +423,6 @@
                 <button class="button button-secondary" data-multiplier="3">3x</button>
             </div>
             <div class="modal-actions">
-                <!-- NEW: Demo Mode Checkbox -->
-                <div class="demo-mode-toggle-container">
-                    <input type="checkbox" id="demo-mode-checkbox" class="demo-mode-checkbox-hidden">
-                    <label for="demo-mode-checkbox" class="demo-mode-checkbox-label">
-                        <span class="slider round"></span>
-                    </label>
-                    <span class="demo-mode-text">Demo Mode</span>
-                </div>
-                <!-- END NEW -->
                 <button id="spin-button" class="button">Spin</button>
                 <button id="close-roulette-button" class="button button-secondary">Close</button>
             </div>
@@ -713,9 +645,6 @@ const depositExpiryInfo = document.getElementById('deposit-expiry-info');
 const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
 
-const demoModeCheckbox = document.getElementById('demo-mode-checkbox'); // NEW: Reference to the demo mode checkbox
-let demoModeActive = false; // NEW: Global state for demo mode
-    
 const VISUAL_ITEMS_PER_REEL_INITIAL = 10; // Number of items to initially populate each reel
 const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70; // Additional items appended for the spin to ensure enough length
 let currentPendingDepositId = null;
@@ -999,10 +928,6 @@ function showWinOverlay(wonPrizesArray) {
     lastWonPrizesForOverlay = wonPrizesArray;
     winOverlayPrizeImageContainer.innerHTML = '';
     winOverlayPrizeDetailsEl.innerHTML = '';
-
-    // NEW: Determine if any of the won prizes are demo items
-    const isAnyDemoItem = wonPrizesArray.some(p => p.is_demo_item);
-
     if (wonPrizesArray.length === 1) {
         const prizeItem = wonPrizesArray[0];
         const img = document.createElement('img');
@@ -1010,9 +935,8 @@ function showWinOverlay(wonPrizesArray) {
         img.alt = prizeItem.name;
         winOverlayPrizeImageContainer.appendChild(img);
         winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`;
-        // NEW: Hide convert button if it's a demo item or already TON
-        winOverlayConvertBtn.style.display = (prizeItem.is_ton_prize || isAnyDemoItem) ? 'none' : 'block';
-        if (!prizeItem.is_ton_prize && !isAnyDemoItem) { // Only show value for real, convertible items
+        winOverlayConvertBtn.style.display = prizeItem.is_ton_prize ? 'none' : 'block';
+        if (!prizeItem.is_ton_prize) {
             winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2);
             winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to ";
         }
@@ -1027,23 +951,18 @@ function showWinOverlay(wonPrizesArray) {
             img.alt = prizeItem.name;
             winOverlayPrizeImageContainer.appendChild(img);
             prizeNamesHTML += `<div>- ${prizeItem.name} (${(prizeItem.currentValue || 0).toFixed(2)} TON)</div>`;
-            if (!prizeItem.is_ton_prize && !prizeItem.is_demo_item) { // NEW: Check for is_demo_item
+            if (!prizeItem.is_ton_prize) {
                 totalConvertValue += (prizeItem.currentValue || 0);
                 canConvertAny = true;
             }
         });
         winOverlayPrizeDetailsEl.innerHTML = prizeNamesHTML;
-        // NEW: Hide convert button if it's a demo win or no items are convertible
-        winOverlayConvertBtn.style.display = (isAnyDemoItem || !canConvertAny) ? 'none' : 'block';
-        if (canConvertAny && !isAnyDemoItem) { // Only show value for real, convertible items
+        winOverlayConvertBtn.style.display = canConvertAny ? 'block' : 'none';
+        if (canConvertAny) {
             winOverlayConvertValue.textContent = totalConvertValue.toFixed(2);
             winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to ";
         }
     }
-    
-    // NEW: Hide "Save to Collection" button if any item is a demo item
-    winOverlaySaveBtn.style.display = isAnyDemoItem ? 'none' : 'block';
-
     winOverlayModal.classList.add('active');
     if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
@@ -1179,16 +1098,9 @@ function openRouletteModal(caseItem) {
 }
 
 function updateSpinButtonText() {
-    if (!currentOpenCaseOrSlot) return; // Add null check for safety
-    
-    if (demoModeActive) { // NEW: If demo mode is active
-        spinButton.textContent = `Spin (Demo Mode)`;
-        spinButton.disabled = false; // Always enabled in demo mode
-    } else { // Existing logic for normal mode
+    if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) {
         const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
         spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
-        // Enable/disable based on balance (only in real mode)
-        spinButton.disabled = currentUser.tonBalance < totalPrice;
     }
 }
 
@@ -1223,7 +1135,6 @@ function getItemValue(prizeObject) {
 // MODIFIED spinRoulette FUNCTION
 async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return;
-    
     spinButton.disabled = true;
     spinButton.textContent = 'Spinning...';
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
@@ -1271,11 +1182,7 @@ async function spinRoulette() {
     });
 
     try {
-        const result = await apiRequest('/api/open_case', 'POST', { 
-            case_id: currentOpenCaseOrSlot.id, 
-            multiplier: selectedCaseMultiplier,
-            demo_mode: demoModeActive // NEW: Send demo_mode flag
-        });
+        const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCaseOrSlot.id, multiplier: selectedCaseMultiplier });
         
         spinButton.disabled = false;
         updateSpinButtonText();
@@ -1297,6 +1204,8 @@ async function spinRoulette() {
                 }
 
                 // --- 1. Place the actual winning prize at a determined "landing zone"
+                // The winning item will land at the end of the initial items + a buffer offset
+                // This ensures it appears after the initial set, but not at the very end of the *newly added* buffer
                 const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2); 
 
                 if (currentReelItemsDOMElements[landingSpotIndex]) {
@@ -1314,21 +1223,24 @@ async function spinRoulette() {
                 let scrollDist = (landingSpotIndex * itemHeight) + (itemHeight / 2) - centerOffset;
 
                 // --- 3. Add a random visual bias within the winning item's height
-                const randomBiasRange = itemHeight * 0.4;
-                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2);
+                const randomBiasRange = itemHeight * 0.4; // Up to 40% of item height deviation from center
+                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2); // Random value between -range/2 and +range/2
                 scrollDist += visualBiasOffsetPx;
 
                 // --- 4. Implement Nudge towards more expensive nearby items
-                const nudgeRange = 3;
+                const nudgeRange = 3; // Check 3 items above and 3 items below
                 const winningItemValue = getItemValue(actualWonPrizeBackendData);
-                let nudgeValueThreshold = winningItemValue * 1.5;
+                let nudgeValueThreshold = winningItemValue * 1.5; // Nudge towards items 1.5x more expensive
+
                 let bestNudgeCandidate = null;
-                let maxNudgeAmount = itemHeight * 0.4;
+                let maxNudgeAmount = itemHeight * 0.4; // Max nudge amount within the item
                 
+                // Scan for expensive items above and below the winning item
                 for (let j = 1; j <= nudgeRange; j++) {
                     const idxAbove = landingSpotIndex - j;
                     const idxBelow = landingSpotIndex + j;
 
+                    // Check item above
                     if (idxAbove >= 0 && currentReelItemsDOMElements[idxAbove]) {
                         try {
                             const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData);
@@ -1339,6 +1251,7 @@ async function spinRoulette() {
                         } catch (e) { /* ignore parse errors for robustness */ }
                     }
 
+                    // Check item below
                     if (idxBelow < currentReelItemsDOMElements.length && currentReelItemsDOMElements[idxBelow]) {
                         try {
                             const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData);
@@ -1350,69 +1263,71 @@ async function spinRoulette() {
                     }
                 }
 
+                // Apply the nudge
                 if (bestNudgeCandidate) {
-                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1));
-                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount);
+                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1)); // Closer items nudge more
+                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); // Clamp to max nudge
 
                     if (bestNudgeCandidate.direction === 'above') {
+                        // Move reel UP (scrollDist decreases), payline lands lower on winner (closer to item above)
                         scrollDist -= nudgeMagnitude; 
                         console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
-                    } else { 
+                    } else { // 'below'
+                        // Move reel DOWN (scrollDist increases), payline lands higher on winner (closer to item below)
                         scrollDist += nudgeMagnitude; 
                         console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
                     }
                 }
 
                 // --- 5. Clamp the final scroll position to ensure payline stays within the winning item
-                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset; 
-                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset;
+                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
+                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
                 scrollDist = Math.max(minScrollPosForWinner, Math.min(maxScrollPosForWinner, scrollDist));
 
                 // Apply animation
                 spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; // Slower, smoother ease-out
-                spinnerRereel.style.top = `-${scrollDist}px`;
+                spinnerReel.style.top = `-${scrollDist}px`;
             });
 
             const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
-                // If not in demo mode, update user inventory with ALL won prizes from the backend
-                if (!demoModeActive) { // NEW: Only update inventory in real mode
-                    result.won_prizes.forEach(wp => {
-                        // Ensure it's not a demo item before adding to real inventory
-                        if (!wp.is_demo_item) {
-                            const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
-                            if (existingItemIndex === -1 && wp.id) { 
-                                currentUser.inventory.push({ 
-                                    id: wp.id, name: wp.name, imageFilename: wp.imageFilename, 
-                                    currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false 
-                                });
-                            }
-                        }
-                    });
-                    renderInventory();
-                } else {
-                    // In demo mode, items are not added to inventory.
-                    showTGNotification("Demo Mode Win!", 'info');
-                }
+                // Update user inventory with ALL won prizes from the backend
+                result.won_prizes.forEach(wp => {
+                    const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
+                    // Add item only if it's new (and has an ID, to avoid adding TON prizes to inventory list)
+                    if (existingItemIndex === -1 && wp.id) { 
+                        currentUser.inventory.push({ 
+                            id: wp.id, name: wp.name, imageFilename: wp.imageFilename, 
+                            currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false 
+                        });
+                    }
+                });
+                renderInventory();
                 showWinOverlay(result.won_prizes);
 
                 // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
                 activeSpinners.forEach(spinnerReel => {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
-                    const itemHeightCalc = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
+                    // Recalculate itemHeight for robustness, though it should be constant for the same reel
+                    const itemHeightCalc = spinnerRereel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
                     
+                    // Estimate the index of the item that is now at the top of the visible window
                     const itemsScrolledPast = Math.floor(Math.abs(currentTop) / itemHeightCalc);
+                    
+                    // Keep items around the final stopping point for visual continuity
+                    // Example: Keep 10 items before the stopped item and (visible items * 2) after
                     const startIndex = Math.max(0, itemsScrolledPast - 10); 
                     const endIndex = Math.min(spinnerReel.children.length, itemsScrolledPast + 10 + Math.ceil(rouletteRowVisibleHeight / itemHeightCalc) * 2);
                     
                     const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
                     
-                    spinnerReel.innerHTML = '';
+                    spinnerReel.innerHTML = ''; // Clear and re-populate with trimmed list
                     itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
 
                     spinnerReel.style.transition = 'none'; 
+                    // Adjust top position to account for removed items
                     spinnerReel.style.top = `${currentTop + (startIndex * itemHeightCalc)}px`;
-                    void spinnerReel.offsetWidth;
+                    void spinnerReel.offsetWidth; // Force reflow
                 });
 
             }, animationDuration + 100);
@@ -1806,13 +1721,6 @@ profileElements.sellAllButton?.addEventListener('click', sellAllItems);
 confirmPaymentSentButton?.addEventListener('click', verifyPaymentSent);
 cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
 
-demoModeCheckbox.addEventListener('change', () => {
-    demoModeActive = demoModeCheckbox.checked;
-    updateSpinButtonText(); // Update spin button text and state
-    // You might want to also disable deposit/wallet connect buttons when demo mode is active
-    // For simplicity, we are only affecting the spin button here.
-});
-    
 async function fetchInitialUserData() {
     if (!Telegram.WebApp.initData) {
         dataFetchedSuccessfully = true; // No backend data, proceed with local state
