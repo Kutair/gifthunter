@@ -1290,7 +1290,7 @@ def open_case_api():
     data = flask_request.get_json()
     cid = data.get('case_id')
     multiplier = int(data.get('multiplier', 1))
-    demo_mode = data.get('demo_mode', False) # NEW: Get demo_mode flag
+    demo_mode = data.get('demo_mode', False) # NEW: Get demo_mode flag from frontend
 
     if not cid:
         return jsonify({"error": "case_id required"}), 400
@@ -1315,6 +1315,7 @@ def open_case_api():
             if Decimal(str(user.ton_balance)) < total_cost:
                 return jsonify({"error": f"Not enough TON. Need {total_cost:.2f} TON"}), 400
             user.ton_balance = float(Decimal(str(user.ton_balance)) - total_cost)
+            logger.info(f"User {uid} opening case {cid} x{multiplier} for {total_cost:.2f} TON. New balance: {user.ton_balance:.2f} TON")
         else:
             logger.info(f"Demo mode spin for user {uid}, case {cid}, multiplier {multiplier}. Cost {total_cost} TON is skipped.")
 
@@ -1322,32 +1323,39 @@ def open_case_api():
         prizes_pool_for_spin = list(tcase['prizes']) # Copy to avoid modifying original case_data
         
         if demo_mode:
-            total_weighted_prob_sum = Decimal('0')
             temp_adjusted_prizes = []
-            
+            total_weighted_prob_sum = Decimal('0')
+
             for p_info in prizes_pool_for_spin:
                 prize_floor_price = Decimal(str(UPDATED_FLOOR_PRICES.get(p_info['name'], 0)))
-                # Define 'big win' based on the threshold
+                # Apply 1.5x boost for prizes at or above the threshold
                 boost_factor = Decimal('1.5') if prize_floor_price >= PRIZE_DEMO_BIG_WIN_THRESHOLD else Decimal('1.0')
                 
                 weighted_prob = Decimal(str(p_info['probability'])) * boost_factor
                 total_weighted_prob_sum += weighted_prob
+                
                 temp_adjusted_prizes.append({
-                    **p_info, # Copy all original prize info (name, imageFilename, is_ton_prize etc.)
+                    **p_info, # Keep all original prize info
                     'weighted_prob': weighted_prob # Store for normalization
                 })
             
+            # Normalize probabilities to sum to 1.0 based on weighted probabilities
             if total_weighted_prob_sum > Decimal('0'):
-                # Normalize the weighted probabilities to sum to 1.0
+                prizes_in_case = []
                 for p_adj in temp_adjusted_prizes:
-                    p_adj['probability'] = float((p_adj['weighted_prob'] / total_weighted_prob_sum).quantize(Decimal('1E-7')))
-                
-                # Replace the original prizes list for the spin with the adjusted one
-                prizes_in_case = [ {k:v for k,v in p_adj.items() if k != 'weighted_prob'} for p_adj in temp_adjusted_prizes ]
+                    normalized_prob = (p_adj['weighted_prob'] / total_weighted_prob_sum).quantize(Decimal('1E-7'))
+                    prizes_in_case.append({
+                        'name': p_adj['name'],
+                        'probability': float(normalized_prob),
+                        'floor_price': float(p_adj['floor_price']),
+                        'imageFilename': p_adj['imageFilename'],
+                        'is_ton_prize': p_adj['is_ton_prize']
+                    })
                 logger.info(f"Demo mode probabilities adjusted for case {cid}. New sum of probs: {sum(p['probability'] for p in prizes_in_case):.7f}")
             else:
+                # Fallback: if sum of weighted probabilities is zero, use original probabilities (shouldn't happen with valid data)
                 logger.warning(f"Demo mode probability sum is zero for case {cid}. Using original probabilities as fallback.")
-                prizes_in_case = list(tcase['prizes']) # Revert to original if something went wrong
+                prizes_in_case = list(tcase['prizes'])
         else:
             prizes_in_case = list(tcase['prizes']) # Use original probabilities in normal mode
 
@@ -1359,14 +1367,16 @@ def open_case_api():
             cprob = 0
             chosen_prize_info = None
 
-            for p_info in prizes_in_case: 
+            for p_info in prizes_in_case: # Use the potentially adjusted prizes_in_case
                 cprob += p_info['probability']
                 if rv <= cprob:
                     chosen_prize_info = p_info
                     break
             
             if not chosen_prize_info:
-                chosen_prize_info = random.choice(prizes_in_case) # Fallback if random doesn't match
+                # Fallback if somehow no prize is chosen (should not happen if sum of probs is 1.0)
+                chosen_prize_info = random.choice(prizes_in_case) 
+                logger.warning(f"Random value {rv} did not match any probability, falling back to random choice for case {cid}.")
 
             actual_val = Decimal(str(chosen_prize_info.get('floor_price', 0)))
             
@@ -1379,7 +1389,7 @@ def open_case_api():
                 "is_ton_prize": chosen_prize_info.get('is_ton_prize', False)
             }
 
-            # MODIFIED: Only save to DB in real mode
+            # MODIFIED: Only save to DB and assign real ID if not in demo mode
             if not demo_mode: 
                 dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
                 item = InventoryItem(
@@ -1392,12 +1402,13 @@ def open_case_api():
                     is_ton_prize=won_item_dict['is_ton_prize']
                 )
                 db.add(item)
-                db.flush()
+                db.flush() # Flush to get item.id before commit
                 won_item_dict["id"] = item.id 
             else:
                 # For demo mode, generate a dummy ID and mark as demo item for frontend
-                won_item_dict["id"] = f"demo_item_{int(time.time()*1e6)}_{random.randint(0,99999)}"
-                won_item_dict["is_demo_item"] = True # NEW: Flag for frontend
+                # Using a combination of timestamp and random to ensure uniqueness for multiple demo wins
+                won_item_dict["id"] = f"demo_item_{int(time.time()*1000)}_{random.randint(0,99999)}"
+                won_item_dict["is_demo_item"] = True # Flag for frontend to handle specially (e.g., not save/convert)
             
             won_prizes_list.append(won_item_dict)
             total_value_this_spin += actual_val
@@ -1406,18 +1417,19 @@ def open_case_api():
         if not demo_mode:
             user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin)
         
-        db.commit() 
+        db.commit() # Commit changes to user balance and inventory (if not demo mode)
         return jsonify({
             "status":"success",
             "won_prizes":won_prizes_list,
-            "new_balance_ton":user.ton_balance # Always return actual balance
+            "new_balance_ton":user.ton_balance # Always return actual balance, even if unchanged in demo mode
         })
     except Exception as e:
-        db.rollback()
+        db.rollback() # Rollback any database changes if an error occurs
         logger.error(f"Error in open_case for user {uid}: {e}", exc_info=True)
+        # Return a 500 status code for internal server errors
         return jsonify({"error": "Database error or unexpected issue during case opening."}), 500
     finally:
-        db.close()
+        db.close() # Ensure database session is closed
 
 @app.route('/api/spin_slot', methods=['POST'])
 def spin_slot_api():
