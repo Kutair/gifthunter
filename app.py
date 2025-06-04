@@ -882,10 +882,9 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name': 'Loot Bag', 'probability': 0.6}, {'name': 'Genie Lamp', 'probability': 0.7},
         {'name': 'Sharp Tongue', 'probability': 0.7}, {'name': 'Neko Helmet', 'probability': 0.7},
         {'name': 'Toy Bear', 'probability': 0.8}, {'name': 'Eternal Rose', 'probability': 1.0},
-        {'name': 'Big Year', 'probability': 1.2}, {'name': 'Berry Box', 'probability': 1.4},
+        {'name': 'Berry Box', 'probability': 1.4},
         {'name': 'Sakura Flower', 'probability': 1.4}, {'name': 'Bunny Muffin', 'probability': 1.4},
-        {'name': 'Snake Box', 'probability': 1.3}, {'name': 'Pet Snake', 'probability': 1.3},
-        {'name': 'Star Notepad', 'probability': 1.2}, {'name': 'Xmas Stocking', 'probability': 1.5},
+        {'name': 'Star Notepad', 'probability': 1.2},
         {'name': 'Cookie Heart', 'probability': 1.5}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
@@ -894,9 +893,8 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name': 'Perfume Bottle', 'probability': 0.6}, {'name': 'Scared Cat', 'probability': 0.8},
         {'name': 'Vintage Cigar', 'probability': 0.7}, {'name': 'Signet Ring', 'probability': 0.7},
         {'name': 'Swiss Watch', 'probability': 0.7}, {'name': 'Top Hat', 'probability': 1.4},
-        {'name': 'Big Year', 'probability': 1.2}, {'name': 'Record Player', 'probability': 1.4},
-        {'name': 'Snake Box', 'probability': 1.3}, {'name': 'Pet Snake', 'probability': 1.3},
-        {'name': 'Xmas Stocking', 'probability': 1.5}, {'name': 'Spiced Wine', 'probability': 1.5}
+        {'name': 'Record Player', 'probability': 1.4},
+        {'name': 'Spiced Wine', 'probability': 1.5}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'swisswatch','name':'Swiss Watch Box','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg','priceTON':10.0,'prizes': sorted([
