@@ -451,6 +451,45 @@ def generate_image_filename_from_name(name_str: str) -> str:
         filename += '.png'
     return filename
 
+API_KEY_SECRET = os.environ.get("API_KEY_SECRET", "YOUR_VERY_SECURE_RANDOM_KEY_HERE_CHANGE_ME") # IMPORTANT: Change this in production!
+
+# Initial floor prices to populate DB if NFTs don't exist.
+INITIAL_NFT_FLOOR_PRICES_SEED = {
+    'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,
+    'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':162.0,
+    'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,
+    'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,
+    'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,
+    'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0,
+    'Berry Box':4.1, 'Bunny Muffin':4.0, 'Candy Cane':1.6, 'Crystal Ball':6.0, 'Easter Egg':1.8,
+    'Eternal Candle':3.1, 'Evil Eye':4.2, 'Flying Broom':4.5, 'Ginger Cookie':2.7, 'Hanging Star':4.1,
+    'Hex Pot':3.1, 'Ion Gem':44.0, 'Jester Hat':2.0, 'Jingle Bells':1.8, 'Love Candle':6.7,
+    'Lunar Snake':1.5, 'Mad Pumpkin':6.2, 'Magic Potion':33.0, 'Pet Snake':3.2, 'Sakura Flower':4.1,
+    'Santa Hat':2.0, 'Signet Ring':18.8, 'Sleigh Bell':6.0, 'Snow Mittens':2.9, 'Spiced Wine':2.2,
+    'Spy Agaric':2.8, 'Star Notepad':2.8, 'Trapped Heart':6.0, 'Winter Wreath':2.0,
+    "Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,
+    "Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,
+    "Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,
+    "Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,
+    "Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,
+    "Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,
+    "Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,
+    "Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,
+    "Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0
+}
+
+INITIAL_KISSED_FROG_VARIANT_FLOORS_SEED = { # Kept for potential specific logic, though merged into above
+    "Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,
+    "Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,
+    "Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,
+    "Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,
+    "Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,
+    "Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,
+    "Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,
+    "Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,
+    "Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0
+}
+
 # --- Floor Prices for all known NFTs (and Kissed Frog variants) ---
 UPDATED_FLOOR_PRICES = {
     'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,
@@ -768,6 +807,116 @@ kissed_frog_processed_prizes = calculate_rtp_probabilities(
     UPDATED_FLOOR_PRICES
 )
 
+finalKissedFrogPrizesRaw_Python=[
+    {'name':'Happy Pepe','probability':0.00010},{'name':'Tree Frog','probability':0.00050},{'name':'Brewtoad','probability':0.00050},{'name':'Puddles','probability':0.00050},{'name':'Honeyhop','probability':0.00050},{'name':'Melty Butter','probability':0.00050},{'name':'Lucifrog','probability':0.00050},{'name':'Zodiak Croak','probability':0.00050},{'name':'Count Croakula','probability':0.00050},{'name':'Lilie Pond','probability':0.00050},{'name':'Sweet Dream','probability':0.00050},{'name':'Frogmaid','probability':0.00050},{'name':'Rocky Hopper','probability':0.00050},{'name':'Icefrog','probability':0.0020},{'name':'Lava Leap','probability':0.0020},{'name':'Toadstool','probability':0.0020},{'name':'Desert Frog','probability':0.0020},{'name':'Cupid','probability':0.0020},{'name':'Hopberry','probability':0.0020},{'name':'Ms. Toad','probability':0.0020},{'name':'Trixie','probability':0.0020},{'name':'Prince Ribbit','probability':0.0020},{'name':'Pond Fairy','probability':0.0020},{'name':'Boingo','probability':0.0020},{'name':'Tesla Frog','probability':0.0020},{'name':'Starry Night','probability':0.0070},{'name':'Silver','probability':0.0070},{'name':'Ectofrog','probability':0.0070},{'name':'Poison','probability':0.0070},{'name':'Minty Bloom','probability':0.0070},{'name':'Sarutoad','probability':0.0070},{'name':'Void Hopper','probability':0.0070},{'name':'Ramune','probability':0.0070},{'name':'Lemon Drop','probability':0.0070},{'name':'Ectobloom','probability':0.0070},{'name':'Duskhopper','probability':0.0070},{'name':'Bronze','probability':0.0070},{'name':'Lily Pond','probability':0.04028},{'name':'Toadberry','probability':0.04028},{'name':'Frogwave','probability':0.04028},{'name':'Melon','probability':0.04028},{'name':'Sky Leaper','probability':0.04028},{'name':'Frogtart','probability':0.04028},{'name':'Peach','probability':0.04028},{'name':'Sea Breeze','probability':0.04028},{'name':'Lemon Juice','probability':0.04028},{'name':'Cranberry','probability':0.04028},{'name':'Tide Pod','probability':0.04028},{'name':'Brownie','probability':0.04028},{'name':'Banana Pox','probability':0.04024},{'name':'Desk Calendar','probability':0.0000000}
+]
+
+# Raw Templates for Cases
+cases_data_backend_raw_templates = [
+    {'id':'lolpop','name':'Lol Pop Stash','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg','priceTON':2.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.00005}, {'name':'Neko Helmet','probability':0.0015},
+        {'name':'Party Sparkler','probability':0.08}, {'name':'Homemade Cake','probability':0.08},
+        {'name':'Cookie Heart','probability':0.08}, {'name':'Jack-in-the-box','probability':0.08},
+        {'name':'Skull Flower','probability':0.035}, {'name':'Lol Pop','probability':0.15},
+        {'name':'Hynpo Lollipop','probability':0.15}, {'name':'Desk Calendar','probability':0.05},
+        {'name':'B-Day Candle','probability':0.05}, {'name':'Candy Cane','probability':0.05},
+        {'name':'Easter Egg','probability':0.05}, {'name':'Jingle Bells','probability':0.05},
+        {'name':'Lunar Snake','probability':0.05}, {'name':'Santa Hat','probability':0.05},
+        {'name':'Jester Hat','probability':0.05}, {'name':'Spiced Wine','probability':0.05},
+        {'name':'Winter Wreath','probability':0.05}
+    ]},
+    {'id':'recordplayer','name':'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':6.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.00015},{'name':'Record Player','probability':0.15},
+        {'name':'Lol Pop','probability':0.10},{'name':'Hynpo Lollipop','probability':0.10},
+        {'name':'Party Sparkler','probability':0.10},{'name':'Skull Flower','probability':0.08},
+        {'name':'Jelly Bunny','probability':0.08},{'name':'Tama Gadget','probability':0.07},
+        {'name':'Snow Globe','probability':0.06}, {'name':'Bunny Muffin','probability':0.03},
+        {'name':'Berry Box','probability':0.03}, {'name':'Crystal Ball','probability':0.03},
+        {'name':'Eternal Candle','probability':0.03}, {'name':'Evil Eye','probability':0.03},
+        {'name':'Flying Broom','probability':0.03}, {'name':'Hex Pot','probability':0.03},
+        {'name':'Pet Snake','probability':0.03}, {'name':'Snow Mittens','probability':0.03},
+        {'name':'Spy Agaric','probability':0.03}, {'name':'Star Notepad','probability':0.03},
+        {'name':'Ginger Cookie','probability':0.03}
+    ]},
+    {'id': 'girls_collection', 'name': 'Girl\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg', 'priceTON': 8.0, 'prizes': [
+        {'name': 'Loot Bag', 'probability': 0.0909}, {'name': 'Neko Helmet', 'probability': 0.0909},
+        {'name': 'Genie Lamp', 'probability': 0.0909}, {'name': 'Eternal Rose', 'probability': 0.0909},
+        {'name': 'Sharp Tongue', 'probability': 0.0909}, {'name': 'Toy Bear', 'probability': 0.0909},
+        {'name': 'Star Notepad', 'probability': 0.0909}, {'name': 'Bunny Muffin', 'probability': 0.0909},
+        {'name': 'Berry Box', 'probability': 0.0909}, {'name': 'Sakura Flower', 'probability': 0.0909},
+        {'name': 'Cookie Heart', 'probability': 0.0910} # Ensure sum to 1
+    ]},
+    {'id': 'mens_collection', 'name': 'Men\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/men.jpg', 'priceTON': 8.0, 'prizes': [
+        {'name': 'Durov\'s Cap', 'probability': 0.1}, {'name': 'Signet Ring', 'probability': 0.1},
+        {'name': 'Swiss Watch', 'probability': 0.1}, {'name': 'Vintage Cigar', 'probability': 0.1},
+        {'name': 'Mini Oscar', 'probability': 0.1}, {'name': 'Perfume Bottle', 'probability': 0.1},
+        {'name': 'Scared Cat', 'probability': 0.1}, {'name': 'Record Player', 'probability': 0.1},
+        {'name': 'Top Hat', 'probability': 0.1}, {'name': 'Spiced Wine', 'probability': 0.1}
+    ]},
+    {'id':'swisswatch','name':'Swiss Watch Box','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg','priceTON':10.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.0002},{'name':'Swiss Watch','probability':0.032},
+        {'name':'Neko Helmet','probability':0.045},{'name':'Eternal Rose','probability':0.06},
+        {'name':'Electric Skull','probability':0.08},{'name':'Diamond Ring','probability':0.1},
+        {'name':'Record Player','probability':0.12},{'name':'Love Potion','probability':0.12},
+        {'name':'Top Hat','probability':0.12},{'name':'Voodoo Doll','probability':0.15},
+        {'name':'Love Candle','probability':0.04}, {'name':'Signet Ring','probability':0.04},
+        {'name':'Sleigh Bell','probability':0.04}, {'name':'Trapped Heart','probability':0.04},
+        {'name':'Mad Pumpkin','probability':0.0328} # Adjusted for sum to 1
+    ]},
+    {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',
+        'prizes': finalKissedFrogPrizesRaw_Python
+    },
+    {'id':'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON': 20.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.0004},{'name':'Perfume Bottle','probability':0.02},
+        {'name':'Sharp Tongue','probability':0.035},{'name':'Loot Bag','probability':0.05},
+        {'name':'Swiss Watch','probability':0.06},{'name':'Neko Helmet','probability':0.08},
+        {'name':'Genie Lamp','probability':0.11},{'name':'Kissed Frog','probability':0.15},
+        {'name':'Electric Skull','probability':0.2},{'name':'Diamond Ring','probability':0.2},
+        {'name':'Magic Potion','probability':0.05}, {'name':'Ion Gem','probability':0.0446} # Adjusted
+    ]},
+    {'id':'vintagecigar','name':'Vintage Cigar Safe','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg','priceTON':40.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.0008},{'name':'Perfume Bottle','probability':0.025},
+        {'name':'Vintage Cigar','probability':0.03},{'name':'Swiss Watch','probability':0.04},
+        {'name':'Neko Helmet','probability':0.06},{'name':'Sharp Tongue','probability':0.08},
+        {'name':'Genie Lamp','probability':0.1},{'name':'Mini Oscar','probability':0.07},
+        {'name':'Scared Cat','probability':0.2},{'name':'Toy Bear','probability':0.3942},
+        {'name':'Precious Peach','probability':0.02}
+    ]},
+    {'id':'astralshard','name':'Astral Shard Relic','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg','priceTON':100.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.0015},{'name':'Durov\'s Cap','probability':0.01},
+        {'name':'Astral Shard','probability':0.025},{'name':'Precious Peach','probability':0.05},
+        {'name':'Vintage Cigar','probability':0.04},{'name':'Perfume Bottle','probability':0.05},
+        {'name':'Swiss Watch','probability':0.07},{'name':'Neko Helmet','probability':0.09},
+        {'name':'Mini Oscar','probability':0.06},{'name':'Scared Cat','probability':0.15},
+        {'name':'Loot Bag','probability':0.2},{'name':'Toy Bear','probability':0.2035}, # Adjusted
+        {'name':'Ion Gem','probability':0.03}, {'name':'Magic Potion','probability':0.03}
+    ]},
+    {'id':'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON': 200.0,'prizes':[
+        {'name':'Plush Pepe','probability':0.045},{'name':'Durov\'s Cap','probability':0.2},
+        {'name':'Astral Shard','probability':0.4},{'name':'Precious Peach','probability':0.355} # Adjusted
+    ]}
+]
+
+# Raw Templates for Slots
+slots_data_backend_raw_templates = [
+    { 'id': 'default_slot', 'name': 'Default Slot', 'priceTON': 3.0, 'reels_config': 3, 'prize_pool': [
+        {'name': "0.1 TON", 'value': 0.1, 'is_ton_prize': True, 'probability': 0.1},
+        {'name': "0.25 TON", 'value': 0.25, 'is_ton_prize': True, 'probability': 0.08},
+        {'name': "0.5 TON", 'value': 0.5, 'is_ton_prize': True, 'probability': 0.05},
+        {'name': 'Desk Calendar', 'probability': 0.20}, {'name': 'Lol Pop', 'probability': 0.15},
+        {'name': 'Party Sparkler', 'probability': 0.15}, {'name': 'Cookie Heart', 'probability': 0.10},
+        {'name': 'Jack-in-the-box', 'probability': 0.09}, {'name': 'Skull Flower', 'probability': 0.08}
+    ]},
+    { 'id': 'premium_slot', 'name': 'Premium Slot', 'priceTON': 10.0, 'reels_config': 3, 'prize_pool': [
+        {'name': "2 TON", 'value': 2.0, 'is_ton_prize': True, 'probability': 0.08},
+        {'name': "3 TON", 'value': 3.0, 'is_ton_prize': True, 'probability': 0.05},
+        {'name': "5 TON", 'value': 5.0, 'is_ton_prize': True, 'probability': 0.03},
+        {'name': 'Plush Pepe', 'probability': 0.05}, {'name': 'Durov\'s Cap', 'probability': 0.10},
+        {'name': 'Astral Shard', 'probability': 0.15}, {'name': 'Precious Peach', 'probability': 0.25},
+        {'name': 'Vintage Cigar', 'probability': 0.29}
+    ]}
+]
+
 # Backend cases data (initial templates - will be adjusted by RTP function)
 cases_data_backend_with_fixed_prices_raw = [
     # ... (existing case definitions) ...
@@ -878,6 +1027,7 @@ cases_data_backend_with_fixed_prices_raw = [
 ]
 
 cases_data_backend = []
+slots_data_backend = []
 for case_template in cases_data_backend_with_fixed_prices_raw:
     processed_case = {**case_template}
     try:
@@ -1025,21 +1175,50 @@ def populate_initial_data():
 
 def initial_setup_and_logging():
     populate_initial_data()
-    db = SessionLocal()
+    db_session = next(get_db())
     try:
-        if not db.query(PromoCode).filter(PromoCode.code_text == 'Grachev').first():
-            db.add(PromoCode(code_text='Grachev', activations_left=10, ton_amount=100.0))
-            db.commit()
+        if not db_session.query(PromoCode).filter(PromoCode.code_text == 'Grachev').first():
+            db_session.add(PromoCode(code_text='Grachev', activations_left=10, ton_amount=100.0))
+            db_session.commit()
             logger.info("Seeded 'Grachev' promocode.")
         else:
             logger.info("'Grachev' promocode already exists. Skipping seeding.")
     except Exception as e:
-        db.rollback()
+        db_session.rollback()
         logger.error(f"Error seeding Grachev promocode: {e}", exc_info=True)
     finally:
-        db.close()
+        db_session.close()
     
-    calculate_and_log_rtp()
+    current_db_floor_prices_initial_load = get_all_live_floor_prices_from_db()
+    if not current_db_floor_prices_initial_load:
+        logger.warning("Failed to load any floor prices from DB for initial setup. Frontend data might be incomplete.")
+        # Populate with seed data as a fallback if DB is empty or inaccessible on startup
+        current_db_floor_prices_initial_load = INITIAL_NFT_FLOOR_PRICES_SEED
+    
+    global cases_data_backend, slots_data_backend
+    cases_data_backend = []
+    for case_template in cases_data_backend_raw_templates:
+        processed_case = {**case_template}
+        try:
+            processed_case['prizes'] = calculate_rtp_probabilities(case_template, current_db_floor_prices_initial_load)
+            cases_data_backend.append(processed_case)
+        except Exception as e:
+            case_id = case_template.get('id', 'N/A')
+            case_name = case_template.get('name', 'Unnamed Case')
+            logger.error(f"Failed to process case '{case_name}' (ID: {case_id}) for initial RTP loading. Skipping. Error: {e}", exc_info=True)
+
+    slots_data_backend = []
+    for slot_template in slots_data_backend_raw_templates:
+        processed_slot = {**slot_template}
+        try:
+            processed_slot['prize_pool'] = calculate_rtp_probabilities_for_slots(slot_template, current_db_floor_prices_initial_load)
+            slots_data_backend.append(processed_slot)
+        except Exception as e:
+            slot_id = slot_template.get('id', 'N/A')
+            slot_name = slot_template.get('name', 'Unnamed Slot')
+            logger.error(f"Failed to process slot '{slot_name}' (ID: {slot_id}) for initial RTP loading. Skipping. Error: {e}", exc_info=True)
+            
+    calculate_and_log_rtp() # This function will now use the globally populated cases_data_backend and slots_data_backend
 
 initial_setup_and_logging()
 
@@ -1054,10 +1233,37 @@ CORS(app, resources={r"/api/*": {"origins": final_allowed_origins}})
 
 
 # --- Database Session Helper ---
-def get_db():
-    db = SessionLocal()
+def populate_initial_data():
+    db = next(get_db()) # Correctly get a session
     try:
-        yield db
+        for nft_name, floor_price in INITIAL_NFT_FLOOR_PRICES_SEED.items():
+            nft_exists = db.query(NFT).filter(NFT.name == nft_name).first()
+            img_filename_or_url = generate_image_filename_from_name(nft_name)
+            
+            if not nft_exists:
+                db.add(NFT(name=nft_name, image_filename=img_filename_or_url, floor_price=floor_price))
+            elif nft_exists.floor_price != floor_price or nft_exists.image_filename != img_filename_or_url:
+                if nft_exists.floor_price != floor_price:
+                    logger.info(f"Updating floor price for {nft_name}: {nft_exists.floor_price} -> {floor_price}")
+                    nft_exists.floor_price = floor_price
+                if nft_exists.image_filename != img_filename_or_url:
+                    logger.info(f"Updating image for {nft_name}: {nft_exists.image_filename} -> {img_filename_or_url}")
+                    nft_exists.image_filename = img_filename_or_url
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error populating initial NFT data: {e}", exc_info=True)
+    finally:
+        db.close()
+
+def get_all_live_floor_prices_from_db():
+    db = next(get_db())
+    try:
+        nfts = db.query(NFT).all()
+        return {nft.name: float(nft.floor_price) for nft in nfts}
+    except Exception as e:
+        logger.error(f"Error fetching live floor prices from DB: {e}", exc_info=True)
+        return {} # Return empty if error to avoid breaking caller
     finally:
         db.close()
 
@@ -1302,11 +1508,20 @@ def open_case_api():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        tcase = next((c for c in cases_data_backend if c['id'] == cid), None)
-        if not tcase:
+        tcase_template = next((c for c in cases_data_backend_raw_templates if c['id'] == cid), None)
+        if not tcase_template:
             return jsonify({"error": "Case not found"}), 404
         
-        base_cost = Decimal(str(tcase['priceTON']))
+        live_floor_prices = get_all_live_floor_prices_from_db()
+        if not live_floor_prices:
+            return jsonify({"error": "Could not retrieve live floor prices for game calculation."}), 500
+
+        processed_prizes_for_spin = calculate_rtp_probabilities(tcase_template, live_floor_prices)
+        if not processed_prizes_for_spin: # Handle case where RTP calc might return empty
+            logger.error(f"RTP calculation for case {cid} returned empty prize list with live prices.")
+            return jsonify({"error": "Error calculating prize probabilities for this case."}), 500
+            
+        base_cost = Decimal(str(tcase_template['priceTON']))
         total_cost = base_cost * Decimal(multiplier)
 
         if Decimal(str(user.ton_balance)) < total_cost:
@@ -1314,7 +1529,6 @@ def open_case_api():
         
         user.ton_balance = float(Decimal(str(user.ton_balance)) - total_cost)
         
-        prizes_in_case = tcase['prizes']
         won_prizes_list = []
         total_value_this_spin = Decimal('0')
 
@@ -1323,32 +1537,38 @@ def open_case_api():
             cprob = 0
             chosen_prize_info = None
 
-            for p_info in prizes_in_case:
+            for p_info in processed_prizes_for_spin:
                 cprob += p_info['probability']
                 if rv <= cprob:
                     chosen_prize_info = p_info
                     break
             
-            if not chosen_prize_info:
-                chosen_prize_info = random.choice(prizes_in_case)
+            if not chosen_prize_info: # Fallback, should ideally not happen
+                chosen_prize_info = random.choice(processed_prizes_for_spin) if processed_prizes_for_spin else None
+                if not chosen_prize_info: # If still no prize (e.g., empty processed list)
+                    logger.error(f"Failed to choose a prize for case {cid}, user {uid} - processed_prizes_for_spin was empty or choosing failed.")
+                    # You might award a default low-value consolation prize here or error out
+                    # For now, erroring:
+                    return jsonify({"error": "Internal error determining prize outcome."}), 500
+
 
             dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
             
-            actual_val = Decimal(str(chosen_prize_info.get('floor_price', 0))) # Use floor_price from chosen_prize_info
+            actual_val = Decimal(str(chosen_prize_info.get('floor_price', 0)))
             
-            variant_name = chosen_prize_info['name'] if chosen_prize_info['name'] in KISSED_FROG_VARIANT_FLOORS else None
+            variant_name = chosen_prize_info['name'] if chosen_prize_info['name'] in INITIAL_NFT_FLOOR_PRICES_SEED and chosen_prize_info['name'] in INITIAL_KISSED_FROG_VARIANT_FLOORS_SEED else None
 
             item = InventoryItem(
                 user_id=uid,
                 nft_id=dbnft.id if dbnft else None,
                 item_name_override=chosen_prize_info['name'],
-                item_image_override=chosen_prize_info['imageFilename'], # Use the image filename from prize info
+                item_image_override=chosen_prize_info['imageFilename'],
                 current_value=float(actual_val.quantize(Decimal('0.01'))),
                 variant=variant_name,
                 is_ton_prize=chosen_prize_info.get('is_ton_prize', False)
             )
             db.add(item)
-            db.flush()
+            db.flush() # Get ID for item
 
             won_prizes_list.append({
                 "id":item.id,
@@ -1376,7 +1596,7 @@ def open_case_api():
         return jsonify({"error": "Database error or unexpected issue during case opening."}), 500
     finally:
         db.close()
-
+        
 @app.route('/api/spin_slot', methods=['POST'])
 def spin_slot_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
@@ -1396,78 +1616,73 @@ def spin_slot_api():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        target_slot = next((s for s in slots_data_backend if s['id'] == slot_id), None)
-        if not target_slot:
+        target_slot_template = next((s for s in slots_data_backend_raw_templates if s['id'] == slot_id), None)
+        if not target_slot_template:
             return jsonify({"error": "Slot not found"}), 404
         
-        cost = Decimal(str(target_slot['priceTON']))
+        live_floor_prices = get_all_live_floor_prices_from_db()
+        if not live_floor_prices:
+            return jsonify({"error": "Could not retrieve live floor prices for game calculation."}), 500
+
+        processed_prize_pool_for_spin = calculate_rtp_probabilities_for_slots(target_slot_template, live_floor_prices)
+        if not processed_prize_pool_for_spin:
+            logger.error(f"RTP calculation for slot {slot_id} returned empty prize list with live prices.")
+            return jsonify({"error": "Error calculating prize probabilities for this slot."}), 500
+
+        cost = Decimal(str(target_slot_template['priceTON']))
         if Decimal(str(user.ton_balance)) < cost:
             return jsonify({"error": f"Not enough TON. Need {cost:.2f}"}), 400
         
         user.ton_balance = float(Decimal(str(user.ton_balance)) - cost)
         
-        num_reels = target_slot.get('reels_config', 3)
-        slot_pool = target_slot['prize_pool']
-
-        if not slot_pool:
-            return jsonify({"error": "Slot prize pool is empty or not configured."}), 500
+        num_reels = target_slot_template.get('reels_config', 3)
         
         reel_results_data = []
         for _ in range(num_reels):
             rv = random.random()
             cprob = 0
             landed_symbol_spec = None
-            for p_info_slot in slot_pool:
+            for p_info_slot in processed_prize_pool_for_spin:
                 cprob += p_info_slot.get('probability', 0)
                 if rv <= cprob:
                     landed_symbol_spec = p_info_slot
                     break
             
             if not landed_symbol_spec:
-                landed_symbol_spec = random.choice(slot_pool) if slot_pool else {"name":"Error Symbol","imageFilename":"placeholder.png","is_ton_prize":False,"currentValue":0,"floorPrice":0,"value":0}
-            
+                landed_symbol_spec = random.choice(processed_prize_pool_for_spin) if processed_prize_pool_for_spin else None
+                if not landed_symbol_spec:
+                     logger.error(f"Failed to choose a symbol for slot {slot_id}, user {uid} - processed_prize_pool_for_spin was empty or choosing failed.")
+                     return jsonify({"error": "Internal error determining slot outcome."}), 500
+
             reel_results_data.append({
                 "name": landed_symbol_spec['name'],
                 "imageFilename": landed_symbol_spec.get('imageFilename', generate_image_filename_from_name(landed_symbol_spec['name'])),
                 "is_ton_prize": landed_symbol_spec.get('is_ton_prize', False),
-                "currentValue": landed_symbol_spec.get('value', landed_symbol_spec.get('floorPrice', 0))
+                "currentValue": landed_symbol_spec.get('value', landed_symbol_spec.get('floor_price', 0))
             })
             
         won_prizes_from_slot = []
         total_value_this_spin = Decimal('0')
         
-        for landed_item_data in reel_results_data:
-            if landed_item_data.get('is_ton_prize'):
-                ton_val = Decimal(str(landed_item_data['currentValue']))
-                user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_val)
-                total_value_this_spin += ton_val
-
-                won_prizes_from_slot.append({
-                    "id": f"ton_prize_{int(time.time()*1e6)}_{random.randint(0,99999)}",
-                    "name": landed_item_data['name'],
-                    "imageFilename": landed_item_data.get('imageFilename', TON_PRIZE_IMAGE_DEFAULT),
-                    "currentValue": float(ton_val),
-                    "is_ton_prize": True
-                })
-        
+        # Process NFT wins (3-of-a-kind non-TON prize)
         if num_reels == 3 and len(reel_results_data) == 3:
-            first_symbol = reel_results_data[0]
-            if not first_symbol.get('is_ton_prize') and \
-               first_symbol['name'] == reel_results_data[1]['name'] and \
-               first_symbol['name'] == reel_results_data[2]['name']:
+            first_symbol_data = reel_results_data[0]
+            if not first_symbol_data.get('is_ton_prize') and \
+               first_symbol_data['name'] == reel_results_data[1]['name'] and \
+               first_symbol_data['name'] == reel_results_data[2]['name']:
                 
-                won_item_name = first_symbol['name']
+                won_item_name = first_symbol_data['name']
                 db_nft = db.query(NFT).filter(NFT.name == won_item_name).first()
                 
                 if db_nft:
-                    actual_val = Decimal(str(db_nft.floor_price))
+                    actual_val = Decimal(str(db_nft.floor_price)) # Use live DB price for inventory value
                     inv_item = InventoryItem(
                         user_id=uid,
                         nft_id=db_nft.id,
                         item_name_override=db_nft.name,
                         item_image_override=db_nft.image_filename,
                         current_value=float(actual_val.quantize(Decimal('0.01'))),
-                        variant=None,
+                        variant=None, 
                         is_ton_prize=False
                     )
                     db.add(inv_item)
@@ -1485,6 +1700,21 @@ def spin_slot_api():
                     total_value_this_spin += actual_val
                 else:
                     logger.error(f"Slot win: NFT '{won_item_name}' not found in DB! Cannot add to inventory.")
+
+        # Process TON prize wins (per-reel)
+        for landed_item_data in reel_results_data:
+            if landed_item_data.get('is_ton_prize'):
+                ton_val = Decimal(str(landed_item_data['currentValue']))
+                user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_val)
+                total_value_this_spin += ton_val
+
+                won_prizes_from_slot.append({
+                    "id": f"ton_prize_{int(time.time()*1e6)}_{random.randint(0,99999)}",
+                    "name": landed_item_data['name'],
+                    "imageFilename": landed_item_data.get('imageFilename', TON_PRIZE_IMAGE_DEFAULT),
+                    "currentValue": float(ton_val),
+                    "is_ton_prize": True
+                })
 
         user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin)
         
@@ -2057,6 +2287,63 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
         db.rollback()
         logger.error(f"Unexpected exception during Tonnel withdrawal for item {inventory_item_id}, user {player_user_id}: {e}", exc_info=True)
         return jsonify({"status":"error","message":"An unexpected server error occurred during withdrawal. Please try again later."}), 500
+    finally:
+        db.close()
+
+@app.route('/api/get_all_floor_prices', methods=['GET'])
+def get_all_floor_prices_api():
+    floor_prices = get_all_live_floor_prices_from_db()
+    if not floor_prices: # If empty dict was returned due to error
+        return jsonify({"error": "Could not retrieve floor prices from server."}), 500
+    return jsonify(floor_prices)
+
+@app.route('/api/update_floor_price', methods=['POST'])
+def update_floor_price_api():
+    auth_header = flask_request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Authorization header missing or malformed."}), 401
+    
+    received_key = auth_header.split('Bearer ')[1]
+    if received_key != API_KEY_SECRET:
+        return jsonify({"error": "Invalid API Key."}), 403
+
+    data = flask_request.get_json()
+    gift_name = data.get('gift_name')
+    new_floor_price_str = data.get('new_floor_price') # Expecting string or number
+
+    if not all([gift_name, new_floor_price_str is not None]):
+        return jsonify({"error": "Missing gift_name or new_floor_price."}), 400
+    
+    try:
+        new_floor_price_float = float(new_floor_price_str)
+        if new_floor_price_float < 0:
+            return jsonify({"error": "Floor price cannot be negative."}), 400
+    except ValueError:
+        return jsonify({"error": "new_floor_price must be a valid number."}), 400
+
+    db = next(get_db())
+    try:
+        nft = db.query(NFT).filter(NFT.name == gift_name).first()
+        if not nft:
+            image_filename = generate_image_filename_from_name(gift_name)
+            new_nft = NFT(name=gift_name, image_filename=image_filename, floor_price=new_floor_price_float)
+            db.add(new_nft)
+            db.commit()
+            logger.info(f"Created new NFT '{gift_name}' with floor price {new_floor_price_float}.")
+            return jsonify({"status": "success", "message": f"NFT '{gift_name}' created and floor price set to {new_floor_price_float}."})
+        else:
+            if nft.floor_price != new_floor_price_float:
+                old_price = nft.floor_price
+                nft.floor_price = new_floor_price_float
+                db.commit()
+                logger.info(f"Updated floor price for NFT '{gift_name}': {old_price} -> {new_floor_price_float}.")
+                return jsonify({"status": "success", "message": f"Floor price for '{gift_name}' updated to {new_floor_price_float}."})
+            else:
+                return jsonify({"status": "noop", "message": f"Floor price for '{gift_name}' is already {new_floor_price_float}."})
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error updating floor price for {gift_name}: {e}", exc_info=True)
+        return jsonify({"error": "Database error or unexpected issue."}), 500
     finally:
         db.close()
 
