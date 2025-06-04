@@ -1415,7 +1415,8 @@ def get_user_data_api():
             "referralCode":user.referral_code,
             "referralEarningsPending":user.referral_earnings_pending,
             "total_won_ton":user.total_won_ton,
-            "invited_friends_count":refs_count
+            "invited_friends_count":refs_count,
+            "cases_data_for_frontend": cases_data_backend
         })
     except Exception as e:
         logger.error(f"Error in get_user_data for {uid}: {e}", exc_info=True)
