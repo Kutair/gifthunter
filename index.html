@@ -467,7 +467,7 @@
 <script>
 // Global Constants and Data Definitions
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
-const API_BASE_URL = 'https://case-hznb.onrender.com'; // Ensure this is your correct backend URL
+const API_BASE_URL = 'https://case-hznb.onrender.com';
 const BOT_USERNAME = 'pusikGiftsBot';
 const MINI_APP_NAME = 'case';
 const TON_COIN_FULL_URL = 'https://case-bot.com/images/actions/ton.svg';
@@ -477,7 +477,7 @@ const currentUser = {
     walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
     inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0,
     invited_friends_count: 0,
-    photo_url: null
+    photo_url: null // Added field for user profile photo URL
 };
 let currentOpenCaseOrSlot = null;
 let selectedCaseMultiplier = 1;
@@ -485,77 +485,22 @@ let itemToWithdraw = null;
 const upgradeChances = { 1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3 };
 let lastWonPrizesForOverlay = [];
 let selectedUpgradeMultiplier = 1.5;
-let spinAnimationTimeoutOuter = null;
+let spinAnimationTimeoutOuter = null; // Initialize as null for safety
 
-// For image mapping, especially Kissed Frog variants
 const GIFT_NAME_TO_ID_MAP = {
   "Santa Hat": "5983471780763796287","Signet Ring": "5936085638515261992","Precious Peach": "5933671725160989227","Plush Pepe": "5936013938331222567","Spiced Wine": "5913442287462908725","Jelly Bunny": "5915502858152706668","Durov's Cap": "5915521180483191380","Perfume Bottle": "5913517067138499193","Eternal Rose": "5882125812596999035","Berry Box": "5882252952218894938","Vintage Cigar": "5857140566201991735","Magic Potion": "5846226946928673709", "Kissed Frog": "5845776576658015084","Hex Pot": "5825801628657124140","Evil Eye": "5825480571261813595","Sharp Tongue": "5841689550203650524","Trapped Heart": "5841391256135008713","Skull Flower": "5839038009193792264","Scared Cat": "5837059369300132790","Spy Agaric": "5821261908354794038","Homemade Cake": "5783075783622787539","Genie Lamp": "5933531623327795414","Lunar Snake": "6028426950047957932","Party Sparkler": "6003643167683903930","Jester Hat": "5933590374185435592","Witch Hat": "5821384757304362229","Hanging Star": "5915733223018594841","Love Candle": "5915550639663874519","Cookie Heart": "6001538689543439169","Desk Calendar": "5782988952268964995","Jingle Bells": "6001473264306619020","Snow Mittens": "5980789805615678057","Voodoo Doll": "5836780359634649414","Mad Pumpkin": "5841632504448025405","Hypno Lollipop": "5825895989088617224", "B-Day Candle": "5782984811920491178","Bunny Muffin": "5935936766358847989","Astral Shard": "5933629604416717361","Flying Broom": "5837063436634161765","Crystal Ball": "5841336413697606412","Eternal Candle": "5821205665758053411","Swiss Watch": "5936043693864651359","Ginger Cookie": "5983484377902875708","Mini Oscar": "5879737836550226478","Lol Pop": "5170594532177215681","Ion Gem": "5843762284240831056","Star Notepad": "5936017773737018241","Loot Bag": "5868659926187901653","Love Potion": "5868348541058942091","Toy Bear": "5868220813026526561","Diamond Ring": "5868503709637411929","Sakura Flower": "5167939598143193218","Sleigh Bell": "5981026247860290310","Top Hat": "5897593557492957738","Record Player": "5856973938650776169","Winter Wreath": "5983259145522906006","Snow Globe": "5981132629905245483","Electric Skull": "5846192273657692751","Tama Gadget": "6023752243218481939","Candy Cane": "6003373314888696650","Neko Helmet": "5933793770951673155","Jack-in-the-Box": "6005659564635063386","Easter Egg": "5773668482394620318","Bonded Ring": "5870661333703197240","Pet Snake": "6023917088358269866","Snake Box": "6023679164349940429","Xmas Stocking": "6003767644426076664","Big Year": "6028283532500009446","Holiday Drink": "6003735372041814769","Gem Signet": "5859442703032386168","Light Sword": "5897581235231785485"
 };
-const KISSED_FROG_VARIANT_IMAGE_MAP = { // Used for image paths ONLY
-    "Happy Pepe": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",
-    "Tree Frog": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",
-    "Brewtoad": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",
-    "Puddles": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",
-    "Honeyhop": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",
-    "Melty Butter": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",
-    "Lucifrog": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",
-    "Zodiak Croak": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",
-    "Count Croakula": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",
-    "Lilie Pond": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png", // Note: Lilie vs Lily
-    "Sweet Dream": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",
-    "Frogmaid": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",
-    "Rocky Hopper": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",
-    "Icefrog": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",
-    "Lava Leap": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",
-    "Toadstool": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",
-    "Desert Frog": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",
-    "Cupid": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",
-    "Hopberry": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",
-    "Ms. Toad": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",
-    "Trixie": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",
-    "Prince Ribbit": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",
-    "Pond Fairy": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",
-    "Boingo": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",
-    "Tesla Frog": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",
-    "Starry Night": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",
-    "Silver": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",
-    "Ectofrog": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",
-    "Poison": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",
-    "Minty Bloom": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",
-    "Sarutoad": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",
-    "Void Hopper": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",
-    "Ramune": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",
-    "Lemon Drop": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",
-    "Ectobloom": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",
-    "Duskhopper": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",
-    "Bronze": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",
-    "Lily Pond": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",
-    "Toadberry": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",
-    "Frogwave": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",
-    "Melon": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",
-    "Sky Leaper": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",
-    "Frogtart": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",
-    "Peach": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",
-    "Sea Breeze": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",
-    "Lemon Juice": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",
-    "Cranberry": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",
-    "Tide Pod": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",
-    "Brownie": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",
-    "Banana Pox": "https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png"
-};
-let liveFloorPrices = {}; // Will store fetched floor prices
-
-// casesData will be populated by backend (it contains prices from initial load)
-let casesData = []; 
+const UPDATED_FLOOR_PRICES_FRONTEND={'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':162.0,'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0,'Berry Box':4.1,'Bunny Muffin':4.0,'Candy Cane':1.6,'Crystal Ball':6.0,'Easter Egg':1.8,'Eternal Candle':3.1,'Evil Eye':4.2,'Flying Broom':4.5,'Ginger Cookie':2.7,'Hanging Star':4.1,'Hex Pot':3.1,'Ion Gem':44.0,'Jester Hat':2.0,'Jingle Bells':1.8,'Love Candle':6.7,'Lunar Snake':1.5,'Mad Pumpkin':6.2,'Magic Potion':33.0,'Pet Snake':3.2,'Sakura Flower':4.1,'Santa Hat':2.0,'Signet Ring':18.8,'Sleigh Bell':6.0,'Snow Mittens':2.9,'Spiced Wine':2.2,'Spy Agaric':2.8,'Star Notepad':2.8,'Trapped Heart':6.0,'Winter Wreath':2.0};
+const KISSED_FROG_VARIANT_FLOORS={"Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,"Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,"Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,"Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,"Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,"Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,"Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,"Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,"Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0};
+Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
 
 function generateImageFilename(nameOrUrl) {
     if (!nameOrUrl) return IMAGE_BASE_URL + 'placeholder.png';
     if (nameOrUrl.startsWith('http://') || nameOrUrl.startsWith('https://')) return nameOrUrl;
     const name = nameOrUrl;
-    if (name.toLowerCase().includes("ton") && (name.toLowerCase().includes("prize") || !isNaN(parseFloat(name.replace('TON', '').trim())) )) return TON_COIN_FULL_URL;
+    if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) return TON_COIN_FULL_URL;
     if (GIFT_NAME_TO_ID_MAP[name]) return `https://cdn.changes.tg/gifts/originals/${GIFT_NAME_TO_ID_MAP[name]}/Original.png`;
-    if (KISSED_FROG_VARIANT_IMAGE_MAP[name]) return KISSED_FROG_VARIANT_IMAGE_MAP[name]; // Use the image map
-    
+    if (Object.keys(KISSED_FROG_VARIANT_FLOORS).includes(name)) return `https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/${name.replace(/\s/g, '%20')}.png`;
     let filename = name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "");
     if (name === "Durov's Cap") filename = "Durov's-Cap";
     if (name === "Vintage Cigar") filename = "Vintage-Cigar";
@@ -564,7 +509,59 @@ function generateImageFilename(nameOrUrl) {
     return IMAGE_BASE_URL + filename;
 }
 
-// DOM Element References (No changes here from your previous full code)
+const finalKissedFrogPrizesWithConsolation = [{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}];
+let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
+let remainingProbForConsolation = 1.0 - currentProbSumForKF;
+if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
+finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
+
+const casesData=[{id:'lolpop',name:'Lol Pop Stash',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg',priceTON:2.0,prizes:[{name:'Plush Pepe',probability:0.0000454},{name:'Neko Helmet',probability:0.001362},{name:'Party Sparkler',probability:0.081816},{name:'Homemade Cake',probability:0.081816},{name:'Cookie Heart',probability:0.081816},{name:'Jack-in-the-box',probability:0.081816},{name:'Skull Flower',probability:0.0357945},{name:'Lol Pop',probability:0.153405},{name:'Hynpo Lollipop',probability:0.153405},{name:'Desk Calendar',probability:0.0454378},{name:'B-Day Candle',probability:0.0454378},{name:'Candy Cane',probability:0.0454378},{name:'Easter Egg',probability:0.0454378},{name:'Jingle Bells',probability:0.0454378},{name:'Lunar Snake',probability:0.0454378},{name:'Santa Hat',probability:0.0454378},{name:'Jester Hat',probability:0.0454378},{name:'Spiced Wine',probability:0.0454378},{name:'Winter Wreath',probability:0.0454378}]},{id:'recordplayer',name:'Record Player Vault',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg',priceTON:6.0,prizes:[{name:'Plush Pepe',probability:0.0001594},{name:'Record Player',probability:0.15942},{name:'Lol Pop',probability:0.10628},{name:'Hynpo Lollipop',probability:0.10628},{name:'Party Sparkler',probability:0.10628},{name:'Skull Flower',probability:0.085024},{name:'Jelly Bunny',probability:0.085024},{name:'Tama Gadget',probability:0.074404},{name:'Snow Globe',probability:0.06378},{name:'Bunny Muffin',probability:0.03189},{name:'Berry Box',probability:0.03189},{name:'Crystal Ball',probability:0.03189},{name:'Eternal Candle',probability:0.03189},{name:'Evil Eye',probability:0.03189},{name:'Flying Broom',probability:0.03189},{name:'Hex Pot',probability:0.03189},{name:'Pet Snake',probability:0.03189},{name:'Snow Mittens',probability:0.03189},{name:'Spy Agaric',probability:0.03189},{name:'Star Notepad',probability:0.03189},{name:'Ginger Cookie',probability:0.03189}]},
+    { // NEW: Girl's Collection - Placed between Record Player and Swiss Watch
+        id: 'girls_collection',
+        name: 'Girl\'s Collection',
+        imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg',
+        priceTON: 8.0,
+        prizes: [
+            {name: 'Loot Bag', probability: 1.0},
+            {name: 'Neko Helmet', probability: 1.0},
+            {name: 'Genie Lamp', probability: 1.0},
+            {name: 'Eternal Rose', probability: 1.0},
+            {name: 'Sharp Tongue', probability: 1.0},
+            {name: 'Toy Bear', probability: 1.0},
+            {name: 'Star Notepad', probability: 1.0},
+            {name: 'Bunny Muffin', probability: 1.0},
+            {name: 'Berry Box', probability: 1.0},
+            {name: 'Sakura Flower', probability: 1.0},
+            {name: 'Cookie Heart', probability: 1.0}
+        ]
+    },
+    { // NEW: Men's Collection - Placed between Record Player and Swiss Watch
+        id: 'mens_collection',
+        name: 'Men\'s Collection',
+        imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/men.jpg',
+        priceTON: 8.0,
+        prizes: [
+            {name: 'Durov\'s Cap', probability: 1.0},
+            {name: 'Signet Ring', probability: 1.0},
+            {name: 'Swiss Watch', probability: 1.0},
+            {name: 'Vintage Cigar', probability: 1.0},
+            {name: 'Mini Oscar', probability: 1.0},
+            {name: 'Perfume Bottle', probability: 1.0},
+            {name: 'Scared Cat', probability: 1.0},
+            {name: 'Record Player', probability: 1.0},
+            {name: 'Top Hat', probability: 1.0},
+            {name: 'Spiced Wine', probability: 1.0}
+        ]
+    },
+    {id:'swisswatch',name:'Swiss Watch Box',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg',priceTON:10.0,prizes:[{name:'Plush Pepe',probability:0.0001994},{name:'Swiss Watch',probability:0.031904},{name:'Neko Helmet',probability:0.044865},{name:'Eternal Rose',probability:0.05982},{name:'Electric Skull',probability:0.07976},{name:'Diamond Ring',probability:0.0997},{name:'Record Player',probability:0.11964},{name:'Love Potion',probability:0.11964},{name:'Top Hat',probability:0.11964},{name:'Voodoo Doll',probability:0.14955},{name:'Love Candle',probability:0.03988},{name:'Signet Ring',probability:0.03988},{name:'Sleigh Bell',probability:0.03988},{name:'Trapped Heart',probability:0.03988},{name:'Mad Pumpkin',probability:0.03988}]},{id:'kissedfrog',name:'Kissed Frog Pond',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',priceTON:20.0,prizes:[{name:"Happy Pepe",probability:0.0000850,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png",floorPrice:500.0},{name:"Tree Frog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png",floorPrice:150.0},{name:"Brewtoad",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png",floorPrice:150.0},{name:"Puddles",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png",floorPrice:150.0},{name:"Honeyhop",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png",floorPrice:150.0},{name:"Melty Butter",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png",floorPrice:150.0},{name:"Lucifrog",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png",floorPrice:150.0},{name:"Zodiak Croak",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png",floorPrice:150.0},{name:"Count Croakula",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png",floorPrice:150.0},{name:"Lilie Pond",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png",floorPrice:150.0},{name:"Sweet Dream",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png",floorPrice:150.0},{name:"Frogmaid",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png",floorPrice:150.0},{name:"Rocky Hopper",probability:0.0004250,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png",floorPrice:150.0},{name:"Icefrog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png",floorPrice:45.0},{name:"Lava Leap",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png",floorPrice:45.0},{name:"Toadstool",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png",floorPrice:45.0},{name:"Desert Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png",floorPrice:45.0},{name:"Cupid",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png",floorPrice:45.0},{name:"Hopberry",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png",floorPrice:45.0},{name:"Ms. Toad",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png",floorPrice:45.0},{name:"Trixie",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png",floorPrice:45.0},{name:"Prince Ribbit",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png",floorPrice:45.0},{name:"Pond Fairy",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png",floorPrice:45.0},{name:"Boingo",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png",floorPrice:45.0},{name:"Tesla Frog",probability:0.0017000,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png",floorPrice:45.0},{name:"Starry Night",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png",floorPrice:30.0},{name:"Silver",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png",floorPrice:30.0},{name:"Ectofrog",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png",floorPrice:30.0},{name:"Poison",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png",floorPrice:30.0},{name:"Minty Bloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png",floorPrice:30.0},{name:"Sarutoad",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png",floorPrice:30.0},{name:"Void Hopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png",floorPrice:30.0},{name:"Ramune",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png",floorPrice:30.0},{name:"Lemon Drop",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png",floorPrice:30.0},{name:"Ectobloom",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png",floorPrice:30.0},{name:"Duskhopper",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png",floorPrice:30.0},{name:"Bronze",probability:0.0059500,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png",floorPrice:30.0},{name:"Lily Pond",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png",floorPrice:19.0},{name:"Toadberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png",floorPrice:19.0},{name:"Frogwave",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png",floorPrice:19.0},{name:"Melon",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png",floorPrice:19.0},{name:"Sky Leaper",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png",floorPrice:19.0},{name:"Frogtart",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png",floorPrice:19.0},{name:"Peach",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png",floorPrice:19.0},{name:"Sea Breeze",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png",floorPrice:19.0},{name:"Lemon Juice",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png",floorPrice:19.0},{name:"Cranberry",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png",floorPrice:19.0},{name:"Tide Pod",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png",floorPrice:19.0},{name:"Brownie",probability:0.0342380,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png",floorPrice:19.0},{name:"Banana Pox",probability:0.0342340,imageFilename:"https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png",floorPrice:19.0},{name:"Desk Calendar",probability:0.0000000,imageFilename:"https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png",floorPrice:1.4}]},{id:'perfumebottle',name:'Perfume Chest',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg',priceTON:20.0,prizes:[{name:'Plush Pepe',probability:0.000402},{name:'Perfume Bottle',probability:0.0201000},{name:'Sharp Tongue',probability:0.0351750},{name:'Loot Bag',probability:0.05025},{name:'Swiss Watch',probability:0.0603000},{name:'Neko Helmet',probability:0.0804000},{name:'Genie Lamp',probability:0.1105500},{name:'Kissed Frog',probability:0.1507500},{name:'Electric Skull',probability:0.2010000},{name:'Diamond Ring',probability:0.2010000},{name:'Magic Potion',probability:0.05025},{name:'Ion Gem',probability:0.0402000}]},{id:'vintagecigar',name:'Vintage Cigar Safe',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg',priceTON:40.0,prizes:[{name:'Plush Pepe',probability:0.000804},{name:'Perfume Bottle',probability:0.0251250},{name:'Vintage Cigar',probability:0.0301500},{name:'Swiss Watch',probability:0.0402000},{name:'Neko Helmet',probability:0.0603000},{name:'Sharp Tongue',probability:0.0804000},{name:'Genie Lamp',probability:0.1005000},{name:'Mini Oscar',probability:0.07035},{name:'Scared Cat',probability:0.2010000},{name:'Toy Bear',probability:0.3957930},{name:'Precious Peach',probability:0.0201000}]},{id:'astralshard',name:'Astral Shard Relic',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg',priceTON:100.0,prizes:[{name:'Plush Pepe',probability:0.0015075},{name:'Durov\'s Cap',probability:0.0100500},{name:'Astral Shard',probability:0.0251250},{name:'Precious Peach',probability:0.05025},{name:'Vintage Cigar',probability:0.0402000},{name:'Perfume Bottle',probability:0.05025},{name:'Swiss Watch',probability:0.07035},{name:'Neko Helmet',probability:0.09045},{name:'Mini Oscar',probability:0.0603000},{name:'Scared Cat',probability:0.1507500},{name:'Loot Bag',probability:0.2010000},{name:'Toy Bear',probability:0.2010000},{name:'Ion Gem',probability:0.03015},{name:'Magic Potion',probability:0.03015}]},{id:'plushpepe',name:'Plush Pepe Hoard',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg',priceTON:200.0,prizes:[{name:'Plush Pepe',probability:0.0454395},{name:'Durov\'s Cap',probability:0.2019445},{name:'Astral Shard',probability:0.4038890},{name:'Precious Peach',probability:0.3029168}]}];
+casesData.forEach(caseItem => {
+    let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
+    if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.00001) {
+        caseItem.prizes.forEach(prize => { prize.probability = prize.probability / totalProb; });
+    }
+});
+
+// DOM Element References
 const headerElements = {
     tonConnectButton: document.getElementById('ton-connect-button'),
     walletAddressDisplay: document.getElementById('wallet-address-display'),
@@ -583,9 +580,13 @@ const spinButton = document.getElementById('spin-button');
 const closeRouletteButton = document.getElementById('close-roulette-button');
 const possiblePrizesDisplay = document.getElementById('possible-prizes-display');
 const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
-const rouletteReel1 = document.getElementById('roulette-reel-1');
-const rouletteReel2 = document.getElementById('roulette-reel-2');
-const rouletteReel3 = document.getElementById('roulette-reel-3');
+
+// NEW GLOBAL REFERENCES FOR REELS (for the 3-reel slot machine visual)
+// These elements are guaranteed to exist in the HTML structure now.
+const rouletteReel1 = document.getElementById('roulette-reel-1'); // Get the parent container
+const rouletteReel2 = document.getElementById('roulette-reel-2'); // Get the parent container
+const rouletteReel3 = document.getElementById('roulette-reel-3'); // Get the parent container
+
 const winOverlayModal = document.getElementById('win-overlay-modal');
 const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image');
 const winOverlayNameEl = document.getElementById('win-overlay-prize-name');
@@ -593,6 +594,7 @@ const winOverlayPrizeDetailsEl = document.getElementById('win-overlay-prize-deta
 const winOverlaySaveBtn = document.getElementById('win-overlay-save-button');
 const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button');
 const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
+
 const withdrawModal = document.getElementById('withdraw-modal');
 const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
 const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
@@ -601,25 +603,38 @@ const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
 const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close');
 const withdrawStatusMessage = document.getElementById('withdraw-status-message');
 const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
+
 const profileElements = {
-    avatar: document.getElementById('profile-avatar'), username: document.getElementById('profile-username'),
-    userid: document.getElementById('profile-userid'), balanceDisplay: document.getElementById('profile-balance-display'),
-    walletAddress: document.getElementById('profile-wallet-address'), inventoryGrid: document.getElementById('inventory-grid'),
-    inventoryCount: document.getElementById('inventory-count'), emptyInventoryMessage: document.getElementById('empty-inventory-message'),
-    disconnectWalletButton: document.getElementById('disconnect-wallet-button'), depositAmountInput: document.getElementById('deposit-amount-input'),
-    initiateDepositButton: document.getElementById('initiate-deposit-button'), sellAllButton: document.getElementById('sell-all-button'),
-    sellAllValueSpan: document.getElementById('sell-all-value'), promocodeInput: document.getElementById('promocode-input'),
+    avatar: document.getElementById('profile-avatar'),
+    username: document.getElementById('profile-username'),
+    userid: document.getElementById('profile-userid'),
+    balanceDisplay: document.getElementById('profile-balance-display'),
+    walletAddress: document.getElementById('profile-wallet-address'),
+    inventoryGrid: document.getElementById('inventory-grid'),
+    inventoryCount: document.getElementById('inventory-count'),
+    emptyInventoryMessage: document.getElementById('empty-inventory-message'),
+    disconnectWalletButton: document.getElementById('disconnect-wallet-button'),
+    depositAmountInput: document.getElementById('deposit-amount-input'),
+    initiateDepositButton: document.getElementById('initiate-deposit-button'),
+    sellAllButton: document.getElementById('sell-all-button'),
+    sellAllValueSpan: document.getElementById('sell-all-value'),
+    promocodeInput: document.getElementById('promocode-input'),
     redeemPromocodeButton: document.getElementById('redeem-promocode-button')
 };
 const upgradeElements = {
-    inventorySelect: document.getElementById('upgrade-inventory-select'), multiplierButtons: document.getElementById('multiplier-buttons'),
-    doUpgradeButton: document.getElementById('do-upgrade-button'), upgradeResult: document.getElementById('upgrade-result'),
+    inventorySelect: document.getElementById('upgrade-inventory-select'),
+    multiplierButtons: document.getElementById('multiplier-buttons'),
+    doUpgradeButton: document.getElementById('do-upgrade-button'),
+    upgradeResult: document.getElementById('upgrade-result'),
     chanceDisplay: document.getElementById('upgrade-chance-display')
 };
 const inviteElements = {
-    referralLink: document.getElementById('referral-link'), copyRefLinkButton: document.getElementById('copy-ref-link-button'),
-    referralBalance: document.getElementById('referral-balance'), invitedCount: document.getElementById('invited-count'),
-    withdrawReferralButton: document.getElementById('withdraw-referral-button'), invitedUsersListDisplay: document.getElementById('invited-users-list-display')
+    referralLink: document.getElementById('referral-link'),
+    copyRefLinkButton: document.getElementById('copy-ref-link-button'),
+    referralBalance: document.getElementById('referral-balance'),
+    invitedCount: document.getElementById('invited-count'),
+    withdrawReferralButton: document.getElementById('withdraw-referral-button'),
+    invitedUsersListDisplay: document.getElementById('invited-users-list-display')
 };
 const leaderboardList = document.getElementById('leaderboard-list');
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
@@ -630,8 +645,8 @@ const depositExpiryInfo = document.getElementById('deposit-expiry-info');
 const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
 
-const VISUAL_ITEMS_PER_REEL_INITIAL = 10;
-const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70;
+const VISUAL_ITEMS_PER_REEL_INITIAL = 10; // Number of items to initially populate each reel
+const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70; // Additional items appended for the spin to ensure enough length
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
 let depositRecipientAddressRaw = '';
@@ -643,25 +658,58 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 let tgBackButton = null;
 const backButtonHandlerStack = [];
+
 let dataFetchedSuccessfully = false;
 let tonConnectWalletInfo = null;
 
-// Utility Functions (No changes here from your previous full code)
+
+// Utility Functions
 function _updateTgBackButton() {
     if (!tgBackButton) return;
     if (backButtonHandlerStack.length > 0) {
         const handler = backButtonHandlerStack[backButtonHandlerStack.length - 1];
-        tgBackButton.offClick(); tgBackButton.onClick(handler); tgBackButton.show();
-    } else { tgBackButton.hide(); tgBackButton.offClick(); }
+        tgBackButton.offClick();
+        tgBackButton.onClick(handler);
+        tgBackButton.show();
+    } else {
+        tgBackButton.hide();
+        tgBackButton.offClick();
+    }
 }
-function pushTgBackButtonHandler(handler) { if (!tgBackButton) return; backButtonHandlerStack.push(handler); _updateTgBackButton(); }
-function popTgBackButtonHandler() { if (!tgBackButton) return; if (backButtonHandlerStack.length > 0) backButtonHandlerStack.pop(); _updateTgBackButton(); }
-function clearTgBackButtonStack() { if (!tgBackButton) return; backButtonHandlerStack.length = 0; _updateTgBackButton(); }
-function navigateBackToMainPage() { navigateToPage('main-page'); }
-function closeRouletteModalWithBackButton() { closeRouletteModal(); }
-function closeWinOverlayModalWithBackButton() { closeWinOverlayModal(); }
-function closeDepositModalWithBackButton() { closeDepositInstructionsModal(); }
-function updateLoadingStatus(message) { if (loadingStatusText) { loadingStatusText.textContent = message; } }
+function pushTgBackButtonHandler(handler) {
+    if (!tgBackButton) return;
+    backButtonHandlerStack.push(handler);
+    _updateTgBackButton();
+}
+function popTgBackButtonHandler() {
+    if (!tgBackButton) return;
+    if (backButtonHandlerStack.length > 0) backButtonHandlerStack.pop();
+    _updateTgBackButton();
+}
+function clearTgBackButtonStack() {
+    if (!tgBackButton) return;
+    backButtonHandlerStack.length = 0;
+    _updateTgBackButton();
+}
+function navigateBackToMainPage() {
+    navigateToPage('main-page');
+}
+function closeRouletteModalWithBackButton() {
+    closeRouletteModal();
+}
+function closeWinOverlayModalWithBackButton() {
+    closeWinOverlayModal();
+}
+function closeDepositModalWithBackButton() {
+    closeDepositInstructionsModal();
+}
+
+function updateLoadingStatus(message) {
+    if (loadingStatusText) {
+        loadingStatusText.textContent = message;
+    }
+}
+    
 async function apiRequest(endpoint, method = 'GET', body = null) {
     const headers = { 'Content-Type': 'application/json' };
     if (Telegram.WebApp.initData) headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData;
@@ -682,23 +730,31 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         throw error;
     }
 }
+
 function updateBalances() {
     headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`;
     profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
 }
+
 function navigateToPage(pageId) {
     pages.forEach(p => p.classList.remove('active'));
     document.getElementById(pageId)?.classList.add('active');
     appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
     if (tgBackButton) {
-        if (pageId === 'main-page') { clearTgBackButtonStack(); }
-        else {
-            while (backButtonHandlerStack.length > 0 && backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) { popTgBackButtonHandler(); }
-            if (backButtonHandlerStack.length === 0) { pushTgBackButtonHandler(navigateBackToMainPage); }
+        if (pageId === 'main-page') {
+            clearTgBackButtonStack();
+        } else {
+            while (backButtonHandlerStack.length > 0 && backButtonHandlerStack[backButtonHandlerStack.length - 1] !== navigateBackToMainPage) {
+                popTgBackButtonHandler();
+            }
+            if (backButtonHandlerStack.length === 0) {
+                pushTgBackButtonHandler(navigateBackToMainPage);
+            }
         }
     }
     window.scrollTo(0, 0);
 }
+
 function showTGNotification(message, type = 'info') {
     Telegram.WebApp.showAlert?.(message);
     if (Telegram.WebApp.HapticFeedback) {
@@ -707,473 +763,904 @@ function showTGNotification(message, type = 'info') {
         else if (type === 'warning') Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
     }
 }
-function renderHeader() { updateBalances(); }
+
+function renderHeader() {
+    updateBalances();
+}
+
 function updateUIBasedOnWallet(wallet) {
-    tonConnectWalletInfo = wallet; const connected = !!wallet;
+    tonConnectWalletInfo = wallet;
+    const connected = !!wallet;
+
     if (connected) {
-        const addr = wallet.account.address; currentUser.walletAddressRaw = addr;
+        const addr = wallet.account.address;
+        currentUser.walletAddressRaw = addr;
         const friendlyAddr = TonConnectSDK.toUserFriendlyAddress(addr, wallet.account.chain === TonConnectSDK.CHAIN.TESTNET);
         currentUser.walletAddress = friendlyAddr;
         headerElements.walletAddressDisplay.textContent = `${friendlyAddr.substring(0, 5)}...${friendlyAddr.substring(friendlyAddr.length - 4)}`;
-        headerElements.walletAddressDisplay.classList.add('connected'); headerElements.walletAddressDisplay.style.display = 'block';
-        headerElements.balanceDisplay.classList.add('connected'); headerElements.balanceDisplay.style.display = 'flex';
+        headerElements.walletAddressDisplay.classList.add('connected');
+        headerElements.walletAddressDisplay.style.display = 'block';
+        headerElements.balanceDisplay.classList.add('connected');
+        headerElements.balanceDisplay.style.display = 'flex';
         headerElements.tonConnectButton.style.display = 'none';
-        profileElements.walletAddress.textContent = friendlyAddr; profileElements.disconnectWalletButton.style.display = 'block';
+        profileElements.walletAddress.textContent = friendlyAddr;
+        profileElements.disconnectWalletButton.style.display = 'block';
     } else {
-        currentUser.walletAddress = null; currentUser.walletAddressRaw = null;
-        headerElements.walletAddressDisplay.classList.remove('connected'); headerElements.walletAddressDisplay.style.display = 'none';
-        headerElements.balanceDisplay.classList.remove('connected'); headerElements.balanceDisplay.style.display = 'none';
+        currentUser.walletAddress = null;
+        currentUser.walletAddressRaw = null;
+        headerElements.walletAddressDisplay.classList.remove('connected');
+        headerElements.walletAddressDisplay.style.display = 'none';
+        headerElements.balanceDisplay.classList.remove('connected');
+        headerElements.balanceDisplay.style.display = 'none';
         headerElements.tonConnectButton.style.display = 'block';
-        profileElements.walletAddress.textContent = 'Not Connected'; profileElements.disconnectWalletButton.style.display = 'none';
+        profileElements.walletAddress.textContent = 'Not Connected';
+        profileElements.disconnectWalletButton.style.display = 'none';
     }
-    if (dataFetchedSuccessfully) { updateBalances(); renderProfile(); }
-    else { headerElements.tonBalanceSpan.textContent = `0.00`; profileElements.balanceDisplay.innerHTML = `0.00 TON`; }
-}
-function renderCasesAndSlots() { renderCases(); } // Slot rendering removed for brevity, re-add if needed
 
-// RenderCases uses global `casesData` which is populated from backend's initial load.
-// This `casesData` has `floor_price` pre-calculated by backend at startup.
+    if (dataFetchedSuccessfully) {
+        updateBalances();
+        renderProfile(); // Also calls renderInventory which depends on currentUser.inventory
+    } else {
+        headerElements.tonBalanceSpan.textContent = `0.00`;
+        profileElements.balanceDisplay.innerHTML = `0.00 TON`;
+    }
+}
+
+function renderCasesAndSlots() {
+    renderCases();
+}
+
 function renderCases() {
     casesGrid.innerHTML = '';
-    if (!casesData || casesData.length === 0) { casesGrid.innerHTML = "<p>Loading cases...</p>"; return; }
+    if (!casesData || casesData.length === 0) {
+        casesGrid.innerHTML = "<p>Loading cases...</p>";
+        return;
+    }
     casesData.forEach(caseItem => {
-        const card = document.createElement('div'); card.className = 'case-card';
-        card.dataset.caseId = caseItem.id; card.onclick = () => openRouletteModal(caseItem);
-        const imgCont = document.createElement('div'); imgCont.className = 'case-image-display';
-        const img = document.createElement('img'); img.loading = 'lazy'; img.alt = caseItem.name;
+        const card = document.createElement('div');
+        card.className = 'case-card';
+        card.dataset.caseId = caseItem.id;
+        card.onclick = () => openRouletteModal(caseItem);
+        const imgCont = document.createElement('div');
+        imgCont.className = 'case-image-display';
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.alt = caseItem.name;
         img.onerror = () => { imgCont.textContent = '❓'; imgCont.style.cssText = 'font-size:2.5em;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);'; };
         img.src = generateImageFilename(caseItem.imageFilename || caseItem.name);
         imgCont.appendChild(img);
-        const priceEl = document.createElement('div'); priceEl.className = 'case-price';
+        const priceEl = document.createElement('div');
+        priceEl.className = 'case-price';
         priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
-        card.append(imgCont, priceEl); casesGrid.appendChild(card);
+        card.append(imgCont, priceEl);
+        casesGrid.appendChild(card);
     });
 }
-function renderProfile() { // No changes here
+
+function renderProfile() {
+    // Clear any previous content in the avatar placeholder
     profileElements.avatar.innerHTML = ''; 
+
     if (currentUser.photo_url) {
-        const img = document.createElement('img'); img.src = currentUser.photo_url;
+        const img = document.createElement('img');
+        img.src = currentUser.photo_url;
         img.alt = currentUser.first_name ? `${currentUser.first_name}'s avatar` : 'User Avatar';
-        img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover'; img.style.borderRadius = 'inherit';
+        img.style.width = '100%'; // Make image fill the placeholder
+        img.style.height = '100%';
+        img.style.objectFit = 'cover'; // Cover the area without distortion
+        img.style.borderRadius = 'inherit'; // Inherit border-radius from parent
         profileElements.avatar.appendChild(img);
-    } else { profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?'; }
+    } else {
+        // Fallback to text initial if no photo URL is available
+        profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
+    }
+
     profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User';
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
     profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
     renderInventory();
 }
-function renderInventory() { // No changes here
-    profileElements.inventoryGrid.innerHTML = ''; let totalValue = 0;
+
+function renderInventory() {
+    profileElements.inventoryGrid.innerHTML = '';
+    let totalValue = 0;
     if (currentUser.inventory.length === 0) {
-        profileElements.emptyInventoryMessage.style.display = 'block'; profileElements.sellAllButton.style.display = 'none';
+        profileElements.emptyInventoryMessage.style.display = 'block';
+        profileElements.sellAllButton.style.display = 'none';
     } else {
         profileElements.emptyInventoryMessage.style.display = 'none';
         currentUser.inventory.forEach(item => {
             totalValue += item.currentValue || 0;
-            const itemDiv = document.createElement('div'); itemDiv.className = 'inventory-item';
-            const imgCont = document.createElement('div'); imgCont.className = 'item-image-display';
-            const img = document.createElement('img'); img.src = generateImageFilename(item.imageFilename || item.name);
-            img.alt = item.name; img.loading = 'lazy'; imgCont.appendChild(img);
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'inventory-item';
+            const imgCont = document.createElement('div');
+            imgCont.className = 'item-image-display';
+            const img = document.createElement('img');
+            img.src = generateImageFilename(item.imageFilename || item.name);
+            img.alt = item.name;
+            img.loading = 'lazy';
+            imgCont.appendChild(img);
             itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="handleSingleConvert(${item.id})">Convert</button>`}</div>`;
-            itemDiv.insertBefore(imgCont, itemDiv.firstChild); profileElements.inventoryGrid.appendChild(itemDiv);
+            itemDiv.insertBefore(imgCont, itemDiv.firstChild);
+            profileElements.inventoryGrid.appendChild(itemDiv);
         });
-        profileElements.sellAllButton.style.display = 'block'; profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
+        profileElements.sellAllButton.style.display = 'block';
+        profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
     }
     profileElements.inventoryCount.textContent = currentUser.inventory.length;
     populateUpgradeInventorySelect();
 }
-function populateUpgradeInventorySelect() { // No changes here
+
+function populateUpgradeInventorySelect() {
     upgradeElements.inventorySelect.innerHTML = '<option value="">-- Choose Item --</option>';
     currentUser.inventory.filter(item => !item.is_ton_prize).forEach(item => {
-        const opt = document.createElement('option'); opt.value = item.id;
+        const opt = document.createElement('option');
+        opt.value = item.id;
         opt.textContent = `${item.name} (${(item.currentValue || 0).toFixed(2)} TON)`;
         upgradeElements.inventorySelect.appendChild(opt);
     });
 }
-async function renderLeaderboard() { // No changes here
+
+async function renderLeaderboard() {
     try {
-        const leaders = await apiRequest('/api/get_leaderboard'); leaderboardList.innerHTML = '';
+        const leaders = await apiRequest('/api/get_leaderboard');
+        leaderboardList.innerHTML = '';
         leaders.forEach(l => {
-            const entry = document.createElement('div'); entry.className = 'leader-entry';
+            const entry = document.createElement('div');
+            entry.className = 'leader-entry';
             if (l.user_id === currentUser.id) entry.classList.add('current-user-entry');
             entry.innerHTML = `<div class="rank">${l.rank}</div><div class="avatar-placeholder">${l.avatarChar}</div><div class="info"><div class="name">${l.name}</div><div class="details">User ID: ${String(l.user_id).slice(0, 6)}...</div></div><div class="score">${l.income.toFixed(2)} TON</div>`;
             leaderboardList.appendChild(entry);
         });
-    } catch (e) { leaderboardList.innerHTML = '<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>'; }
+    } catch (e) {
+        leaderboardList.innerHTML = '<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>';
+    }
 }
-function renderInvitePage() { // No changes here
+
+function renderInvitePage() {
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
     inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0;
 }
-function showWinOverlay(wonPrizesArray) { // No changes here
-    lastWonPrizesForOverlay = wonPrizesArray; winOverlayPrizeImageContainer.innerHTML = ''; winOverlayPrizeDetailsEl.innerHTML = '';
+
+function showWinOverlay(wonPrizesArray) {
+    lastWonPrizesForOverlay = wonPrizesArray;
+    winOverlayPrizeImageContainer.innerHTML = '';
+    winOverlayPrizeDetailsEl.innerHTML = '';
     if (wonPrizesArray.length === 1) {
-        const prizeItem = wonPrizesArray[0]; const img = document.createElement('img');
-        img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name); img.alt = prizeItem.name;
-        winOverlayPrizeImageContainer.appendChild(img); winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`;
+        const prizeItem = wonPrizesArray[0];
+        const img = document.createElement('img');
+        img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
+        img.alt = prizeItem.name;
+        winOverlayPrizeImageContainer.appendChild(img);
+        winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`;
         winOverlayConvertBtn.style.display = prizeItem.is_ton_prize ? 'none' : 'block';
-        if (!prizeItem.is_ton_prize) { winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2); winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to "; }
+        if (!prizeItem.is_ton_prize) {
+            winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2);
+            winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to ";
+        }
     } else if (wonPrizesArray.length > 1) {
         winOverlayNameEl.textContent = `You Won ${wonPrizesArray.length} Items!`;
-        let totalConvertValue = 0; let canConvertAny = false; let prizeNamesHTML = '';
+        let totalConvertValue = 0;
+        let canConvertAny = false;
+        let prizeNamesHTML = '';
         wonPrizesArray.forEach(prizeItem => {
-            const img = document.createElement('img'); img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
-            img.alt = prizeItem.name; winOverlayPrizeImageContainer.appendChild(img);
+            const img = document.createElement('img');
+            img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
+            img.alt = prizeItem.name;
+            winOverlayPrizeImageContainer.appendChild(img);
             prizeNamesHTML += `<div>- ${prizeItem.name} (${(prizeItem.currentValue || 0).toFixed(2)} TON)</div>`;
-            if (!prizeItem.is_ton_prize) { totalConvertValue += (prizeItem.currentValue || 0); canConvertAny = true; }
+            if (!prizeItem.is_ton_prize) {
+                totalConvertValue += (prizeItem.currentValue || 0);
+                canConvertAny = true;
+            }
         });
         winOverlayPrizeDetailsEl.innerHTML = prizeNamesHTML;
         winOverlayConvertBtn.style.display = canConvertAny ? 'block' : 'none';
-        if (canConvertAny) { winOverlayConvertValue.textContent = totalConvertValue.toFixed(2); winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to "; }
+        if (canConvertAny) {
+            winOverlayConvertValue.textContent = totalConvertValue.toFixed(2);
+            winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to ";
+        }
     }
-    winOverlayModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
+    winOverlayModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
 }
-function closeWinOverlayModal() { if (tgBackButton) popTgBackButtonHandler(); winOverlayModal.classList.remove('active'); lastWonPrizesForOverlay = []; }
-function initializeRouletteVisuals(caseItem, multiplier) { // No changes here
+
+function closeWinOverlayModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    winOverlayModal.classList.remove('active');
+    lastWonPrizesForOverlay = [];
+}
+
+// MODIFIED initializeRouletteVisuals FUNCTION
+function initializeRouletteVisuals(caseItem, multiplier) {
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
+    // We assume roulette-item height is fixed for initial calc. Get from CSS if needed.
     const itemHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height').replace('px', '')) || 80; 
-    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260;
+    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260; // Assuming this is set up
+    
+    // Hide all reels initially
     allReelContainers.forEach(container => container.classList.remove('active'));
-    let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floorPrice: 0 }];
+
+    // Determine available prizes, with a fallback for empty cases
+    let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floor_price: 0 }];
+
+    // Show and populate only the necessary number of reels
     for (let i = 0; i < multiplier; i++) {
         const reelContainer = allReelContainers[i];
         if (reelContainer) {
-            reelContainer.classList.add('active');
+            reelContainer.classList.add('active'); // Make this reel visible
             const spinnerReel = reelContainer.querySelector('.roulette-spinner-reel');
-            spinnerReel.innerHTML = '';
+            spinnerReel.innerHTML = ''; // Clear existing items when a case is opened/multiplier changed
+
             let defaultVisualItemsData = [];
+            // Populate with initial items to make it look ready
             for (let j = 0; j < VISUAL_ITEMS_PER_REEL_INITIAL; j++) {
                 const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
                 defaultVisualItemsData.push(randomPrize);
             }
+            
+            // Append visual items to the reel
             defaultVisualItemsData.forEach(pData => {
-                const itemEl = document.createElement('div'); itemEl.className = 'roulette-item';
+                const itemEl = document.createElement('div');
+                itemEl.className = 'roulette-item';
                 const img = document.createElement('img');
-                img.src = generateImageFilename(pData.imageFilename || pData.name); img.alt = pData.name;
+                img.src = generateImageFilename(pData.imageFilename || pData.name);
+                img.alt = pData.name;
                 itemEl.appendChild(img);
-                itemEl.dataset.prizeData = JSON.stringify({ name: pData.name, imageFilename: pData.imageFilename, is_ton_prize: pData.is_ton_prize, floorPrice: pData.floorPrice, value: pData.value });
+                // Store full prize data on the element for later inspection (e.g., floorPrice for nudging)
+                itemEl.dataset.prizeData = JSON.stringify({
+                    name: pData.name, imageFilename: pData.imageFilename,
+                    is_ton_prize: pData.is_ton_prize, floorPrice: pData.floor_price, value: pData.value 
+                });
                 spinnerReel.appendChild(itemEl);
             });
-            spinnerReel.style.transition = 'none';
+
+            // Set initial reel position to center one of the items
+            // This makes it look like it's already "on" something without needing to spin.
+            spinnerReel.style.transition = 'none'; // Ensure no transition on initial load
             const middleItemIndex = Math.floor(VISUAL_ITEMS_PER_REEL_INITIAL / 2);
+            // Calculate offset to bring the middle of the middle item to the center of the visible roulette area
             const initialScrollOffset = (middleItemIndex * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2);
             spinnerReel.style.top = `-${initialScrollOffset}px`;
-            void spinnerReel.offsetWidth;
+            void spinnerReel.offsetWidth; // Force reflow
         }
     }
 }
-function openRouletteModal(caseItem) { // Uses liveFloorPrices for display
-    currentOpenCaseOrSlot = caseItem; selectedCaseMultiplier = 1; updateCaseMultiplierButtons();
-    rouletteCaseName.textContent = caseItem.name; updateSpinButtonText();
-    possiblePrizesDisplay.innerHTML = ''; const prizeMap = new Map();
-    // caseItem.prizes comes from `casesData`, which has `floor_price` from backend's initial load
+
+function openRouletteModal(caseItem) {
+    currentOpenCaseOrSlot = caseItem;
+    selectedCaseMultiplier = 1; // Default to 1x when opening
+    updateCaseMultiplierButtons(); // This will call initializeRouletteVisuals with 1x
+    rouletteCaseName.textContent = caseItem.name;
+    updateSpinButtonText();
+
+    possiblePrizesDisplay.innerHTML = '';
+    const prizeMap = new Map();
+
+    // Iterate through prizes in the selected case
     caseItem.prizes.forEach(p => {
         if (!p || !p.name) return;
-        const prizeName = p.name;
-        // Use the floorPrice from the caseItem.prizes object (initial load) OR the liveFloorPrices as a fallback
-        const displayFloorPrice = p.floorPrice !== undefined ? p.floorPrice : (liveFloorPrices[prizeName] || 0);
 
+        const prizeName = p.name; // Get the name of the prize
+        // Look up the floor price from the global UPDATED_FLOOR_PRICES_FRONTEND map
+        const floorPrice = UPDATED_FLOOR_PRICES_FRONTEND[prizeName] || 0; // Default to 0 if not found
+
+        // Create a new prize data object for the map, including the looked-up floorPrice
         const pDataWithPrice = {
-            name: prizeName, probability: p.probability,
-            imageFilename: p.imageFilename || generateImageFilename(prizeName),
-            floorPrice: displayFloorPrice
+            name: prizeName,
+            probability: p.probability, // Keep probability as it's part of the raw data
+            imageFilename: p.imageFilename || generateImageFilename(prizeName), // Use imageFilename from data or generate
+            floorPrice: floorPrice // Explicitly add the looked-up floor price
         };
+
+        // Aggregate prizes by name (if there are duplicates or for consistent display)
         if (prizeMap.has(prizeName)) {
+            // If you need to combine probabilities or other stats for identical prizes, do it here
+            // For now, if a name already exists, we'll just ensure its floorPrice is consistent.
+            // (In our current setup, prize names within one case are unique, so this mainly handles Kissed Frog variants properly)
             const existing = prizeMap.get(prizeName);
-            prizeMap.set(prizeName, { ...existing, probability: (existing.probability || 0) + (p.probability || 0), floorPrice: displayFloorPrice });
-        } else { prizeMap.set(prizeName, pDataWithPrice); }
+            prizeMap.set(prizeName, {
+                ...existing,
+                probability: (existing.probability || 0) + (p.probability || 0),
+                floorPrice: floorPrice // Ensure the correct floor price is set
+            });
+        } else {
+            prizeMap.set(prizeName, pDataWithPrice);
+        }
     });
+
+    // Now iterate through the aggregated prizeMap to display the cards
     prizeMap.forEach((pData, name) => {
-        const displayPrice = pData.floorPrice || 0;
-        const card = document.createElement('div'); card.className = 'prize-card';
-        const imgCont = document.createElement('div'); imgCont.className = 'prize-card-image-placeholder';
-        const img = document.createElement('img'); img.src = pData.imageFilename; img.alt = name;
+        const displayPrice = pData.floorPrice || 0; // Use the floorPrice from pData
+        const card = document.createElement('div');
+        card.className = 'prize-card';
+
+        const imgCont = document.createElement('div');
+        imgCont.className = 'prize-card-image-placeholder';
+        const img = document.createElement('img');
+        img.src = pData.imageFilename; // Use the imageFilename now present in pData
+        img.alt = name;
         imgCont.appendChild(img);
+
+        // Display the floor price in TON
         card.innerHTML = `<span class="prize-card-price">${displayPrice.toFixed(2)} TON</span><span class="prize-card-name">${name}</span>`;
-        card.insertBefore(imgCont, card.firstChild); possiblePrizesDisplay.appendChild(card);
+        
+        card.insertBefore(imgCont, card.firstChild);
+        possiblePrizesDisplay.appendChild(card);
     });
-    rouletteModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
+
+    rouletteModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 }
-function updateSpinButtonText() { // No changes here
+
+function updateSpinButtonText() {
     if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) {
         const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
         spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
     }
 }
-function updateCaseMultiplierButtons() { // No changes here
+
+function updateCaseMultiplierButtons() {
     caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
         btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier);
         if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary');
         else btn.classList.add('button-secondary');
     }); 
+    // Re-initialize visuals based on the NEW selected multiplier
     initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier);
 }
-function closeRouletteModal() { // No changes here
-    if (tgBackButton) popTgBackButtonHandler(); rouletteModal.classList.remove('active');
-    currentOpenCaseOrSlot = null; if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+
+function closeRouletteModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    rouletteModal.classList.remove('active');
+    currentOpenCaseOrSlot = null;
+    if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+    // Ensure all reels are hidden when closing the modal
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
     allReelContainers.forEach(container => container.classList.remove('active'));
 }
-function getItemValue(prizeObject) { // No changes here
-    if (prizeObject.is_ton_prize) { return prizeObject.currentValue || prizeObject.value || 0; }
+
+function getItemValue(prizeObject) {
+    if (prizeObject.is_ton_prize) {
+        return prizeObject.currentValue || prizeObject.value || 0; // Use 'value' for TON prizes
+    }
+    // For NFT items, prizeObject should already have floorPrice from `caseItem.prizes`
     return prizeObject.floorPrice || prizeObject.currentValue || 0; 
 }
-async function spinRoulette() { // No changes here, backend determines actual prize values
+    
+// MODIFIED spinRoulette FUNCTION
+async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return;
-    spinButton.disabled = true; spinButton.textContent = 'Spinning...'; Telegram.WebApp.HapticFeedback?.impactOccurred('light');
+    spinButton.disabled = true;
+    spinButton.textContent = 'Spinning...';
+    Telegram.WebApp.HapticFeedback?.impactOccurred('light');
+
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
-    const activeSpinners = allReelContainers.filter(container => container.classList.contains('active')).map(container => container.querySelector('.roulette-spinner-reel'));
-    if (activeSpinners.length === 0) { showTGNotification("No active reels. Select multiplier.", "error"); spinButton.disabled = false; updateSpinButtonText(); return; }
+    const activeSpinners = allReelContainers
+                                .filter(container => container.classList.contains('active'))
+                                .map(container => container.querySelector('.roulette-spinner-reel'));
+    
+    if (activeSpinners.length === 0) {
+        showTGNotification("No active reels to spin. Please select a multiplier.", "error");
+        spinButton.disabled = false;
+        updateSpinButtonText();
+        return;
+    }
+
     const availablePrizes = currentOpenCaseOrSlot.prizes; 
+    
+    // Dynamically get item height and visible reel height (they might change or be affected by padding)
     const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
     const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
-    const centerOffset = (rouletteRowVisibleHeight / 2);
-    activeSpinners.forEach((spinnerReel) => {
-        spinnerReel.style.transition = 'none'; void spinnerReel.offsetWidth; 
+    const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window for the payline
+
+    // Prepare reels for spin: Append buffer items and winning item
+    activeSpinners.forEach((spinnerReel, reelIndex) => {
+        // Remove existing transitions to prevent flicker when appending
+        spinnerReel.style.transition = 'none'; 
+        void spinnerReel.offsetWidth; // Force reflow
+
+        // Append a buffer of random items to make the spin visually longer
         for (let j = 0; j < VISUAL_ITEMS_PER_REEL_SPIN_BUFFER; j++) {
             const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
-            const itemEl = document.createElement('div'); itemEl.className = 'roulette-item';
-            const img = document.createElement('img'); img.src = generateImageFilename(randomPrize.imageFilename || randomPrize.name); img.alt = randomPrize.name;
+            const itemEl = document.createElement('div');
+            itemEl.className = 'roulette-item';
+            const img = document.createElement('img');
+            img.src = generateImageFilename(randomPrize.imageFilename || randomPrize.name);
+            img.alt = randomPrize.name;
             itemEl.appendChild(img);
-            itemEl.dataset.prizeData = JSON.stringify({ name: randomPrize.name, imageFilename: randomPrize.imageFilename, is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floorPrice, value: randomPrize.value });
+            itemEl.dataset.prizeData = JSON.stringify({
+                name: randomPrize.name, imageFilename: randomPrize.imageFilename,
+                is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floor_price, value: randomPrize.value
+            });
             spinnerReel.appendChild(itemEl);
         }
     });
+
     try {
         const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCaseOrSlot.id, multiplier: selectedCaseMultiplier });
-        spinButton.disabled = false; updateSpinButtonText();
+        
+        spinButton.disabled = false;
+        updateSpinButtonText();
+
         if (result.status === 'success' && result.won_prizes && result.won_prizes.length > 0) {
-            currentUser.tonBalance = result.new_balance_ton; updateBalances();
+            currentUser.tonBalance = result.new_balance_ton;
+            updateBalances();
+
             if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+
             activeSpinners.forEach((spinnerReel, index) => {
                 let currentReelItemsDOMElements = Array.from(spinnerReel.children);
-                const actualWonPrizeBackendData = result.won_prizes[index] || (index === 0 && result.won_prizes[0]);
-                if (!actualWonPrizeBackendData) { console.warn(`No prize data for reel ${index}.`); return; }
+                const actualWonPrizeBackendData = result.won_prizes[index] || 
+                                                  (index === 0 && result.won_prizes[0]); // Fallback for single win
+
+                if (!actualWonPrizeBackendData) {
+                    console.warn(`No won prize data for reel ${index}. Skipping animation for this reel.`);
+                    return; 
+                }
+
+                // --- 1. Place the actual winning prize at a determined "landing zone"
+                // The winning item will land at the end of the initial items + a buffer offset
+                // This ensures it appears after the initial set, but not at the very end of the *newly added* buffer
                 const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2); 
+
                 if (currentReelItemsDOMElements[landingSpotIndex]) {
                     const targetEl = currentReelItemsDOMElements[landingSpotIndex];
                     const imgElement = targetEl.querySelector('img');
                     imgElement.src = generateImageFilename(actualWonPrizeBackendData.imageFilename || actualWonPrizeBackendData.name);
                     imgElement.alt = actualWonPrizeBackendData.name;
-                    targetEl.dataset.isWinner = 'true'; targetEl.dataset.prizeData = JSON.stringify(actualWonPrizeBackendData);
-                } else { console.warn(`Could not place winning item at index ${landingSpotIndex}.`); }
+                    targetEl.dataset.isWinner = 'true';
+                    targetEl.dataset.prizeData = JSON.stringify(actualWonPrizeBackendData);
+                } else {
+                    console.warn(`Could not place winning item at target index ${landingSpotIndex}. Reel may be too short or index is off.`);
+                }
+
+                // --- 2. Calculate base scroll distance to center the winning item
                 let scrollDist = (landingSpotIndex * itemHeight) + (itemHeight / 2) - centerOffset;
-                const randomBiasRange = itemHeight * 0.4;
-                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2);
+
+                // --- 3. Add a random visual bias within the winning item's height
+                const randomBiasRange = itemHeight * 0.4; // Up to 40% of item height deviation from center
+                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2); // Random value between -range/2 and +range/2
                 scrollDist += visualBiasOffsetPx;
-                const nudgeRange = 3; const winningItemValue = getItemValue(actualWonPrizeBackendData);
-                let nudgeValueThreshold = winningItemValue * 1.5; let bestNudgeCandidate = null; let maxNudgeAmount = itemHeight * 0.4;
+
+                // --- 4. Implement Nudge towards more expensive nearby items
+                const nudgeRange = 3; // Check 3 items above and 3 items below
+                const winningItemValue = getItemValue(actualWonPrizeBackendData);
+                let nudgeValueThreshold = winningItemValue * 1.5; // Nudge towards items 1.5x more expensive
+
+                let bestNudgeCandidate = null;
+                let maxNudgeAmount = itemHeight * 0.4; // Max nudge amount within the item
+                
+                // Scan for expensive items above and below the winning item
                 for (let j = 1; j <= nudgeRange; j++) {
-                    const idxAbove = landingSpotIndex - j; const idxBelow = landingSpotIndex + j;
+                    const idxAbove = landingSpotIndex - j;
+                    const idxBelow = landingSpotIndex + j;
+
+                    // Check item above
                     if (idxAbove >= 0 && currentReelItemsDOMElements[idxAbove]) {
-                        try { const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData); const itemAboveValue = getItemValue(itemAboveData);
+                        try {
+                            const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData);
+                            const itemAboveValue = getItemValue(itemAboveData);
                             if (itemAboveValue > nudgeValueThreshold && (!bestNudgeCandidate || itemAboveValue > getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)))) {
-                                bestNudgeCandidate = { item: currentReelItemsDOMElements[idxAbove], direction: 'above', distance: j }; }
-                        } catch (e) { /* ignore */ }
+                                bestNudgeCandidate = { item: currentReelItemsDOMElements[idxAbove], direction: 'above', distance: j };
+                            }
+                        } catch (e) { /* ignore parse errors for robustness */ }
                     }
+
+                    // Check item below
                     if (idxBelow < currentReelItemsDOMElements.length && currentReelItemsDOMElements[idxBelow]) {
-                        try { const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData); const itemBelowValue = getItemValue(itemBelowData);
+                        try {
+                            const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData);
+                            const itemBelowValue = getItemValue(itemBelowData);
                             if (itemBelowValue > nudgeValueThreshold && (!bestNudgeCandidate || itemBelowValue > getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)))) {
-                                bestNudgeCandidate = { item: currentReelItemsDOMElements[idxBelow], direction: 'below', distance: j }; }
-                        } catch (e) { /* ignore */ }
+                                bestNudgeCandidate = { item: currentReelItemsDOMElements[idxBelow], direction: 'below', distance: j };
+                            }
+                        } catch (e) { /* ignore parse errors for robustness */ }
                     }
                 }
+
+                // Apply the nudge
                 if (bestNudgeCandidate) {
-                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1)); nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); 
-                    if (bestNudgeCandidate.direction === 'above') { scrollDist -= nudgeMagnitude; } else { scrollDist += nudgeMagnitude; }
+                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1)); // Closer items nudge more
+                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); // Clamp to max nudge
+
+                    if (bestNudgeCandidate.direction === 'above') {
+                        // Move reel UP (scrollDist decreases), payline lands lower on winner (closer to item above)
+                        scrollDist -= nudgeMagnitude; 
+                        console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
+                    } else { // 'below'
+                        // Move reel DOWN (scrollDist increases), payline lands higher on winner (closer to item below)
+                        scrollDist += nudgeMagnitude; 
+                        console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
+                    }
                 }
-                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset;
-                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset;
+
+                // --- 5. Clamp the final scroll position to ensure payline stays within the winning item
+                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
+                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
                 scrollDist = Math.max(minScrollPosForWinner, Math.min(maxScrollPosForWinner, scrollDist));
-                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;
+
+                // Apply animation
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; // Slower, smoother ease-out
                 spinnerReel.style.top = `-${scrollDist}px`;
             });
+
             const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
+                // Update user inventory with ALL won prizes from the backend
                 result.won_prizes.forEach(wp => {
                     const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
+                    // Add item only if it's new (and has an ID, to avoid adding TON prizes to inventory list)
                     if (existingItemIndex === -1 && wp.id) { 
-                        currentUser.inventory.push({ id: wp.id, name: wp.name, imageFilename: wp.imageFilename, currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false });
+                        currentUser.inventory.push({ 
+                            id: wp.id, name: wp.name, imageFilename: wp.imageFilename, 
+                            currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false 
+                        });
                     }
                 });
-                renderInventory(); showWinOverlay(result.won_prizes);
+                renderInventory();
+                showWinOverlay(result.won_prizes);
+
+                // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
                 activeSpinners.forEach(spinnerReel => {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
-                    const itemHeightCalc = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
+                    // Recalculate itemHeight for robustness, though it should be constant for the same reel
+                    const itemHeightCalc = spinnerRereel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
+                    
+                    // Estimate the index of the item that is now at the top of the visible window
                     const itemsScrolledPast = Math.floor(Math.abs(currentTop) / itemHeightCalc);
+                    
+                    // Keep items around the final stopping point for visual continuity
+                    // Example: Keep 10 items before the stopped item and (visible items * 2) after
                     const startIndex = Math.max(0, itemsScrolledPast - 10); 
                     const endIndex = Math.min(spinnerReel.children.length, itemsScrolledPast + 10 + Math.ceil(rouletteRowVisibleHeight / itemHeightCalc) * 2);
+                    
                     const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
-                    spinnerReel.innerHTML = ''; itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
+                    
+                    spinnerReel.innerHTML = ''; // Clear and re-populate with trimmed list
+                    itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
+
                     spinnerReel.style.transition = 'none'; 
+                    // Adjust top position to account for removed items
                     spinnerReel.style.top = `${currentTop + (startIndex * itemHeightCalc)}px`;
-                    void spinnerReel.offsetWidth;
+                    void spinnerReel.offsetWidth; // Force reflow
                 });
+
             }, animationDuration + 100);
-        } else { showTGNotification(result.error || result.message || 'Failed to open case.', 'error'); }
-    } catch (e) { console.error("Spin roulette error", e); spinButton.disabled = false; updateSpinButtonText(); showTGNotification("Error during spin. Please try again.", "error"); }
+
+        } else {
+            showTGNotification(result.error || result.message || 'Failed to open case.', 'error');
+        }
+    } catch (e) {
+        console.error("Spin roulette error", e);
+        spinButton.disabled = false;
+        updateSpinButtonText();
+        showTGNotification("Error during spin. Please try again.", "error");
+    }
 }
-async function handleSingleConvert(itemId) { // No changes here
+    
+async function handleSingleConvert(itemId) {
     const success = await convertItemToTon(itemId);
-    if (success) { showTGNotification("Item converted to TON!", 'success'); updateBalances(); renderInventory(); }
+    if (success) {
+        showTGNotification("Item converted to TON!", 'success');
+        updateBalances();
+        renderInventory();
+    }
 }
-async function convertItemToTon(itemId) { // No changes here
+
+async function convertItemToTon(itemId) {
     const itemInInventory = currentUser.inventory.find(i => i.id === itemId);
-    if (itemInInventory && itemInInventory.is_ton_prize) { showTGNotification("Cannot convert TON prize.", "info"); return false; }
+    if (itemInInventory && itemInInventory.is_ton_prize) {
+        showTGNotification("Cannot convert TON prize.", "info");
+        return false;
+    }
     try {
         const res = await apiRequest('/api/convert_to_ton', 'POST', { inventory_item_id: parseInt(itemId) });
         if (res.status === 'success') {
             currentUser.tonBalance = res.new_balance_ton;
-            currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId)); return true;
-        } else { showTGNotification(res.error || res.message || 'Failed.', 'error'); return false; }
-    } catch (e) { showTGNotification("Conversion request failed.", "error"); return false; }
+            currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
+            return true;
+        } else {
+            showTGNotification(res.error || res.message || 'Failed.', 'error');
+            return false;
+        }
+    } catch (e) {
+        showTGNotification("Conversion request failed.", "error");
+        return false;
+    }
 }
-async function handleConvertAll() { // No changes here
-    if (lastWonPrizesForOverlay.length === 0) { showTGNotification("No items to convert.", "warning"); return; }
-    let successCount = 0; let failCount = 0;
+
+async function handleConvertAll() {
+    if (lastWonPrizesForOverlay.length === 0) {
+        showTGNotification("No items to convert.", "warning");
+        return;
+    }
+    let successCount = 0;
+    let failCount = 0;
     const itemsToConvert = lastWonPrizesForOverlay.filter(p => !p.is_ton_prize && p.id);
-    if (itemsToConvert.length === 0) { showTGNotification("No convertible items in this win.", "info"); closeWinOverlayModal(); return; }
-    for (const item of itemsToConvert) { const success = await convertItemToTon(item.id); if (success) successCount++; else failCount++; }
-    updateBalances(); renderInventory();
+    if (itemsToConvert.length === 0) {
+        showTGNotification("No convertible items in this win.", "info");
+        closeWinOverlayModal();
+        return;
+    }
+    for (const item of itemsToConvert) {
+        const success = await convertItemToTon(item.id);
+        if (success) successCount++;
+        else failCount++;
+    }
+    updateBalances();
+    renderInventory();
     if (failCount > 0) showTGNotification(`${successCount} item(s) converted. ${failCount} failed.`, 'warning');
     else showTGNotification(`${successCount} item(s) converted to TON!`, 'success');
     closeWinOverlayModal();
 }
-async function handleUpgrade() { // No changes here
-    const itemId = upgradeElements.inventorySelect.value; if (!itemId) { showTGNotification("Select item.", 'warning'); return; }
-    upgradeElements.upgradeResult.textContent = "Attempting..."; upgradeElements.doUpgradeButton.disabled = true;
+
+async function handleUpgrade() {
+    const itemId = upgradeElements.inventorySelect.value;
+    if (!itemId) {
+        showTGNotification("Select item.", 'warning');
+        return;
+    }
+    upgradeElements.upgradeResult.textContent = "Attempting...";
+    upgradeElements.doUpgradeButton.disabled = true;
     try {
         const res = await apiRequest('/api/upgrade_item', 'POST', { inventory_item_id: parseInt(itemId), multiplier_str: selectedUpgradeMultiplier.toString() });
         if (res.status === 'success') {
-            const upItem = res.item; const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemId));
-            if (idx !== -1) { currentUser.inventory[idx] = upItem; } else { currentUser.inventory.push(upItem); }
-            upgradeElements.upgradeResult.textContent = res.message; upgradeElements.upgradeResult.style.color = 'var(--success-color)';
+            const upItem = res.item;
+            const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemId));
+            if (idx !== -1) {
+                currentUser.inventory[idx] = upItem;
+            } else {
+                currentUser.inventory.push(upItem);
+            }
+            upgradeElements.upgradeResult.textContent = res.message;
+            upgradeElements.upgradeResult.style.color = 'var(--success-color)';
             showTGNotification("Success!", 'success');
         } else {
             if (res.item_lost) currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
-            upgradeElements.upgradeResult.textContent = res.message || "Upgrade failed."; upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
+            upgradeElements.upgradeResult.textContent = res.message || "Upgrade failed.";
+            upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
             showTGNotification(res.message || "Failed.", 'error');
         }
-        renderInventory(); updateBalances(); upgradeElements.doUpgradeButton.disabled = false; upgradeElements.inventorySelect.value = '';
-    } catch (e) { upgradeElements.upgradeResult.textContent = "Error."; upgradeElements.upgradeResult.style.color = 'var(--danger-color)'; upgradeElements.doUpgradeButton.disabled = false; }
+        renderInventory();
+        updateBalances();
+        upgradeElements.doUpgradeButton.disabled = false;
+        upgradeElements.inventorySelect.value = '';
+    } catch (e) {
+        upgradeElements.upgradeResult.textContent = "Error.";
+        upgradeElements.upgradeResult.style.color = 'var(--danger-color)';
+        upgradeElements.doUpgradeButton.disabled = false;
+    }
 }
-async function sellAllItems() { // No changes here
-    const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize); if (!sellableItems.length) { showTGNotification("No sellable items.", "info"); return; }
+
+async function sellAllItems() {
+    const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize);
+    if (!sellableItems.length) {
+        showTGNotification("No sellable items.", "info");
+        return;
+    }
     const val = parseFloat(profileElements.sellAllValueSpan.textContent);
-    if (Telegram.WebApp.showConfirm) { Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => { if (ok) doSellAll(); }); }
-    else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) { doSellAll(); }
+    if (Telegram.WebApp.showConfirm) {
+        Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => {
+            if (ok) doSellAll();
+        });
+    } else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) {
+        doSellAll();
+    }
 }
-async function doSellAll() { // No changes here
+
+async function doSellAll() {
     try {
         const res = await apiRequest('/api/sell_all_items', 'POST');
         if (res.status === 'success') {
-            currentUser.tonBalance = res.new_balance_ton; currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize);
-            updateBalances(); renderInventory(); showTGNotification(res.message, "success");
+            currentUser.tonBalance = res.new_balance_ton;
+            currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize);
+            updateBalances();
+            renderInventory();
+            showTGNotification(res.message, "success");
         } else showTGNotification(res.message || "Failed.", "error");
-    } catch (e) { showTGNotification("Sell all request failed.", "error"); }
+    } catch (e) {
+        showTGNotification("Sell all request failed.", "error");
+    }
 }
-function showWithdrawStep(step) { withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step)); } // No changes here
-function startWithdrawalProcess(inventoryItemId) { // No changes here
+
+function showWithdrawStep(step) {
+    withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step));
+}
+
+function startWithdrawalProcess(inventoryItemId) {
     const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
-    if (!item || item.is_ton_prize) { showTGNotification("Item not found or not withdrawable.", "error"); return; }
-    itemToWithdraw = inventoryItemId; withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
-    showWithdrawStep(1); withdrawModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
+    if (!item || item.is_ton_prize) {
+        showTGNotification("Item not found or not withdrawable.", "error");
+        return;
+    }
+    itemToWithdraw = inventoryItemId;
+    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
+    showWithdrawStep(1);
+    withdrawModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
 }
-async function completeWithdrawal() { // No changes here
-    if (!itemToWithdraw) { showTGNotification("No item selected.", "error"); return; }
-    withdrawStatusMessage.textContent = "Processing Tonnel withdrawal..."; withdrawModal.querySelector('.loader').style.display = 'block';
+
+async function completeWithdrawal() {
+    if (!itemToWithdraw) {
+        showTGNotification("No item selected.", "error");
+        return;
+    }
+    withdrawStatusMessage.textContent = "Processing Tonnel withdrawal...";
+    withdrawModal.querySelector('.loader').style.display = 'block';
     try {
         const res = await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`, 'POST');
         if (res.status === 'success') {
             const idx = currentUser.inventory.findIndex(i => i.id === itemToWithdraw);
             if (idx !== -1) currentUser.inventory.splice(idx, 1);
-            renderInventory(); withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!";
-            withdrawStatusMessage.style.color = 'var(--success-color)'; showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success');
+            renderInventory();
+            withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!";
+            withdrawStatusMessage.style.color = 'var(--success-color)';
+            showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success');
             showWithdrawStep(3);
         } else {
             withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed.";
-            withdrawStatusMessage.style.color = 'var(--danger-color)'; showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error');
+            withdrawStatusMessage.style.color = 'var(--danger-color)';
+            showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error');
         }
     } catch (e) {
-        withdrawStatusMessage.textContent = "Error processing withdrawal."; withdrawStatusMessage.style.color = 'var(--danger-color)';
+        withdrawStatusMessage.textContent = "Error processing withdrawal.";
+        withdrawStatusMessage.style.color = 'var(--danger-color)';
         showTGNotification("Error processing Tonnel withdrawal.", "error");
-    } finally { withdrawModal.querySelector('.loader').style.display = 'none'; }
+    } finally {
+        withdrawModal.querySelector('.loader').style.display = 'none';
+    }
 }
-function closeWithdrawModal() { // No changes here
-    if (tgBackButton) popTgBackButtonHandler(); withdrawModal.classList.remove('active'); itemToWithdraw = null;
-    showWithdrawStep(1); withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
-    withdrawStatusMessage.textContent = ""; withdrawModal.querySelector('.loader').style.display = 'none';
+
+function closeWithdrawModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    withdrawModal.classList.remove('active');
+    itemToWithdraw = null;
+    showWithdrawStep(1);
+    withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
+    withdrawStatusMessage.textContent = "";
+    withdrawModal.querySelector('.loader').style.display = 'none';
 }
-async function initiateDepositProcedure() { // No changes here
-    const amtTxt = profileElements.depositAmountInput.value; if (!amtTxt.trim()) { showTGNotification("Enter amount.", "warning"); return; }
+
+async function initiateDepositProcedure() {
+    const amtTxt = profileElements.depositAmountInput.value;
+    if (!amtTxt.trim()) {
+        showTGNotification("Enter amount.", "warning");
+        return;
+    }
     const amt = parseFloat(amtTxt);
-    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) { showTGNotification("Invalid amount. Min 0.1 TON", "error"); return; }
-    profileElements.initiateDepositButton.disabled = true; profileElements.initiateDepositButton.textContent = "Initializing...";
+    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) {
+        showTGNotification("Invalid amount. Min 0.1 TON", "error");
+        return;
+    }
+    profileElements.initiateDepositButton.disabled = true;
+    profileElements.initiateDepositButton.textContent = "Initializing...";
     try {
         const res = await apiRequest('/api/initiate_deposit', 'POST', { amount: amt });
-        profileElements.initiateDepositButton.disabled = false; profileElements.initiateDepositButton.textContent = "Deposit TON";
+        profileElements.initiateDepositButton.disabled = false;
+        profileElements.initiateDepositButton.textContent = "Deposit TON";
         if (res.status === 'success') {
-            currentPendingDepositId = res.pending_deposit_id; depositRecipientAddressRaw = res.recipient_address; depositCommentText = res.comment;
+            currentPendingDepositId = res.pending_deposit_id;
+            depositRecipientAddressRaw = res.recipient_address;
+            depositCommentText = res.comment;
             const nanoAmt = res.final_amount_nano_ton || Math.round(parseFloat(res.amount_to_send) * 1e9);
             tonTransferLink.href = `ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`;
-            startDepositExpiryTimer(res.expires_at); depositStatusMessageEl.textContent = ''; depositLoader.style.display = 'none';
-            confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = 'I Sent Funds';
-            depositInstructionsModal.classList.add('active'); if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
+            startDepositExpiryTimer(res.expires_at);
+            depositStatusMessageEl.textContent = '';
+            depositLoader.style.display = 'none';
+            confirmPaymentSentButton.disabled = false;
+            confirmPaymentSentButton.textContent = 'I Sent Funds';
+            depositInstructionsModal.classList.add('active');
+            if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
         } else showTGNotification(res.message || res.error || 'Failed.', 'error');
-    } catch (e) { profileElements.initiateDepositButton.disabled = false; profileElements.initiateDepositButton.textContent = "Deposit TON"; showTGNotification("Deposit init request failed.", "error"); }
-}
-function startDepositExpiryTimer(expiresISO) { // No changes here
-    if (depositExpiryInterval) clearInterval(depositExpiryInterval); const expiry = new Date(expiresISO).getTime();
-    function update() {
-        const now = new Date().getTime(); const dist = expiry - now;
-        if (dist < 0) { clearInterval(depositExpiryInterval); depositExpiryInfo.textContent = "Expired."; confirmPaymentSentButton.disabled = true; tonTransferLink.classList.add('button-secondary'); return; }
-        const m = Math.floor((dist % (1e3 * 60 * 60)) / (1e3 * 60)); const s = Math.floor((dist % (1e3 * 60)) / 1e3);
-        depositExpiryInfo.textContent = `Expires in ${m}m ${s}s.`; tonTransferLink.classList.remove('button-secondary');
+    } catch (e) {
+        profileElements.initiateDepositButton.disabled = false;
+        profileElements.initiateDepositButton.textContent = "Deposit TON";
+        showTGNotification("Deposit init request failed.", "error");
     }
-    update(); depositExpiryInterval = setInterval(update, 1e3);
 }
-async function verifyPaymentSent() { // No changes here
-    if (!currentPendingDepositId) { showTGNotification("No deposit.", "error"); return; }
-    confirmPaymentSentButton.disabled = true; confirmPaymentSentButton.textContent = "Verifying...";
-    depositLoader.style.display = 'block'; depositStatusMessageEl.textContent = 'Checking...';
+
+function startDepositExpiryTimer(expiresISO) {
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval);
+    const expiry = new Date(expiresISO).getTime();
+    function update() {
+        const now = new Date().getTime();
+        const dist = expiry - now;
+        if (dist < 0) {
+            clearInterval(depositExpiryInterval);
+            depositExpiryInfo.textContent = "Expired.";
+            confirmPaymentSentButton.disabled = true;
+            tonTransferLink.classList.add('button-secondary');
+            return;
+        }
+        const m = Math.floor((dist % (1e3 * 60 * 60)) / (1e3 * 60));
+        const s = Math.floor((dist % (1e3 * 60)) / 1e3);
+        depositExpiryInfo.textContent = `Expires in ${m}m ${s}s.`;
+        tonTransferLink.classList.remove('button-secondary');
+    }
+    update();
+    depositExpiryInterval = setInterval(update, 1e3);
+}
+
+async function verifyPaymentSent() {
+    if (!currentPendingDepositId) {
+        showTGNotification("No deposit.", "error");
+        return;
+    }
+    confirmPaymentSentButton.disabled = true;
+    confirmPaymentSentButton.textContent = "Verifying...";
+    depositLoader.style.display = 'block';
+    depositStatusMessageEl.textContent = 'Checking...';
     try {
         const res = await apiRequest('/api/verify_deposit', 'POST', { pending_deposit_id: currentPendingDepositId });
         if (res.status === 'success') {
-            showTGNotification(res.message, 'success'); currentUser.tonBalance = res.new_balance_ton;
-            updateBalances(); renderProfile(); closeDepositInstructionsModal();
+            showTGNotification(res.message, 'success');
+            currentUser.tonBalance = res.new_balance_ton;
+            updateBalances();
+            renderProfile();
+            closeDepositInstructionsModal();
         } else if (res.status === 'pending') {
-            depositStatusMessageEl.textContent = res.message; confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Check Again";
+            depositStatusMessageEl.textContent = res.message;
+            confirmPaymentSentButton.disabled = false;
+            confirmPaymentSentButton.textContent = "Check Again";
         } else {
-            showTGNotification(res.message || "Failed.", "error"); depositStatusMessageEl.textContent = res.message || "Failed.";
+            showTGNotification(res.message || "Failed.", "error");
+            depositStatusMessageEl.textContent = res.message || "Failed.";
             if (res.status === 'expired') tonTransferLink.classList.add('button-secondary');
-            else { confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Try Again"; }
+            else {
+                confirmPaymentSentButton.disabled = false;
+                confirmPaymentSentButton.textContent = "Try Again";
+            }
         }
-    } catch (e) { depositStatusMessageEl.textContent = 'Error verifying.'; confirmPaymentSentButton.disabled = false; confirmPaymentSentButton.textContent = "Try Again"; showTGNotification("Verification request failed.", "error");
-    } finally { if (depositLoader.style.display === 'block' && !depositStatusMessageEl.textContent.includes('Checking')) depositLoader.style.display = 'none'; }
+    } catch (e) {
+        depositStatusMessageEl.textContent = 'Error verifying.';
+        confirmPaymentSentButton.disabled = false;
+        confirmPaymentSentButton.textContent = "Try Again";
+        showTGNotification("Verification request failed.", "error");
+    } finally {
+        if (depositLoader.style.display === 'block' && !depositStatusMessageEl.textContent.includes('Checking')) depositLoader.style.display = 'none';
+    }
 }
-function closeDepositInstructionsModal() { // No changes here
-    if (tgBackButton) popTgBackButtonHandler(); depositInstructionsModal.classList.remove('active');
-    if (depositExpiryInterval) clearInterval(depositExpiryInterval); currentPendingDepositId = null;
-    profileElements.depositAmountInput.value = ''; tonTransferLink.href = '#';
-    depositStatusMessageEl.textContent = ''; depositLoader.style.display = 'none'; depositExpiryInfo.textContent = '';
+
+function closeDepositInstructionsModal() {
+    if (tgBackButton) popTgBackButtonHandler();
+    depositInstructionsModal.classList.remove('active');
+    if (depositExpiryInterval) clearInterval(depositExpiryInterval);
+    currentPendingDepositId = null;
+    profileElements.depositAmountInput.value = '';
+    tonTransferLink.href = '#';
+    depositStatusMessageEl.textContent = '';
+    depositLoader.style.display = 'none';
+    depositExpiryInfo.textContent = '';
 }
-async function redeemPromocode() { // No changes here
-    const code = profileElements.promocodeInput.value.trim(); if (!code) { showTGNotification("Enter code.", "warning"); return; }
+
+async function redeemPromocode() {
+    const code = profileElements.promocodeInput.value.trim();
+    if (!code) {
+        showTGNotification("Enter code.", "warning");
+        return;
+    }
     profileElements.redeemPromocodeButton.disabled = true;
     try {
         const res = await apiRequest('/api/redeem_promocode', 'POST', { promocode_text: code });
         if (res.status === 'success') {
-            currentUser.tonBalance = res.new_balance_ton; updateBalances();
-            showTGNotification(res.message, 'success'); profileElements.promocodeInput.value = '';
+            currentUser.tonBalance = res.new_balance_ton;
+            updateBalances();
+            showTGNotification(res.message, 'success');
+            profileElements.promocodeInput.value = '';
         } else showTGNotification(res.message || res.error || "Failed.", "error");
-    } catch (e) { showTGNotification("Promocode request failed.", "error");
-    } finally { profileElements.redeemPromocodeButton.disabled = false; }
+    } catch (e) {
+        showTGNotification("Promocode request failed.", "error");
+    } finally {
+        profileElements.redeemPromocodeButton.disabled = false;
+    }
 }
-// Event Listeners (No changes here)
+
+// Event Listeners
 appNavButtons.forEach(b => b.addEventListener('click', () => navigateToPage(b.dataset.page)));
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
@@ -1182,7 +1669,8 @@ winOverlayConvertBtn.addEventListener('click', handleConvertAll);
 caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
     btn.addEventListener('click', e => {
         selectedCaseMultiplier = parseInt(e.target.dataset.multiplier);
-        updateCaseMultiplierButtons(); updateSpinButtonText();
+        updateCaseMultiplierButtons();
+        updateSpinButtonText();
     });
 });
 profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect());
@@ -1196,69 +1684,69 @@ closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b => {
     b.addEventListener('click', e => {
         selectedUpgradeMultiplier = parseFloat(e.target.dataset.multiplier);
-        const ch = parseFloat(e.target.dataset.chance); upgradeElements.chanceDisplay.textContent = `${ch}%`;
+        const ch = parseFloat(e.target.dataset.chance);
+        upgradeElements.chanceDisplay.textContent = `${ch}%`;
         upgradeElements.multiplierButtons.querySelectorAll('button').forEach(btn => {
-            btn.classList.remove('active-multiplier'); if (!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
+            btn.classList.remove('active-multiplier');
+            if (!btn.classList.contains('button-secondary')) btn.classList.add('button-secondary');
         });
-        e.target.classList.add('active-multiplier'); if (e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary');
+        e.target.classList.add('active-multiplier');
+        if (e.target.classList.contains('button-secondary')) e.target.classList.remove('button-secondary');
     });
 });
 const defMultBtnUpgrade = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`);
-if (defMultBtnUpgrade) { defMultBtnUpgrade.click(); selectedUpgradeMultiplier = 1.5; }
+if (defMultBtnUpgrade) {
+    defMultBtnUpgrade.click();
+    selectedUpgradeMultiplier = 1.5;
+}
 upgradeElements.doUpgradeButton.addEventListener('click', handleUpgrade);
-inviteElements.copyRefLinkButton.addEventListener('click', () => { navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error')); });
+inviteElements.copyRefLinkButton.addEventListener('click', () => {
+    navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error'));
+});
 inviteElements.withdrawReferralButton.addEventListener('click', async () => {
     try {
         const res = await apiRequest('/api/withdraw_referral_earnings', 'POST');
         if (res.status === 'success') {
-            currentUser.tonBalance = res.new_balance_ton; currentUser.referralEarningsPending = res.new_referral_earnings_pending;
-            updateBalances(); renderInvitePage(); showTGNotification(res.message, 'success');
+            currentUser.tonBalance = res.new_balance_ton;
+            currentUser.referralEarningsPending = res.new_referral_earnings_pending;
+            updateBalances();
+            renderInvitePage();
+            showTGNotification(res.message, 'success');
         } else showTGNotification(res.message || "Failed.", "error");
-    } catch (e) { showTGNotification("Withdrawal request failed.", "error"); }
+    } catch (e) {
+        showTGNotification("Withdrawal request failed.", "error");
+    }
 });
 profileElements.sellAllButton?.addEventListener('click', sellAllItems);
 confirmPaymentSentButton?.addEventListener('click', verifyPaymentSent);
 cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
 
 async function fetchInitialUserData() {
-    if (!Telegram.WebApp.initData) { dataFetchedSuccessfully = true; return false; }
+    if (!Telegram.WebApp.initData) {
+        dataFetchedSuccessfully = true; // No backend data, proceed with local state
+        return false;
+    }
     try {
         const data = await apiRequest('/api/get_user_data', 'POST', {});
         Object.assign(currentUser, data);
         currentUser.first_name = data.first_name || currentUser.first_name || 'User';
         dataFetchedSuccessfully = true;
-        
-        // Populate frontend casesData from what backend sent
-        // This assumes the backend `get_user_data` route sends casesData
-        // OR you make a separate call for it if it's static initial data
-        // For this example, let's assume `casesData` is directly set from backend response
-        // This part needs adjustment based on how `casesData` is actually meant to be sourced
-        // If it's dynamic per user, it should come from `/api/get_user_data`
-        // If it's static for all users, a separate `/api/get_game_data` might be better
-        
-        // For simplicity now, we will assume casesData is static and defined in backend,
-        // and the frontend gets it via a global or direct fetch if needed.
-        // The important part is that `casesData` will have `floor_price` from backend's initial RTP calculation.
-        // If casesData were to be dynamic, it would be part of the `data` object above.
-        // Here, we use a placeholder, assuming it's defined somewhere or fetched.
-        // In a full system, you might do:
-        // casesData = data.cases_data_for_frontend || []; 
-        // For now, we'll assume `casesData` is populated in initializeApp or via a static source.
-
         return true;
-    } catch (e) { showTGNotification("Could not load profile.", 'error'); dataFetchedSuccessfully = false; return false; }
+    } catch (e) {
+        showTGNotification("Could not load profile.", 'error');
+        dataFetchedSuccessfully = false;
+        return false;
+    }
 }
 
+// --- MODIFIED initializeApp FUNCTION (FULL) ---
 async function initializeApp() {
+    // Start with a loading status message
     updateLoadingStatus("Initializing application...");
+
+    // Preload images
     const allImageUrls = new Set();
-    // Assuming casesData is populated before this loop by fetching it
-    // Temporarily defining dummy casesData for preload simulation; replace with actual fetch/source
-    const tempCasesForPreload = [
-        {imageFilename: 'Lol-Pop.jpg', prizes: [{name:'Plush Pepe'}]},
-        {imageFilename: 'Record-Player.jpg', prizes: [{name:'Record Player'}]}
-    ];
-     tempCasesForPreload.forEach(c => {
+    casesData.forEach(c => {
         const mainImgSrc = c.imageFilename || (c.name ? generateImageFilename(c.name) : null); if (mainImgSrc) allImageUrls.add(mainImgSrc);
         if (c.overlayPrizeName) allImageUrls.add(generateImageFilename(c.overlayPrizeName));
         c.prizes.forEach(p => { if (p.is_ton_prize) allImageUrls.add(TON_COIN_FULL_URL); else allImageUrls.add(generateImageFilename(p.imageFilename || p.name)); });
@@ -1266,73 +1754,89 @@ async function initializeApp() {
     allImageUrls.add(TON_COIN_FULL_URL);
     allImageUrls.forEach(url => { const img = new Image(); img.src = url; });
 
+    // Initialize Telegram WebApp BackButton
     if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton;
+
+    // Check if running inside Telegram Mini App and get user data
     if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
-        updateLoadingStatus("Connecting to Telegram Mini App..."); Telegram.WebApp.ready(); Telegram.WebApp.expand(); Telegram.WebApp.enableClosingConfirmation();
+        updateLoadingStatus("Connecting to Telegram Mini App...");
+        Telegram.WebApp.ready();
+        Telegram.WebApp.expand();
+        Telegram.WebApp.enableClosingConfirmation();
+        
         const tgUser = Telegram.WebApp.initDataUnsafe.user;
         if (tgUser) {
-            currentUser.id = tgUser.id; currentUser.username = tgUser.username;
-            currentUser.first_name = tgUser.first_name || 'User'; currentUser.last_name = tgUser.last_name;
-            currentUser.photo_url = tgUser.photo_url || null;
+            currentUser.id = tgUser.id;
+            currentUser.username = tgUser.username;
+            currentUser.first_name = tgUser.first_name || 'User';
+            currentUser.last_name = tgUser.last_name;
+            currentUser.photo_url = tgUser.photo_url || null; // Store photo_url if available
+            
+            // Ensure referral code is set for new users, even if not explicitly referred
             if (!currentUser.referralCode) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
         }
+        
+        // Apply Telegram WebApp colors from CSS variables
         try {
             const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25';
-            Telegram.WebApp.setHeaderColor(bg); Telegram.WebApp.setBackgroundColor(bg);
-        } catch (e) { console.warn("Failed to set Telegram WebApp colors:", e); }
+            Telegram.WebApp.setHeaderColor(bg);
+            Telegram.WebApp.setBackgroundColor(bg);
+        } catch (e) {
+            // Ignore errors if Telegram.WebApp methods are not available or fail
+            console.warn("Failed to set Telegram WebApp colors:", e);
+        }
     } else {
+        // Fallback for non-Telegram environments (e.g., direct browser access)
         console.warn("Not running inside Telegram WebApp. Using fallback data.");
         if (!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2, 8)}`;
+        // Provide a placeholder photo_url for browser testing
         currentUser.photo_url = 'https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png'; 
     }
 
+    // Set up TonConnect UI status change listener
     updateLoadingStatus("Authenticating wallet...");
-    tonConnectUI.onStatusChange(async wallet => { updateUIBasedOnWallet(wallet); if (dataFetchedSuccessfully) { renderHeader(); renderProfile(); } });
+    tonConnectUI.onStatusChange(async wallet => {
+        // This callback can fire before initial user data is fully loaded.
+        // updateUIBasedOnWallet handles displaying wallet info.
+        updateUIBasedOnWallet(wallet); 
+        // If dataFetchedSuccessfully is true, it means main user data is loaded,
+        // so we can trigger a re-render of profile/header based on wallet changes.
+        if (dataFetchedSuccessfully) {
+            renderHeader();
+            renderProfile();
+        }
+    });
 
+    // Fetch initial user data from your backend
     updateLoadingStatus("Loading user data...");
-    if (Telegram.WebApp.initData) { await fetchInitialUserData(); } else { dataFetchedSuccessfully = true; }
-    
-    // Fetch global casesData (this has prices from backend's initial startup RTP calc)
-    // This assumes backend will have an endpoint or `get_user_data` includes it.
-    // For now, we'll make a specific call if needed.
-    // Placeholder:
-    // casesData = await apiRequest('/api/get_static_cases_data'); // Or similar
-    // For this implementation, we'll assume casesData is populated correctly.
-    // The key change: fetching LIVE floor prices for dynamic displays.
-
-    updateLoadingStatus("Fetching live prices...");
-    try {
-        const fetchedPrices = await apiRequest('/api/get_all_floor_prices', 'GET');
-        Object.assign(liveFloorPrices, fetchedPrices);
-        console.log("Live floor prices loaded:", liveFloorPrices);
-    } catch (e) {
-        console.error("Failed to fetch live floor prices:", e);
-        showTGNotification("Could not load live prices. Displayed prices might be outdated.", "warning");
-        // As a fallback, we could try to use a very stale version of prices or hardcoded defaults.
-        // For now, we'll rely on the `p.floorPrice` in `casesData` if `liveFloorPrices` is empty.
+    if (Telegram.WebApp.initData) {
+        await fetchInitialUserData(); // This sets dataFetchedSuccessfully based on API response
+    } else {
+        dataFetchedSuccessfully = true; // No backend data to fetch (e.g., browser mode), so mark as "fetched"
     }
     
-    // Simulate fetching casesData that includes pre-calculated floor prices from backend initial load
-    // In a real app, this `casesData` would be fetched from an endpoint like '/api/get_initial_game_data'
-    // or be part of the `get_user_data` response.
-    // For this example, let's assume it's been fetched and contains the initial pricing.
-    // The key is that `openRouletteModal` will use `liveFloorPrices` for up-to-date display.
-    // This is where you'd ideally get `casesData`
-    // For now, let's manually define a structure similar to what backend would send.
-    // This is a simplified example. The actual `casesData` will come from your backend.
-    // This example uses the raw templates and assumes the backend populates it.
-    // For this test, we need to ensure casesData is populated before renderCases is called.
-    // Usually, this would be from an API call.
-    // Let's just initialize it as empty, assuming fetchInitialUserData or another call populates it.
-    // casesData = []; // Or fetched from backend.
-    // If not fetched, renderCases will show "Loading cases..."
-
+    // Ensure UI is updated based on wallet status after initial user data fetch attempt
+    // This catches cases where onStatusChange might not have fired yet, or needs a refresh
     updateUIBasedOnWallet(tonConnectWalletInfo || tonConnectUI.wallet);
+
+    // Render main game content and sections
     updateLoadingStatus("Loading game content...");
-    renderHeader(); renderCasesAndSlots(); renderProfile(); renderLeaderboard(); renderInvitePage(); 
+    renderHeader(); // Renders header (including balance)
+    renderCasesAndSlots(); // Renders cases (and slots if you re-add them)
+    renderProfile(); // Renders profile page (including inventory and avatar)
+    renderLeaderboard(); // Fetches and renders leaderboard data
+    renderInvitePage(); // Renders referral page content
+
+    // Navigate to the default main page after everything is loaded
     navigateToPage('main-page');
+
+    // Hide the loading screen after all content is loaded and rendered
     updateLoadingStatus("Ready!");
-    if (loadingScreen) { loadingScreen.classList.add('hidden'); }
+    if (loadingScreen) {
+        loadingScreen.classList.add('hidden');
+        // Optional: Remove the element from DOM after transition to be super clean
+        // setTimeout(() => { loadingScreen.remove(); }, 600); // 100ms more than the CSS transition duration
+    }
 }
     
 document.addEventListener('DOMContentLoaded', initializeApp);
