@@ -429,6 +429,8 @@ def generate_image_filename_from_name(name_str: str) -> str:
     """
     if not name_str: return 'placeholder.png'
 
+    if name_str == "placeholder_nothing.png": return 'https://images.emojiterra.com/mozilla/512px/274c.png'
+
     if "TON" in name_str.upper() and ("PRIZE" in name_str.upper() or name_str.replace('.', '', 1).replace(' TON', '').strip().replace(',', '').isdigit()):
         return TON_PRIZE_IMAGE_DEFAULT
 
