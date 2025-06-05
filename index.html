@@ -536,6 +536,7 @@ function generateImageFilename(nameOrUrl) {
     let filename = name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "");
     if (name === "Durov's Cap") filename = "Durov's-Cap";
     if (name === "Vintage Cigar") filename = "Vintage-Cigar";
+    if (name === "placeholder_nothing.png") return 'https://images.emojiterra.com/mozilla/512px/274c.png';
     if (['Amber', 'Midnight_Blue', 'Onyx_Black', 'Black'].includes(name.replace(/-/g, '_'))) filename = name.replace('-', '_');
     if (!/\.(jpeg|jpg|gif|png|svg)$/i.test(filename)) filename += '.png';
     return IMAGE_BASE_URL + filename;
