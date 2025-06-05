@@ -849,6 +849,29 @@ kissed_frog_processed_prizes = calculate_rtp_probabilities(
 
 # Backend cases data (initial templates - will be adjusted by RTP function)
 cases_data_backend_with_fixed_prices_raw = [
+    {'id':'all_in_01','name':'All In','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/All-In.jpg','priceTON':0.1,'prizes': sorted([
+        # Raw probabilities. Target is 60%+ for Nothing.
+        # Plush Pepe < 0.01% after RTP.
+        # These are *initial weights* for your RTP calculation function.
+        {'name':'Plush Pepe','probability': 0.00005},       # Floor: 1200
+        {'name':'Durov\'s Cap','probability': 0.0005},      # Floor: 251
+        {'name':'Precious Peach','probability': 0.002},     # Floor: 162
+        {'name':'Bonded Ring','probability': 0.005},        # Floor: 60.5
+        {'name':'Lol Pop','probability': 0.29245},          # Floor: 1.4
+        {'name':'Nothing','probability': 0.70, 'imageFilename': 'placeholder_nothing.png'} # Floor: 0
+    ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)}, # "Nothing" will sort to the bottom
+
+    # --- NEW CASE: Small Billionaire ---
+    {'id':'small_billionaire_05','name':'Small Billionaire','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Small-Billionaire.jpg','priceTON':0.5,'prizes': sorted([
+        # Raw probabilities. Target 75% for Nothing, 20% for Snake Box.
+        # Remaining 5% for others.
+        {'name':'Perfume Bottle','probability': 0.01},      # Floor: 38.3
+        {'name':'Vintage Cigar','probability': 0.012},      # Floor: 19.7
+        {'name':'Signet Ring','probability': 0.013},        # Floor: 18.8
+        {'name':'Swiss Watch','probability': 0.015},        # Floor: 18.6
+        {'name':'Snake Box', 'probability': 0.20},          # Floor: 3.3
+        {'name':'Nothing','probability': 0.75, 'imageFilename': 'placeholder_nothing.png'}  # Floor: 0
+    ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
     {'id':'lolpop','name':'Lol Pop Stash','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg','priceTON':2.0,'prizes': sorted([
         {'name':'Plush Pepe','probability':0.00005}, {'name':'Neko Helmet','probability':0.0015},
         {'name':'Snake Box', 'probability': 0.04}, {'name':'Pet Snake', 'probability': 0.04},
