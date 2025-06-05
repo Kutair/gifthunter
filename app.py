@@ -886,7 +886,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'B-Day Candle','probability':0.05}, {'name':'Skull Flower','probability':0.035}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
-    {'id':'recordplayer','name':'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':6.0,'prizes': sorted([
+    {'id':'recordplayer','name':'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':3.0,'prizes': sorted([
         {'name':'Plush Pepe','probability':0.00015}, {'name':'Tama Gadget','probability':0.07},
         {'name':'Snow Globe','probability':0.06}, {'name':'Record Player','probability':0.15},
         {'name':'Bunny Muffin','probability':0.03}, {'name':'Berry Box','probability':0.03},
