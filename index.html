@@ -600,6 +600,26 @@ if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.p
 finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
 
 const casesData = [
+        {id:'all_in_01',name:'All In','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/All-In.jpg','priceTON':0.1,'prizes':[
+        // Illustrative RTP adjusted probabilities
+        {name:'Plush Pepe',probability: 0.000007, imageFilename:generateImageFilename('Plush Pepe'), floorPrice:1200.0, is_ton_prize:false},
+        {name:'Durov\'s Cap',probability: 0.00007, imageFilename:generateImageFilename('Durov\'s Cap'), floorPrice:251.0, is_ton_prize:false},
+        {name:'Precious Peach',probability: 0.0002, imageFilename:generateImageFilename('Precious Peach'), floorPrice:162.0, is_ton_prize:false},
+        {name:'Bonded Ring',probability: 0.0007, imageFilename:generateImageFilename('Bonded Ring'), floorPrice:60.5, is_ton_prize:false},
+        {name:'Lol Pop',probability: 0.279023, imageFilename:generateImageFilename('Lol Pop'), floorPrice:1.4, is_ton_prize:false},
+        {name:'Nothing',probability: 0.72, imageFilename: 'placeholder_nothing.png', floorPrice:0.0, is_ton_prize:false} // Placeholder
+    ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
+
+    // --- NEW CASE: Small Billionaire ---
+    {id:'small_billionaire_05','name':'Small Billionaire','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Small-Billionaire.jpg','priceTON':0.5,'prizes':[
+        // Illustrative RTP adjusted probabilities
+        {name:'Perfume Bottle',probability: 0.008, imageFilename:generateImageFilename('Perfume Bottle'), floorPrice:38.3, is_ton_prize:false},
+        {name:'Vintage Cigar',probability: 0.010, imageFilename:generateImageFilename('Vintage Cigar'), floorPrice:19.7, is_ton_prize:false},
+        {name:'Signet Ring',probability: 0.012, imageFilename:generateImageFilename('Signet Ring'), floorPrice:18.8, is_ton_prize:false},
+        {name:'Swiss Watch',probability: 0.020, imageFilename:generateImageFilename('Swiss Watch'), floorPrice:18.6, is_ton_prize:false},
+        {name:'Snake Box', probability: 0.20, imageFilename:generateImageFilename('Snake Box'), floorPrice:3.3, is_ton_prize:false},
+        {name:'Nothing',probability: 0.75, imageFilename: 'placeholder_nothing.png', floorPrice:0.0, is_ton_prize:false}
+    ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
     {id:'lolpop',name:'Lol Pop Stash',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg',priceTON:2.0,prizes:[
         {name:'Plush Pepe',probability:0.0000454,imageFilename:generateImageFilename('Plush Pepe'),floorPrice:1200.0,is_ton_prize:false},
         {name:'Neko Helmet',probability:0.001362,imageFilename:generateImageFilename('Neko Helmet'),floorPrice:15.0,is_ton_prize:false},
@@ -625,7 +645,7 @@ const casesData = [
         {name:'Skull Flower',probability:0.0357945,imageFilename:generateImageFilename('Skull Flower'),floorPrice:3.4,is_ton_prize:false} // This was out of order
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
-    {id:'recordplayer',name:'Record Player Vault',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg',priceTON:6.0,prizes:[
+    {id:'recordplayer',name:'Record Player Vault',imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg',priceTON:3.0,prizes:[
         {name:'Plush Pepe',probability:0.0001594,imageFilename:generateImageFilename('Plush Pepe'),floorPrice:1200.0,is_ton_prize:false},
         {name:'Crystal Ball',probability:0.03189,imageFilename:generateImageFilename('Crystal Ball'),floorPrice:6.0,is_ton_prize:false},
         {name:'Flying Broom',probability:0.03189,imageFilename:generateImageFilename('Flying Broom'),floorPrice:4.5,is_ton_prize:false},
@@ -770,15 +790,13 @@ const casesData = [
 ];
 
 casesData.forEach(caseItem => {
-    if (caseItem.id === 'kissedfrog') return; // Kissed Frog uses a separate, pre-calculated list
+    if (caseItem.id === 'kissedfrog') return;
 
     let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
-    if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.0001) { // Allow small deviation
-        // console.warn(`Probabilities for ${caseItem.name} sum to ${totalProb}, not 1. Normalizing on frontend...`);
+    if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.0001) {
         const factor = 1.0 / totalProb;
         caseItem.prizes.forEach(prize => { prize.probability *= factor; });
     }
-    // Ensure sorting is maintained after any potential normalization
     caseItem.prizes.sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
 });
 
