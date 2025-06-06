@@ -632,7 +632,7 @@ function populateTonnelGiftChoicesGrid(gifts) {
         card.dataset.giftPrice = gift.price; // Store price for confirmation if needed
 
         const fragmentName = formatGiftNameForFragmentUrl(gift.name);
-        const imageUrl = `https://nft.fragment.com/gift/${fragmentName}-${gift.gift_num}.png`;
+        const imageUrl = `https://nft.fragment.com/gift/${fragmentName}-${gift.gift_num}.webp`;
         
         const imgCont = document.createElement('div');
         imgCont.className = 'item-image-display'; // Reuse inventory item image display style
