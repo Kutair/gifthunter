@@ -500,7 +500,7 @@ const API_BASE_URL = 'https://case-hznb.onrender.com';
 const BOT_USERNAME = 'pusikGiftsBot';
 const MINI_APP_NAME = 'case';
 const TON_COIN_FULL_URL = 'https://case-bot.com/images/actions/ton.svg';
-
+const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
 const currentUser = {
     id: null, username: null, first_name: 'User', last_name: null,
     walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
@@ -1028,7 +1028,6 @@ const winOverlayConvertValue = document.getElementById('win-overlay-convert-valu
 
 const withdrawModal = document.getElementById('withdraw-modal');
 const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
-const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
 const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
 const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
 const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close');
