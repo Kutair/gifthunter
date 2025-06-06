@@ -2503,11 +2503,6 @@ profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode)
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
 
-const defMultBtnUpgrade = upgradeElements.multiplierButtons.querySelector(`[data-multiplier="1.5"]`);
-if (defMultBtnUpgrade) {
-    defMultBtnUpgrade.click();
-    selectedUpgradeMultiplier = 1.5;
-}
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error'));
 });
