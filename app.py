@@ -361,6 +361,8 @@ class TonnelGiftSender:
             
             low_gift = gifts_found_response[0]
 
+            logger.info(f"Tonnel gift found for '{gift_item_name}': {json.dumps(low_gift, indent=2)}")
+            
             # Step 3: Verify the receiver's Telegram ID with Tonnel (optional but good practice for robustness)
             user_info_payload = {"authData":self.authdata,"user":receiver_telegram_id}
             ui_common_headers = {"Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/"}
