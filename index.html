@@ -364,7 +364,7 @@
         <img src="https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png" alt="Pusik Gifts Logo" class="loading-logo">
         <div class="loading-title">Pusik Gifts</div>
         <div class="loader"></div>
-        <p id="loading-status" class="loading-status-text">Loading...</p> <!-- Initial status message -->
+        <p id="loading-status" class="loading-status-text">Loading...</p>
         <div class="channel-link-container">
             <a href="https://t.me/pusikGifts" target="_blank">@pusikGifts</a>
         </div>
@@ -404,8 +404,7 @@
 
     <div id="roulette-modal" class="modal">
         <div class="modal-content">
-            <h3 id="roulette-case-name">Opening Case...</h3> <!-- This is where case name is shown in modal -->
-            <!-- MODIFIED: roulette-wheel-container now holds three distinct reel containers. -->
+            <h3 id="roulette-case-name">Opening Case...</h3>
             <div id="roulette-wheel-container">
                 <div class="roulette-individual-reel-row-visual" id="roulette-reel-1">
                     <div class="roulette-spinner-reel"></div>
@@ -430,24 +429,6 @@
         </div>
     </div>
 
-    <!--<div id="slot-machine-modal" class="modal">
-        <div class="modal-content">
-            <h3 id="slot-machine-name">Spinning Slot...</h3>
-            <div id="slot-reels-container">
-                <div class="slot-reel" id="slot-reel-1"><div class="slot-reel-spinner"></div></div>
-                <div class="slot-reel" id="slot-reel-2"><div class="slot-reel-spinner"></div></div>
-                <div class="slot-reel" id="slot-reel-3"><div class="slot-reel-spinner"></div></div>
-            </div>
-            <p id="slot-price-display" style="margin-bottom:15px; color:var(--text-secondary)"></p>
-            <div class="modal-actions">
-                <button id="spin-slot-button" class="button">Spin Slot</button>
-                <button id="close-slot-modal-button" class="button button-secondary">Close</button>
-            </div>
-             <div id="slot-prize-display"></div>
-             <hr><h4>Possible Symbols:</h4><div id="slot-possible-prizes-display"></div>
-        </div>
-    </div>-->
-
     <div id="win-overlay-modal" class="modal">
         <div class="modal-content">
             <div id="win-overlay-prize-image">
@@ -461,9 +442,57 @@
         </div>
     </div>
 
-    <div id="withdraw-modal" class="modal"><div class="modal-content"><h3>Withdraw Gift</h3><div class="modal-body"><div id="withdraw-step-1" class="modal-step active"><p>To withdraw your NFT item, it will be sent as a gift via Tonnel Market. Please ensure you have Tonnel app/bot accessible.</p><a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel Gifts</a><button id="withdraw-step1-next" class="button button-secondary">Continue</button></div><div id="withdraw-step-2" class="modal-step"><p>Your item will be sent to your Telegram account via Tonnel's gifting system. This may take a few moments. Click 'Confirm' to proceed.</p><button id="withdraw-step2-next" class="button">Confirm & Send Gift</button><button id="withdraw-step2-back" class="button button-secondary">Back</button></div><div id="withdraw-step-3" class="modal-step"><p>Finalizing withdrawal...</p><div class="loader"></div><p id="withdraw-status-message"></p><button id="withdraw-step3-close" class="button button-secondary">Close</button></div></div><button id="close-withdraw-modal-button" class="button button-secondary">Close Window</button></div></div>
-    <div id="deposit-instructions-modal" class="modal"><div class="modal-content"><h3>Deposit TON</h3><div class="modal-body" style="text-align: left;"><p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p><a id="ton-transfer-link" href="#" target="_blank" class="button"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>Open Wallet & Pay</a><p id="deposit-expiry-info"></p><p id="deposit-status-message"></p><div id="deposit-loader" class="loader" style="display:none;"></div><button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button><button id="cancel-deposit-button" class="button button-secondary">Cancel</button></div></div></div>
+    <div id="withdraw-modal" class="modal">
+        <div class="modal-content">
+            <h3>Withdraw Gift</h3>
+            <div class="modal-body">
+                <div id="withdraw-step-1" class="modal-step active">
+                    <p>To withdraw your NFT item, it will be sent as a gift via Tonnel Market.
+                        <br><br><strong>IMPORTANT:</strong>
+                        <br>1. Open Tonnel Gifts via the button below.
+                        <br>2. You <strong>MUST</strong> send any message to the <a href="https://t.me/giftrelayer" target="_blank" style="color: var(--primary-color); text-decoration: underline;">@giftrelayer</a> bot in Telegram if you haven't interacted with it before. Otherwise, the gift cannot be delivered.
+                    </p>
+                    <a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel Gifts & Message Relayer</a>
+                    <button id="withdraw-step1-next" class="button button-secondary">Continue to Gift Selection</button>
+                </div>
 
+                <div id="withdraw-step-gifts" class="modal-step">
+                    <p>Please choose the specific gift instance you wish to withdraw from the available listings on Tonnel Market. This may take a moment to load.</p>
+                    <div id="tonnel-gift-choices-grid" class="inventory-grid" style="grid-template-columns: repeat(auto-fill, minmax(max(120px, calc(50% - 10px - 1px)), 1fr)); gap: 15px; margin-bottom: 20px; max-height: 35vh; overflow-y: auto; padding-top:10px;">
+                        <div class="loader" id="tonnel-gifts-loader" style="display: none; grid-column: 1 / -1;"></div>
+                    </div>
+                    <button id="withdraw-step-gifts-confirm" class="button" style="display: none; margin-bottom:10px;">Confirm & Send Chosen Gift</button>
+                    <button id="withdraw-step-gifts-back" class="button button-secondary">Back</button>
+                </div>
+
+                <div id="withdraw-step-finalizing" class="modal-step">
+                     <p>Finalizing withdrawal for the chosen gift...</p>
+                     <div id="withdraw-finalizing-loader" class="loader"></div>
+                     <p id="withdraw-status-message"></p>
+                     <button id="withdraw-step-finalizing-close" class="button button-secondary">Close</button>
+                </div>
+            </div>
+            <button id="close-withdraw-modal-button" class="button button-secondary" style="margin-top:15px;">Close Window</button>
+        </div>
+    </div>
+
+    <div id="deposit-instructions-modal" class="modal">
+        <div class="modal-content">
+            <h3>Deposit TON</h3>
+            <div class="modal-body" style="text-align: left;">
+                <p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p>
+                <a id="ton-transfer-link" href="#" target="_blank" class="button">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>
+                    Open Wallet & Pay
+                </a>
+                <p id="deposit-expiry-info"></p>
+                <p id="deposit-status-message"></p>
+                <div id="deposit-loader" class="loader" style="display:none;"></div>
+                <button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button>
+                <button id="cancel-deposit-button" class="button button-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
 <script>
 // Global Constants and Data Definitions
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
@@ -508,12 +537,175 @@ const GIFT_NAME_TO_ID_MAP = {
   "Xmas Stocking": "6003767644426076664", "Big Year": "6028283532500009446", "Gem Signet": "5859442703032386168",
   "Light Sword": "5897581235231785485"
 };
+
+// Add near global variables
+let itemToWithdraw = null; // Keep this
+let availableTonnelGifts = [];
+let selectedTonnelGiftDetails = null; // To store { gift_id, gift_num, name, price } of chosen gift
+
+// DOM Element References (Additions for withdrawal modal)
+const tonnelGiftChoicesGrid = document.getElementById('tonnel-gift-choices-grid');
+const tonnelGiftsLoader = document.getElementById('tonnel-gifts-loader');
+const withdrawStepGiftsConfirmBtn = document.getElementById('withdraw-step-gifts-confirm');
+const withdrawStepGiftsBackBtn = document.getElementById('withdraw-step-gifts-back');
+const withdrawFinalizingLoader = document.getElementById('withdraw-finalizing-loader'); // New specific loader ID
+
+// Update showWithdrawStep to handle the new structure
+function showWithdrawStep(stepName) { // stepName will be 'step-1', 'step-gifts', 'step-finalizing'
+    withdrawSteps.forEach(s => s.classList.remove('active'));
+    const targetStep = document.getElementById(`withdraw-${stepName}`);
+    if (targetStep) {
+        targetStep.classList.add('active');
+    } else {
+        console.error(`Withdraw step with ID 'withdraw-${stepName}' not found.`);
+    }
+}
+
+// Helper to format gift name for Fragment URL
+function formatGiftNameForFragmentUrl(name) {
+    if (!name) return 'unknown';
+    let formatted = name.toLowerCase();
+    formatted = formatted.replace(/&/g, 'and');
+    formatted = formatted.replace(/'/g, '');
+    formatted = formatted.replace(/\s+/g, ''); // Remove all spaces
+    formatted = formatted.replace(/[^a-z0-9]/gi, ''); // Remove special characters except numbers
+    return formatted;
+}
+
+
+// Modify startWithdrawalProcess
+function startWithdrawalProcess(inventoryItemId) {
+    const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
+    if (!item || item.is_ton_prize) {
+        showTGNotification("Item not found or not withdrawable.", "error");
+        return;
+    }
+    itemToWithdraw = inventoryItemId; // Store the inventory item ID
+    selectedTonnelGiftDetails = null; // Reset selection
+    availableTonnelGifts = []; // Reset available gifts
+
+    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
+    showWithdrawStep('step-1'); // Show initial instructions step
+    withdrawModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
+}
+
+// NEW: Handle "Continue" from Step 1 - Fetch Tonnel Gifts
+withdrawStep1NextBtn.addEventListener('click', async () => {
+    if (!itemToWithdraw) {
+        showTGNotification("Error: No item selected for withdrawal.", "error");
+        return;
+    }
+    showWithdrawStep('step-gifts');
+    tonnelGiftsLoader.style.display = 'block';
+    tonnelGiftChoicesGrid.innerHTML = ''; // Clear previous choices
+    withdrawStepGiftsConfirmBtn.style.display = 'none';
+
+    try {
+        // The itemToWithdraw (inventory_item_id) is already set
+        const gifts = await apiRequest(`/api/tonnel_gift_listings/${itemToWithdraw}`);
+        availableTonnelGifts = gifts; // Store the fetched gifts
+        populateTonnelGiftChoicesGrid(gifts);
+    } catch (error) {
+        console.error("Failed to fetch Tonnel gift listings:", error);
+        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--danger-color);">Could not load gift listings. Please try again.</p>`;
+    } finally {
+        tonnelGiftsLoader.style.display = 'none';
+    }
+});
+
+// NEW: Populate Tonnel Gift Choices Grid
+function populateTonnelGiftChoicesGrid(gifts) {
+    tonnelGiftChoicesGrid.innerHTML = ''; // Clear existing
+    if (!gifts || gifts.length === 0) {
+        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder);">No listings found for this gift on Tonnel Market currently.</p>`;
+        return;
+    }
+
+    gifts.forEach(gift => {
+        const card = document.createElement('div');
+        card.className = 'case-card inventory-item'; // Re-use similar styling
+        card.style.cursor = 'pointer';
+        card.style.padding = '10px'; // Add some padding
+        card.dataset.giftId = gift.gift_id; // Tonnel's internal ID for purchase
+        card.dataset.giftNum = gift.gift_num; // Tonnel's display number for Fragment URL
+        card.dataset.giftName = gift.name;
+        card.dataset.giftPrice = gift.price; // Store price for confirmation if needed
+
+        const fragmentName = formatGiftNameForFragmentUrl(gift.name);
+        const imageUrl = `https://nft.fragment.com/gift/${fragmentName}-${gift.gift_num}.png`;
+        
+        const imgCont = document.createElement('div');
+        imgCont.className = 'item-image-display'; // Reuse inventory item image display style
+        imgCont.style.width = '65px'; imgCont.style.height = '65px'; // Adjust size as needed
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = `${gift.name} #${gift.gift_num}`;
+        img.loading = 'lazy';
+        img.onerror = () => { img.src = generateImageFilename('placeholder.png'); }; // Fallback
+        imgCont.appendChild(img);
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'inventory-item-name';
+        nameEl.textContent = `${gift.name} #${gift.gift_num}`;
+        nameEl.style.fontSize = '0.8em'; // Smaller text
+
+        const priceEl = document.createElement('div'); // Displaying Tonnel price
+        priceEl.className = 'inventory-item-value';
+        priceEl.textContent = `${gift.price} TON`;
+        priceEl.style.fontSize = '0.75em';
+
+        card.appendChild(imgCont);
+        card.appendChild(nameEl);
+        card.appendChild(priceEl);
+
+        card.addEventListener('click', () => handleTonnelGiftChoice(card, gift));
+        tonnelGiftChoicesGrid.appendChild(card);
+    });
+}
+
+// NEW: Handle Tonnel Gift Choice
+function handleTonnelGiftChoice(selectedCard, giftData) {
+    // Remove selection from other cards
+    tonnelGiftChoicesGrid.querySelectorAll('.case-card').forEach(card => {
+        card.style.border = '1px solid var(--border-color)'; // Reset border
+    });
+    // Highlight selected card
+    selectedCard.style.border = '2px solid var(--primary-color)';
+    
+    selectedTonnelGiftDetails = {
+        gift_id: giftData.gift_id, // This is crucial for purchase
+        gift_num: giftData.gift_num,
+        name: giftData.name,
+        price: giftData.price // Store for confirmation
+    };
+    withdrawStepGiftsConfirmBtn.style.display = 'block';
+    withdrawStepGiftsConfirmBtn.textContent = `Send ${giftData.name} #${giftData.gift_num} (${giftData.price} TON)`;
+}
+
+// Event listener for "Back" from gift selection
+withdrawStepGiftsBackBtn.addEventListener('click', () => {
+    showWithdrawStep('step-1');
+    selectedTonnelGiftDetails = null; // Clear selection
+    tonnelGiftChoicesGrid.innerHTML = ''; // Clear gift choices
+    withdrawStepGiftsConfirmBtn.style.display = 'none';
+});
+
+// Event listener for "Confirm & Send Chosen Gift"
+withdrawStepGiftsConfirmBtn.addEventListener('click', async () => {
+    if (!selectedTonnelGiftDetails || !itemToWithdraw) {
+        showTGNotification("Error: No gift selected or item issue.", "error");
+        return;
+    }
+    await completeChosenGiftWithdrawal();
+});
+    
 const UPDATED_FLOOR_PRICES_FRONTEND = {
     'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,
     'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':162.0,
     'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,
     'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,
-    'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,
+    'Lol Pop':1.4,'hypno Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,
     'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0,
     'Berry Box':4.1, 'Bunny Muffin':4.0, 'Candy Cane':1.6, 'Crystal Ball':6.0, 'Easter Egg':1.8,
     'Eternal Candle':3.1, 'Evil Eye':4.2, 'Flying Broom':4.5, 'Ginger Cookie':2.7, 'Hanging Star':4.1,
@@ -640,7 +832,7 @@ const casesData = [
         {name:'Candy Cane',probability:0.0454378,imageFilename:generateImageFilename('Candy Cane'),floorPrice:1.6,is_ton_prize:false},
         {name:'Lunar Snake',probability:0.0454378,imageFilename:generateImageFilename('Lunar Snake'),floorPrice:1.5,is_ton_prize:false},
         {name:'Lol Pop',probability:0.153405,imageFilename:generateImageFilename('Lol Pop'),floorPrice:1.4,is_ton_prize:false},
-        {name:'Hynpo Lollipop',probability:0.153405,imageFilename:generateImageFilename('Hynpo Lollipop'),floorPrice:1.4,is_ton_prize:false},
+        {name:'hypno Lollipop',probability:0.153405,imageFilename:generateImageFilename('hypno Lollipop'),floorPrice:1.4,is_ton_prize:false},
         {name:'Desk Calendar',probability:0.0454378,imageFilename:generateImageFilename('Desk Calendar'),floorPrice:1.4,is_ton_prize:false},
         {name:'B-Day Candle',probability:0.0454378,imageFilename:generateImageFilename('B-Day Candle'),floorPrice:1.4,is_ton_prize:false},
         {name:'Skull Flower',probability:0.0357945,imageFilename:generateImageFilename('Skull Flower'),floorPrice:3.4,is_ton_prize:false} // This was out of order
@@ -670,7 +862,7 @@ const casesData = [
         {name:'Xmas Stocking',probability:0.02500,imageFilename:generateImageFilename('Xmas Stocking'),floorPrice:2.5,is_ton_prize:false},
         {name:'Party Sparkler',probability:0.10628,imageFilename:generateImageFilename('Party Sparkler'),floorPrice:2.0,is_ton_prize:false},
         {name:'Lol Pop',probability:0.10628,imageFilename:generateImageFilename('Lol Pop'),floorPrice:1.4,is_ton_prize:false},
-        {name:'Hynpo Lollipop',probability:0.10628,imageFilename:generateImageFilename('Hynpo Lollipop'),floorPrice:1.4,is_ton_prize:false}
+        {name:'hypno Lollipop',probability:0.10628,imageFilename:generateImageFilename('hypno Lollipop'),floorPrice:1.4,is_ton_prize:false}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
     {id: 'girls_collection', name: 'Girl\'s Collection', imageFilename: 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg', priceTON: 8.0, prizes: [
@@ -1725,45 +1917,64 @@ function startWithdrawalProcess(inventoryItemId) {
     if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
 }
 
-async function completeWithdrawal() {
-    if (!itemToWithdraw) {
-        showTGNotification("No item selected.", "error");
+async function completeChosenGiftWithdrawal() {
+    if (!itemToWithdraw || !selectedTonnelGiftDetails) { // itemToWithdraw is inventory_item_id
+        showTGNotification("No item or specific gift selected for withdrawal.", "error");
         return;
     }
+    showWithdrawStep('step-finalizing');
     withdrawStatusMessage.textContent = "Processing Tonnel withdrawal...";
-    withdrawModal.querySelector('.loader').style.display = 'block';
+    withdrawFinalizingLoader.style.display = 'block';
+
     try {
-        const res = await apiRequest(`/api/withdraw_item_via_tonnel/${itemToWithdraw}`, 'POST');
+        // Send inventory_item_id in URL, chosen_tonnel_gift_id in body
+        const res = await apiRequest(
+            `/api/confirm_tonnel_withdrawal/${itemToWithdraw}`,
+            'POST',
+            { chosen_tonnel_gift_details: selectedTonnelGiftDetails } // Send all details
+        );
+
         if (res.status === 'success') {
-            const idx = currentUser.inventory.findIndex(i => i.id === itemToWithdraw);
+            const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemToWithdraw));
             if (idx !== -1) currentUser.inventory.splice(idx, 1);
             renderInventory();
             withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!";
             withdrawStatusMessage.style.color = 'var(--success-color)';
             showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success');
-            showWithdrawStep(3);
         } else {
             withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed.";
             withdrawStatusMessage.style.color = 'var(--danger-color)';
             showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error');
+            // Optionally, allow user to go back to gift selection if purchase fails
+            // For now, it stays on finalizing step with error. User can close.
         }
     } catch (e) {
         withdrawStatusMessage.textContent = "Error processing withdrawal.";
         withdrawStatusMessage.style.color = 'var(--danger-color)';
         showTGNotification("Error processing Tonnel withdrawal.", "error");
     } finally {
-        withdrawModal.querySelector('.loader').style.display = 'none';
+        withdrawFinalizingLoader.style.display = 'none';
+        // Reset for next time
+        itemToWithdraw = null;
+        selectedTonnelGiftDetails = null;
     }
 }
 
+// Close finalizing step
+document.getElementById('withdraw-step-finalizing-close').addEventListener('click', closeWithdrawModal);
+    
 function closeWithdrawModal() {
     if (tgBackButton) popTgBackButtonHandler();
     withdrawModal.classList.remove('active');
     itemToWithdraw = null;
-    showWithdrawStep(1);
+    selectedTonnelGiftDetails = null;
+    availableTonnelGifts = [];
+    showWithdrawStep('step-1'); // Reset to first step
     withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
     withdrawStatusMessage.textContent = "";
-    withdrawModal.querySelector('.loader').style.display = 'none';
+    withdrawFinalizingLoader.style.display = 'none';
+    tonnelGiftChoicesGrid.innerHTML = '';
+    withdrawStepGiftsConfirmBtn.style.display = 'none';
 }
 
 async function initiateDepositProcedure() {
@@ -1917,8 +2128,6 @@ profileElements.disconnectWalletButton.addEventListener('click', () => tonConnec
 profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
-withdrawStep2BackBtn.addEventListener('click', () => showWithdrawStep(1));
-withdrawStep2NextBtn.addEventListener('click', () => { showWithdrawStep(3); completeWithdrawal(); });
 withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
 closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b => {
