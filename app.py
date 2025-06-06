@@ -397,6 +397,107 @@ class TonnelGiftSender:
         finally:
             await self._close_session_if_open()
 
+    async def fetch_gift_listings(self, gift_item_name: str, limit: int = 5) -> list:
+        """Fetches up to 'limit' available listings for a specific gift_item_name from Tonnel Market."""
+        if not self.authdata: # authdata might not be strictly needed for just fetching listings, but good for consistency
+            logger.warning("Tonnel fetch_gift_listings: sender not configured (authdata missing).")
+            # Decide if you want to proceed or return error. For now, proceed.
+            # return {"status": "error", "message": "Tonnel sender not configured."}
+
+
+        # Step 1: Initial GET request if needed (usually done once per session lifecycle)
+        await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True)
+
+        filter_dict = {
+            "price": {"$exists": True},
+            "refunded": {"$ne": True},
+            "buyer": {"$exists": False},
+            "export_at": {"$exists": True},
+            "asset": "TON",
+        }
+        if gift_item_name in KISS_FROG_MODEL_STATIC_PERCENTAGES:
+            static_percentage_val = KISS_FROG_MODEL_STATIC_PERCENTAGES[gift_item_name]
+            formatted_percentage = f"{static_percentage_val:.1f}".rstrip('0').rstrip('.')
+            filter_dict["gift_name"] = "Kissed Frog"
+            filter_dict["model"] = f"{gift_item_name} ({formatted_percentage}%)"
+        else:
+            filter_dict["gift_name"] = gift_item_name
+        
+        filter_str = json.dumps(filter_dict)
+        page_gifts_payload = {"filter": filter_str, "limit": limit, "page": 1, "sort": '{"price":1,"gift_id":-1}'} # Sort by price ascending
+        
+        pg_headers_options = {"Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type","Origin":"https://tonnel-gift.vercel.app","Referer":"https://tonnel-gift.vercel.app/"}
+        pg_headers_post = {"Content-Type":"application/json","Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/"}
+
+
+        await self._make_request(method="OPTIONS", url="https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers_options)
+        gifts_found_response = await self._make_request(method="POST", url="https://gifts2.tonnel.network/api/pageGifts", headers=pg_headers_post, json_payload=page_gifts_payload)
+
+        if not isinstance(gifts_found_response, list):
+            logger.error(f"Tonnel fetch_gift_listings: Could not fetch gift list for '{gift_item_name}'. Response: {gifts_found_response}")
+            return [] # Return empty list on error or non-list response
+        
+        # Return the raw list of gifts from Tonnel
+        # Frontend will handle formatting for display (gift_num for image, etc.)
+        return gifts_found_response[:limit]
+
+
+    async def purchase_specific_gift(self, chosen_gift_details: dict, receiver_telegram_id: int):
+        """Purchases a specific gift using its details (gift_id, price) from Tonnel."""
+        if not self.authdata:
+            return {"status": "error", "message": "Tonnel sender not configured."}
+        if not chosen_gift_details or 'gift_id' not in chosen_gift_details or 'price' not in chosen_gift_details:
+            return {"status": "error", "message": "Invalid chosen gift details provided."}
+
+        try:
+            # Initial GET may not be needed if session is kept alive from fetch_gift_listings
+            # await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True)
+
+            # User check (optional, but can be good)
+            user_info_payload = {"authData":self.authdata,"user":receiver_telegram_id}
+            ui_common_headers = {"Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/"}
+            ui_options_headers = {**ui_common_headers,"Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type"}
+            ui_post_headers = {**ui_common_headers,"Content-Type":"application/json"}
+            
+            await self._make_request(method="OPTIONS", url="https://gifts2.tonnel.network/api/userInfo", headers=ui_options_headers)
+            user_check_resp = await self._make_request(method="POST", url="https://gifts2.tonnel.network/api/userInfo", headers=ui_post_headers, json_payload=user_info_payload)
+
+            if not isinstance(user_check_resp, dict) or user_check_resp.get("status") != "success":
+                return {"status":"error","message":f"Tonnel user check failed for receiver {receiver_telegram_id}: {user_check_resp.get('message','User error') if isinstance(user_check_resp,dict) else 'Unknown error'}"}
+
+            # Purchase the specific gift
+            encrypted_ts = encrypt_aes_cryptojs_compat(f"{int(time.time())}", self.passphrase_secret)
+            buy_gift_url = f"https://gifts.coffin.meme/api/buyGift/{chosen_gift_details['gift_id']}"
+            
+            buy_payload = {
+                "anonymously": True,
+                "asset": "TON",
+                "authData": self.authdata,
+                "price": chosen_gift_details['price'], # Use price from chosen gift
+                "receiver": receiver_telegram_id,
+                "showPrice": False,
+                "timestamp": encrypted_ts
+            }
+            buy_common_headers = {"Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/","Host":"gifts.coffin.meme"}
+            buy_options_headers = {**buy_common_headers,"Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type"}
+            buy_post_headers = {**buy_common_headers,"Content-Type":"application/json"}
+
+            await self._make_request(method="OPTIONS", url=buy_gift_url, headers=buy_options_headers)
+            purchase_resp = await self._make_request(method="POST", url=buy_gift_url, headers=buy_post_headers, json_payload=buy_payload, timeout=90)
+            
+            if isinstance(purchase_resp, dict) and purchase_resp.get("status") == "success":
+                return {"status":"success","message":f"Gift purchased and sent!","details":purchase_resp}
+            else:
+                # Log the raw payload and response for debugging failed purchases
+                logger.error(f"Tonnel purchase_specific_gift failed. Payload: {buy_payload}, Response: {purchase_resp}")
+                return {"status":"error","message":f"Tonnel transfer failed: {purchase_resp.get('message','Purchase error') if isinstance(purchase_resp,dict) else 'Unknown error'}"}
+
+        except Exception as e:
+            logger.error(f"Tonnel error purchasing specific gift: {type(e).__name__} - {e}", exc_info=True)
+            return {"status":"error","message":f"Unexpected error during Tonnel purchase: {str(e)}"}
+        # Removed finally block with _close_session_if_open to allow session reuse if desired by calling logic.
+        # The calling API endpoint wrapper should handle session closing.
+
 
 # --- Gift Data and Image Mapping ---
 TON_PRIZE_IMAGE_DEFAULT = "https://case-bot.com/images/actions/ton.svg"
@@ -460,7 +561,7 @@ UPDATED_FLOOR_PRICES = {
     'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':162.0,
     'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,
     'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,
-    'Lol Pop':1.4,'Hynpo Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,
+    'Lol Pop':1.4,'hypno Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,
     'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0,
     'Berry Box':4.1, 'Bunny Muffin':4.0, 'Candy Cane':1.6, 'Crystal Ball':6.0, 'Easter Egg':1.8,
     'Eternal Candle':3.1, 'Evil Eye':4.2, 'Flying Broom':4.5, 'Ginger Cookie':2.7, 'Hanging Star':4.1,
@@ -886,7 +987,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Cookie Heart','probability':0.08}, {'name':'Easter Egg','probability':0.05},
         {'name':'Jingle Bells','probability':0.05}, {'name':'Candy Cane','probability':0.05},
         {'name':'Lunar Snake','probability':0.05}, {'name':'Lol Pop','probability':0.15},
-        {'name':'Hynpo Lollipop','probability':0.15}, {'name':'Desk Calendar','probability':0.05},
+        {'name':'hypno Lollipop','probability':0.15}, {'name':'Desk Calendar','probability':0.05},
         {'name':'B-Day Candle','probability':0.05}, {'name':'Skull Flower','probability':0.035}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
@@ -902,7 +1003,7 @@ cases_data_backend_with_fixed_prices_raw = [
         {'name':'Snow Mittens','probability':0.03}, {'name':'Spy Agaric','probability':0.03},
         {'name':'Star Notepad','probability':0.03}, {'name':'Ginger Cookie','probability':0.03},
         {'name':'Party Sparkler','probability':0.10}, {'name':'Skull Flower','probability':0.08},
-        {'name':'Lol Pop','probability':0.10}, {'name':'Hynpo Lollipop','probability':0.10}
+        {'name':'Lol Pop','probability':0.10}, {'name':'hypno Lollipop','probability':0.10}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id': 'girls_collection', 'name': 'Girl\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg', 'priceTON': 8.0, 'prizes': sorted([
@@ -1384,6 +1485,64 @@ def register_referral_api():
         return jsonify({"error": "Server error during referral registration."}), 500
     finally:
         db.close()
+
+# NEW API Endpoint to fetch gift listings
+@app.route('/api/tonnel_gift_listings/<int:inventory_item_id>', methods=['GET'])
+def get_tonnel_gift_listings_api(inventory_item_id):
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data:
+        return jsonify({"error": "Authentication failed"}), 401
+    
+    player_user_id = auth_user_data["id"]
+    db = next(get_db())
+    tonnel_client = None # Initialize to ensure it's defined for finally block
+    try:
+        item_to_withdraw = db.query(InventoryItem).filter(
+            InventoryItem.id == inventory_item_id,
+            InventoryItem.user_id == player_user_id
+        ).first()
+
+        if not item_to_withdraw:
+            return jsonify({"error": "Item not found in your inventory."}), 404
+        if item_to_withdraw.is_ton_prize:
+            return jsonify({"error": "TON prizes cannot be listed for Tonnel withdrawal."}), 400
+            
+        item_name_for_tonnel = item_to_withdraw.item_name_override or (item_to_withdraw.nft.name if item_to_withdraw.nft else None)
+        if not item_name_for_tonnel:
+            logger.error(f"Item {inventory_item_id} has no name for Tonnel listing for user {player_user_id}.")
+            return jsonify({"error": "Item data is incomplete."}), 500
+
+        if not TONNEL_SENDER_INIT_DATA or not TONNEL_GIFT_SECRET:
+            return jsonify({"error": "Withdrawal service configuration error."}), 503
+
+        tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
+        
+        listings = []
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            listings = loop.run_until_complete(
+                tonnel_client.fetch_gift_listings(gift_item_name=item_name_for_tonnel, limit=5)
+            )
+        finally:
+            loop.close()
+            # Re-set the main event loop if necessary or ensure the async session is closed
+            # asyncio.set_event_loop(asyncio.get_event_loop()) # Might not be needed if loop.close() is enough
+
+        return jsonify(listings) # Directly return the list from Tonnel
+
+    except Exception as e:
+        logger.error(f"Error fetching Tonnel gift listings for item {inventory_item_id}, user {player_user_id}: {e}", exc_info=True)
+        return jsonify({"error": "Server error fetching gift listings."}), 500
+    finally:
+        db.close()
+        if tonnel_client: # Ensure session is closed if client was instantiated
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(tonnel_client._close_session_if_open())
+            finally:
+                loop.close()
 
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
@@ -2093,22 +2252,26 @@ def redeem_promocode_api():
     finally:
         db.close()
 
-@app.route('/api/withdraw_item_via_tonnel/<int:inventory_item_id>', methods=['POST'])
-def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
+@app.route('/api/confirm_tonnel_withdrawal/<int:inventory_item_id>', methods=['POST'])
+def confirm_tonnel_withdrawal_api(inventory_item_id):
     auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data:
-        return jsonify({"status":"error","message":"Authentication failed"}), 401
+        return jsonify({"status": "error", "message": "Authentication failed"}), 401
     
     player_user_id = auth_user_data["id"]
+    data = flask_request.get_json()
+    chosen_gift_details = data.get('chosen_tonnel_gift_details')
 
-    if not TONNEL_SENDER_INIT_DATA:
-        logger.error("Tonnel withdrawal attempt: TONNEL_SENDER_INIT_DATA environment variable not set.")
-        return jsonify({"status":"error","message":"Withdrawal service is currently unavailable. Please contact support."}), 500
-    if not TONNEL_GIFT_SECRET:
-        logger.error("Tonnel withdrawal attempt: TONNEL_GIFT_SECRET environment variable not set.")
-        return jsonify({"status":"error","message":"Withdrawal service is currently misconfigured. Please contact support."}), 500
+    if not chosen_gift_details or not isinstance(chosen_gift_details, dict) or \
+       'gift_id' not in chosen_gift_details or 'price' not in chosen_gift_details:
+        return jsonify({"status": "error", "message": "Chosen Tonnel gift details are missing or invalid."}), 400
+
+    if not TONNEL_SENDER_INIT_DATA or not TONNEL_GIFT_SECRET:
+        logger.error("Tonnel confirm withdrawal: Essential Tonnel ENV VARS not set.")
+        return jsonify({"status": "error", "message": "Withdrawal service is currently misconfigured."}), 503
         
     db = next(get_db())
+    tonnel_client = None
     try:
         item_to_withdraw = db.query(InventoryItem).filter(
             InventoryItem.id == inventory_item_id,
@@ -2116,14 +2279,11 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
         ).with_for_update().first()
 
         if not item_to_withdraw:
-            return jsonify({"status":"error","message":"Item not found in your inventory."}), 404
-        if item_to_withdraw.is_ton_prize:
-            return jsonify({"status":"error","message":"TON prizes cannot be withdrawn as gifts (they are already TON). Please convert them."}), 400
+            return jsonify({"status": "error", "message": "Item not found in your inventory or already withdrawn."}), 404
+        if item_to_withdraw.is_ton_prize: # Should have been caught earlier, but good check
+            return jsonify({"status": "error", "message":"TON prizes cannot be withdrawn this way."}), 400
             
-        item_name_for_tonnel = item_to_withdraw.item_name_override or (item_to_withdraw.nft.name if item_to_withdraw.nft else None)
-        if not item_name_for_tonnel:
-            logger.error(f"Item {inventory_item_id} has no name for Tonnel withdrawal for user {player_user_id}.")
-            return jsonify({"status":"error","message":"Item data is incomplete, cannot withdraw. Please contact support."}), 500
+        item_name_withdrawn = item_to_withdraw.item_name_override or (item_to_withdraw.nft.name if item_to_withdraw.nft else "Unknown Item")
 
         tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
         tonnel_result = {}
@@ -2132,38 +2292,43 @@ def withdraw_item_via_tonnel_api_sync_wrapper(inventory_item_id):
         asyncio.set_event_loop(loop)
         try:
             tonnel_result = loop.run_until_complete(
-                tonnel_client.send_gift_to_user(gift_item_name=item_name_for_tonnel, receiver_telegram_id=player_user_id)
+                tonnel_client.purchase_specific_gift(chosen_gift_details=chosen_gift_details, receiver_telegram_id=player_user_id)
             )
         finally:
             loop.close()
-            asyncio.set_event_loop(asyncio.get_event_loop())
 
         if tonnel_result and tonnel_result.get("status") == "success":
             value_deducted_from_winnings = Decimal(str(item_to_withdraw.current_value))
-            
             player = db.query(User).filter(User.id == player_user_id).with_for_update().first()
-            if player:
+            if player: # Should always exist due to auth
                 player.total_won_ton = float(max(Decimal('0'), Decimal(str(player.total_won_ton)) - value_deducted_from_winnings))
             
             db.delete(item_to_withdraw)
             db.commit()
-            logger.info(f"Item {item_name_for_tonnel} (ID: {inventory_item_id}) withdrawn via Tonnel for user {player_user_id}.")
+            logger.info(f"Item '{item_name_withdrawn}' (Inv ID: {inventory_item_id}, Tonnel Gift ID: {chosen_gift_details['gift_id']}) withdrawn via Tonnel for user {player_user_id}.")
             return jsonify({
-                "status":"success",
-                "message":f"Your gift '{item_name_for_tonnel}' has been sent to your Telegram account via Tonnel!",
-                "details":tonnel_result.get("details")
+                "status": "success",
+                "message": f"Your gift '{chosen_gift_details.get('name', item_name_withdrawn)}' has been sent to your Telegram account via Tonnel!",
+                "details": tonnel_result.get("details")
             })
         else:
-            db.rollback()
-            logger.error(f"Tonnel withdrawal failed for item {inventory_item_id}, user {player_user_id}. Tonnel API Response: {tonnel_result}")
-            return jsonify({"status":"error","message":f"Withdrawal failed: {tonnel_result.get('message', 'Tonnel API communication error')}"}), 500
+            db.rollback() # Rollback if Tonnel purchase failed
+            logger.error(f"Tonnel confirm withdrawal failed. Item Inv ID: {inventory_item_id}, User: {player_user_id}, Chosen Gift ID: {chosen_gift_details['gift_id']}. Tonnel API Response: {tonnel_result}")
+            return jsonify({"status": "error", "message": f"Withdrawal failed: {tonnel_result.get('message', 'Tonnel API communication error')}"}), 500
             
     except Exception as e:
         db.rollback()
-        logger.error(f"Unexpected exception during Tonnel withdrawal for item {inventory_item_id}, user {player_user_id}: {e}", exc_info=True)
-        return jsonify({"status":"error","message":"An unexpected server error occurred during withdrawal. Please try again later."}), 500
+        logger.error(f"Unexpected exception during Tonnel confirm withdrawal. Item Inv ID: {inventory_item_id}, User: {player_user_id}: {e}", exc_info=True)
+        return jsonify({"status": "error", "message": "An unexpected server error occurred. Please try again."}), 500
     finally:
         db.close()
+        if tonnel_client: # Ensure session is closed if client was instantiated
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                loop.run_until_complete(tonnel_client._close_session_if_open())
+            finally:
+                loop.close()
 
 
 if __name__ == '__main__':
