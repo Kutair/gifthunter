@@ -1030,7 +1030,6 @@ const withdrawModal = document.getElementById('withdraw-modal');
 const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
 const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
 const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
-const withdrawStep3CloseBtn = document.getElementById('withdraw-step3-close');
 const withdrawStatusMessage = document.getElementById('withdraw-status-message');
 const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
 
@@ -2126,7 +2125,6 @@ profileElements.disconnectWalletButton.addEventListener('click', () => tonConnec
 profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
-withdrawStep3CloseBtn.addEventListener('click', closeWithdrawModal);
 closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
 upgradeElements.multiplierButtons.querySelectorAll('button').forEach(b => {
     b.addEventListener('click', e => {
