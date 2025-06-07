@@ -563,19 +563,76 @@ def generate_image_filename_from_name(name_str: str) -> str:
 
 # --- Floor Prices for all known NFTs (and Kissed Frog variants) ---
 UPDATED_FLOOR_PRICES = {
-    'Plush Pepe':1200.0,'Neko Helmet':15.0,'Sharp Tongue':17.0,"Durov's Cap":251.0,'Voodoo Doll':9.4,'Vintage Cigar':19.7,
-    'Astral Shard':50.0,'Scared Cat':22.0,'Swiss Watch':18.6,'Perfume Bottle':38.3,'Precious Peach':162.0,
-    'Toy Bear':16.3,'Genie Lamp':19.3,'Loot Bag':25.0,'Kissed Frog':14.8,'Electric Skull':10.9,'Diamond Ring':8.06,
-    'Mini Oscar':40.5,'Party Sparkler':2.0,'Homemade Cake':2.0,'Cookie Heart':1.8,'Jack-in-the-box':2.0,'Skull Flower':3.4,
-    'Lol Pop':1.4,'hypno Lollipop':1.4,'Desk Calendar':1.4,'B-Day Candle':1.4,'Record Player':4.0,'Jelly Bunny':3.6,
-    'Tama Gadget':4.0,'Snow Globe':4.0,'Eternal Rose':11.0,'Love Potion':5.4,'Top Hat':6.0,
-    'Berry Box':4.1, 'Bunny Muffin':4.0, 'Candy Cane':1.6, 'Crystal Ball':6.0, 'Easter Egg':1.8,
-    'Eternal Candle':3.1, 'Evil Eye':4.2, 'Flying Broom':4.5, 'Ginger Cookie':2.7, 'Hanging Star':4.1,
-    'Hex Pot':3.1, 'Ion Gem':44.0, 'Jester Hat':2.0, 'Jingle Bells':1.8, 'Love Candle':6.7,
-    'Lunar Snake':1.5, 'Mad Pumpkin':6.2, 'Magic Potion':33.0, 'Pet Snake':3.2, 'Sakura Flower':4.1,
-    'Santa Hat':2.0, 'Signet Ring':18.8, 'Sleigh Bell':6.0, 'Snow Mittens':2.9, 'Spiced Wine':2.2,
-    'Spy Agaric':2.8, 'Star Notepad':2.8, 'Trapped Heart':6.0, 'Winter Wreath':2.0,
-    "Big Year": 4.4, "Snake Box": 3.3, "Bonded Ring": 60.5, "Xmas Stocking": 2.5
+    'Plush Pepe': 3024.0,       # Updated
+    'Neko Helmet': 15.0,
+    'Sharp Tongue': 17.0,
+    "Durov's Cap": 420.0,       # Updated
+    'Voodoo Doll': 9.4,
+    'Vintage Cigar': 24.0,      # Updated
+    'Astral Shard': 80.0,       # Updated
+    'Scared Cat': 22.0,
+    'Swiss Watch': 25.0,        # Updated
+    'Perfume Bottle': 88.0,     # Updated
+    'Precious Peach': 270.0,    # Updated
+    'Toy Bear': 16.3,
+    'Genie Lamp': 46.0,         # Updated
+    'Loot Bag': 45.0,           # Updated
+    'Kissed Frog': 24.0,        # Updated
+    'Electric Skull': 10.9,
+    'Diamond Ring': 12.0,       # Updated
+    'Mini Oscar': 40.5,
+    'Party Sparkler': 2.0,
+    'Homemade Cake': 2.0,
+    'Cookie Heart': 1.8,
+    'Jack-in-the-box': 2.0,
+    'Skull Flower': 3.4,
+    'Lol Pop': 1.1,             # Updated
+    'hypno Lollipop': 1.4,      # Assuming this stays or update if related to Lol Pop
+    'Desk Calendar': 1.1,       # Updated
+    'B-Day Candle': 1.4,
+    'Record Player': 4.0,
+    'Jelly Bunny': 3.6,
+    'Tama Gadget': 4.0,
+    'Snow Globe': 2.0,          # Updated
+    'Eternal Rose': 11.0,
+    'Love Potion': 5.4,
+    'Top Hat': 6.0,
+    'Berry Box': 4.1,
+    'Bunny Muffin': 4.0,
+    'Candy Cane': 1.6,
+    'Crystal Ball': 6.0,
+    'Easter Egg': 1.8,
+    'Eternal Candle': 3.1,
+    'Evil Eye': 4.2,
+    'Flying Broom': 4.5,
+    'Ginger Cookie': 2.7,
+    'Hanging Star': 4.1,
+    'Hex Pot': 3.1,
+    'Ion Gem': 44.0,
+    'Jester Hat': 2.0,
+    'Jingle Bells': 1.8,
+    'Love Candle': 6.7,
+    'Lunar Snake': 1.5,
+    'Mad Pumpkin': 6.2,
+    'Magic Potion': 54.0,       # Updated
+    'Pet Snake': 3.2,
+    'Sakura Flower': 4.1,
+    'Santa Hat': 2.0,
+    'Signet Ring': 18.8,
+    'Sleigh Bell': 6.0,
+    'Snow Mittens': 2.9,
+    'Spiced Wine': 2.2,
+    'Spy Agaric': 2.8,
+    'Star Notepad': 2.8,
+    'Trapped Heart': 6.0,
+    'Winter Wreath': 2.0,
+    "Big Year": 4.4,
+    "Snake Box": 3.3,
+    "Bonded Ring": 60.5,
+    "Xmas Stocking": 2.5
+    # Add Light Sword and Gem Signet if they have defined prices
+    # "Light Sword": XX.X,
+    # "Gem Signet": XX.X
 }
 
 KISSED_FROG_VARIANT_FLOORS = {
