@@ -265,7 +265,7 @@ if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
 
         markup = types.InlineKeyboardMarkup()
         web_app_info = types.WebAppInfo(url=WEBAPP_URL) # WEBAPP_URL is defined above
-        app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info)
+        app_button = types.InlineKeyboardButton(text="🎮 Open Pusik Gifts", web_app=web_app_info)
         markup.add(app_button)
 
         bot.send_photo(
