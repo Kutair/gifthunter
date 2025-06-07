@@ -36,6 +36,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 # 24 hours for Telegram Mini App auth data
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
 TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit")
+ADMIN_USER_ID = 5146625949
 
 DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR")
 DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "cpd7r07ud3s")
@@ -279,6 +280,258 @@ if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
     def echo_all(message):
         logger.info(f"Received non-command message from {message.chat.id}: {message.text[:50]}")
         bot.reply_to(message, "Send /start, to open Pusik Gifts")
+
+    @bot.message_handler(commands=['admin'])
+    def admin_panel_command(message):
+        if message.chat.id != ADMIN_USER_ID:
+            bot.reply_to(message, "You are not authorized to use this command.")
+            logger.warning(f"Unauthorized /admin attempt by user {message.chat.id}")
+            return
+    
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        new_promo_button = types.InlineKeyboardButton("🆕 New Promocode", callback_data="admin_new_promo")
+        view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
+        markup.add(new_promo_button, view_promos_button)
+        bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
+    
+    # --- Admin Callback Query Handler ---
+    @bot.callback_query_handler(func=lambda call: call.data.startswith('admin_'))
+    def admin_callback_handler(call):
+        user_id = call.from_user.id
+        if user_id != ADMIN_USER_ID:
+            bot.answer_callback_query(call.id, "Unauthorized action.")
+            return
+    
+        action = call.data
+        bot.answer_callback_query(call.id) # Acknowledge callback early
+    
+        if action == "admin_new_promo":
+            # It's better to edit the existing message if possible, or send a new one.
+            # For simplicity with next_step_handler, sending a new message is fine here.
+            msg_prompt = bot.send_message(user_id,
+                                   "Please enter the new promocode details in the format:\n"
+                                   "`promoname activations prize_ton`\n\n"
+                                   "Example: `SUMMER2024 100 0.5` (for 0.5 TON)\n"
+                                   "Example: `UNLIMITEDGIFT -1 1.0` (for unlimited activations, 1.0 TON)\n\n"
+                                   "The word 'ton' at the end is optional. Type /cancel to abort.",
+                                   parse_mode="Markdown")
+            bot.register_next_step_handler(msg_prompt, process_new_promo_creation)
+        
+        elif action == "admin_view_promos":
+            handle_view_all_promos(call.message) # Pass message to edit
+    
+        elif action.startswith("admin_promo_detail_"):
+            promo_code_id_str = action.split("admin_promo_detail_")[1]
+            try:
+                promo_code_id = int(promo_code_id_str)
+                handle_view_promo_detail(call.message, promo_code_id) # Pass message to edit
+            except ValueError:
+                logger.error(f"Invalid promo_code_id in callback: {promo_code_id_str}")
+                # Inform the admin via a new message if editing fails or is not appropriate
+                bot.send_message(call.message.chat.id, "Error: Invalid promo code identifier.")
+        
+        elif action == "admin_back_to_menu":
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            new_promo_button = types.InlineKeyboardButton("🆕 New Promocode", callback_data="admin_new_promo")
+            view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
+            markup.add(new_promo_button, view_promos_button)
+            try:
+                bot.edit_message_text("👑 Admin Panel 👑", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
+            except Exception as e:
+                logger.debug(f"Could not edit message for admin_back_to_menu, sending new: {e}")
+                bot.send_message(call.message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
+    
+    
+    # --- Process New Promocode Creation (Next Step Handler) ---
+    def process_new_promo_creation(message):
+        if message.chat.id != ADMIN_USER_ID: # Security check
+            return
+    
+        # Allow cancellation via /cancel command during this step
+        if message.text == '/cancel':
+            bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
+            bot.reply_to(message, "Promocode creation cancelled.")
+            # Optionally, resend the admin menu
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            new_promo_button = types.InlineKeyboardButton("🆕 New Promocode", callback_data="admin_new_promo")
+            view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
+            markup.add(new_promo_button, view_promos_button)
+            bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
+            return
+    
+        try:
+            parts = message.text.split()
+            if not (3 <= len(parts) <= 4): # promoname activations prize_ton [ton]
+                raise ValueError("Incorrect format. Expected: `promoname activations prize_ton [ton]`")
+    
+            promo_name = parts[0]
+            
+            activations_str = parts[1]
+            if activations_str.lower() == 'unlimited' or activations_str == '-1':
+                activations = -1
+            else:
+                activations = int(activations_str)
+                if activations < 0 and activations != -1: # Allow -1 for unlimited, but not other negative numbers
+                     raise ValueError("Activations count must be a non-negative integer or -1 for unlimited.")
+    
+    
+            prize_ton_str = parts[2]
+            prize_ton = float(prize_ton_str)
+            if prize_ton <= 0: # Prize amount should be positive
+                    raise ValueError("TON prize amount must be a positive number.")
+    
+            # The optional 'ton' keyword (parts[3]) is implicitly handled by parsing parts[2]
+    
+            db = SessionLocal()
+            try:
+                existing_promo = db.query(PromoCode).filter(PromoCode.code_text == promo_name).first()
+                if existing_promo:
+                    bot.reply_to(message, f"⚠️ Promocode '{promo_name}' already exists. Choose a different name.")
+                    # Re-prompt for creation
+                    msg_reprompt = bot.send_message(message.chat.id, 
+                                       "Please enter new promocode details again or type /cancel to go back to the admin menu.",
+                                       parse_mode="Markdown")
+                    bot.register_next_step_handler(msg_reprompt, process_new_promo_creation)
+                    return
+    
+                new_promo = PromoCode(
+                    code_text=promo_name,
+                    activations_left=activations,
+                    ton_amount=prize_ton
+                )
+                db.add(new_promo)
+                db.commit()
+                bot.reply_to(message, 
+                             f"✅ Promocode '{promo_name}' created successfully!\n"
+                             f"Activations: {'Unlimited' if activations == -1 else activations}\n"
+                             f"TON Prize: {prize_ton:.4f} TON") # Using .4f for TON display
+                logger.info(f"Admin {message.chat.id} created promocode: {promo_name}, Activations: {activations}, Prize: {prize_ton} TON")
+            except IntegrityError:
+                db.rollback()
+                bot.reply_to(message, f"Error: Promocode '{promo_name}' might already exist (concurrent creation?). Please try a different name or check existing codes.")
+            except SQLAlchemyError as e_sql:
+                db.rollback()
+                logger.error(f"SQLAlchemyError creating promocode {promo_name}: {e_sql}")
+                bot.reply_to(message, "Database error while creating promocode.")
+            finally:
+                db.close()
+    
+        except ValueError as e:
+            bot.reply_to(message, f"Error: {str(e)}\nPlease try again in the format: `promoname activations prize_ton`\nOr type /cancel to return to the admin menu.")
+            # Re-register next step handler to allow user to retry
+            msg_retry = bot.send_message(message.chat.id, "Enter details again or type /cancel.")
+            bot.register_next_step_handler(msg_retry, process_new_promo_creation)
+        except Exception as e:
+            logger.error(f"Unexpected error in process_new_promo_creation: {e}", exc_info=True)
+            bot.reply_to(message, "An unexpected error occurred. Please check logs.")
+            # Optionally, re-register or offer /cancel
+            msg_retry_unexpected = bot.send_message(message.chat.id, "Enter details again or type /cancel for the admin menu.")
+            bot.register_next_step_handler(msg_retry_unexpected, process_new_promo_creation)
+    
+    # --- /cancel command for admin flows ---
+    @bot.message_handler(commands=['cancel'])
+    def cancel_operation(message):
+        if message.chat.id == ADMIN_USER_ID:
+            # Check if there's an active next_step_handler for this user
+            # telebot doesn't have a direct way to check if a handler is registered for a specific chat_id.
+            # Clearing it is generally safe if you are sure it's only used in this admin context for this user.
+            bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
+            bot.reply_to(message, "Operation cancelled.")
+            
+            # Show admin menu again
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            new_promo_button = types.InlineKeyboardButton("🆕 New Promocode", callback_data="admin_new_promo")
+            view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
+            markup.add(new_promo_button, view_promos_button)
+            bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
+        else:
+            # For regular users, /cancel might not do anything specific unless defined elsewhere.
+            # Or you can have a generic "No active operation to cancel."
+            pass # Or bot.reply_to(message, "No active operation to cancel.")
+    
+    
+    # --- Handle Viewing All Promocodes ---
+    def handle_view_all_promos(message_to_edit): # Takes a message object to edit
+        db = SessionLocal()
+        try:
+            all_promos = db.query(PromoCode).order_by(PromoCode.created_at.desc()).all()
+            
+            markup = types.InlineKeyboardMarkup(row_width=2) # Adjust row_width as needed
+            
+            if not all_promos:
+                text_to_send = "No promocodes found in the database."
+            else:
+                text_to_send = "Select a promocode to view details:"
+                promo_buttons = []
+                for promo in all_promos:
+                    # Show promo code text on the button, callback data contains ID for detail view
+                    button_text = f"{promo.code_text}" # Can add more info like (Act: X) if short enough
+                    promo_buttons.append(types.InlineKeyboardButton(button_text, callback_data=f"admin_promo_detail_{promo.id}"))
+                
+                # Add buttons in rows
+                # Simple grouping for row_width=2, can be made more dynamic
+                grouped_buttons = [promo_buttons[i:i + 2] for i in range(0, len(promo_buttons), 2)]
+                for group in grouped_buttons:
+                    markup.row(*group) # Unpack the group of buttons into the row
+            
+            markup.add(types.InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_back_to_menu"))
+    
+            try:
+                bot.edit_message_text(text_to_send,
+                                      chat_id=message_to_edit.chat.id,
+                                      message_id=message_to_edit.message_id,
+                                      reply_markup=markup)
+            except Exception as e: # If message cannot be edited (e.g. too old, or no change)
+                 logger.debug(f"Could not edit message for view_all_promos, sending new: {e}")
+                 bot.send_message(message_to_edit.chat.id, text_to_send, reply_markup=markup) # Send as new message
+    
+        except SQLAlchemyError as e_sql:
+            logger.error(f"SQLAlchemyError fetching all promocodes: {e_sql}")
+            bot.send_message(message_to_edit.chat.id, "Database error fetching promocodes.")
+        finally:
+            db.close()
+    
+    # --- Handle Viewing Single Promocode Detail ---
+    def handle_view_promo_detail(message_to_edit, promo_id): # Takes a message object to edit
+        db = SessionLocal()
+        try:
+            promo = db.query(PromoCode).filter(PromoCode.id == promo_id).first()
+            
+            markup = types.InlineKeyboardMarkup(row_width=1)
+            # Add navigation buttons
+            markup.add(types.InlineKeyboardButton("⬅️ Back to All Promocodes", callback_data="admin_view_promos"))
+            markup.add(types.InlineKeyboardButton("🏠 Back to Admin Menu", callback_data="admin_back_to_menu"))
+            # Future: Could add a "Delete Promocode" button here, e.g.,
+            # markup.add(types.InlineKeyboardButton("🗑️ Delete Promocode", callback_data=f"admin_delete_promo_{promo.id}"))
+    
+    
+            if not promo:
+                text_to_send = "Promocode not found."
+            else:
+                activations_text = "Unlimited" if promo.activations_left == -1 else str(promo.activations_left)
+                text_to_send = (
+                    f"📜 Promocode Details: *{promo.code_text}*\n\n"
+                    f"🎁 Prize: {promo.ton_amount:.4f} TON\n" # Using .4f for TON display
+                    f"🔄 Activations Left: {activations_text}\n"
+                    f"🗓️ Created: {promo.created_at.strftime('%Y-%m-%d %H:%M') if promo.created_at else 'N/A'}"
+                )
+            
+            try:
+                bot.edit_message_text(text_to_send,
+                                      chat_id=message_to_edit.chat.id,
+                                      message_id=message_to_edit.message_id,
+                                      reply_markup=markup,
+                                      parse_mode="Markdown")
+            except Exception as e: # If message cannot be edited
+                logger.debug(f"Could not edit message for view_promo_detail, sending new: {e}")
+                bot.send_message(message_to_edit.chat.id, text_to_send, reply_markup=markup, parse_mode="Markdown")
+    
+    
+        except SQLAlchemyError as e_sql:
+            logger.error(f"SQLAlchemyError fetching promo detail for ID {promo_id}: {e_sql}")
+            bot.send_message(message_to_edit.chat.id, "Database error fetching promocode details.")
+        finally:
+            db.close()
 
 # --- Webhook Setup Function (to be called from your main app setup) ---
 # You need to pass your Flask 'app' instance to this function to register the route.
