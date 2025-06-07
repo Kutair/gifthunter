@@ -8,6 +8,8 @@ import random
 import re
 import hmac
 import hashlib
+import telebot
+from telebot import types
 from urllib.parse import unquote, parse_qs
 from datetime import datetime as dt, timezone, timedelta
 import json
@@ -120,6 +122,13 @@ if not DATABASE_URL:
 if not TONNEL_SENDER_INIT_DATA:
     logger.warning("TONNEL_SENDER_INIT_DATA not set! Tonnel gift withdrawal will likely fail.")
 
+NORMAL_WEBAPP_URL = "https://vasiliy-katsyka.github.io/case"
+MAINTENANCE_WEBAPP_URL = "https://vasiliy-katsyka.github.io/maintencaincec" # If you still use this
+# Example: Choose based on an environment variable or a fixed value for production
+WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
+
+API_BASE_URL = "https://case-hznb.onrender.com" # Your backend API URL
+
 
 # --- SQLAlchemy Database Setup ---
 engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
@@ -204,6 +213,131 @@ class UserPromoCodeRedemption(Base):
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
+bot = telebot.TeleBot(BOT_TOKEN, threaded=False) if BOT_TOKEN else None
+
+if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
+    @bot.message_handler(commands=['start'])
+    def send_welcome(message):
+        user_id = message.chat.id
+        tg_user = message.from_user
+        username = tg_user.username
+        first_name = tg_user.first_name
+        last_name = tg_user.last_name
+
+        logger.info(f"User {user_id} ({username or first_name}) started the bot. Message: {message.text}")
+
+        referral_code_found = None
+        try:
+            command_parts = message.text.split(' ')
+            if len(command_parts) > 1:
+                start_param = command_parts[1]
+                if start_param.startswith('startapp='):
+                    payload_part = start_param.split('=', 1)[1]
+                    if payload_part.startswith('ref_'):
+                        referral_code_found = payload_part
+                elif start_param.startswith('ref_'):
+                     referral_code_found = start_param
+        except Exception as e:
+            logger.error(f"Error parsing start_param for user {user_id}: {e}")
+
+        if referral_code_found:
+            logger.info(f"User {user_id} used referral code: {referral_code_found}")
+            try:
+                # Assuming 'requests' is imported if you use it, or you have a direct function call
+                import requests # Keep this import if you make HTTP calls
+                api_payload = {
+                    "user_id": user_id,
+                    "username": username,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "referral_code": referral_code_found
+                }
+                # The bot calls its own backend API.
+                response = requests.post(f"{API_BASE_URL}/api/register_referral", json=api_payload, timeout=10)
+                if response.status_code == 200:
+                    logger.info(f"Successfully registered referral for user {user_id} with code {referral_code_found}. Response: {response.json()}")
+                else:
+                    logger.error(f"Failed to register referral for user {user_id}. Status: {response.status_code}, Response: {response.text}")
+            except requests.exceptions.RequestException as e_req:
+                logger.error(f"API call to /api/register_referral failed for user {user_id}: {e_req}")
+            except Exception as e_api:
+                logger.error(f"Unexpected error during API call for referral registration (user {user_id}): {e_api}")
+
+        markup = types.InlineKeyboardMarkup()
+        web_app_info = types.WebAppInfo(url=WEBAPP_URL) # WEBAPP_URL is defined above
+        app_button = types.InlineKeyboardButton(text="🎮 Открыть Pusik Gifts", web_app=web_app_info)
+        markup.add(app_button)
+
+        bot.send_photo(
+            message.chat.id,
+            photo="https://i.ibb.co/5Q2KK6D/IMG-20250522-184911-835.jpg",
+            caption="Welcome to Pusik Gifts! 🎁\n\nTap on button to start!",
+            reply_markup=markup
+        )
+
+    @bot.message_handler(func=lambda message: True)
+    def echo_all(message):
+        logger.info(f"Received non-command message from {message.chat.id}: {message.text[:50]}")
+        bot.reply_to(message, "Send /start, to open Pusik Gifts")
+
+# --- Webhook Setup Function (to be called from your main app setup) ---
+# You need to pass your Flask 'app' instance to this function to register the route.
+def setup_telegram_webhook(flask_app_instance):
+    if not bot:
+        logger.error("Telegram bot instance is not initialized (BOT_TOKEN missing?). Webhook cannot be set.")
+        return
+
+    # Path for the webhook - using the bot token makes it secret
+    WEBHOOK_PATH = f'/{BOT_TOKEN}'
+    # The full URL for the webhook
+    # Render provides RENDER_EXTERNAL_HOSTNAME. If not, you'd use your specific server URL.
+    render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+    if render_hostname:
+        WEBHOOK_URL_BASE = f"https://{render_hostname}"
+    else:
+        # Fallback to your explicitly provided server URL if RENDER_EXTERNAL_HOSTNAME is not available
+        WEBHOOK_URL_BASE = "https://case-hznb.onrender.com"
+        logger.warning(f"RENDER_EXTERNAL_HOSTNAME not found, using manually configured URL: {WEBHOOK_URL_BASE}")
+
+    FULL_WEBHOOK_URL = f"{WEBHOOK_URL_BASE}{WEBHOOK_PATH}"
+
+    # Define the webhook handler route within the Flask app context
+    @flask_app_instance.route(WEBHOOK_PATH, methods=['POST'])
+    def webhook_handler():
+        if flask_request.headers.get('content-type') == 'application/json':
+            json_string = flask_request.get_data().decode('utf-8')
+            update = telebot.types.Update.de_json(json_string)
+            logger.debug(f"Webhook received update: {update.update_id}")
+            bot.process_new_updates([update])
+            return '', 200
+        else:
+            logger.warning("Webhook received non-JSON request.")
+            flask_abort(403)
+        return "Webhook handler setup.", 200 # Should not be reached if POST with JSON
+
+    # Set the webhook with Telegram API
+    # This should run once when your application starts up.
+    # It's good practice to check if it's already set correctly.
+    try:
+        current_webhook_info = bot.get_webhook_info()
+        if current_webhook_info.url != FULL_WEBHOOK_URL:
+            logger.info(f"Current webhook is '{current_webhook_info.url}', attempting to set to: {FULL_WEBHOOK_URL}")
+            bot.remove_webhook()
+            time.sleep(0.5) # Give Telegram a moment
+            success = bot.set_webhook(url=FULL_WEBHOOK_URL)
+            if success:
+                logger.info(f"Telegram webhook set successfully to {FULL_WEBHOOK_URL}")
+            else:
+                logger.error(f"Failed to set Telegram webhook to {FULL_WEBHOOK_URL}. Current info: {bot.get_webhook_info()}")
+        else:
+            logger.info(f"Telegram webhook already set correctly to: {FULL_WEBHOOK_URL}")
+    except Exception as e:
+        logger.error(f"Error during Telegram webhook setup: {e}", exc_info=True)
+
+if BOT_TOKEN:
+    setup_telegram_webhook(app)
+else:
+    logger.error("Cannot setup Telegram webhook because BOT_TOKEN is missing.")
 
 # --- Tonnel Gift Sender (AES-256-CBC compatible with CryptoJS) ---
 SALT_SIZE = 8
