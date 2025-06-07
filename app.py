@@ -276,11 +276,6 @@ if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
             reply_markup=markup
         )
 
-    @bot.message_handler(func=lambda message: True)
-    def echo_all(message):
-        logger.info(f"Received non-command message from {message.chat.id}: {message.text[:50]}")
-        bot.reply_to(message, "Send /start, to open Pusik Gifts")
-
     @bot.message_handler(commands=['admin'])
     def admin_panel_command(message):
         if message.chat.id != ADMIN_USER_ID:
@@ -532,6 +527,11 @@ if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
             bot.send_message(message_to_edit.chat.id, "Database error fetching promocode details.")
         finally:
             db.close()
+            
+    @bot.message_handler(func=lambda message: True)
+    def echo_all(message):
+        logger.info(f"Received non-command message from {message.chat.id}: {message.text[:50]}")
+        bot.reply_to(message, "Send /start, to open Pusik Gifts")
 
 # --- Webhook Setup Function (to be called from your main app setup) ---
 # You need to pass your Flask 'app' instance to this function to register the route.
