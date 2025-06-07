@@ -334,11 +334,6 @@ def setup_telegram_webhook(flask_app_instance):
     except Exception as e:
         logger.error(f"Error during Telegram webhook setup: {e}", exc_info=True)
 
-if BOT_TOKEN:
-    setup_telegram_webhook(app)
-else:
-    logger.error("Cannot setup Telegram webhook because BOT_TOKEN is missing.")
-
 # --- Tonnel Gift Sender (AES-256-CBC compatible with CryptoJS) ---
 SALT_SIZE = 8
 KEY_SIZE = 32
@@ -1454,7 +1449,10 @@ NULL_ORIGIN = "null"
 LOCAL_DEV_ORIGINS = ["http://localhost:5500","http://127.0.0.1:5500","http://localhost:8000","http://127.0.0.1:8000",]
 final_allowed_origins = list(set([PROD_ORIGIN, NULL_ORIGIN] + LOCAL_DEV_ORIGINS))
 CORS(app, resources={r"/api/*": {"origins": final_allowed_origins}})
-
+if BOT_TOKEN:
+    setup_telegram_webhook(app)
+else:
+    logger.error("Cannot setup Telegram webhook because BOT_TOKEN is missing.")
 
 # --- Database Session Helper ---
 def get_db():
