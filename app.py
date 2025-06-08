@@ -39,7 +39,7 @@ TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshi
 ADMIN_USER_ID = 5146625949
 
 DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR")
-DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "cpd7r07ud3s")
+DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "e8a1vds9yal")
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
 UPGRADE_MAX_CHANCE = Decimal('75.0')  # Maximum possible chance in %
