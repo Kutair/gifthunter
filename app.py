@@ -42,7 +42,7 @@ DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1
 DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "e8a1vds9yal")
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
-BIG_WIN_CHANNEL_ID = -100278635659  # The channel ID you provided
+BIG_WIN_CHANNEL_ID = -1002786435659  # The channel ID you provided
 BOT_USERNAME_FOR_LINK = "pusikGiftsBot" # Your bot's username for the link
 
 UPGRADE_MAX_CHANCE = Decimal('75.0')  # Maximum possible chance in %
