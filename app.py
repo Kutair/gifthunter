@@ -42,6 +42,9 @@ DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1
 DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "e8a1vds9yal")
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
+BIG_WIN_CHANNEL_ID = -100278635659  # The channel ID you provided
+BOT_USERNAME_FOR_LINK = "pusikGiftsBot" # Your bot's username for the link
+
 UPGRADE_MAX_CHANCE = Decimal('75.0')  # Maximum possible chance in %
 UPGRADE_MIN_CHANCE = Decimal('3.0')   # Minimum possible chance in %
 # RiskFactor: lower value means chance drops faster for higher multipliers (X)
@@ -2005,7 +2008,7 @@ def open_case_api():
 
     if not cid:
         return jsonify({"error": "case_id required"}), 400
-    if multiplier not in [1,2,3]:
+    if multiplier not in [1, 2, 3]: # Assuming only 1x, 2x, 3x multipliers are allowed
         return jsonify({"error": "Invalid multiplier. Must be 1, 2, or 3."}), 400
     
     db = next(get_db())
@@ -2018,7 +2021,7 @@ def open_case_api():
         if not tcase:
             return jsonify({"error": "Case not found"}), 404
         
-        base_cost = Decimal(str(tcase['priceTON']))
+        base_cost = Decimal(str(tcase['priceTON'])) # Cost of a single case opening
         total_cost = base_cost * Decimal(multiplier)
 
         if Decimal(str(user.ton_balance)) < total_cost:
@@ -2028,9 +2031,9 @@ def open_case_api():
         
         prizes_in_case = tcase['prizes']
         won_prizes_list = []
-        total_value_this_spin = Decimal('0')
+        total_value_this_spin_from_all_multiplied_opens = Decimal('0') # To update user.total_won_ton
 
-        for _ in range(multiplier):
+        for i in range(multiplier): # Loop for each item in a multi-open
             rv = random.random()
             cprob = 0
             chosen_prize_info = None
@@ -2041,46 +2044,81 @@ def open_case_api():
                     chosen_prize_info = p_info
                     break
             
-            if not chosen_prize_info:
-                chosen_prize_info = random.choice(prizes_in_case)
+            if not chosen_prize_info: # Fallback if somehow no prize is chosen by probability
+                chosen_prize_info = random.choice(prizes_in_case) if prizes_in_case else \
+                                    {'name': "Error Prize", 'floor_price': 0, 'imageFilename': 'placeholder.png', 'is_ton_prize': False}
+
 
             dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
             
-            actual_val = Decimal(str(chosen_prize_info.get('floor_price', 0))) # Use floor_price from chosen_prize_info
+            # Use floor_price from the processed case data for consistency
+            actual_val_of_this_prize = Decimal(str(chosen_prize_info.get('floor_price', 0))) 
             
             variant_name = chosen_prize_info['name'] if chosen_prize_info['name'] in KISSED_FROG_VARIANT_FLOORS else None
 
+            # Create inventory item
             item = InventoryItem(
                 user_id=uid,
                 nft_id=dbnft.id if dbnft else None,
                 item_name_override=chosen_prize_info['name'],
-                item_image_override=chosen_prize_info['imageFilename'], # Use the image filename from prize info
-                current_value=float(actual_val.quantize(Decimal('0.01'))),
+                item_image_override=chosen_prize_info.get('imageFilename', generate_image_filename_from_name(chosen_prize_info['name'])),
+                current_value=float(actual_val_of_this_prize.quantize(Decimal('0.01'), ROUND_HALF_UP)),
                 variant=variant_name,
                 is_ton_prize=chosen_prize_info.get('is_ton_prize', False)
             )
             db.add(item)
-            db.flush()
+            db.flush() # To get item.id for the response and potential logging
 
             won_prizes_list.append({
-                "id":item.id,
-                "name":chosen_prize_info['name'],
-                "imageFilename":chosen_prize_info['imageFilename'],
-                "floorPrice":float(actual_val),
-                "currentValue":item.current_value,
-                "variant":item.variant,
-                "is_ton_prize":item.is_ton_prize
+                "id": item.id,
+                "name": chosen_prize_info['name'],
+                "imageFilename": item.item_image_override,
+                "floorPrice": float(actual_val_of_this_prize), # The actual value it was won at
+                "currentValue": item.current_value,
+                "variant": item.variant,
+                "is_ton_prize": item.is_ton_prize
             })
             
-            total_value_this_spin += actual_val
+            total_value_this_spin_from_all_multiplied_opens += actual_val_of_this_prize
 
-        user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin)
+            # --- Big Win Notification Logic ---
+            if base_cost > 0 and actual_val_of_this_prize > (base_cost * Decimal('1.5')):
+                win_rate_x = (actual_val_of_this_prize / base_cost).quantize(Decimal('0.1'), ROUND_HALF_UP)
+                
+                user_handle = auth.get("username")
+                if user_handle:
+                    user_display_name = f"@{user_handle}"
+                else:
+                    user_display_name = auth.get("first_name", "A lucky user")
+
+                prize_name_display = chosen_prize_info['name']
+                case_name_display = tcase['name']
+
+                message_to_channel = (
+                    f"🎉 *Congratulations!* 🎉\n\n"
+                    f"User {user_display_name} won ✨ *{prize_name_display}* ✨\n"
+                    f"in the 💼 *{case_name_display}* case!\n\n"
+                    f"Win rate: 🚀 *{win_rate_x}x*\n\n"
+                    f"@{BOT_USERNAME_FOR_LINK}"
+                )
+                try:
+                    if bot: # Ensure bot instance is available
+                        bot.send_message(BIG_WIN_CHANNEL_ID, message_to_channel, parse_mode="Markdown")
+                        logger.info(f"Sent big win notification to channel {BIG_WIN_CHANNEL_ID} for user {uid}, prize {prize_name_display} (value {actual_val_of_this_prize}), case {case_name_display} (cost {base_cost})")
+                    else:
+                        logger.warning("Bot instance not available, cannot send big win notification.")
+                except Exception as e_channel_msg:
+                    logger.error(f"Failed to send big win message to channel {BIG_WIN_CHANNEL_ID}: {e_channel_msg}")
+            # --- End Big Win Notification Logic ---
+
+        # Update user's total winnings metric
+        user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin_from_all_multiplied_opens)
         
         db.commit()
         return jsonify({
-            "status":"success",
-            "won_prizes":won_prizes_list,
-            "new_balance_ton":user.ton_balance
+            "status": "success",
+            "won_prizes": won_prizes_list,
+            "new_balance_ton": user.ton_balance
         })
     except Exception as e:
         db.rollback()
