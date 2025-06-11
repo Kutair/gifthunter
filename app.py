@@ -26,19 +26,13 @@ from Crypto.Util.Padding import pad
 from pytoniq import LiteBalancer
 import asyncio
 import math
-from flask import send_file # For sending the audio file
-from google import genai # This is how the example imports it
-from google.genai import types as genai_doc_types # Alias to match the example's `types`
-import tempfile
-import wave
+
 
 load_dotenv()
 
 # --- Configuration Constants ---
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 DATABASE_URL = os.environ.get("DATABASE_URL")
-TTS_SHARED_SECRET = os.environ.get("TTS_SHARED_SECRET")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") # Ensure this is also loaded for the backend
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 # 24 hours for Telegram Mini App auth data
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
 TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit")
@@ -139,132 +133,6 @@ WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
 
 API_BASE_URL = "https://case-hznb.onrender.com" # Your backend API URL
 
-def save_wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
-   try:
-      with wave.open(filename, "wb") as wf:
-         wf.setnchannels(channels)
-         wf.setsampwidth(sample_width)
-         wf.setframerate(rate)
-         wf.writeframes(pcm)
-      logger.debug(f"WAV file saved: {filename}")
-   except Exception as e:
-      logger.error(f"Error saving WAV file {filename}: {e}", exc_info=True)
-      raise
-
-def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_prompt: str) -> str | None:
-    """
-    Generates TTS audio STRICTLY following the provided Gemini documentation example.
-    This function WILL FAIL if `genai.Client` is not available as `google.generativeai.Client`
-    in your installed SDK version, which is indicated by your AttributeError.
-    """
-    if not GEMINI_API_KEY:
-        logger.error("TTS_BACKEND_STRICT_EXAMPLE: GEMINI_API_KEY not set.")
-        return None
-    if not text_to_speak:
-        logger.warning("TTS_BACKEND_STRICT_EXAMPLE: Empty text_to_speak provided.")
-        return None
-
-    # Attempt to use a shared client instance to avoid re-initializing if called multiple times
-    # This doesn't solve the root AttributeError if genai.Client is missing.
-    if not hasattr(generate_tts_audio_on_backend, "gemini_sdk_client"):
-        try:
-            # >>> THIS IS THE LINE THAT CAUSES THE AttributeError IN YOUR ENVIRONMENT <<<
-            client_instance = genai.Client(api_key=GEMINI_API_KEY)
-            # If the line above succeeds, it means genai.Client *is* found.
-            # If it fails, the SDK version/installation on Render doesn't match the docs.
-            generate_tts_audio_on_backend.gemini_sdk_client = client_instance
-            logger.info("TTS_BACKEND_STRICT_EXAMPLE: `genai.Client` seemingly initialized successfully.")
-        except AttributeError as e_attr:
-            logger.critical(f"TTS_BACKEND_STRICT_EXAMPLE: CRITICAL - `genai.Client` is NOT available. Error: {e_attr}. "
-                            "This indicates an SDK version mismatch or incorrect import path for `Client` "
-                            "compared to the documentation provided. Further execution of this function will fail.")
-            # Store None to prevent retrying initialization if it fails once this way.
-            generate_tts_audio_on_backend.gemini_sdk_client = None
-            return None # Cannot proceed without the client
-        except Exception as e_client_init:
-            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: Unexpected error during `genai.Client` initialization: {e_client_init}", exc_info=True)
-            generate_tts_audio_on_backend.gemini_sdk_client = None
-            return None
-
-    client = getattr(generate_tts_audio_on_backend, "gemini_sdk_client", None)
-    if not client:
-        logger.error("TTS_BACKEND_STRICT_EXAMPLE: `genai.Client` instance is not available (failed previous init).")
-        return None
-
-    temp_file_path = None
-    try:
-        # Construct the `contents` string. The example uses simple text with inline style.
-        # "Say cheerfully: Have a wonderful day!"
-        # Your `style_prompt` and `voice_name` hint are better passed structurally if possible,
-        # but for strict adherence, we put styling in the `contents`.
-        contents_for_api = f"{style_prompt}: {text_to_speak}"
-        # The example also shows `voice_name` in `PrebuiltVoiceConfig`.
-        # The `contents` in the example is: "Say cheerfully: Have a wonderful day!"
-        # The voice 'Kore' is in the config. This means `voice_name` should be passed in `request_config`.
-        # And `style_prompt` can go into `contents`.
-
-        logger.info(f"TTS_BACKEND_STRICT_EXAMPLE: Requesting audio. Voice: {voice_name}, Style: '{style_prompt[:50]}...'")
-
-        # Construct the `config` object EXACTLY as in the example
-        # using `genai_doc_types` which is aliased from `google.genai.types`
-        request_config = genai_doc_types.GenerateContentConfig(
-            response_modalities=["AUDIO"], # This is what the server expects for this model
-            speech_config=genai_doc_types.SpeechConfig(
-                voice_config=genai_doc_types.VoiceConfig(
-                    prebuilt_voice_config=genai_doc_types.PrebuiltVoiceConfig(
-                        voice_name=voice_name # Your 'Charon', 'Orus', etc.
-                    )
-                )
-            )
-        )
-
-        # Make the API call as per the example
-        api_response = client.models.generate_content(
-           model="gemini-2.5-flash-preview-tts",
-           contents=f"{style_prompt}: {text_to_speak}", # Content to speak, with style hint
-           config=request_config # The structured configuration object
-        )
-
-        # Process the response as per the example
-        if not api_response.candidates or not api_response.candidates[0].content.parts:
-            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: API returned no valid candidates/parts. Response: {api_response}")
-            return None
-        
-        audio_part = api_response.candidates[0].content.parts[0]
-        
-        if not (hasattr(audio_part, 'inline_data') and hasattr(audio_part.inline_data, 'data')):
-            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: API part does not contain 'inline_data.data'. Part: {audio_part}")
-            return None
-            
-        audio_data_pcm = audio_part.inline_data.data
-
-        if not audio_data_pcm:
-            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: Extracted audio data (PCM) is empty.")
-            return None
-
-        # Save to a temporary file
-        # The `tempfile.gettempdir()` ensures it's a writable location on Render.
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav", dir=tempfile.gettempdir()) as temp_f:
-            temp_file_path = temp_f.name
-        
-        save_wave_file(temp_file_path, audio_data_pcm, rate=24000, sample_width=2)
-
-        logger.info(f"TTS_BACKEND_STRICT_EXAMPLE: Audio successfully generated and saved to {temp_file_path}")
-        return temp_file_path
-
-    except AttributeError as e_sdk_missing_members:
-        # This could catch if `genai.types.GenerateContentConfig` or sub-objects are missing/different
-        logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: SDK Attribute Error during request construction or response processing: {e_sdk_missing_members}. "
-                       "This likely means your `google.genai.types` structure differs from the documentation example.", exc_info=True)
-        return None
-    except Exception as e_api_call:
-        # This would catch the "400 The requested combination of response modalities" if the constructed
-        # request (even if syntactically correct Python-wise) is still not what the server expects.
-        logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: Error during API call or audio saving: {e_api_call}", exc_info=True)
-        if temp_file_path and os.path.exists(temp_file_path):
-            try: os.remove(temp_file_path)
-            except Exception: pass
-        return None
 
 # --- SQLAlchemy Database Setup ---
 engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
@@ -1850,56 +1718,6 @@ def get_db():
     finally:
         db.close()
 
-@app.route('/api/generate_tts', methods=['POST'])
-def generate_tts_endpoint():
-    # Authentication
-    received_secret = flask_request.headers.get('X-TTS-Shared-Secret')
-    if not TTS_SHARED_SECRET or received_secret != TTS_SHARED_SECRET:
-        logger.warning("TTS_ENDPOINT: Unauthorized TTS request attempt.")
-        return jsonify({"error": "Unauthorized"}), 403
-
-    data = flask_request.get_json()
-    if not data:
-        return jsonify({"error": "Missing JSON payload"}), 400
-
-    text_to_speak = data.get('text')
-    voice_name = data.get('voice_name')
-    style_prompt = data.get('style_prompt')
-
-    if not all([text_to_speak, voice_name, style_prompt]):
-        return jsonify({"error": "Missing required parameters: text, voice_name, style_prompt"}), 400
-
-    logger.info(f"TTS_ENDPOINT: Received request. Voice: {voice_name}, Style: {style_prompt[:50]}...")
-
-    audio_file_path = None
-    try:
-        # Call the backend's TTS generation function
-        audio_file_path = generate_tts_audio_on_backend(text_to_speak, voice_name, style_prompt)
-
-        if audio_file_path and os.path.exists(audio_file_path):
-            logger.info(f"TTS_ENDPOINT: Sending audio file: {audio_file_path}")
-            # Send the file and ensure it's deleted afterwards
-            response = send_file(
-                audio_file_path,
-                mimetype='audio/wav',
-                as_attachment=True, # Not strictly necessary but good practice
-                download_name='generated_audio.wav' # Client can ignore this
-            )
-            return response
-        else:
-            logger.error("TTS_ENDPOINT: Audio generation failed or file not found on backend.")
-            return jsonify({"error": "TTS generation failed on server"}), 500
-    except Exception as e:
-        logger.error(f"TTS_ENDPOINT: Unexpected error: {e}", exc_info=True)
-        return jsonify({"error": "Internal server error during TTS processing"}), 500
-    finally:
-        # Cleanup the temporary file after sending or if an error occurred before sending
-        if audio_file_path and os.path.exists(audio_file_path):
-            try:
-                os.remove(audio_file_path)
-                logger.info(f"TTS_ENDPOINT: Cleaned up temp audio file: {audio_file_path}")
-            except Exception as e_clean:
-                logger.error(f"TTS_ENDPOINT: Error cleaning up temp audio file {audio_file_path}: {e_clean}")
 
 # --- Telegram Mini App InitData Validation ---
 def validate_init_data(init_data_str: str, bot_token_for_validation: str) -> dict | None:
