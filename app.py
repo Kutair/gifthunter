@@ -141,6 +141,8 @@ def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_pro
     """
     Generates TTS audio using Gemini API (called from backend) and saves it to a temporary WAV file.
     Returns the path to the temporary file, or None on failure.
+    This version removes response_mime_type from GenerationConfig, relying on the model's
+    inherent TTS capability and prompt-based styling.
     """
     if not GEMINI_API_KEY:
         logger.error("TTS_BACKEND: GEMINI_API_KEY not set on backend. Cannot generate audio.")
@@ -165,6 +167,7 @@ def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_pro
 
     temp_file_path = None
     try:
+        # Construct the prompt to include voice name and style instructions.
         full_content_prompt = (
             f"Please generate audio for the following text. "
             f"Use the voice characteristics often associated with the name '{voice_name}'. "
@@ -174,14 +177,14 @@ def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_pro
         
         logger.info(f"TTS_BACKEND: Requesting audio. Voice hint: '{voice_name}'. Style: '{style_prompt[:100]}...'")
         
-        # Ensure this model name is correct and available for your GEMINI_API_KEY
-        tts_model = genai.GenerativeModel("gemini-2.5-flash-preview-tts") 
+        tts_model = genai.GenerativeModel("gemini-2.5-flash-preview-tts")
 
+        # Call generate_content without specifying response_mime_type in GenerationConfig.
+        # The model "gemini-2.5-flash-preview-tts" should inherently understand it needs to output audio.
+        # The styling (voice_name, style_prompt) is embedded in full_content_prompt.
         api_response = tts_model.generate_content(
             contents=full_content_prompt,
-            generation_config=genai_types.GenerationConfig(
-                response_mime_type="audio/wav" # Crucial for telling the model we want audio
-            )
+            generation_config=genai_types.GenerationConfig() # Pass empty or default config
         )
         
         if not api_response.candidates or not api_response.candidates[0].content.parts:
@@ -191,19 +194,26 @@ def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_pro
         audio_part = api_response.candidates[0].content.parts[0]
         audio_data_pcm = None
 
-        if hasattr(audio_part, 'blob') and hasattr(audio_part.blob, 'mime_type') and audio_part.blob.mime_type.startswith('audio/'):
-            audio_data_pcm = audio_part.blob.data
-        elif hasattr(audio_part, 'inline_data') and hasattr(audio_part.inline_data, 'data'):
-             audio_data_pcm = audio_part.inline_data.data
+        # Check for audio data. The Gemini API docs you provided showed `inline_data.data`.
+        # General Gemini models often use `part.blob.data` for binary types.
+        if hasattr(audio_part, 'inline_data') and hasattr(audio_part.inline_data, 'data'):
+            audio_data_pcm = audio_part.inline_data.data
+            logger.debug("TTS_BACKEND: Audio data found in 'inline_data.data'.")
+        elif hasattr(audio_part, 'blob') and hasattr(audio_part.blob, 'data'):
+             # Check mime_type if it's a blob
+            if hasattr(audio_part.blob, 'mime_type') and audio_part.blob.mime_type.startswith('audio/'):
+                audio_data_pcm = audio_part.blob.data
+                logger.debug(f"TTS_BACKEND: Audio data found in 'blob.data' with mime_type: {audio_part.blob.mime_type}.")
+            else:
+                logger.warning(f"TTS_BACKEND: Part has a blob, but mime_type is not audio: {getattr(audio_part.blob, 'mime_type', 'N/A')}")
         else:
-            logger.error(f"TTS_BACKEND: Gemini API part does not contain recognized audio data. Part: {audio_part}")
+            logger.error(f"TTS_BACKEND: Gemini API part does not contain recognized audio data. Part structure: {dir(audio_part)}")
             return None
 
         if not audio_data_pcm:
             logger.error(f"TTS_BACKEND: Extracted audio data is empty or None.")
             return None
 
-        # Use tempfile for secure temporary file creation
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav", dir=tempfile.gettempdir()) as temp_f:
             temp_file_path = temp_f.name
         
