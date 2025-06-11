@@ -26,13 +26,17 @@ from Crypto.Util.Padding import pad
 from pytoniq import LiteBalancer
 import asyncio
 import math
-
+from flask import send_file # For sending the audio file
+import google.generativeai as genai # Assuming this is where Gemini SDK will be used
+from google.generativeai import types as genai_types # Alias for clarity
 
 load_dotenv()
 
 # --- Configuration Constants ---
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 DATABASE_URL = os.environ.get("DATABASE_URL")
+TTS_SHARED_SECRET = os.environ.get("TTS_SHARED_SECRET")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY") # Ensure this is also loaded for the backend
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 # 24 hours for Telegram Mini App auth data
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
 TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit")
@@ -133,6 +137,89 @@ WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
 
 API_BASE_URL = "https://case-hznb.onrender.com" # Your backend API URL
 
+def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_prompt: str) -> str | None:
+    """
+    Generates TTS audio using Gemini API (called from backend) and saves it to a temporary WAV file.
+    Returns the path to the temporary file, or None on failure.
+    """
+    if not GEMINI_API_KEY:
+        logger.error("TTS_BACKEND: GEMINI_API_KEY not set on backend. Cannot generate audio.")
+        return None
+    if not text_to_speak:
+        logger.warning("TTS_BACKEND: Empty text_to_speak provided.")
+        return None
+
+    try:
+        if not getattr(generate_tts_audio_on_backend, "gemini_configured", False):
+            genai.configure(api_key=GEMINI_API_KEY)
+            generate_tts_audio_on_backend.gemini_configured = True
+            logger.info("TTS_BACKEND: Gemini API Key configured on backend.")
+    except Exception as e_configure:
+        logger.error(f"TTS_BACKEND: Failed to configure Gemini API Key on backend: {e_configure}", exc_info=True)
+        generate_tts_audio_on_backend.gemini_configured = False
+        return None
+    
+    if not getattr(generate_tts_audio_on_backend, "gemini_configured", False):
+        logger.error("TTS_BACKEND: Gemini API Key is not configured on backend (previous attempt failed).")
+        return None
+
+    temp_file_path = None
+    try:
+        full_content_prompt = (
+            f"Please generate audio for the following text. "
+            f"Use the voice characteristics often associated with the name '{voice_name}'. "
+            f"The desired style is: {style_prompt}\n\n"
+            f"Text to speak:\n{text_to_speak}"
+        )
+        
+        logger.info(f"TTS_BACKEND: Requesting audio. Voice hint: '{voice_name}'. Style: '{style_prompt[:100]}...'")
+        
+        # Ensure this model name is correct and available for your GEMINI_API_KEY
+        tts_model = genai.GenerativeModel("gemini-2.5-flash-preview-tts") 
+
+        api_response = tts_model.generate_content(
+            contents=full_content_prompt,
+            generation_config=genai_types.GenerationConfig(
+                response_mime_type="audio/wav" # Crucial for telling the model we want audio
+            )
+        )
+        
+        if not api_response.candidates or not api_response.candidates[0].content.parts:
+            logger.error(f"TTS_BACKEND: Gemini API returned no valid candidates or parts. Response: {api_response}")
+            return None
+        
+        audio_part = api_response.candidates[0].content.parts[0]
+        audio_data_pcm = None
+
+        if hasattr(audio_part, 'blob') and hasattr(audio_part.blob, 'mime_type') and audio_part.blob.mime_type.startswith('audio/'):
+            audio_data_pcm = audio_part.blob.data
+        elif hasattr(audio_part, 'inline_data') and hasattr(audio_part.inline_data, 'data'):
+             audio_data_pcm = audio_part.inline_data.data
+        else:
+            logger.error(f"TTS_BACKEND: Gemini API part does not contain recognized audio data. Part: {audio_part}")
+            return None
+
+        if not audio_data_pcm:
+            logger.error(f"TTS_BACKEND: Extracted audio data is empty or None.")
+            return None
+
+        # Use tempfile for secure temporary file creation
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav", dir=tempfile.gettempdir()) as temp_f:
+            temp_file_path = temp_f.name
+        
+        save_wave_file(temp_file_path, audio_data_pcm, rate=24000, sample_width=2) # Ensure save_wave_file is defined
+
+        logger.info(f"TTS_BACKEND: Audio successfully generated and saved to {temp_file_path}")
+        return temp_file_path
+
+    except Exception as e:
+        logger.error(f"TTS_BACKEND: Error during Gemini API call or audio saving: {e}", exc_info=True)
+        if temp_file_path and os.path.exists(temp_file_path):
+            try:
+                os.remove(temp_file_path)
+            except Exception as e_clean:
+                logger.error(f"TTS_BACKEND: Error cleaning temp file {temp_file_path}: {e_clean}")
+        return None
 
 # --- SQLAlchemy Database Setup ---
 engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
@@ -1718,6 +1805,56 @@ def get_db():
     finally:
         db.close()
 
+@app.route('/api/generate_tts', methods=['POST'])
+def generate_tts_endpoint():
+    # Authentication
+    received_secret = flask_request.headers.get('X-TTS-Shared-Secret')
+    if not TTS_SHARED_SECRET or received_secret != TTS_SHARED_SECRET:
+        logger.warning("TTS_ENDPOINT: Unauthorized TTS request attempt.")
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = flask_request.get_json()
+    if not data:
+        return jsonify({"error": "Missing JSON payload"}), 400
+
+    text_to_speak = data.get('text')
+    voice_name = data.get('voice_name')
+    style_prompt = data.get('style_prompt')
+
+    if not all([text_to_speak, voice_name, style_prompt]):
+        return jsonify({"error": "Missing required parameters: text, voice_name, style_prompt"}), 400
+
+    logger.info(f"TTS_ENDPOINT: Received request. Voice: {voice_name}, Style: {style_prompt[:50]}...")
+
+    audio_file_path = None
+    try:
+        # Call the backend's TTS generation function
+        audio_file_path = generate_tts_audio_on_backend(text_to_speak, voice_name, style_prompt)
+
+        if audio_file_path and os.path.exists(audio_file_path):
+            logger.info(f"TTS_ENDPOINT: Sending audio file: {audio_file_path}")
+            # Send the file and ensure it's deleted afterwards
+            response = send_file(
+                audio_file_path,
+                mimetype='audio/wav',
+                as_attachment=True, # Not strictly necessary but good practice
+                download_name='generated_audio.wav' # Client can ignore this
+            )
+            return response
+        else:
+            logger.error("TTS_ENDPOINT: Audio generation failed or file not found on backend.")
+            return jsonify({"error": "TTS generation failed on server"}), 500
+    except Exception as e:
+        logger.error(f"TTS_ENDPOINT: Unexpected error: {e}", exc_info=True)
+        return jsonify({"error": "Internal server error during TTS processing"}), 500
+    finally:
+        # Cleanup the temporary file after sending or if an error occurred before sending
+        if audio_file_path and os.path.exists(audio_file_path):
+            try:
+                os.remove(audio_file_path)
+                logger.info(f"TTS_ENDPOINT: Cleaned up temp audio file: {audio_file_path}")
+            except Exception as e_clean:
+                logger.error(f"TTS_ENDPOINT: Error cleaning up temp audio file {audio_file_path}: {e_clean}")
 
 # --- Telegram Mini App InitData Validation ---
 def validate_init_data(init_data_str: str, bot_token_for_validation: str) -> dict | None:
