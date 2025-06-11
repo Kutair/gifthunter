@@ -27,8 +27,10 @@ from pytoniq import LiteBalancer
 import asyncio
 import math
 from flask import send_file # For sending the audio file
-import google.generativeai as genai # Assuming this is where Gemini SDK will be used
-from google.generativeai import types as genai_types # Alias for clarity
+from google import genai # This is how the example imports it
+from google.genai import types as genai_doc_types # Alias to match the example's `types`
+import tempfile
+import wave
 
 load_dotenv()
 
@@ -137,98 +139,131 @@ WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
 
 API_BASE_URL = "https://case-hznb.onrender.com" # Your backend API URL
 
+def save_wave_file(filename, pcm, channels=1, rate=24000, sample_width=2):
+   try:
+      with wave.open(filename, "wb") as wf:
+         wf.setnchannels(channels)
+         wf.setsampwidth(sample_width)
+         wf.setframerate(rate)
+         wf.writeframes(pcm)
+      logger.debug(f"WAV file saved: {filename}")
+   except Exception as e:
+      logger.error(f"Error saving WAV file {filename}: {e}", exc_info=True)
+      raise
+
 def generate_tts_audio_on_backend(text_to_speak: str, voice_name: str, style_prompt: str) -> str | None:
     """
-    Generates TTS audio using Gemini API (called from backend) and saves it to a temporary WAV file.
-    Returns the path to the temporary file, or None on failure.
-    This version removes response_mime_type from GenerationConfig, relying on the model's
-    inherent TTS capability and prompt-based styling.
+    Generates TTS audio STRICTLY following the provided Gemini documentation example.
+    This function WILL FAIL if `genai.Client` is not available as `google.generativeai.Client`
+    in your installed SDK version, which is indicated by your AttributeError.
     """
     if not GEMINI_API_KEY:
-        logger.error("TTS_BACKEND: GEMINI_API_KEY not set on backend. Cannot generate audio.")
+        logger.error("TTS_BACKEND_STRICT_EXAMPLE: GEMINI_API_KEY not set.")
         return None
     if not text_to_speak:
-        logger.warning("TTS_BACKEND: Empty text_to_speak provided.")
+        logger.warning("TTS_BACKEND_STRICT_EXAMPLE: Empty text_to_speak provided.")
         return None
 
-    try:
-        if not getattr(generate_tts_audio_on_backend, "gemini_configured", False):
-            genai.configure(api_key=GEMINI_API_KEY)
-            generate_tts_audio_on_backend.gemini_configured = True
-            logger.info("TTS_BACKEND: Gemini API Key configured on backend.")
-    except Exception as e_configure:
-        logger.error(f"TTS_BACKEND: Failed to configure Gemini API Key on backend: {e_configure}", exc_info=True)
-        generate_tts_audio_on_backend.gemini_configured = False
-        return None
-    
-    if not getattr(generate_tts_audio_on_backend, "gemini_configured", False):
-        logger.error("TTS_BACKEND: Gemini API Key is not configured on backend (previous attempt failed).")
+    # Attempt to use a shared client instance to avoid re-initializing if called multiple times
+    # This doesn't solve the root AttributeError if genai.Client is missing.
+    if not hasattr(generate_tts_audio_on_backend, "gemini_sdk_client"):
+        try:
+            # >>> THIS IS THE LINE THAT CAUSES THE AttributeError IN YOUR ENVIRONMENT <<<
+            client_instance = genai.Client(api_key=GEMINI_API_KEY)
+            # If the line above succeeds, it means genai.Client *is* found.
+            # If it fails, the SDK version/installation on Render doesn't match the docs.
+            generate_tts_audio_on_backend.gemini_sdk_client = client_instance
+            logger.info("TTS_BACKEND_STRICT_EXAMPLE: `genai.Client` seemingly initialized successfully.")
+        except AttributeError as e_attr:
+            logger.critical(f"TTS_BACKEND_STRICT_EXAMPLE: CRITICAL - `genai.Client` is NOT available. Error: {e_attr}. "
+                            "This indicates an SDK version mismatch or incorrect import path for `Client` "
+                            "compared to the documentation provided. Further execution of this function will fail.")
+            # Store None to prevent retrying initialization if it fails once this way.
+            generate_tts_audio_on_backend.gemini_sdk_client = None
+            return None # Cannot proceed without the client
+        except Exception as e_client_init:
+            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: Unexpected error during `genai.Client` initialization: {e_client_init}", exc_info=True)
+            generate_tts_audio_on_backend.gemini_sdk_client = None
+            return None
+
+    client = getattr(generate_tts_audio_on_backend, "gemini_sdk_client", None)
+    if not client:
+        logger.error("TTS_BACKEND_STRICT_EXAMPLE: `genai.Client` instance is not available (failed previous init).")
         return None
 
     temp_file_path = None
     try:
-        # Construct the prompt to include voice name and style instructions.
-        full_content_prompt = (
-            f"Please generate audio for the following text. "
-            f"Use the voice characteristics often associated with the name '{voice_name}'. "
-            f"The desired style is: {style_prompt}\n\n"
-            f"Text to speak:\n{text_to_speak}"
-        )
-        
-        logger.info(f"TTS_BACKEND: Requesting audio. Voice hint: '{voice_name}'. Style: '{style_prompt[:100]}...'")
-        
-        tts_model = genai.GenerativeModel("gemini-2.5-flash-preview-tts")
+        # Construct the `contents` string. The example uses simple text with inline style.
+        # "Say cheerfully: Have a wonderful day!"
+        # Your `style_prompt` and `voice_name` hint are better passed structurally if possible,
+        # but for strict adherence, we put styling in the `contents`.
+        contents_for_api = f"{style_prompt}: {text_to_speak}"
+        # The example also shows `voice_name` in `PrebuiltVoiceConfig`.
+        # The `contents` in the example is: "Say cheerfully: Have a wonderful day!"
+        # The voice 'Kore' is in the config. This means `voice_name` should be passed in `request_config`.
+        # And `style_prompt` can go into `contents`.
 
-        # Call generate_content without specifying response_mime_type in GenerationConfig.
-        # The model "gemini-2.5-flash-preview-tts" should inherently understand it needs to output audio.
-        # The styling (voice_name, style_prompt) is embedded in full_content_prompt.
-        api_response = tts_model.generate_content(
-            contents=full_content_prompt,
-            generation_config=genai_types.GenerationConfig() # Pass empty or default config
+        logger.info(f"TTS_BACKEND_STRICT_EXAMPLE: Requesting audio. Voice: {voice_name}, Style: '{style_prompt[:50]}...'")
+
+        # Construct the `config` object EXACTLY as in the example
+        # using `genai_doc_types` which is aliased from `google.genai.types`
+        request_config = genai_doc_types.GenerateContentConfig(
+            response_modalities=["AUDIO"], # This is what the server expects for this model
+            speech_config=genai_doc_types.SpeechConfig(
+                voice_config=genai_doc_types.VoiceConfig(
+                    prebuilt_voice_config=genai_doc_types.PrebuiltVoiceConfig(
+                        voice_name=voice_name # Your 'Charon', 'Orus', etc.
+                    )
+                )
+            )
         )
-        
+
+        # Make the API call as per the example
+        api_response = client.models.generate_content(
+           model="gemini-2.5-flash-preview-tts",
+           contents=f"{style_prompt}: {text_to_speak}", # Content to speak, with style hint
+           config=request_config # The structured configuration object
+        )
+
+        # Process the response as per the example
         if not api_response.candidates or not api_response.candidates[0].content.parts:
-            logger.error(f"TTS_BACKEND: Gemini API returned no valid candidates or parts. Response: {api_response}")
+            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: API returned no valid candidates/parts. Response: {api_response}")
             return None
         
         audio_part = api_response.candidates[0].content.parts[0]
-        audio_data_pcm = None
-
-        # Check for audio data. The Gemini API docs you provided showed `inline_data.data`.
-        # General Gemini models often use `part.blob.data` for binary types.
-        if hasattr(audio_part, 'inline_data') and hasattr(audio_part.inline_data, 'data'):
-            audio_data_pcm = audio_part.inline_data.data
-            logger.debug("TTS_BACKEND: Audio data found in 'inline_data.data'.")
-        elif hasattr(audio_part, 'blob') and hasattr(audio_part.blob, 'data'):
-             # Check mime_type if it's a blob
-            if hasattr(audio_part.blob, 'mime_type') and audio_part.blob.mime_type.startswith('audio/'):
-                audio_data_pcm = audio_part.blob.data
-                logger.debug(f"TTS_BACKEND: Audio data found in 'blob.data' with mime_type: {audio_part.blob.mime_type}.")
-            else:
-                logger.warning(f"TTS_BACKEND: Part has a blob, but mime_type is not audio: {getattr(audio_part.blob, 'mime_type', 'N/A')}")
-        else:
-            logger.error(f"TTS_BACKEND: Gemini API part does not contain recognized audio data. Part structure: {dir(audio_part)}")
+        
+        if not (hasattr(audio_part, 'inline_data') and hasattr(audio_part.inline_data, 'data')):
+            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: API part does not contain 'inline_data.data'. Part: {audio_part}")
             return None
+            
+        audio_data_pcm = audio_part.inline_data.data
 
         if not audio_data_pcm:
-            logger.error(f"TTS_BACKEND: Extracted audio data is empty or None.")
+            logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: Extracted audio data (PCM) is empty.")
             return None
 
+        # Save to a temporary file
+        # The `tempfile.gettempdir()` ensures it's a writable location on Render.
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav", dir=tempfile.gettempdir()) as temp_f:
             temp_file_path = temp_f.name
         
-        save_wave_file(temp_file_path, audio_data_pcm, rate=24000, sample_width=2) # Ensure save_wave_file is defined
+        save_wave_file(temp_file_path, audio_data_pcm, rate=24000, sample_width=2)
 
-        logger.info(f"TTS_BACKEND: Audio successfully generated and saved to {temp_file_path}")
+        logger.info(f"TTS_BACKEND_STRICT_EXAMPLE: Audio successfully generated and saved to {temp_file_path}")
         return temp_file_path
 
-    except Exception as e:
-        logger.error(f"TTS_BACKEND: Error during Gemini API call or audio saving: {e}", exc_info=True)
+    except AttributeError as e_sdk_missing_members:
+        # This could catch if `genai.types.GenerateContentConfig` or sub-objects are missing/different
+        logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: SDK Attribute Error during request construction or response processing: {e_sdk_missing_members}. "
+                       "This likely means your `google.genai.types` structure differs from the documentation example.", exc_info=True)
+        return None
+    except Exception as e_api_call:
+        # This would catch the "400 The requested combination of response modalities" if the constructed
+        # request (even if syntactically correct Python-wise) is still not what the server expects.
+        logger.error(f"TTS_BACKEND_STRICT_EXAMPLE: Error during API call or audio saving: {e_api_call}", exc_info=True)
         if temp_file_path and os.path.exists(temp_file_path):
-            try:
-                os.remove(temp_file_path)
-            except Exception as e_clean:
-                logger.error(f"TTS_BACKEND: Error cleaning temp file {temp_file_path}: {e_clean}")
+            try: os.remove(temp_file_path)
+            except Exception: pass
         return None
 
 # --- SQLAlchemy Database Setup ---
