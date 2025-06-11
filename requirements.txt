@@ -9,4 +9,3 @@ pytoniq
 regex # You used `re` which is standard library, `regex` is a third-party richer alternative. If you only use `re`, this is not strictly needed.
 curl_cffi
 pycryptodome
-google-generativeai # For Gemini API
