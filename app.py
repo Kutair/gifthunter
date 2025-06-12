@@ -1574,7 +1574,7 @@ cases_data_backend_with_fixed_prices_raw = [
     # For now, I'm providing the raw input that the RTP function would use.
     {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',
      'prizes': calculate_rtp_probabilities( # Simulating how backend would process it
-         {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'prizes': finalKissedFrogPrizesWithConsolation_Python_updated},
+         {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'prizes': finalKissedFrogPrizesWithConsolation_Python},
          UPDATED_FLOOR_PRICES
      )
     },
