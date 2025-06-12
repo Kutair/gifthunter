@@ -1312,7 +1312,7 @@ def calculate_rtp_probabilities_for_slots(slot_data, all_floor_prices):
 
 # Kissed Frog Prize Pool (initial template - will be adjusted by RTP function)
 
-finalKissedFrogPrizesWithConsolation_Python_raw_sorted = sorted([
+finalKissedFrogPrizesWithConsolation_Python = sorted([
     # Extremely rare expensive frogs
     {'name': 'Happy Pepe', 'probability': 0.0000001},  # Was 0.00010
     {'name': 'Tree Frog', 'probability': 0.0000005},  # Was 0.00050
