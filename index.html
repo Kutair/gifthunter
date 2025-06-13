@@ -912,7 +912,7 @@ const finalKissedFrogPrizesWithConsolation = [
 let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
 let remainingProbForConsolation = 1.0 - currentProbSumForKF;
 if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
-finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
+//finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
 
 let casesData = []; // Will be populated from backend
 let UPDATED_FLOOR_PRICES_FRONTEND = {}; // Will be populated from backend
