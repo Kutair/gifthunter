@@ -2172,6 +2172,40 @@ def get_tonnel_gift_listings_api(inventory_item_id):
             finally:
                 loop.close()
 
+@app.route('/api/get_game_data', methods=['GET'])
+def get_game_data_api_endpoint():
+    # No authentication needed for this, as it's public game data.
+    # However, you might add some light rate limiting if desired.
+    try:
+        # Ensure these global variables are accessed correctly.
+        # They are modified by /api/refresh_floor_prices
+        global cases_data_backend
+        global UPDATED_FLOOR_PRICES
+        # global slots_data_backend # If you were to include slots again
+
+        if not cases_data_backend or not UPDATED_FLOOR_PRICES:
+            logger.error("/api/get_game_data: Game data or floor prices are not initialized on the backend.")
+            # This could happen if the app starts and this endpoint is hit before
+            # initial_setup_and_logging() or refresh_floor_prices has populated them.
+            # A robust solution might involve a lock or a ready flag.
+            # For now, returning an error or potentially re-triggering init.
+            # Re-triggering initial_setup_and_logging() might be too heavy here.
+            # Better to ensure it runs fully on startup.
+            initial_setup_and_logging() # Attempt to ensure data is populated if called early
+            if not cases_data_backend or not UPDATED_FLOOR_PRICES: # Check again
+                 return jsonify({"error": "Backend game data not ready. Please try again shortly."}), 503
+
+
+        game_data_payload = {
+            "casesData": cases_data_backend, # This now has RTP adjusted probabilities based on current UPDATED_FLOOR_PRICES
+            "allFloorPrices": UPDATED_FLOOR_PRICES,
+            # "slotsData": slots_data_backend # If slots were included
+        }
+        return jsonify(game_data_payload)
+    except Exception as e:
+        logger.error(f"Error in /api/get_game_data: {e}", exc_info=True)
+        return jsonify({"error": "Failed to retrieve game data."}), 500
+
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
@@ -2656,6 +2690,11 @@ def upgrade_item_v2_api():
 
 @app.route('/api/refresh_floor_prices', methods=['POST'])
 async def refresh_floor_prices_api():
+    # Declare global variables that will be modified at the VERY TOP of the function
+    global UPDATED_FLOOR_PRICES
+    global cases_data_backend
+    # global slots_data_backend # If you were to use it again
+
     auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
     if not auth_user_data:
         return jsonify({"status": "error", "message": "Authentication failed"}), 401
@@ -2664,7 +2703,7 @@ async def refresh_floor_prices_api():
         logger.error("/api/refresh_floor_prices: TONNEL_SENDER_INIT_DATA not set.")
         return jsonify({"status": "error", "message": "Price update service misconfigured (auth)."}), 503
 
-    tonnel_client = None # Initialize for finally block
+    tonnel_client = None
     updated_count = 0
     created_count = 0
     failed_parsing_count = 0
@@ -2674,20 +2713,25 @@ async def refresh_floor_prices_api():
         tonnel_gift_stats = await tonnel_client.fetch_all_gift_stats()
 
         if tonnel_gift_stats is None:
-            return jsonify({"status": "error", "message": "Failed to fetch floor prices from Tonnel API."}), 502
+            # Attempt to use existing prices if Tonnel fetch fails, but log the error.
+            logger.error("Failed to fetch floor prices from Tonnel API. Game data will use previously known prices.")
+            # We don't return an error to the client here, as the game can still function with existing prices.
+            # The client-side refresh call will appear successful, but no new prices were fetched.
+            # RTPs will NOT be recalculated if Tonnel fetch fails.
+            return jsonify({
+                "status": "warning",
+                "message": "Could not fetch new prices from Tonnel. Using existing price data. RTPs not recalculated."
+            })
+
 
         db = next(get_db())
         try:
-            # Assuming tonnel_gift_stats is a list of dicts
-            # Each dict might look like: {"_id": "GiftName", "value": 123.45} or {"name": "GiftName", "floor": 123.45}
-            # You MUST inspect the actual response from filterStats and adjust keys here.
-            # For this example, I'll assume keys are 'name' (or '_id' as a fallback) and 'floor' (or 'value').
-            
-            newly_updated_floor_prices_local_copy = UPDATED_FLOOR_PRICES.copy() # Work on a copy
+            # Now this read is fine because 'global UPDATED_FLOOR_PRICES' was declared at the top of the function.
+            newly_updated_floor_prices_local_copy = UPDATED_FLOOR_PRICES.copy() 
 
             for gift_stat in tonnel_gift_stats:
-                gift_name = gift_stat.get("name") or gift_stat.get("_id") # Common patterns for name key
-                floor_price_val = gift_stat.get("floor") or gift_stat.get("value") or gift_stat.get("floor_price") # Common patterns for price key
+                gift_name = gift_stat.get("name") or gift_stat.get("_id")
+                floor_price_val = gift_stat.get("floor") or gift_stat.get("value") or gift_stat.get("floor_price")
 
                 if not gift_name or floor_price_val is None:
                     logger.warning(f"Skipping gift stat from Tonnel due to missing name or price: {str(gift_stat)[:100]}")
@@ -2696,14 +2740,13 @@ async def refresh_floor_prices_api():
                 
                 try:
                     floor_price_float = float(floor_price_val)
-                    if floor_price_float < 0: # Floor prices should not be negative
+                    if floor_price_float < 0:
                         raise ValueError("Negative floor price")
                 except (ValueError, TypeError):
                     logger.warning(f"Skipping gift '{gift_name}' from Tonnel due to invalid floor_price format/value: {floor_price_val}")
                     failed_parsing_count += 1
                     continue
                 
-                # Update the local copy of floor prices
                 newly_updated_floor_prices_local_copy[gift_name] = floor_price_float
                 
                 nft_entry = db.query(NFT).filter(NFT.name == gift_name).first()
@@ -2720,39 +2763,36 @@ async def refresh_floor_prices_api():
             
             db.commit()
             
-            # IMPORTANT: Atomically update the global UPDATED_FLOOR_PRICES
-            global UPDATED_FLOOR_PRICES
-            UPDATED_FLOOR_PRICES = newly_updated_floor_prices_local_copy
+            # Atomically update the global UPDATED_FLOOR_PRICES
+            UPDATED_FLOOR_PRICES = newly_updated_floor_prices_local_copy # Assignment to global
             
             logger.info(f"Floor prices updated/created in DB. Updated: {updated_count}, Created: {created_count}, Failed Parsing: {failed_parsing_count}. Global UPDATED_FLOOR_PRICES refreshed.")
 
             # Recalculate RTP for game data using the new UPDATED_FLOOR_PRICES
-            global cases_data_backend #, slots_data_backend # Declare as global to modify
-            
             recalculated_cases = []
             for case_template_from_raw in cases_data_backend_with_fixed_prices_raw:
                 processed_case_for_recalc = {**case_template_from_raw}
                 try:
-                    # calculate_rtp_probabilities expects a dict with 'prizes' (raw list) and 'priceTON'
                     processed_case_for_recalc['prizes'] = calculate_rtp_probabilities(
-                        processed_case_for_recalc, # This contains the original prize probabilities from raw template
-                        UPDATED_FLOOR_PRICES       # Use the globally updated floor prices
+                        processed_case_for_recalc,
+                        UPDATED_FLOOR_PRICES # Reading the (now updated) global
                     )
                     recalculated_cases.append(processed_case_for_recalc)
                 except Exception as e_rtp_case_refresh:
                     logger.error(f"Failed to recalculate RTP for case {processed_case_for_recalc.get('id', 'N/A')} during refresh: {e_rtp_case_refresh}", exc_info=True)
+                    # Fallback: find the case in the *current* global cases_data_backend and use its old processed version
                     original_case_from_current_backend_data = next((c for c in cases_data_backend if c['id'] == processed_case_for_recalc.get('id')), None)
                     if original_case_from_current_backend_data:
-                        recalculated_cases.append(original_case_from_current_backend_data) # Keep old if recalc fails
-                    else: # Should not happen if raw list is source of truth
-                        logger.error(f"Could not find original case {processed_case_for_recalc.get('id', 'N/A')} in current cases_data_backend during fallback.")
+                        recalculated_cases.append(original_case_from_current_backend_data)
+                    else:
+                        logger.error(f"Critical error: Could not find original case {processed_case_for_recalc.get('id', 'N/A')} in current cases_data_backend during fallback. This case might be missing from game data.")
             
-            cases_data_backend = recalculated_cases # Atomically update the global cases data
+            cases_data_backend = recalculated_cases # Atomically update the global cases data (assignment to global)
             
             # If slots were still used:
             # finalize_slot_prize_pools() # This function internally uses global UPDATED_FLOOR_PRICES
 
-            calculate_and_log_rtp() # Log new RTPs after update
+            calculate_and_log_rtp()
 
             return jsonify({
                 "status": "success",
@@ -2771,8 +2811,10 @@ async def refresh_floor_prices_api():
         return jsonify({"status": "error", "message": "An unexpected server error occurred."}), 500
     finally:
         if tonnel_client:
+            # Properly close the async session for the Tonnel client
+            # This needs to be done in an async context if _close_session_if_open is async
+            # Since refresh_floor_prices_api is already async, we can await it.
             await tonnel_client._close_session_if_open()
-
 @app.route('/api/convert_to_ton', methods=['POST'])
 def convert_to_ton_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
