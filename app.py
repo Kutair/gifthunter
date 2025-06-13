@@ -886,8 +886,69 @@ class TonnelGiftSender:
         except Exception as e:
             logger.error(f"Tonnel error purchasing specific gift: {type(e).__name__} - {e}", exc_info=True)
             return {"status":"error","message":f"Unexpected error during Tonnel purchase: {str(e)}"}
-        # Removed finally block with _close_session_if_open to allow session reuse if desired by calling logic.
-        # The calling API endpoint wrapper should handle session closing.
+
+    async def fetch_all_gift_stats(self):
+        """Fetches all gift statistics including floor prices from Tonnel."""
+        if not self.authdata:
+            logger.error("Tonnel fetch_all_gift_stats: sender_auth_data (TONNEL_SENDER_INIT_DATA) not configured.")
+            return None
+
+        # Optional: Initial GET to establish session/cookies if required by gifts3 endpoint
+        # For robustness, let's include it, similar to other Tonnel interactions.
+        try:
+            await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True, timeout=10)
+        except Exception as e_get_market:
+            logger.warning(f"Initial GET to marketplace.tonnel.network failed (non-critical for stats if cookies not strictly needed): {e_get_market}")
+            # Continue, as filterStats might work without explicit prior session cookies from marketplace.tonnel.network
+
+        stats_url = "https://gifts3.tonnel.network/api/filterStats"
+        
+        headers = {
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br, zstd", # curl_cffi handles encoding/decoding
+            "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
+            "Connection": "keep-alive",
+            "Content-Type": "application/json",
+            "Host": "gifts3.tonnel.network",
+            "Origin": "https://marketplace.tonnel.network",
+            "Priority": "u=4", # This header might be specific to browser environments; test if needed.
+            "Referer": "https://marketplace.tonnel.network/",
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "TE": "trailers",
+            # User-Agent is typically handled by curl_cffi's impersonate feature
+        }
+
+        payload = {"authData": self.authdata}
+
+        # OPTIONS request (pre-flight)
+        options_headers = {
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type", # Common headers for preflight
+            "Origin": "https://marketplace.tonnel.network",
+            "Referer": "https://marketplace.tonnel.network/",
+            "Host": "gifts3.tonnel.network",
+            "Accept": "*/*", # Often part of OPTIONS
+        }
+        try:
+            await self._make_request(method="OPTIONS", url=stats_url, headers=options_headers, timeout=10)
+        except Exception as e_options:
+            logger.warning(f"OPTIONS request to {stats_url} failed or was not successful (continuing to POST): {e_options}")
+            # Continue to POST, some servers might not require/respond typically to OPTIONS for all paths
+
+        # POST request to fetch stats
+        response_data = await self._make_request(method="POST", url=stats_url, headers=headers, json_payload=payload, timeout=30)
+        
+        if isinstance(response_data, list):
+            logger.info(f"Successfully fetched {len(response_data)} gift stats from Tonnel filterStats.")
+            return response_data
+        elif response_data and isinstance(response_data, dict) and response_data.get('status') == 'error': # Handle structured errors
+            logger.error(f"Tonnel filterStats API returned an error: {response_data.get('message', 'Unknown error')}")
+            return None
+        else:
+            logger.error(f"Failed to fetch gift stats from Tonnel or unexpected response format. Response: {str(response_data)[:500]}")
+            return None
 
 
 # --- Gift Data and Image Mapping ---
@@ -1657,12 +1718,9 @@ for case_template in cases_data_backend_with_fixed_prices_raw:
         processed_case['prizes'] = calculate_rtp_probabilities(processed_case, UPDATED_FLOOR_PRICES)
         cases_data_backend.append(processed_case)
     except Exception as e:
-        # Log the error and skip this case if RTP calculation fails
         case_id = case_template.get('id', 'N/A')
         case_name = case_template.get('name', 'Unnamed Case')
-        logger.error(f"Failed to process case '{case_name}' (ID: {case_id}) for RTP. Skipping this case. Error: {e}", exc_info=True)
-        # This will cause the case to be 'not found' by the API if requested.
-        # You might want to add a dummy case or a specific error message if this happens frequently.
+        logger.error(f"Initial RTP calc failed for case '{case_name}' (ID: {case_id}). Skipping. Error: {e}", exc_info=True)
 
 DEFAULT_SLOT_TON_PRIZES = [
     {'name': "0.1 TON", 'value': 0.1, 'is_ton_prize': True, 'probability': 0.1},
@@ -2595,6 +2653,125 @@ def upgrade_item_v2_api():
         return jsonify({"error": "An unexpected server error occurred during upgrade."}), 500
     finally:
         db.close()
+
+@app.route('/api/refresh_floor_prices', methods=['POST'])
+async def refresh_floor_prices_api():
+    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth_user_data:
+        return jsonify({"status": "error", "message": "Authentication failed"}), 401
+
+    if not TONNEL_SENDER_INIT_DATA:
+        logger.error("/api/refresh_floor_prices: TONNEL_SENDER_INIT_DATA not set.")
+        return jsonify({"status": "error", "message": "Price update service misconfigured (auth)."}), 503
+
+    tonnel_client = None # Initialize for finally block
+    updated_count = 0
+    created_count = 0
+    failed_parsing_count = 0
+    
+    try:
+        tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
+        tonnel_gift_stats = await tonnel_client.fetch_all_gift_stats()
+
+        if tonnel_gift_stats is None:
+            return jsonify({"status": "error", "message": "Failed to fetch floor prices from Tonnel API."}), 502
+
+        db = next(get_db())
+        try:
+            # Assuming tonnel_gift_stats is a list of dicts
+            # Each dict might look like: {"_id": "GiftName", "value": 123.45} or {"name": "GiftName", "floor": 123.45}
+            # You MUST inspect the actual response from filterStats and adjust keys here.
+            # For this example, I'll assume keys are 'name' (or '_id' as a fallback) and 'floor' (or 'value').
+            
+            newly_updated_floor_prices_local_copy = UPDATED_FLOOR_PRICES.copy() # Work on a copy
+
+            for gift_stat in tonnel_gift_stats:
+                gift_name = gift_stat.get("name") or gift_stat.get("_id") # Common patterns for name key
+                floor_price_val = gift_stat.get("floor") or gift_stat.get("value") or gift_stat.get("floor_price") # Common patterns for price key
+
+                if not gift_name or floor_price_val is None:
+                    logger.warning(f"Skipping gift stat from Tonnel due to missing name or price: {str(gift_stat)[:100]}")
+                    failed_parsing_count += 1
+                    continue
+                
+                try:
+                    floor_price_float = float(floor_price_val)
+                    if floor_price_float < 0: # Floor prices should not be negative
+                        raise ValueError("Negative floor price")
+                except (ValueError, TypeError):
+                    logger.warning(f"Skipping gift '{gift_name}' from Tonnel due to invalid floor_price format/value: {floor_price_val}")
+                    failed_parsing_count += 1
+                    continue
+                
+                # Update the local copy of floor prices
+                newly_updated_floor_prices_local_copy[gift_name] = floor_price_float
+                
+                nft_entry = db.query(NFT).filter(NFT.name == gift_name).first()
+                img_filename = generate_image_filename_from_name(gift_name)
+
+                if nft_entry:
+                    if nft_entry.floor_price != floor_price_float or nft_entry.image_filename != img_filename:
+                        nft_entry.floor_price = floor_price_float
+                        nft_entry.image_filename = img_filename
+                        updated_count += 1
+                else:
+                    db.add(NFT(name=gift_name, floor_price=floor_price_float, image_filename=img_filename))
+                    created_count += 1
+            
+            db.commit()
+            
+            # IMPORTANT: Atomically update the global UPDATED_FLOOR_PRICES
+            global UPDATED_FLOOR_PRICES
+            UPDATED_FLOOR_PRICES = newly_updated_floor_prices_local_copy
+            
+            logger.info(f"Floor prices updated/created in DB. Updated: {updated_count}, Created: {created_count}, Failed Parsing: {failed_parsing_count}. Global UPDATED_FLOOR_PRICES refreshed.")
+
+            # Recalculate RTP for game data using the new UPDATED_FLOOR_PRICES
+            global cases_data_backend #, slots_data_backend # Declare as global to modify
+            
+            recalculated_cases = []
+            for case_template_from_raw in cases_data_backend_with_fixed_prices_raw:
+                processed_case_for_recalc = {**case_template_from_raw}
+                try:
+                    # calculate_rtp_probabilities expects a dict with 'prizes' (raw list) and 'priceTON'
+                    processed_case_for_recalc['prizes'] = calculate_rtp_probabilities(
+                        processed_case_for_recalc, # This contains the original prize probabilities from raw template
+                        UPDATED_FLOOR_PRICES       # Use the globally updated floor prices
+                    )
+                    recalculated_cases.append(processed_case_for_recalc)
+                except Exception as e_rtp_case_refresh:
+                    logger.error(f"Failed to recalculate RTP for case {processed_case_for_recalc.get('id', 'N/A')} during refresh: {e_rtp_case_refresh}", exc_info=True)
+                    original_case_from_current_backend_data = next((c for c in cases_data_backend if c['id'] == processed_case_for_recalc.get('id')), None)
+                    if original_case_from_current_backend_data:
+                        recalculated_cases.append(original_case_from_current_backend_data) # Keep old if recalc fails
+                    else: # Should not happen if raw list is source of truth
+                        logger.error(f"Could not find original case {processed_case_for_recalc.get('id', 'N/A')} in current cases_data_backend during fallback.")
+            
+            cases_data_backend = recalculated_cases # Atomically update the global cases data
+            
+            # If slots were still used:
+            # finalize_slot_prize_pools() # This function internally uses global UPDATED_FLOOR_PRICES
+
+            calculate_and_log_rtp() # Log new RTPs after update
+
+            return jsonify({
+                "status": "success",
+                "message": f"Floor prices refreshed. DB Updated: {updated_count}, DB Created: {created_count}, Tonnel Parse Fails: {failed_parsing_count}. Game RTPs recalculated."
+            })
+
+        except SQLAlchemyError as sqla_e:
+            db.rollback()
+            logger.error(f"SQLAlchemyError during floor price refresh DB operations: {sqla_e}", exc_info=True)
+            return jsonify({"status": "error", "message": "Database error during price update."}), 500
+        finally:
+            db.close()
+    
+    except Exception as e:
+        logger.error(f"Unexpected error in /api/refresh_floor_prices: {e}", exc_info=True)
+        return jsonify({"status": "error", "message": "An unexpected server error occurred."}), 500
+    finally:
+        if tonnel_client:
+            await tonnel_client._close_session_if_open()
 
 @app.route('/api/convert_to_ton', methods=['POST'])
 def convert_to_ton_api():
