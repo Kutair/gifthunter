@@ -905,9 +905,9 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Banana Pox','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png','floorPrice':19.0},
 
     // NEW: Spy Agaric
-    {'name': 'Spy Agaric', 'probability': 0.20, 'imageFilename': generateImageFilename('Spy Agaric'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spy Agaric']},
+    //{'name': 'Spy Agaric', 'probability': 0.20, 'imageFilename': generateImageFilename('Spy Agaric'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spy Agaric']},
     // Desk Calendar - VERY common filler
-    {'name': 'Desk Calendar', 'probability': 0.78, 'imageFilename': generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']}
+  //  {'name': 'Desk Calendar', 'probability': 0.78, 'imageFilename': generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']}
 ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
 let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
 let remainingProbForConsolation = 1.0 - currentProbSumForKF;
