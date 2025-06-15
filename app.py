@@ -133,19 +133,6 @@ WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
 
 API_BASE_URL = "https://case-hznb.onrender.com" # Your backend API URL
 
-def extract_base_gift_name(full_gift_name_from_tonnel: str) -> str:
-    # Example patterns: "Gift Name_Model Name (X%)" or just "Gift Name"
-    # This tries to strip the model part if it exists.
-    # KISSED_FROG_MODEL_STATIC_PERCENTAGES keys are already the model names
-    if full_gift_name_from_tonnel in KISSED_FROG_MODEL_STATIC_PERCENTAGES: # It's a known model
-        return "Kissed Frog" # The base gift for these models is Kissed Frog
-
-    # A more generic pattern might be "Base Gift Name_Some Model Info (Percentage%)"
-    # This is a simple attempt; you might need a more robust regex if patterns are complex.
-    match = re.match(r"^(.*?)_.*?\(.*?\)$", full_gift_name_from_tonnel)
-    if match:
-        return match.group(1).strip() # Return the part before the first underscore and model info
-    return full_gift_name_from_tonnel # Assume it's a base name if no pattern matches
 
 # --- SQLAlchemy Database Setup ---
 engine = create_engine(DATABASE_URL, pool_recycle=3600, pool_pre_ping=True)
@@ -899,69 +886,8 @@ class TonnelGiftSender:
         except Exception as e:
             logger.error(f"Tonnel error purchasing specific gift: {type(e).__name__} - {e}", exc_info=True)
             return {"status":"error","message":f"Unexpected error during Tonnel purchase: {str(e)}"}
-
-    async def fetch_all_gift_stats(self):
-        """Fetches all gift statistics including floor prices from Tonnel."""
-        if not self.authdata:
-            logger.error("Tonnel fetch_all_gift_stats: sender_auth_data (TONNEL_SENDER_INIT_DATA) not configured.")
-            return None
-
-        # Optional: Initial GET to establish session/cookies if required by gifts3 endpoint
-        # For robustness, let's include it, similar to other Tonnel interactions.
-        try:
-            await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True, timeout=10)
-        except Exception as e_get_market:
-            logger.warning(f"Initial GET to marketplace.tonnel.network failed (non-critical for stats if cookies not strictly needed): {e_get_market}")
-            # Continue, as filterStats might work without explicit prior session cookies from marketplace.tonnel.network
-
-        stats_url = "https://gifts3.tonnel.network/api/filterStats"
-        
-        headers = {
-            "Accept": "*/*",
-            "Accept-Encoding": "gzip, deflate, br, zstd", # curl_cffi handles encoding/decoding
-            "Accept-Language": "ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
-            "Connection": "keep-alive",
-            "Content-Type": "application/json",
-            "Host": "gifts3.tonnel.network",
-            "Origin": "https://marketplace.tonnel.network",
-            "Priority": "u=4", # This header might be specific to browser environments; test if needed.
-            "Referer": "https://marketplace.tonnel.network/",
-            "Sec-Fetch-Dest": "empty",
-            "Sec-Fetch-Mode": "cors",
-            "Sec-Fetch-Site": "same-site",
-            "TE": "trailers",
-            # User-Agent is typically handled by curl_cffi's impersonate feature
-        }
-
-        payload = {"authData": self.authdata}
-
-        # OPTIONS request (pre-flight)
-        options_headers = {
-            "Access-Control-Request-Method": "POST",
-            "Access-Control-Request-Headers": "content-type", # Common headers for preflight
-            "Origin": "https://marketplace.tonnel.network",
-            "Referer": "https://marketplace.tonnel.network/",
-            "Host": "gifts3.tonnel.network",
-            "Accept": "*/*", # Often part of OPTIONS
-        }
-        try:
-            await self._make_request(method="OPTIONS", url=stats_url, headers=options_headers, timeout=10)
-        except Exception as e_options:
-            logger.warning(f"OPTIONS request to {stats_url} failed or was not successful (continuing to POST): {e_options}")
-            # Continue to POST, some servers might not require/respond typically to OPTIONS for all paths
-
-        # POST request to fetch stats
-        response_data = await self._make_request(method="POST", url=stats_url, headers=headers, json_payload=payload, timeout=30)
-        
-        if isinstance(response_data, list):
-            logger.info(f"Successfully fetched {len(response_data)} gift stats from Tonnel filterStats.")
-            return response_data
-        elif response_data and isinstance(response_data, dict) and response_data.get('status') == 'error': # Handle structured errors
-            logger.error(f"Tonnel filterStats API returned an error: {response_data.get('message', 'Unknown error')}")
-            return None
-        else:
-            logger.error(f"Failed to fetch gift stats from Tonnel or unexpected response format. Response: {str(response_data)[:500]}")
-            return None
+        # Removed finally block with _close_session_if_open to allow session reuse if desired by calling logic.
+        # The calling API endpoint wrapper should handle session closing.
 
 
 # --- Gift Data and Image Mapping ---
@@ -1731,9 +1657,12 @@ for case_template in cases_data_backend_with_fixed_prices_raw:
         processed_case['prizes'] = calculate_rtp_probabilities(processed_case, UPDATED_FLOOR_PRICES)
         cases_data_backend.append(processed_case)
     except Exception as e:
+        # Log the error and skip this case if RTP calculation fails
         case_id = case_template.get('id', 'N/A')
         case_name = case_template.get('name', 'Unnamed Case')
-        logger.error(f"Initial RTP calc failed for case '{case_name}' (ID: {case_id}). Skipping. Error: {e}", exc_info=True)
+        logger.error(f"Failed to process case '{case_name}' (ID: {case_id}) for RTP. Skipping this case. Error: {e}", exc_info=True)
+        # This will cause the case to be 'not found' by the API if requested.
+        # You might want to add a dummy case or a specific error message if this happens frequently.
 
 DEFAULT_SLOT_TON_PRIZES = [
     {'name': "0.1 TON", 'value': 0.1, 'is_ton_prize': True, 'probability': 0.1},
@@ -2184,40 +2113,6 @@ def get_tonnel_gift_listings_api(inventory_item_id):
                 loop.run_until_complete(tonnel_client._close_session_if_open())
             finally:
                 loop.close()
-
-@app.route('/api/get_game_data', methods=['GET'])
-def get_game_data_api_endpoint():
-    # No authentication needed for this, as it's public game data.
-    # However, you might add some light rate limiting if desired.
-    try:
-        # Ensure these global variables are accessed correctly.
-        # They are modified by /api/refresh_floor_prices
-        global cases_data_backend
-        global UPDATED_FLOOR_PRICES
-        # global slots_data_backend # If you were to include slots again
-
-        if not cases_data_backend or not UPDATED_FLOOR_PRICES:
-            logger.error("/api/get_game_data: Game data or floor prices are not initialized on the backend.")
-            # This could happen if the app starts and this endpoint is hit before
-            # initial_setup_and_logging() or refresh_floor_prices has populated them.
-            # A robust solution might involve a lock or a ready flag.
-            # For now, returning an error or potentially re-triggering init.
-            # Re-triggering initial_setup_and_logging() might be too heavy here.
-            # Better to ensure it runs fully on startup.
-            initial_setup_and_logging() # Attempt to ensure data is populated if called early
-            if not cases_data_backend or not UPDATED_FLOOR_PRICES: # Check again
-                 return jsonify({"error": "Backend game data not ready. Please try again shortly."}), 503
-
-
-        game_data_payload = {
-            "casesData": cases_data_backend, # This now has RTP adjusted probabilities based on current UPDATED_FLOOR_PRICES
-            "allFloorPrices": UPDATED_FLOOR_PRICES,
-            # "slotsData": slots_data_backend # If slots were included
-        }
-        return jsonify(game_data_payload)
-    except Exception as e:
-        logger.error(f"Error in /api/get_game_data: {e}", exc_info=True)
-        return jsonify({"error": "Failed to retrieve game data."}), 500
 
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
@@ -2701,148 +2596,6 @@ def upgrade_item_v2_api():
     finally:
         db.close()
 
-@app.route('/api/refresh_floor_prices', methods=['POST'])
-async def refresh_floor_prices_api():
-    global UPDATED_FLOOR_PRICES
-    global cases_data_backend
-    # global slots_data_backend
-
-    auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
-    if not auth_user_data:
-        return jsonify({"status": "error", "message": "Authentication failed"}), 401
-
-    if not TONNEL_SENDER_INIT_DATA:
-        logger.error("/api/refresh_floor_prices: TONNEL_SENDER_INIT_DATA not set.")
-        return jsonify({"status": "error", "message": "Price update service misconfigured (auth)."}), 503
-
-    tonnel_client = None
-    updated_count = 0
-    created_count = 0
-    failed_parsing_count = 0
-    
-    try:
-        tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
-        tonnel_response = await tonnel_client.fetch_all_gift_stats() # This returns the raw response
-
-        if tonnel_response is None or not isinstance(tonnel_response, dict) or tonnel_response.get("status") != "success":
-            logger.error(f"Failed to fetch floor prices from Tonnel API or unexpected status. Response: {str(tonnel_response)[:500]}")
-            return jsonify({
-                "status": "warning", # Or "error" if you want to be stricter
-                "message": "Could not fetch new prices from Tonnel. Using existing price data. RTPs not recalculated."
-            })
-
-        tonnel_gift_stats_data = tonnel_response.get("data") # The actual gift data is in the "data" key
-        if not isinstance(tonnel_gift_stats_data, dict):
-            logger.error(f"Tonnel API response 'data' key is not a dictionary. Response: {str(tonnel_response)[:500]}")
-            return jsonify({"status": "error", "message": "Invalid data format from Tonnel API."}), 502
-
-
-        db = next(get_db())
-        try:
-            # This will store the lowest floor price found for each *base* gift name.
-            # And also individual floor prices for specific models/variants.
-            aggregated_floor_prices = {} 
-
-            for full_gift_name_key, gift_details in tonnel_gift_stats_data.items():
-                if not isinstance(gift_details, dict):
-                    logger.warning(f"Skipping entry '{full_gift_name_key}': details are not a dictionary. Details: {str(gift_details)[:100]}")
-                    failed_parsing_count += 1
-                    continue
-
-                floor_price_val = gift_details.get("floorPrice")
-                # how_many = gift_details.get("howMany") # Available if needed
-
-                if floor_price_val is None:
-                    logger.warning(f"Skipping gift stat '{full_gift_name_key}' from Tonnel due to missing floorPrice. Details: {gift_details}")
-                    failed_parsing_count += 1
-                    continue
-                
-                try:
-                    current_floor_price_float = float(floor_price_val)
-                    if current_floor_price_float < 0:
-                        raise ValueError("Negative floor price")
-                except (ValueError, TypeError):
-                    logger.warning(f"Skipping gift '{full_gift_name_key}' from Tonnel due to invalid floor_price format/value: {floor_price_val}")
-                    failed_parsing_count += 1
-                    continue
-
-                # Store the price for the full specific name (e.g., "B-Day Candle_Warm Wick (1.2%)")
-                aggregated_floor_prices[full_gift_name_key] = current_floor_price_float
-                
-                # Determine the base gift name
-                base_name = extract_base_gift_name(full_gift_name_key)
-
-                # Update the floor price for the base gift name if this model's price is lower
-                if base_name not in aggregated_floor_prices or current_floor_price_float < aggregated_floor_prices[base_name]:
-                    aggregated_floor_prices[base_name] = current_floor_price_float
-            
-            # Now, `aggregated_floor_prices` contains:
-            # 1. Prices for specific models like "B-Day Candle_Warm Wick (1.2%)"
-            # 2. Prices for base gifts like "B-Day Candle", which is the minimum of its models.
-            # We need to ensure that UPDATED_FLOOR_PRICES uses these.
-            # And also update the NFT table.
-
-            newly_updated_floor_prices_local_copy = UPDATED_FLOOR_PRICES.copy() # Start with existing prices
-
-            for gift_name, floor_price_float in aggregated_floor_prices.items():
-                newly_updated_floor_prices_local_copy[gift_name] = floor_price_float # Update or add
-                
-                nft_entry = db.query(NFT).filter(NFT.name == gift_name).first()
-                img_filename = generate_image_filename_from_name(gift_name)
-
-                if nft_entry:
-                    if nft_entry.floor_price != floor_price_float or nft_entry.image_filename != img_filename:
-                        nft_entry.floor_price = floor_price_float
-                        nft_entry.image_filename = img_filename
-                        updated_count += 1
-                else:
-                    db.add(NFT(name=gift_name, floor_price=floor_price_float, image_filename=img_filename))
-                    created_count += 1
-            
-            db.commit()
-            
-            UPDATED_FLOOR_PRICES = newly_updated_floor_prices_local_copy
-            
-            logger.info(f"Floor prices processed from Tonnel. Aggregated prices: {len(aggregated_floor_prices)}. DB Updated: {updated_count}, DB Created: {created_count}, Tonnel Parse Fails: {failed_parsing_count}. Global UPDATED_FLOOR_PRICES refreshed.")
-
-            # Recalculate RTP for game data
-            recalculated_cases = []
-            for case_template_from_raw in cases_data_backend_with_fixed_prices_raw:
-                processed_case_for_recalc = {**case_template_from_raw}
-                try:
-                    processed_case_for_recalc['prizes'] = calculate_rtp_probabilities(
-                        processed_case_for_recalc,
-                        UPDATED_FLOOR_PRICES
-                    )
-                    recalculated_cases.append(processed_case_for_recalc)
-                except Exception as e_rtp_case_refresh:
-                    logger.error(f"Failed to recalculate RTP for case {processed_case_for_recalc.get('id', 'N/A')} during refresh: {e_rtp_case_refresh}", exc_info=True)
-                    original_case_from_current_backend_data = next((c for c in cases_data_backend if c['id'] == processed_case_for_recalc.get('id')), None)
-                    if original_case_from_current_backend_data: recalculated_cases.append(original_case_from_current_backend_data)
-                    else: logger.error(f"Critical error: Could not find original case {processed_case_for_recalc.get('id', 'N/A')} in current cases_data_backend during fallback.")
-            
-            cases_data_backend = recalculated_cases
-            calculate_and_log_rtp()
-
-            return jsonify({
-                "status": "success",
-                "message": f"Floor prices refreshed. Processed Tonnel Entries: {len(tonnel_gift_stats_data)}. DB Updated: {updated_count}, DB Created: {created_count}, Parse Fails: {failed_parsing_count}. Game RTPs recalculated."
-            })
-
-        except SQLAlchemyError as sqla_e:
-            db.rollback()
-            logger.error(f"SQLAlchemyError during floor price refresh DB operations: {sqla_e}", exc_info=True)
-            return jsonify({"status": "error", "message": "Database error during price update."}), 500
-        finally:
-            db.close()
-    
-    except Exception as e:
-        logger.error(f"Unexpected error in /api/refresh_floor_prices: {e}", exc_info=True)
-        return jsonify({"status": "error", "message": "An unexpected server error occurred."}), 500
-    finally:
-        if tonnel_client:
-            await tonnel_client._close_session_if_open()
-            
 @app.route('/api/convert_to_ton', methods=['POST'])
 def convert_to_ton_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
