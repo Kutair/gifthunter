@@ -754,7 +754,7 @@ withdrawStepGiftsConfirmBtn.addEventListener('click', async () => {
     await completeChosenGiftWithdrawal();
 });
     
-/*const UPDATED_FLOOR_PRICES_FRONTEND = {
+const UPDATED_FLOOR_PRICES_FRONTEND = {
     'Plush Pepe': 3024.0,       // Updated
     'Neko Helmet': 15.0,
     'Sharp Tongue': 17.0,
@@ -825,9 +825,9 @@ withdrawStepGiftsConfirmBtn.addEventListener('click', async () => {
     // Add Light Sword and Gem Signet if they have defined prices
     // "Light Sword": XX.X,
     // "Gem Signet": XX.X
-};*/
+};
 const KISSED_FROG_VARIANT_FLOORS={"Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,"Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,"Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,"Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,"Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,"Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,"Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,"Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,"Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0};
-//Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
+Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
 
 function generateImageFilename(nameOrUrl) {
     if (!nameOrUrl) return IMAGE_BASE_URL + 'placeholder.png';
@@ -905,18 +905,16 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Banana Pox','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png','floorPrice':19.0},
 
     // NEW: Spy Agaric
-    //{'name': 'Spy Agaric', 'probability': 0.20, 'imageFilename': generateImageFilename('Spy Agaric'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spy Agaric']},
+    {'name': 'Spy Agaric', 'probability': 0.20, 'imageFilename': generateImageFilename('Spy Agaric'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spy Agaric']},
     // Desk Calendar - VERY common filler
-  //  {'name': 'Desk Calendar', 'probability': 0.78, 'imageFilename': generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']}
+    {'name': 'Desk Calendar', 'probability': 0.78, 'imageFilename': generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']}
 ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
 let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
 let remainingProbForConsolation = 1.0 - currentProbSumForKF;
 if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
-//finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
+finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
 
-let casesData = []; // Will be populated from backend
-let UPDATED_FLOOR_PRICES_FRONTEND = {}; // Will be populated from backend
-/*const casesData = [
+const casesData = [
     {id:'all_in_01',name:'All In','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/All-In.jpg','priceTON':0.1,'prizes':[
         {'name':'Plush Pepe','probability': 0.0000005, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Durov\'s Cap','probability': 0.000005, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
@@ -1101,9 +1099,9 @@ let UPDATED_FLOOR_PRICES_FRONTEND = {}; // Will be populated from backend
         {'name':'Bonded Ring', 'probability': 0.3, 'imageFilename':generateImageFilename('Bonded Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Bonded Ring']},
         {'name':'Astral Shard','probability':0.299994, 'imageFilename':generateImageFilename('Astral Shard'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Astral Shard']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))}
-];*/
+];
 
-/*casesData.forEach(caseItem => {
+casesData.forEach(caseItem => {
     if (caseItem.id === 'kissedfrog') return;
 
     let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
@@ -1112,7 +1110,7 @@ let UPDATED_FLOOR_PRICES_FRONTEND = {}; // Will be populated from backend
         caseItem.prizes.forEach(prize => { prize.probability *= factor; });
     }
     caseItem.prizes.sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
-});*/
+});
 
 // DOM Element References
 const headerElements = {
@@ -1593,57 +1591,62 @@ function initializeRouletteVisuals(caseItem, multiplier) {
     }
 }
 
-function openRouletteModal(caseItem) { // caseItem is from the frontend's `casesData`
+function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem;
-    selectedCaseMultiplier = 1; 
-    updateCaseMultiplierButtons(); 
+    selectedCaseMultiplier = 1; // Default to 1x when opening
+    updateCaseMultiplierButtons(); // This will call initializeRouletteVisuals with 1x
     rouletteCaseName.textContent = caseItem.name;
     updateSpinButtonText();
 
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
 
+    // Iterate through prizes in the selected case
     caseItem.prizes.forEach(p => {
         if (!p || !p.name) return;
 
-        const prizeName = p.name;
-        // CRUCIAL: Use the global UPDATED_FLOOR_PRICES_FRONTEND which is now fetched from backend
-        const floorPrice = UPDATED_FLOOR_PRICES_FRONTEND[prizeName] !== undefined 
-                           ? UPDATED_FLOOR_PRICES_FRONTEND[prizeName] 
-                           : (p.floorPrice || 0); // Fallback to price in caseData if not in master list (should be rare)
+        const prizeName = p.name; // Get the name of the prize
+        // Look up the floor price from the global UPDATED_FLOOR_PRICES_FRONTEND map
+        const floorPrice = UPDATED_FLOOR_PRICES_FRONTEND[prizeName] || 0; // Default to 0 if not found
 
-
+        // Create a new prize data object for the map, including the looked-up floorPrice
         const pDataWithPrice = {
             name: prizeName,
-            probability: p.probability,
-            imageFilename: p.imageFilename || generateImageFilename(prizeName),
-            floorPrice: floorPrice 
+            probability: p.probability, // Keep probability as it's part of the raw data
+            imageFilename: p.imageFilename || generateImageFilename(prizeName), // Use imageFilename from data or generate
+            floorPrice: floorPrice // Explicitly add the looked-up floor price
         };
 
+        // Aggregate prizes by name (if there are duplicates or for consistent display)
         if (prizeMap.has(prizeName)) {
+            // If you need to combine probabilities or other stats for identical prizes, do it here
+            // For now, if a name already exists, we'll just ensure its floorPrice is consistent.
+            // (In our current setup, prize names within one case are unique, so this mainly handles Kissed Frog variants properly)
             const existing = prizeMap.get(prizeName);
             prizeMap.set(prizeName, {
                 ...existing,
                 probability: (existing.probability || 0) + (p.probability || 0),
-                floorPrice: floorPrice 
+                floorPrice: floorPrice // Ensure the correct floor price is set
             });
         } else {
             prizeMap.set(prizeName, pDataWithPrice);
         }
     });
 
+    // Now iterate through the aggregated prizeMap to display the cards
     prizeMap.forEach((pData, name) => {
-        const displayPrice = pData.floorPrice; 
+        const displayPrice = pData.floorPrice || 0; // Use the floorPrice from pData
         const card = document.createElement('div');
         card.className = 'prize-card';
 
         const imgCont = document.createElement('div');
         imgCont.className = 'prize-card-image-placeholder';
         const img = document.createElement('img');
-        img.src = pData.imageFilename; 
+        img.src = pData.imageFilename; // Use the imageFilename now present in pData
         img.alt = name;
         imgCont.appendChild(img);
 
+        // Display the floor price in TON
         card.innerHTML = `<span class="prize-card-price">${displayPrice.toFixed(2)} TON</span><span class="prize-card-name">${name}</span>`;
         
         card.insertBefore(imgCont, card.firstChild);
@@ -2251,43 +2254,34 @@ async function redeemPromocode() {
 function populateAllAppGifts() {
     const uniqueGifts = new Map();
 
-    // Collect from casesData (which is now fetched from backend and has updated prize lists)
-    if (casesData && Array.isArray(casesData)) {
-        casesData.forEach(caseItem => {
-            if (caseItem.prizes && Array.isArray(caseItem.prizes)) {
-                caseItem.prizes.forEach(prize => {
-                    if (prize.name && prize.name !== 'Nothing' && !prize.is_ton_prize) {
-                        if (!uniqueGifts.has(prize.name)) {
-                            uniqueGifts.set(prize.name, {
-                                name: prize.name,
-                                imageFilename: prize.imageFilename || generateImageFilename(prize.name),
-                                // Use master price list, fallback to prize's own floorPrice if somehow missing
-                                floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[prize.name] !== undefined 
-                                            ? UPDATED_FLOOR_PRICES_FRONTEND[prize.name]
-                                            : (prize.floorPrice || 0) 
-                            });
-                        }
-                    }
-                });
+    // Collect from casesData
+    casesData.forEach(caseItem => {
+        caseItem.prizes.forEach(prize => {
+            if (prize.name && prize.name !== 'Nothing' && !prize.is_ton_prize) {
+                if (!uniqueGifts.has(prize.name)) {
+                    uniqueGifts.set(prize.name, {
+                        name: prize.name,
+                        imageFilename: prize.imageFilename || generateImageFilename(prize.name),
+                        floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[prize.name] || 0 // Ensure price from master list
+                    });
+                }
             }
         });
-    }
+    });
 
-
-    // Collect from UPDATED_FLOOR_PRICES_FRONTEND (master list, fetched from backend)
-    // This ensures items not currently in any case but known to the system are included.
+    // Collect from UPDATED_FLOOR_PRICES_FRONTEND (might have items not in cases)
     for (const name in UPDATED_FLOOR_PRICES_FRONTEND) {
         if (!uniqueGifts.has(name) && name !== 'Nothing') {
              uniqueGifts.set(name, {
                 name: name,
-                imageFilename: generateImageFilename(name), 
+                imageFilename: generateImageFilename(name), // Assumes generateImageFilename can handle it
                 floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[name]
             });
         }
     }
     
     allAppGiftsForUpgrade = Array.from(uniqueGifts.values()).sort((a,b) => a.floorPrice - b.floorPrice);
-    console.info("All App Gifts for Upgrade picker populated/refreshed:", allAppGiftsForUpgrade.length, "items");
+    // console.log("All App Gifts for Upgrade:", allAppGiftsForUpgrade);
 }
 // --- END NEW: Function to populateAllAppGiftsForUpgrade ---
 
@@ -2656,37 +2650,6 @@ async function initializeApp() {
         currentUser.photo_url = 'https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png'; 
     }
 
-    updateLoadingStatus("Refreshing market prices...");
-    try {
-        const priceRefreshResponse = await apiRequest('/api/refresh_floor_prices', 'POST', {}); 
-        if (priceRefreshResponse && priceRefreshResponse.status === 'success') {
-            console.info("Backend market prices refreshed successfully:", priceRefreshResponse.message);
-        } else {
-            console.warn("Backend failed to refresh market prices or non-critical error:", priceRefreshResponse ? priceRefreshResponse.message : "No response");
-        }
-    } catch (e) {
-        console.error("Error calling /api/refresh_floor_prices:", e);
-    }
-
-    // Step 2: Fetch the processed game data (including cases with updated RTP and all floor prices) from backend
-    updateLoadingStatus("Loading game definitions...");
-    try {
-        const gameDataResponse = await apiRequest('/api/get_game_data', 'GET');
-        if (gameDataResponse && gameDataResponse.casesData && gameDataResponse.allFloorPrices) {
-            casesData = gameDataResponse.casesData; // Update frontend's casesData
-            UPDATED_FLOOR_PRICES_FRONTEND = gameDataResponse.allFloorPrices; // Update frontend's master price list
-            // if (gameDataResponse.slotsData) slotsData = gameDataResponse.slotsData; // If slots were used
-            console.info("Game definitions (cases, prices) loaded from backend.");
-        } else {
-            console.error("Failed to load game definitions from backend. Using fallbacks or app may not function correctly.");
-            // Potentially load a static fallback version of casesData here if API fails critically
-            // casesData = FALLBACK_CASES_DATA_STATIC; // (You'd need to define this)
-            // UPDATED_FLOOR_PRICES_FRONTEND = FALLBACK_PRICES_STATIC;
-        }
-    } catch (e) {
-        console.error("Error fetching game definitions (/api/get_game_data):", e);
-    }
-    
     // Set up TonConnect UI status change listener
     updateLoadingStatus("Authenticating wallet...");
     tonConnectUI.onStatusChange(async wallet => {
