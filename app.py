@@ -632,7 +632,8 @@ class TonnelGiftSender:
 
     async def _get_session(self) -> AsyncSession:
         if self._session_instance is None:
-            self._session_instance = AsyncSession(impersonate="chrome110")
+            # Try a newer impersonation target
+            self._session_instance = AsyncSession(impersonate="chrome120") # Changed from chrome110
         return self._session_instance
 
     async def _close_session_if_open(self):
@@ -2065,7 +2066,9 @@ def get_tonnel_gift_listings_api(inventory_item_id):
     
     player_user_id = auth_user_data["id"]
     db = next(get_db())
-    tonnel_client = None # Initialize to ensure it's defined for finally block
+    tonnel_client = None
+    loop = None # Initialize loop to None
+
     try:
         item_to_withdraw = db.query(InventoryItem).filter(
             InventoryItem.id == inventory_item_id,
@@ -2085,34 +2088,39 @@ def get_tonnel_gift_listings_api(inventory_item_id):
         if not TONNEL_SENDER_INIT_DATA or not TONNEL_GIFT_SECRET:
             return jsonify({"error": "Withdrawal service configuration error."}), 503
 
+        loop = asyncio.new_event_loop() # Create loop before using client
+        asyncio.set_event_loop(loop)
+
         tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
         
-        listings = []
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            listings = loop.run_until_complete(
-                tonnel_client.fetch_gift_listings(gift_item_name=item_name_for_tonnel, limit=5)
-            )
-        finally:
-            loop.close()
-            # Re-set the main event loop if necessary or ensure the async session is closed
-            # asyncio.set_event_loop(asyncio.get_event_loop()) # Might not be needed if loop.close() is enough
-
-        return jsonify(listings) # Directly return the list from Tonnel
+        listings = loop.run_until_complete(
+            tonnel_client.fetch_gift_listings(gift_item_name=item_name_for_tonnel, limit=5)
+        )
+        
+        return jsonify(listings)
 
     except Exception as e:
         logger.error(f"Error fetching Tonnel gift listings for item {inventory_item_id}, user {player_user_id}: {e}", exc_info=True)
-        return jsonify({"error": "Server error fetching gift listings."}), 500
-    finally:
-        db.close()
-        if tonnel_client: # Ensure session is closed if client was instantiated
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        # Attempt to close client session even on error, if client was initialized
+        if tonnel_client and loop and not loop.is_closed():
             try:
                 loop.run_until_complete(tonnel_client._close_session_if_open())
-            finally:
-                loop.close()
+            except Exception as e_close_on_error:
+                logger.error(f"Exception during Tonnel session close on error path: {e_close_on_error}")
+        return jsonify({"error": "Server error fetching gift listings."}), 500
+    finally:
+        # Close client session if initialized and loop is available and not closed
+        if tonnel_client and loop and not loop.is_closed():
+            try:
+                loop.run_until_complete(tonnel_client._close_session_if_open())
+            except Exception as e_session_close_final:
+                logger.error(f"Exception during final Tonnel session close: {e_session_close_final}")
+        
+        # Close the loop if it was created
+        if loop and not loop.is_closed():
+            loop.close()
+        
+        db.close()
 
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
@@ -3020,6 +3028,8 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
         
     db = next(get_db())
     tonnel_client = None
+    loop = None # Initialize loop to None
+
     try:
         item_to_withdraw = db.query(InventoryItem).filter(
             InventoryItem.id == inventory_item_id,
@@ -3028,27 +3038,25 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
 
         if not item_to_withdraw:
             return jsonify({"status": "error", "message": "Item not found in your inventory or already withdrawn."}), 404
-        if item_to_withdraw.is_ton_prize: # Should have been caught earlier, but good check
+        if item_to_withdraw.is_ton_prize:
             return jsonify({"status": "error", "message":"TON prizes cannot be withdrawn this way."}), 400
             
         item_name_withdrawn = item_to_withdraw.item_name_override or (item_to_withdraw.nft.name if item_to_withdraw.nft else "Unknown Item")
 
+        loop = asyncio.new_event_loop() # Create loop before using client
+        asyncio.set_event_loop(loop)
+        
         tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
         tonnel_result = {}
         
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            tonnel_result = loop.run_until_complete(
-                tonnel_client.purchase_specific_gift(chosen_gift_details=chosen_gift_details, receiver_telegram_id=player_user_id)
-            )
-        finally:
-            loop.close()
+        tonnel_result = loop.run_until_complete(
+            tonnel_client.purchase_specific_gift(chosen_gift_details=chosen_gift_details, receiver_telegram_id=player_user_id)
+        )
 
         if tonnel_result and tonnel_result.get("status") == "success":
             value_deducted_from_winnings = Decimal(str(item_to_withdraw.current_value))
             player = db.query(User).filter(User.id == player_user_id).with_for_update().first()
-            if player: # Should always exist due to auth
+            if player:
                 player.total_won_ton = float(max(Decimal('0'), Decimal(str(player.total_won_ton)) - value_deducted_from_winnings))
             
             db.delete(item_to_withdraw)
@@ -3060,23 +3068,33 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
                 "details": tonnel_result.get("details")
             })
         else:
-            db.rollback() # Rollback if Tonnel purchase failed
+            db.rollback()
             logger.error(f"Tonnel confirm withdrawal failed. Item Inv ID: {inventory_item_id}, User: {player_user_id}, Chosen Gift ID: {chosen_gift_details['gift_id']}. Tonnel API Response: {tonnel_result}")
             return jsonify({"status": "error", "message": f"Withdrawal failed: {tonnel_result.get('message', 'Tonnel API communication error')}"}), 500
             
     except Exception as e:
         db.rollback()
         logger.error(f"Unexpected exception during Tonnel confirm withdrawal. Item Inv ID: {inventory_item_id}, User: {player_user_id}: {e}", exc_info=True)
-        return jsonify({"status": "error", "message": "An unexpected server error occurred. Please try again."}), 500
-    finally:
-        db.close()
-        if tonnel_client: # Ensure session is closed if client was instantiated
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        # Attempt to close client session even on error, if client was initialized
+        if tonnel_client and loop and not loop.is_closed():
             try:
                 loop.run_until_complete(tonnel_client._close_session_if_open())
-            finally:
-                loop.close()
+            except Exception as e_close_on_error:
+                logger.error(f"Exception during Tonnel session close on error path (confirm_withdrawal): {e_close_on_error}")
+        return jsonify({"status": "error", "message": "An unexpected server error occurred. Please try again."}), 500
+    finally:
+        # Close client session if initialized and loop is available and not closed
+        if tonnel_client and loop and not loop.is_closed():
+            try:
+                loop.run_until_complete(tonnel_client._close_session_if_open())
+            except Exception as e_session_close_final:
+                logger.error(f"Exception during final Tonnel session close (confirm_withdrawal): {e_session_close_final}")
+
+        # Close the loop if it was created
+        if loop and not loop.is_closed():
+            loop.close()
+
+        db.close()
 
 
 if __name__ == '__main__':
