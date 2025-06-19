@@ -219,7 +219,7 @@ Base.metadata.create_all(bind=engine)
 
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False) if BOT_TOKEN else None
 
-if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
+if bot: # Ensure bot instance exists
     @bot.message_handler(commands=['start'])
     def send_welcome(message):
         user_id = message.chat.id
@@ -232,23 +232,18 @@ if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
 
         referral_code_found = None
         try:
+            # The message will be "/start" or "/start ref_..."
             command_parts = message.text.split(' ')
-            if len(command_parts) > 1:
-                start_param = command_parts[1]
-                if start_param.startswith('startapp='):
-                    payload_part = start_param.split('=', 1)[1]
-                    if payload_part.startswith('ref_'):
-                        referral_code_found = payload_part
-                elif start_param.startswith('ref_'):
-                     referral_code_found = start_param
+            if len(command_parts) > 1 and command_parts[1].startswith('ref_'):
+                referral_code_found = command_parts[1]
         except Exception as e:
-            logger.error(f"Error parsing start_param for user {user_id}: {e}")
+            logger.error(f"Error parsing start parameter for user {user_id}: {e}")
 
         if referral_code_found:
-            logger.info(f"User {user_id} used referral code: {referral_code_found}")
+            logger.info(f"User {user_id} initiated start with referral code: {referral_code_found}")
+            # The existing API endpoint /api/register_referral will handle the logic
             try:
-                # Assuming 'requests' is imported if you use it, or you have a direct function call
-                import requests # Keep this import if you make HTTP calls
+                import requests
                 api_payload = {
                     "user_id": user_id,
                     "username": username,
@@ -256,26 +251,25 @@ if bot: # Only define handlers if bot was initialized (BOT_TOKEN was present)
                     "last_name": last_name,
                     "referral_code": referral_code_found
                 }
-                # The bot calls its own backend API.
+                # The bot calls its own backend API to register the referral relationship
                 response = requests.post(f"{API_BASE_URL}/api/register_referral", json=api_payload, timeout=10)
                 if response.status_code == 200:
-                    logger.info(f"Successfully registered referral for user {user_id} with code {referral_code_found}. Response: {response.json()}")
+                    logger.info(f"Successfully processed referral for user {user_id} with code {referral_code_found}. Response: {response.json()}")
                 else:
-                    logger.error(f"Failed to register referral for user {user_id}. Status: {response.status_code}, Response: {response.text}")
-            except requests.exceptions.RequestException as e_req:
-                logger.error(f"API call to /api/register_referral failed for user {user_id}: {e_req}")
+                    logger.error(f"Failed to process referral for user {user_id}. Status: {response.status_code}, Response: {response.text}")
             except Exception as e_api:
-                logger.error(f"Unexpected error during API call for referral registration (user {user_id}): {e_api}")
+                logger.error(f"API call to /api/register_referral failed for user {user_id}: {e_api}")
 
+        # This part remains the same, sending the welcome message and the button to open the Web App
         markup = types.InlineKeyboardMarkup()
-        web_app_info = types.WebAppInfo(url=WEBAPP_URL) # WEBAPP_URL is defined above
+        web_app_info = types.WebAppInfo(url=WEBAPP_URL)
         app_button = types.InlineKeyboardButton(text="🎮 Open Pusik Gifts", web_app=web_app_info)
         markup.add(app_button)
 
         bot.send_photo(
             message.chat.id,
             photo="https://i.ibb.co/5Q2KK6D/IMG-20250522-184911-835.jpg",
-            caption="Welcome to Pusik Gifts! 🎁\n\nTap on button to start!",
+            caption="Welcome to Pusik Gifts! 🎁\n\nTap the button below to start!",
             reply_markup=markup
         )
 
@@ -1991,6 +1985,34 @@ def get_user_data_api():
     except Exception as e:
         logger.error(f"Error in get_user_data for {uid}: {e}", exc_info=True)
         return jsonify({"error": "Database error or unexpected issue."}), 500
+    finally:
+        db.close()
+
+@app.route('/api/get_invited_friends', methods=['GET'])
+def get_invited_friends_api():
+    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth:
+        return jsonify({"error": "Auth failed"}), 401
+    
+    uid = auth["id"]
+    db = next(get_db())
+    try:
+        # Find all users who were referred by the current user (uid)
+        invited_friends = db.query(User).filter(User.referred_by_id == uid).order_by(User.created_at.desc()).all()
+        
+        friends_data = []
+        for friend in invited_friends:
+            display_name = friend.first_name or friend.username or f"User #{str(friend.id)[:6]}"
+            friends_data.append({
+                "id": friend.id,
+                "name": display_name
+                # You can add more data here if needed, e.g., friend.created_at
+            })
+            
+        return jsonify(friends_data)
+    except Exception as e:
+        logger.error(f"Error in get_invited_friends for user {uid}: {e}", exc_info=True)
+        return jsonify({"error": "Could not load invited friends list."}), 500
     finally:
         db.close()
 
