@@ -1206,7 +1206,7 @@ const inviteElements = {
     referralBalance: document.getElementById('referral-balance'),
     invitedCount: document.getElementById('invited-count'),
     withdrawReferralButton: document.getElementById('withdraw-referral-button'),
-    invitedUsersListDisplay: document.getElementById('invited-users-list-display')
+    invitedUsersListDisplay: document.getElementById('invited-users-list-display') // Already existed, but confirming it's here
 };
 const leaderboardList = document.getElementById('leaderboard-list');
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
@@ -1312,6 +1312,12 @@ function navigateToPage(pageId) {
     pages.forEach(p => p.classList.remove('active'));
     document.getElementById(pageId)?.classList.add('active');
     appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
+    
+    // When the user navigates to the referrals page, fetch and render the list of friends.
+    if (pageId === 'invite-page') {
+        renderInvitedFriendsList();
+    }
+
     if (tgBackButton) {
         if (pageId === 'main-page') {
             clearTgBackButtonStack();
@@ -1480,9 +1486,34 @@ async function renderLeaderboard() {
 }
 
 function renderInvitePage() {
-    inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}/${MINI_APP_NAME}?startapp=${currentUser.referralCode}` : 'Loading...';
+    // This now generates a `t.me/bot?start=...` link, which is more reliable.
+    inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}?start=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
     inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0;
+}
+
+async function renderInvitedFriendsList() {
+    const listContainer = inviteElements.invitedUsersListDisplay;
+    listContainer.innerHTML = '<div class="loader" style="margin: 10px auto; width: 30px; height: 30px;"></div>'; // Show loader
+
+    try {
+        const friends = await apiRequest('/api/get_invited_friends');
+
+        if (friends && friends.length > 0) {
+            listContainer.innerHTML = ''; // Clear loader
+            friends.forEach(friend => {
+                const friendDiv = document.createElement('div');
+                // You can style this div further using CSS if needed
+                friendDiv.textContent = friend.name || `User #${friend.id}`;
+                listContainer.appendChild(friendDiv);
+            });
+        } else {
+            listContainer.innerHTML = '<p>No friends invited yet.</p>';
+        }
+    } catch (error) {
+        console.error("Failed to fetch invited friends:", error);
+        listContainer.innerHTML = '<p style="color: var(--danger-color);">Could not load friends list.</p>';
+    }
 }
 
 function showWinOverlay(wonPrizesArray) {
