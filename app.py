@@ -2030,6 +2030,7 @@ def register_referral_api():
     
     db = next(get_db())
     try:
+        # Find or create the user who clicked the link
         referred_user = db.query(User).filter(User.id == user_id).first()
         if not referred_user:
             new_referral_code_for_user = f"ref_{user_id}_{random.randint(1000,9999)}"
@@ -2050,20 +2051,52 @@ def register_referral_api():
             if referred_user.first_name != first_name: referred_user.first_name = first_name
             if referred_user.last_name != last_name: referred_user.last_name = last_name
         
+        # Check if the user was already referred
         if referred_user.referred_by_id:
             db.commit()
             return jsonify({"status": "already_referred", "message": "User was already referred."}), 200
 
+        # Find the referrer (the user who owns the code)
         referrer = db.query(User).filter(User.referral_code == referral_code_used).first()
         if not referrer:
             db.commit()
             return jsonify({"error": "Referrer not found with this code."}), 404
         
+        # Prevent self-referral
         if referrer.id == referred_user.id:
             db.commit()
             return jsonify({"error": "Cannot refer oneself."}), 400
 
+        # Establish the referral link
         referred_user.referred_by_id = referrer.id
+        
+        # --- NEW: Send notification to the referrer ---
+        if bot: # Check if the bot instance is initialized
+            try:
+                # Get a clean display name for the new user
+                new_user_display_name = referred_user.first_name or referred_user.username or f"User #{str(referred_user.id)[:6]}"
+                
+                # Construct the notification message
+                notification_message = (
+                    f"🎉 *New Referral!* 🎉\n\n"
+                    f"A new friend, *{new_user_display_name}*, has joined using your referral link.\n\n"
+                    f"You will earn *10%* from their deposits!"
+                )
+                
+                # Send the message to the referrer
+                bot.send_message(
+                    chat_id=referrer.id,  # This is the user ID of the person who gets the notification
+                    text=notification_message,
+                    parse_mode="Markdown"
+                )
+                logger.info(f"Sent referral notification to referrer {referrer.id} for new user {referred_user.id}.")
+
+            except Exception as e_notify:
+                # Log the error but don't fail the entire transaction.
+                # This can happen if the referrer has blocked the bot.
+                logger.error(f"Failed to send referral notification to user {referrer.id}. Reason: {e_notify}")
+        # --- End of new notification logic ---
+
         db.commit()
         logger.info(f"User {user_id} successfully referred by {referrer.id} using code {referral_code_used}")
         
