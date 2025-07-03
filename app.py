@@ -42,32 +42,68 @@ DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1
 DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "e8a1vds9yal")
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
-BIG_WIN_CHANNEL_ID = -1002786435659
-BOT_USERNAME_FOR_LINK = "pusikGiftsBot"
+BIG_WIN_CHANNEL_ID = -1002786435659  # The channel ID you provided
+BOT_USERNAME_FOR_LINK = "pusikGiftsBot" # Your bot's username for the link
 
-UPGRADE_MAX_CHANCE = Decimal('75.0')
-UPGRADE_MIN_CHANCE = Decimal('3.0')
+UPGRADE_MAX_CHANCE = Decimal('75.0')  # Maximum possible chance in %
+UPGRADE_MIN_CHANCE = Decimal('3.0')   # Minimum possible chance in %
+# RiskFactor: lower value means chance drops faster for higher multipliers (X)
+# e.g., 0.60 means for X=2, chance is MaxChance*0.6; for X=3, chance is MaxChance*0.6*0.6
 UPGRADE_RISK_FACTOR = Decimal('0.60')
 
-RTP_TARGET = Decimal('0.85') # 85% Return to Player target for all games
-
-# Star to TON conversion rate
-STARS_PER_TON = 200
+RTP_TARGET = Decimal('0.85') # 85% Return to Player target for all cases and slots
 
 KISS_FROG_MODEL_STATIC_PERCENTAGES = {
-    "Brewtoad": 0.5, "Zodiak Croak": 0.5, "Rocky Hopper": 0.5, "Puddles": 0.5,
-    "Lucifrog": 0.5, "Honeyhop": 0.5, "Count Croakula": 0.5, "Lilie Pond": 0.5,
-    "Frogmaid": 0.5, "Happy Pepe": 0.5, "Melty Butter": 0.5, "Sweet Dream": 0.5,
-    "Tree Frog": 0.5, "Lava Leap": 1.0, "Tesla Frog": 1.0, "Trixie": 1.0,
-    "Pond Fairy": 1.0, "Icefrog": 1.0, "Hopberry": 1.5, "Boingo": 1.5,
-    "Prince Ribbit": 1.5, "Toadstool": 1.5, "Cupid": 1.5, "Ms. Toad": 1.5,
-    "Desert Frog": 1.5, "Silver": 2.0, "Bronze": 2.0, "Poison": 2.5,
-    "Ramune": 2.5, "Lemon Drop": 2.5, "Minty Bloom": 2.5, "Void Hopper": 2.5,
-    "Sarutoad": 2.5, "Duskhopper": 2.5, "Starry Night": 2.5, "Ectofrog": 2.5,
-    "Ectobloom": 2.5, "Melon": 3.0, "Banana Pox": 3.0, "Frogtart": 3.0,
-    "Sea Breeze": 4.0, "Sky Leaper": 4.0, "Toadberry": 4.0, "Peach": 4.0,
-    "Lily Pond": 4.0, "Frogwave": 4.0, "Cranberry": 4.0, "Lemon Juice": 4.0,
-    "Tide Pod": 4.0, "Brownie": 4.0,
+    "Brewtoad": 0.5,
+    "Zodiak Croak": 0.5,
+    "Rocky Hopper": 0.5,
+    "Puddles": 0.5,
+    "Lucifrog": 0.5,
+    "Honeyhop": 0.5,
+    "Count Croakula": 0.5,
+    "Lilie Pond": 0.5,
+    "Frogmaid": 0.5,
+    "Happy Pepe": 0.5,
+    "Melty Butter": 0.5,
+    "Sweet Dream": 0.5,
+    "Tree Frog": 0.5,
+    "Lava Leap": 1.0,
+    "Tesla Frog": 1.0,
+    "Trixie": 1.0,
+    "Pond Fairy": 1.0,
+    "Icefrog": 1.0,
+    "Hopberry": 1.5,
+    "Boingo": 1.5,
+    "Prince Ribbit": 1.5,
+    "Toadstool": 1.5,
+    "Cupid": 1.5,
+    "Ms. Toad": 1.5,
+    "Desert Frog": 1.5,
+    "Silver": 2.0,
+    "Bronze": 2.0,
+    "Poison": 2.5,
+    "Ramune": 2.5,
+    "Lemon Drop": 2.5,
+    "Minty Bloom": 2.5,
+    "Void Hopper": 2.5,
+    "Sarutoad": 2.5,
+    "Duskhopper": 2.5,
+    "Starry Night": 2.5,
+    "Ectofrog": 2.5,
+    "Ectobloom": 2.5,
+    "Melon": 3.0,
+    "Banana Pox": 3.0,
+    "Frogtart": 3.0,
+    "Sea Breeze": 4.0,
+    "Sky Leaper": 4.0,
+    "Toadberry": 4.0,
+    "Peach": 4.0,
+    "Lily Pond": 4.0,
+    "Frogwave": 4.0,
+    "Cranberry": 4.0,
+    "Lemon Juice": 4.0,
+    "Tide Pod": 4.0,
+    "Brownie": 4.0,
 }
 
 # --- Logging Setup ---
@@ -91,6 +127,8 @@ if not TONNEL_SENDER_INIT_DATA:
     logger.warning("TONNEL_SENDER_INIT_DATA not set! Tonnel gift withdrawal will likely fail.")
 
 NORMAL_WEBAPP_URL = "https://vasiliy-katsyka.github.io/case"
+MAINTENANCE_WEBAPP_URL = "https://vasiliy-katsyka.github.io/maintencaincec" # If you still use this
+# Example: Choose based on an environment variable or a fixed value for production
 WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
 
 API_BASE_URL = "https://case-hznb.onrender.com" # Your backend API URL
@@ -141,7 +179,6 @@ class InventoryItem(Base):
     obtained_at = Column(DateTime(timezone=True), server_default=func.now())
     variant = Column(String, nullable=True)
     is_ton_prize = Column(Boolean, default=False, nullable=False)
-    is_star_prize = Column(Boolean, default=False, nullable=False)
     owner = relationship("User", back_populates="inventory")
     nft = relationship("NFT")
 
@@ -180,9 +217,9 @@ class UserPromoCodeRedemption(Base):
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
-bot = telebot.TeleBot(BOT_TOKEN, threaded=False, parse_mode="HTML") if BOT_TOKEN else None
+bot = telebot.TeleBot(BOT_TOKEN, threaded=False) if BOT_TOKEN else None
 
-if bot:
+if bot: # Ensure bot instance exists
     @bot.message_handler(commands=['start'])
     def send_welcome(message):
         user_id = message.chat.id
@@ -261,6 +298,8 @@ if bot:
         bot.answer_callback_query(call.id) # Acknowledge callback early
     
         if action == "admin_new_promo":
+            # It's better to edit the existing message if possible, or send a new one.
+            # For simplicity with next_step_handler, sending a new message is fine here.
             msg_prompt = bot.send_message(user_id,
                                    "Please enter the new promocode details in the format:\n"
                                    "`promoname activations prize_ton`\n\n"
@@ -280,6 +319,7 @@ if bot:
                 handle_view_promo_detail(call.message, promo_code_id) # Pass message to edit
             except ValueError:
                 logger.error(f"Invalid promo_code_id in callback: {promo_code_id_str}")
+                # Inform the admin via a new message if editing fails or is not appropriate
                 bot.send_message(call.message.chat.id, "Error: Invalid promo code identifier.")
         
         elif action == "admin_back_to_menu":
@@ -288,10 +328,10 @@ if bot:
             view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
             markup.add(new_promo_button, view_promos_button)
             try:
-                bot.edit_message_text("👑 Admin Panel 👑", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup, parse_mode="Markdown")
+                bot.edit_message_text("👑 Admin Panel 👑", chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=markup)
             except Exception as e:
                 logger.debug(f"Could not edit message for admin_back_to_menu, sending new: {e}")
-                bot.send_message(call.message.chat.id, "👑 Admin Panel 👑", reply_markup=markup, parse_mode="Markdown")
+                bot.send_message(call.message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
     
     
     # --- Process New Promocode Creation (Next Step Handler) ---
@@ -303,11 +343,12 @@ if bot:
         if message.text == '/cancel':
             bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
             bot.reply_to(message, "Promocode creation cancelled.")
+            # Optionally, resend the admin menu
             markup = types.InlineKeyboardMarkup(row_width=1)
             new_promo_button = types.InlineKeyboardButton("🆕 New Promocode", callback_data="admin_new_promo")
             view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
             markup.add(new_promo_button, view_promos_button)
-            bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup, parse_mode="Markdown")
+            bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
             return
     
         try:
@@ -331,12 +372,15 @@ if bot:
             if prize_ton <= 0: # Prize amount should be positive
                     raise ValueError("TON prize amount must be a positive number.")
     
+            # The optional 'ton' keyword (parts[3]) is implicitly handled by parsing parts[2]
+    
             db = SessionLocal()
             try:
                 existing_promo = db.query(PromoCode).filter(PromoCode.code_text == promo_name).first()
                 if existing_promo:
                     bot.reply_to(message, f"⚠️ Promocode '{promo_name}' already exists. Choose a different name.")
-                    msg_reprompt = bot.send_message(message.chat.id,
+                    # Re-prompt for creation
+                    msg_reprompt = bot.send_message(message.chat.id, 
                                        "Please enter new promocode details again or type /cancel to go back to the admin menu.",
                                        parse_mode="Markdown")
                     bot.register_next_step_handler(msg_reprompt, process_new_promo_creation)
@@ -349,7 +393,7 @@ if bot:
                 )
                 db.add(new_promo)
                 db.commit()
-                bot.reply_to(message,
+                bot.reply_to(message, 
                              f"✅ Promocode '{promo_name}' created successfully!\n"
                              f"Activations: {'Unlimited' if activations == -1 else activations}\n"
                              f"TON Prize: {prize_ton:.4f} TON") # Using .4f for TON display
@@ -366,11 +410,13 @@ if bot:
     
         except ValueError as e:
             bot.reply_to(message, f"Error: {str(e)}\nPlease try again in the format: `promoname activations prize_ton`\nOr type /cancel to return to the admin menu.")
+            # Re-register next step handler to allow user to retry
             msg_retry = bot.send_message(message.chat.id, "Enter details again or type /cancel.")
             bot.register_next_step_handler(msg_retry, process_new_promo_creation)
         except Exception as e:
             logger.error(f"Unexpected error in process_new_promo_creation: {e}", exc_info=True)
             bot.reply_to(message, "An unexpected error occurred. Please check logs.")
+            # Optionally, re-register or offer /cancel
             msg_retry_unexpected = bot.send_message(message.chat.id, "Enter details again or type /cancel for the admin menu.")
             bot.register_next_step_handler(msg_retry_unexpected, process_new_promo_creation)
     
@@ -378,15 +424,21 @@ if bot:
     @bot.message_handler(commands=['cancel'])
     def cancel_operation(message):
         if message.chat.id == ADMIN_USER_ID:
+            # Check if there's an active next_step_handler for this user
+            # telebot doesn't have a direct way to check if a handler is registered for a specific chat_id.
+            # Clearing it is generally safe if you are sure it's only used in this admin context for this user.
             bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
             bot.reply_to(message, "Operation cancelled.")
             
+            # Show admin menu again
             markup = types.InlineKeyboardMarkup(row_width=1)
             new_promo_button = types.InlineKeyboardButton("🆕 New Promocode", callback_data="admin_new_promo")
             view_promos_button = types.InlineKeyboardButton("📋 All Promocodes", callback_data="admin_view_promos")
             markup.add(new_promo_button, view_promos_button)
-            bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup, parse_mode="Markdown")
+            bot.send_message(message.chat.id, "👑 Admin Panel 👑", reply_markup=markup)
         else:
+            # For regular users, /cancel might not do anything specific unless defined elsewhere.
+            # Or you can have a generic "No active operation to cancel."
             pass # Or bot.reply_to(message, "No active operation to cancel.")
     
     
@@ -396,7 +448,7 @@ if bot:
         try:
             all_promos = db.query(PromoCode).order_by(PromoCode.created_at.desc()).all()
             
-            markup = types.InlineKeyboardMarkup(row_width=2)
+            markup = types.InlineKeyboardMarkup(row_width=2) # Adjust row_width as needed
             
             if not all_promos:
                 text_to_send = "No promocodes found in the database."
@@ -404,24 +456,26 @@ if bot:
                 text_to_send = "Select a promocode to view details:"
                 promo_buttons = []
                 for promo in all_promos:
-                    button_text = f"{promo.code_text}"
+                    # Show promo code text on the button, callback data contains ID for detail view
+                    button_text = f"{promo.code_text}" # Can add more info like (Act: X) if short enough
                     promo_buttons.append(types.InlineKeyboardButton(button_text, callback_data=f"admin_promo_detail_{promo.id}"))
                 
+                # Add buttons in rows
+                # Simple grouping for row_width=2, can be made more dynamic
                 grouped_buttons = [promo_buttons[i:i + 2] for i in range(0, len(promo_buttons), 2)]
                 for group in grouped_buttons:
-                    markup.row(*group)
+                    markup.row(*group) # Unpack the group of buttons into the row
             
             markup.add(types.InlineKeyboardButton("⬅️ Back to Admin Menu", callback_data="admin_back_to_menu"))
-
+    
             try:
                 bot.edit_message_text(text_to_send,
                                       chat_id=message_to_edit.chat.id,
                                       message_id=message_to_edit.message_id,
-                                      reply_markup=markup,
-                                      parse_mode="Markdown")
-            except Exception as e:
+                                      reply_markup=markup)
+            except Exception as e: # If message cannot be edited (e.g. too old, or no change)
                  logger.debug(f"Could not edit message for view_all_promos, sending new: {e}")
-                 bot.send_message(message_to_edit.chat.id, text_to_send, reply_markup=markup, parse_mode="Markdown")
+                 bot.send_message(message_to_edit.chat.id, text_to_send, reply_markup=markup) # Send as new message
     
         except SQLAlchemyError as e_sql:
             logger.error(f"SQLAlchemyError fetching all promocodes: {e_sql}")
@@ -436,8 +490,12 @@ if bot:
             promo = db.query(PromoCode).filter(PromoCode.id == promo_id).first()
             
             markup = types.InlineKeyboardMarkup(row_width=1)
+            # Add navigation buttons
             markup.add(types.InlineKeyboardButton("⬅️ Back to All Promocodes", callback_data="admin_view_promos"))
             markup.add(types.InlineKeyboardButton("🏠 Back to Admin Menu", callback_data="admin_back_to_menu"))
+            # Future: Could add a "Delete Promocode" button here, e.g.,
+            # markup.add(types.InlineKeyboardButton("🗑️ Delete Promocode", callback_data=f"admin_delete_promo_{promo.id}"))
+    
     
             if not promo:
                 text_to_send = "Promocode not found."
@@ -445,7 +503,7 @@ if bot:
                 activations_text = "Unlimited" if promo.activations_left == -1 else str(promo.activations_left)
                 text_to_send = (
                     f"📜 Promocode Details: *{promo.code_text}*\n\n"
-                    f"🎁 Prize: {promo.ton_amount:.4f} TON\n"
+                    f"🎁 Prize: {promo.ton_amount:.4f} TON\n" # Using .4f for TON display
                     f"🔄 Activations Left: {activations_text}\n"
                     f"🗓️ Created: {promo.created_at.strftime('%Y-%m-%d %H:%M') if promo.created_at else 'N/A'}"
                 )
@@ -456,9 +514,10 @@ if bot:
                                       message_id=message_to_edit.message_id,
                                       reply_markup=markup,
                                       parse_mode="Markdown")
-            except Exception as e:
+            except Exception as e: # If message cannot be edited
                 logger.debug(f"Could not edit message for view_promo_detail, sending new: {e}")
                 bot.send_message(message_to_edit.chat.id, text_to_send, reply_markup=markup, parse_mode="Markdown")
+    
     
         except SQLAlchemyError as e_sql:
             logger.error(f"SQLAlchemyError fetching promo detail for ID {promo_id}: {e_sql}")
@@ -466,142 +525,13 @@ if bot:
         finally:
             db.close()
             
-    # --- Payment Webhook Handlers ---
-    @bot.pre_checkout_query_handler(func=lambda query: True)
-    def pre_checkout_handler(pre_checkout_query: types.PreCheckoutQuery):
-        logger.info(f"Received PreCheckoutQuery from user {pre_checkout_query.from_user.id} for payload {pre_checkout_query.invoice_payload}. Total amount: {pre_checkout_query.total_amount}")
-        # Always confirm OK. Actual logic for prize giving is in successful_payment_handler.
-        bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
-        logger.info(f"Answered PreCheckoutQuery for payload {pre_checkout_query.invoice_payload} with OK.")
-
-    @bot.message_handler(content_types=['successful_payment'])
-    def successful_payment_handler(message: types.Message):
-        payment = message.successful_payment
-        user_id = message.from_user.id
-        payload = payment.invoice_payload
-        
-        logger.info(f"Successful payment received from user {user_id}. Payload: {payload}, Currency: {payment.currency}, Amount: {payment.total_amount}")
-
-        db = next(get_db())
-        try:
-            # Parse payload: "user_id-case_id-timestamp"
-            payload_parts = payload.split('-')
-            if len(payload_parts) != 3:
-                logger.error(f"Invalid payload format for successful payment: {payload}")
-                bot.send_message(user_id, "There was an error processing your purchase (invalid payload). Please contact support.")
-                return
-
-            p_user_id, p_case_id, p_timestamp = payload_parts
-            if int(p_user_id) != user_id:
-                logger.error(f"Payload user ID {p_user_id} does not match message user ID {user_id}.")
-                bot.send_message(user_id, "There was a security error with your purchase. Please contact support.")
-                return
-
-            user = db.query(User).filter(User.id == user_id).with_for_update().first()
-            if not user:
-                logger.error(f"User {user_id} not found in DB after successful payment.")
-                return
-
-            case_data = next((c for c in cases_data_backend if c['id'] == p_case_id), None)
-            if not case_data:
-                logger.error(f"Case with ID {p_case_id} from payload not found.")
-                bot.send_message(user_id, f"The case you purchased ('{p_case_id}') seems to be no longer available. Please contact support.")
-                return
-
-            # Perform the case opening
-            won_prize = _perform_case_opening_backend(user, case_data, db)
-            db.commit()
-
-            prize_name = won_prize.get("name", "an amazing prize")
-            bot.send_message(user_id, f"<b>Congratulations!</b> 🎉\n\nYou won: <b>{prize_name}</b>\n\nIt has been added to your collection in the app!")
-
-        except Exception as e:
-            db.rollback()
-            logger.error(f"Error processing successful payment for payload {payload}: {e}", exc_info=True)
-            bot.send_message(user_id, "A critical error occurred after your payment. Please contact support with your transaction details.")
-        finally:
-            db.close()
-
     @bot.message_handler(func=lambda message: True)
     def echo_all(message):
         logger.info(f"Received non-command message from {message.chat.id}: {message.text[:50]}")
         bot.reply_to(message, "Send /start, to open Pusik Gifts")
 
-# Helper function to perform case opening logic
-def _perform_case_opening_backend(user: User, case_data: dict, db: SessionLocal) -> dict:
-    """Performs the random prize roll, creates the inventory item, and returns it."""
-    
-    prizes_in_case = case_data['prizes']
-    rv = random.random()
-    cprob = 0
-    chosen_prize_info = None
-
-    for p_info in prizes_in_case:
-        cprob += p_info.get('probability', 0)
-        if rv <= cprob:
-            chosen_prize_info = p_info
-            break
-    
-    if not chosen_prize_info:
-        # Fallback if somehow no prize is chosen by probability (shouldn't happen with correct probabilities)
-        chosen_prize_info = random.choice(prizes_in_case) if prizes_in_case else \
-                            {'name': "Error Prize", 'floor_price': 0, 'imageFilename': 'placeholder.png', 'is_ton_prize': False, 'is_star_prize': False}
-
-    is_star_prize_win = 'value' in chosen_prize_info and chosen_prize_info.get('is_ton_prize', False) is False # If it has 'value' but not `is_ton_prize` True, it's a star value
-    is_ton_prize_win = chosen_prize_info.get('is_ton_prize', False)
-
-    # Determine item value and attributes
-    item_value = 0
-    item_name = chosen_prize_info['name']
-    db_nft_id = None
-    item_image = chosen_prize_info.get('imageFilename')
-
-    if is_star_prize_win:
-        item_value = chosen_prize_info['value'] # Value is directly the star amount
-        if not item_image: item_image = "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"
-    elif is_ton_prize_win:
-        item_value = chosen_prize_info.get('floor_price', 0) # Value is TON amount
-        if not item_image: item_image = TON_PRIZE_IMAGE_DEFAULT
-    else: # It's a regular NFT prize (TON-valued)
-        item_value = chosen_prize_info.get('floor_price', 0)
-        dbnft = db.query(NFT).filter(NFT.name == item_name).first()
-        if dbnft:
-            db_nft_id = dbnft.id
-            if not item_image: item_image = dbnft.image_filename
-        else: # Should not happen if NFTs are pre-populated
-            logger.warning(f"NFT '{item_name}' not found in DB for prize.")
-            if not item_image: item_image = generate_image_filename_from_name(item_name) # Fallback
-
-    # Create inventory item
-    item = InventoryItem(
-        user_id=user.id,
-        nft_id=db_nft_id,
-        item_name_override=item_name,
-        item_image_override=item_image,
-        current_value=float(item_value),
-        is_ton_prize=is_ton_prize_win,
-        is_star_prize=is_star_prize_win,
-        variant=chosen_prize_info.get('variant')
-    )
-    db.add(item)
-    db.flush() # To get item.id for the response
-
-    # Update user's total_won_ton for TON-valued prizes
-    if not is_star_prize_win:
-        user.total_won_ton = float(Decimal(str(user.total_won_ton)) + Decimal(str(item_value)))
-    
-    # Return a dictionary compatible with the frontend
-    return {
-        "id": item.id,
-        "name": item_name,
-        "imageFilename": item_image,
-        "currentValue": item.current_value,
-        "is_ton_prize": item.is_ton_prize,
-        "is_star_prize": item.is_star_prize,
-        "variant": item.variant
-    }
-
 # --- Webhook Setup Function (to be called from your main app setup) ---
+# You need to pass your Flask 'app' instance to this function to register the route.
 def setup_telegram_webhook(flask_app_instance):
     if not bot:
         logger.error("Telegram bot instance is not initialized (BOT_TOKEN missing?). Webhook cannot be set.")
@@ -610,10 +540,12 @@ def setup_telegram_webhook(flask_app_instance):
     # Path for the webhook - using the bot token makes it secret
     WEBHOOK_PATH = f'/{BOT_TOKEN}'
     # The full URL for the webhook
+    # Render provides RENDER_EXTERNAL_HOSTNAME. If not, you'd use your specific server URL.
     render_hostname = os.getenv('RENDER_EXTERNAL_HOSTNAME')
     if render_hostname:
         WEBHOOK_URL_BASE = f"https://{render_hostname}"
     else:
+        # Fallback to your explicitly provided server URL if RENDER_EXTERNAL_HOSTNAME is not available
         WEBHOOK_URL_BASE = "https://case-hznb.onrender.com"
         logger.warning(f"RENDER_EXTERNAL_HOSTNAME not found, using manually configured URL: {WEBHOOK_URL_BASE}")
 
@@ -634,15 +566,15 @@ def setup_telegram_webhook(flask_app_instance):
         return "Webhook handler setup.", 200 # Should not be reached if POST with JSON
 
     # Set the webhook with Telegram API
+    # This should run once when your application starts up.
+    # It's good practice to check if it's already set correctly.
     try:
         current_webhook_info = bot.get_webhook_info()
         if current_webhook_info.url != FULL_WEBHOOK_URL:
             logger.info(f"Current webhook is '{current_webhook_info.url}', attempting to set to: {FULL_WEBHOOK_URL}")
             bot.remove_webhook()
             time.sleep(0.5) # Give Telegram a moment
-            # IMPORTANT: Specify allowed_updates to only receive necessary types
-            allowed_updates = ["message", "callback_query", "pre_checkout_query", "successful_payment"]
-            success = bot.set_webhook(url=FULL_WEBHOOK_URL, allowed_updates=allowed_updates)
+            success = bot.set_webhook(url=FULL_WEBHOOK_URL)
             if success:
                 logger.info(f"Telegram webhook set successfully to {FULL_WEBHOOK_URL}")
             else:
@@ -789,6 +721,7 @@ class TonnelGiftSender:
                 static_percentage_val = KISS_FROG_MODEL_STATIC_PERCENTAGES[gift_item_name]
                 
                 # Format the percentage to one decimal place if it's .0, otherwise as is.
+                # This ensures "1.0" becomes "1%", not "1.0%".
                 # rstrip('0').rstrip('.') will handle 1.0 -> 1 and 0.5 -> 0.5
                 formatted_percentage = f"{static_percentage_val:.1f}".rstrip('0').rstrip('.')
 
@@ -846,15 +779,19 @@ class TonnelGiftSender:
 
         except Exception as e:
             logger.error(f"Tonnel error sending gift '{gift_item_name}' to {receiver_telegram_id}: {type(e).__name__} - {e}", exc_info=True)
-            return {"status": "error", "message": f"Unexpected error during Tonnel withdrawal: {str(e)}"}
+            return {"status":"error","message":f"Unexpected error during Tonnel withdrawal: {str(e)}"}
         finally:
             await self._close_session_if_open()
 
     async def fetch_gift_listings(self, gift_item_name: str, limit: int = 5) -> list:
         """Fetches up to 'limit' available listings for a specific gift_item_name from Tonnel Market."""
-        if not self.authdata:
+        if not self.authdata: # authdata might not be strictly needed for just fetching listings, but good for consistency
             logger.warning("Tonnel fetch_gift_listings: sender not configured (authdata missing).")
+            # Decide if you want to proceed or return error. For now, proceed.
+            # return {"status": "error", "message": "Tonnel sender not configured."}
 
+
+        # Step 1: Initial GET request if needed (usually done once per session lifecycle)
         await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True)
 
         filter_dict = {
@@ -873,7 +810,7 @@ class TonnelGiftSender:
             filter_dict["gift_name"] = gift_item_name
         
         filter_str = json.dumps(filter_dict)
-        page_gifts_payload = {"filter": filter_str, "limit": limit, "page": 1, "sort": '{"price":1,"gift_id":-1}'}
+        page_gifts_payload = {"filter": filter_str, "limit": limit, "page": 1, "sort": '{"price":1,"gift_id":-1}'} # Sort by price ascending
         
         pg_headers_options = {"Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type","Origin":"https://tonnel-gift.vercel.app","Referer":"https://tonnel-gift.vercel.app/"}
         pg_headers_post = {"Content-Type":"application/json","Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/"}
@@ -884,8 +821,10 @@ class TonnelGiftSender:
 
         if not isinstance(gifts_found_response, list):
             logger.error(f"Tonnel fetch_gift_listings: Could not fetch gift list for '{gift_item_name}'. Response: {gifts_found_response}")
-            return []
+            return [] # Return empty list on error or non-list response
         
+        # Return the raw list of gifts from Tonnel
+        # Frontend will handle formatting for display (gift_num for image, etc.)
         return gifts_found_response[:limit]
 
 
@@ -897,6 +836,10 @@ class TonnelGiftSender:
             return {"status": "error", "message": "Invalid chosen gift details provided."}
 
         try:
+            # Initial GET may not be needed if session is kept alive from fetch_gift_listings
+            # await self._make_request(method="GET", url="https://marketplace.tonnel.network/", is_initial_get=True)
+
+            # User check (optional, but can be good)
             user_info_payload = {"authData":self.authdata,"user":receiver_telegram_id}
             ui_common_headers = {"Origin":"https://marketplace.tonnel.network","Referer":"https://marketplace.tonnel.network/"}
             ui_options_headers = {**ui_common_headers,"Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type"}
@@ -908,6 +851,7 @@ class TonnelGiftSender:
             if not isinstance(user_check_resp, dict) or user_check_resp.get("status") != "success":
                 return {"status":"error","message":f"Tonnel user check failed for receiver {receiver_telegram_id}: {user_check_resp.get('message','User error') if isinstance(user_check_resp,dict) else 'Unknown error'}"}
 
+            # Purchase the specific gift
             encrypted_ts = encrypt_aes_cryptojs_compat(f"{int(time.time())}", self.passphrase_secret)
             buy_gift_url = f"https://gifts.coffin.meme/api/buyGift/{chosen_gift_details['gift_id']}"
             
@@ -915,7 +859,7 @@ class TonnelGiftSender:
                 "anonymously": True,
                 "asset": "TON",
                 "authData": self.authdata,
-                "price": chosen_gift_details['price'],
+                "price": chosen_gift_details['price'], # Use price from chosen gift
                 "receiver": receiver_telegram_id,
                 "showPrice": False,
                 "timestamp": encrypted_ts
@@ -930,12 +874,15 @@ class TonnelGiftSender:
             if isinstance(purchase_resp, dict) and purchase_resp.get("status") == "success":
                 return {"status":"success","message":f"Gift purchased and sent!","details":purchase_resp}
             else:
+                # Log the raw payload and response for debugging failed purchases
                 logger.error(f"Tonnel purchase_specific_gift failed. Payload: {buy_payload}, Response: {purchase_resp}")
                 return {"status":"error","message":f"Tonnel transfer failed: {purchase_resp.get('message','Purchase error') if isinstance(purchase_resp,dict) else 'Unknown error'}"}
 
         except Exception as e:
             logger.error(f"Tonnel error purchasing specific gift: {type(e).__name__} - {e}", exc_info=True)
             return {"status":"error","message":f"Unexpected error during Tonnel purchase: {str(e)}"}
+        # Removed finally block with _close_session_if_open to allow session reuse if desired by calling logic.
+        # The calling API endpoint wrapper should handle session closing.
 
 
 # --- Gift Data and Image Mapping ---
@@ -951,7 +898,7 @@ GIFT_NAME_TO_ID_MAP_PY = {
   "Jester Hat": "5933590374185435592","Witch Hat": "5821384757304362229","Hanging Star": "5915733223018594841","Love Candle": "5915550639663874519",
   "Cookie Heart": "6001538689543439169","Desk Calendar": "5782988952268964995","Jingle Bells": "6001473264306619020","Snow Mittens": "5980789805615678057",
   "Voodoo Doll": "5836780359634649414","Mad Pumpkin": "5841632504448025405","Hypno Lollipop": "5825895989088617224","B-Day Candle": "5782984811920491178",
-  "Bunny Muffin": "5935936766358847989","Astral Shard": "5933629604416717361","Flying Broom": "5837063436634161765","Crystal Ball": "584133641297606412",
+  "Bunny Muffin": "5935936766358847989","Astral Shard": "5933629604416717361","Flying Broom": "5837063436634161765","Crystal Ball": "5841336413697606412",
   "Eternal Candle": "5821205665758053411","Swiss Watch": "5936043693864651359","Ginger Cookie": "5983484377902875708","Mini Oscar": "5879737836550226478",
   "Lol Pop": "5170594532177215681","Ion Gem": "5843762284240831056","Star Notepad": "5936017773737018241","Loot Bag": "5868659926187901653",
   "Love Potion": "5868348541058942091","Toy Bear": "5868220813026526561","Diamond Ring": "5868503709637411929","Sakura Flower": "5167939598143193218",
@@ -976,10 +923,6 @@ def generate_image_filename_from_name(name_str: str) -> str:
     if "TON" in name_str.upper() and ("PRIZE" in name_str.upper() or name_str.replace('.', '', 1).replace(' TON', '').strip().replace(',', '').isdigit()):
         return TON_PRIZE_IMAGE_DEFAULT
 
-    # If it's a Star prize, use the generic star image
-    if "STAR" in name_str.upper() and ("STARS" in name_str.upper()):
-        return "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"
-
     gift_id = GIFT_NAME_TO_ID_MAP_PY.get(name_str)
     if gift_id:
         return f"https://cdn.changes.tg/gifts/originals/{gift_id}/Original.png"
@@ -1000,37 +943,37 @@ def generate_image_filename_from_name(name_str: str) -> str:
 
 # --- Floor Prices for all known NFTs (and Kissed Frog variants) ---
 UPDATED_FLOOR_PRICES = {
-    'Plush Pepe': 3024.0,
+    'Plush Pepe': 3024.0,       # Updated
     'Neko Helmet': 15.0,
     'Sharp Tongue': 17.0,
-    "Durov's Cap": 420.0,
+    "Durov's Cap": 420.0,       # Updated
     'Voodoo Doll': 9.4,
-    'Vintage Cigar': 24.0,
-    'Astral Shard': 80.0,
+    'Vintage Cigar': 24.0,      # Updated
+    'Astral Shard': 80.0,       # Updated
     'Scared Cat': 22.0,
-    'Swiss Watch': 25.0,
-    'Perfume Bottle': 88.0,
-    'Precious Peach': 270.0,
+    'Swiss Watch': 25.0,        # Updated
+    'Perfume Bottle': 88.0,     # Updated
+    'Precious Peach': 270.0,    # Updated
     'Toy Bear': 16.3,
-    'Genie Lamp': 46.0,
-    'Loot Bag': 45.0,
-    'Kissed Frog': 24.0,
+    'Genie Lamp': 46.0,         # Updated
+    'Loot Bag': 45.0,           # Updated
+    'Kissed Frog': 24.0,        # Updated
     'Electric Skull': 10.9,
-    'Diamond Ring': 12.0,
+    'Diamond Ring': 12.0,       # Updated
     'Mini Oscar': 40.5,
     'Party Sparkler': 2.0,
     'Homemade Cake': 2.0,
     'Cookie Heart': 1.8,
     'Jack-in-the-box': 2.0,
     'Skull Flower': 3.4,
-    'Lol Pop': 1.1,
-    'Hypno Lollipop': 1.4,
-    'Desk Calendar': 1.1,
+    'Lol Pop': 1.1,             # Updated
+    'Hypno Lollipop': 1.4,      # Assuming this stays or update if related to Lol Pop
+    'Desk Calendar': 1.1,       # Updated
     'B-Day Candle': 1.4,
     'Record Player': 4.0,
     'Jelly Bunny': 3.6,
     'Tama Gadget': 4.0,
-    'Snow Globe': 2.0,
+    'Snow Globe': 2.0,          # Updated
     'Eternal Rose': 11.0,
     'Love Potion': 5.4,
     'Top Hat': 6.0,
@@ -1051,7 +994,7 @@ UPDATED_FLOOR_PRICES = {
     'Love Candle': 6.7,
     'Lunar Snake': 1.5,
     'Mad Pumpkin': 6.2,
-    'Magic Potion': 54.0,
+    'Magic Potion': 54.0,       # Updated
     'Pet Snake': 3.2,
     'Sakura Flower': 4.1,
     'Santa Hat': 2.0,
@@ -1067,6 +1010,9 @@ UPDATED_FLOOR_PRICES = {
     "Snake Box": 3.3,
     "Bonded Ring": 60.5,
     "Xmas Stocking": 2.5
+    # Add Light Sword and Gem Signet if they have defined prices
+    # "Light Sword": XX.X,
+    # "Gem Signet": XX.X
 }
 
 KISSED_FROG_VARIANT_FLOORS = {
@@ -1096,8 +1042,8 @@ def calculate_rtp_probabilities(case_data, all_floor_prices):
     for p_info in case_data['prizes']:
         prize_name = p_info['name']
         floor_price = Decimal(str(all_floor_prices.get(prize_name, 0)))
-        image_filename = p_info.get('imageFilename', generate_image_filename_from_name(prize_name))
-        is_ton_prize = p_info.get('is_ton_prize', False)
+        image_filename = p_info.get('imageFilename', generate_image_filename_from_name(prize_name)) # Preserve image filename
+        is_ton_prize = p_info.get('is_ton_prize', False) # Preserve is_ton_prize
         prizes.append({'name': prize_name, 'probability': Decimal(str(p_info['probability'])), 'floor_price': floor_price, 'imageFilename': image_filename, 'is_ton_prize': is_ton_prize})
 
     if not prizes or all(p['floor_price'] == Decimal('0') for p in prizes):
@@ -1196,8 +1142,8 @@ def calculate_rtp_probabilities(case_data, all_floor_prices):
         'name': p['name'],
         'probability': float(p['probability'].quantize(Decimal('1E-7'))),
         'floor_price': float(p['floor_price']),
-        'imageFilename': p['imageFilename'],
-        'is_ton_prize': p['is_ton_prize']
+        'imageFilename': p['imageFilename'], # Preserved
+        'is_ton_prize': p['is_ton_prize'] # Preserved
     } for p in prizes]
 
 def calculate_rtp_probabilities_proportional_fallback(case_data, all_floor_prices):
@@ -1267,8 +1213,8 @@ def calculate_rtp_probabilities_proportional_fallback(case_data, all_floor_price
         'name': p['name'],
         'probability': float(p['probability'].quantize(Decimal('1E-7'))),
         'floor_price': float(p['floor_price']),
-        'imageFilename': p['imageFilename'],
-        'is_ton_prize': p['is_ton_prize']
+        'imageFilename': p['imageFilename'], # Preserved
+        'is_ton_prize': p['is_ton_prize'] # Preserved
     } for p in prizes]
 
 
@@ -1286,14 +1232,14 @@ def calculate_rtp_probabilities_for_slots(slot_data, all_floor_prices):
         prize_name = p_info['name']
         value_source = p_info.get('value', p_info.get('floorPrice', 0))
         floor_price = Decimal(str(value_source))
-        image_filename = p_info.get('imageFilename', generate_image_filename_from_name(prize_name))
-        is_ton_prize = p_info.get('is_ton_prize', False)
+        image_filename = p_info.get('imageFilename', generate_image_filename_from_name(prize_name)) # Preserve image filename
+        is_ton_prize = p_info.get('is_ton_prize', False) # Preserve is_ton_prize
         prizes.append({
             'name': prize_name,
             'probability': Decimal(str(p_info['probability'])),
             'floor_price': floor_price,
-            'imageFilename': image_filename,
-            'is_ton_prize': is_ton_prize
+            'imageFilename': image_filename, # Preserved
+            'is_ton_prize': is_ton_prize # Preserved
         })
 
     current_total_ev = Decimal('0')
@@ -1313,8 +1259,8 @@ def calculate_rtp_probabilities_for_slots(slot_data, all_floor_prices):
                     'name': p['name'],
                     'probability': float((p['probability'] / total_original_prob).quantize(Decimal('1E-7'))),
                     'floor_price': float(p['floor_price']),
-                    'imageFilename': p['imageFilename'],
-                    'is_ton_prize': p['is_ton_prize']
+                    'imageFilename': p['imageFilename'], # Preserved
+                    'is_ton_prize': p['is_ton_prize'] # Preserved
                 })
         else:
             if prizes:
@@ -1324,8 +1270,8 @@ def calculate_rtp_probabilities_for_slots(slot_data, all_floor_prices):
                         'name': p['name'],
                         'probability': float(equal_prob.quantize(Decimal('1E-7'))),
                         'floor_price': float(p['floor_price']),
-                        'imageFilename': p['imageFilename'],
-                        'is_ton_prize': p['is_ton_prize']
+                        'imageFilename': p['imageFilename'], # Preserved
+                        'is_ton_prize': p['is_ton_prize'] # Preserved
                     })
         return normalized_prizes
 
@@ -1352,19 +1298,19 @@ def calculate_rtp_probabilities_for_slots(slot_data, all_floor_prices):
         'name': p['name'],
         'probability': float(p['probability'].quantize(Decimal('1E-7'))),
         'floor_price': float(p['floor_price']),
-        'imageFilename': p['imageFilename'],
-        'is_ton_prize': p['is_ton_prize']
+        'imageFilename': p['imageFilename'], # Preserved
+        'is_ton_prize': p['is_ton_prize'] # Preserved
     } for p in prizes]
 
 
 # --- Game Data (Cases and Slots) ---
-TON_PRIZE_IMAGE_DEFAULT = "https://case-bot.com/images/actions/ton.svg"
 
 # Kissed Frog Prize Pool (initial template - will be adjusted by RTP function)
+
 finalKissedFrogPrizesWithConsolation_Python = sorted([
     # Extremely rare expensive frogs
-    {'name': 'Happy Pepe', 'probability': 0.0000001},
-    {'name': 'Tree Frog', 'probability': 0.0000005},
+    {'name': 'Happy Pepe', 'probability': 0.0000001},  # Was 0.00010
+    {'name': 'Tree Frog', 'probability': 0.0000005},  # Was 0.00050
     {'name': 'Brewtoad', 'probability': 0.0000005},
     {'name': 'Puddles', 'probability': 0.0000005},
     {'name': 'Honeyhop', 'probability': 0.0000005},
@@ -1372,13 +1318,13 @@ finalKissedFrogPrizesWithConsolation_Python = sorted([
     {'name': 'Lucifrog', 'probability': 0.0000005},
     {'name': 'Zodiak Croak', 'probability': 0.0000005},
     {'name': 'Count Croakula', 'probability': 0.0000005},
-    {'name': 'Lilie Pond', 'probability': 0.0000005},
+    {'name': 'Lilie Pond', 'probability': 0.0000005}, # Original name, not Lily Pond for this tier
     {'name': 'Sweet Dream', 'probability': 0.0000005},
     {'name': 'Frogmaid', 'probability': 0.0000005},
     {'name': 'Rocky Hopper', 'probability': 0.0000005},
 
     # Rare expensive frogs
-    {'name': 'Icefrog', 'probability': 0.000002},
+    {'name': 'Icefrog', 'probability': 0.000002},  # Was 0.0020
     {'name': 'Lava Leap', 'probability': 0.000002},
     {'name': 'Toadstool', 'probability': 0.000002},
     {'name': 'Desert Frog', 'probability': 0.000002},
@@ -1391,22 +1337,22 @@ finalKissedFrogPrizesWithConsolation_Python = sorted([
     {'name': 'Boingo', 'probability': 0.000002},
     {'name': 'Tesla Frog', 'probability': 0.000002},
 
-    # Uncommon, still valuable
-    {'name': 'Starry Night', 'probability': 0.00001},
-    {'name': 'Silver', 'probability': 0.00001},
-    {'name': 'Ectofrog', 'probability': 0.00001},
-    {'name': 'Poison', 'probability': 0.00001},
-    {'name': 'Minty Bloom', 'probability': 0.00001},
-    {'name': 'Sarutoad', 'probability': 0.00001},
-    {'name': 'Void Hopper', 'probability': 0.00001},
-    {'name': 'Ramune', 'probability': 0.00001},
-    {'name': 'Lemon Drop', 'probability': 0.00001},
-    {'name': 'Ectobloom', 'probability': 0.00001},
-    {'name': 'Duskhopper', 'probability': 0.00001},
-    {'name': 'Bronze', 'probability': 0.00001},
+    # Uncommon, still valuable but less than case price or slightly above (very low chance if above)
+    {'name': 'Starry Night', 'probability': 0.00001},  # Was 0.0070, Price 30
+    {'name': 'Silver', 'probability': 0.00001},        # Price 30
+    {'name': 'Ectofrog', 'probability': 0.00001},      # Price 30
+    {'name': 'Poison', 'probability': 0.00001},        # Price 30
+    {'name': 'Minty Bloom', 'probability': 0.00001},   # Price 30
+    {'name': 'Sarutoad', 'probability': 0.00001},      # Price 30
+    {'name': 'Void Hopper', 'probability': 0.00001},   # Price 30
+    {'name': 'Ramune', 'probability': 0.00001},        # Price 30
+    {'name': 'Lemon Drop', 'probability': 0.00001},    # Price 30
+    {'name': 'Ectobloom', 'probability': 0.00001},     # Price 30
+    {'name': 'Duskhopper', 'probability': 0.00001},    # Price 30
+    {'name': 'Bronze', 'probability': 0.00001},        # Price 30
 
-    # Common consolation prizes
-    {'name': 'Lily Pond', 'probability': 0.001},
+    # Common consolation prizes (slightly higher chance than valuable ones, but still low overall)
+    {'name': 'Lily Pond', 'probability': 0.001}, # Was 0.04028, Price 19
     {'name': 'Toadberry', 'probability': 0.001},
     {'name': 'Frogwave', 'probability': 0.001},
     {'name': 'Melon', 'probability': 0.001},
@@ -1418,15 +1364,73 @@ finalKissedFrogPrizesWithConsolation_Python = sorted([
     {'name': 'Cranberry', 'probability': 0.001},
     {'name': 'Tide Pod', 'probability': 0.001},
     {'name': 'Brownie', 'probability': 0.001},
-    {'name': 'Banana Pox', 'probability': 0.001},
+    {'name': 'Banana Pox', 'probability': 0.001}, # Was 0.04024
 
     # NEW: Spy Agaric (Floor price 2.8 TON) - relatively common filler
-    {'name': 'Spy Agaric', 'probability': 0.20},
+    {'name': 'Spy Agaric', 'probability': 0.20}, # High-ish initial weight
 
     # Desk Calendar (Floor price 1.1/1.4 TON) - VERY common filler
-    {'name': 'Desk Calendar', 'probability': 0.78}
+    {'name': 'Desk Calendar', 'probability': 0.78} # Very high initial weight
 ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)
 
+full_finalKissedFrogPrizesWithConsolation_js = [
+    {'name':'Happy Pepe','probability':0.0000850,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png','floorPrice':500.0},
+    {'name':'Tree Frog','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png','floorPrice':150.0},
+    {'name':'Brewtoad','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png','floorPrice':150.0},
+    {'name':'Puddles','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Puddles.png','floorPrice':150.0},
+    {'name':'Honeyhop','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Honeyhop.png','floorPrice':150.0},
+    {'name':'Melty Butter','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melty%20Butter.png','floorPrice':150.0},
+    {'name':'Lucifrog','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lucifrog.png','floorPrice':150.0},
+    {'name':'Zodiak Croak','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Zodiak%20Croak.png','floorPrice':150.0},
+    {'name':'Count Croakula','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Count%20Croakula.png','floorPrice':150.0},
+    {'name':'Lilie Pond','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lilie%20Pond.png','floorPrice':150.0},
+    {'name':'Sweet Dream','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png','floorPrice':150.0},
+    {'name':'Frogmaid','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png','floorPrice':150.0},
+    {'name':'Rocky Hopper','probability':0.0004250,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png','floorPrice':150.0},
+    {'name':'Icefrog','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png','floorPrice':45.0},
+    {'name':'Lava Leap','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png','floorPrice':45.0},
+    {'name':'Toadstool','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png','floorPrice':45.0},
+    {'name':'Desert Frog','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png','floorPrice':45.0},
+    {'name':'Cupid','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png','floorPrice':45.0},
+    {'name':'Hopberry','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png','floorPrice':45.0},
+    {'name':'Ms. Toad','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ms.%20Toad.png','floorPrice':45.0},
+    {'name':'Trixie','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Trixie.png','floorPrice':45.0},
+    {'name':'Prince Ribbit','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Prince%20Ribbit.png','floorPrice':45.0},
+    {'name':'Pond Fairy','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png','floorPrice':45.0},
+    {'name':'Boingo','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png','floorPrice':45.0},
+    {'name':'Tesla Frog','probability':0.0017000,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png','floorPrice':45.0},
+    {'name':'Starry Night','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png','floorPrice':30.0},
+    {'name':'Silver','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png','floorPrice':30.0},
+    {'name':'Ectofrog','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png','floorPrice':30.0},
+    {'name':'Poison','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png','floorPrice':30.0},
+    {'name':'Minty Bloom','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png','floorPrice':30.0},
+    {'name':'Sarutoad','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sarutoad.png','floorPrice':30.0},
+    {'name':'Void Hopper','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Void%20Hopper.png','floorPrice':30.0},
+    {'name':'Ramune','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ramune.png','floorPrice':30.0},
+    {'name':'Lemon Drop','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Drop.png','floorPrice':30.0},
+    {'name':'Ectobloom','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png','floorPrice':30.0},
+    {'name':'Duskhopper','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png','floorPrice':30.0},
+    {'name':'Bronze','probability':0.0059500,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png','floorPrice':30.0},
+    {'name':'Lily Pond','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png','floorPrice':19.0},
+    {'name':'Toadberry','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png','floorPrice':19.0},
+    {'name':'Frogwave','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png','floorPrice':19.0},
+    {'name':'Melon','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png','floorPrice':19.0},
+    {'name':'Sky Leaper','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sky%20Leaper.png','floorPrice':19.0},
+    {'name':'Frogtart','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogtart.png','floorPrice':19.0},
+    {'name':'Peach','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Peach.png','floorPrice':19.0},
+    {'name':'Sea Breeze','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sea%20Breeze.png','floorPrice':19.0},
+    {'name':'Lemon Juice','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lemon%20Juice.png','floorPrice':19.0},
+    {'name':'Cranberry','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cranberry.png','floorPrice':19.0},
+    {'name':'Tide Pod','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png','floorPrice':19.0},
+    {'name':'Brownie','probability':0.0342380,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png','floorPrice':19.0},
+    {'name':'Banana Pox','probability':0.0342340,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png','floorPrice':19.0},
+    {'name':'Desk Calendar','probability':0.0000000,'imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/Desk-Calendar.png','floorPrice':1.4}
+]
+kissed_frog_processed_prizes = sorted(
+    full_finalKissedFrogPrizesWithConsolation_js, # Use the full list from your JS
+    key=lambda p: p.get('floorPrice', 0),
+    reverse=True
+)
 
 # Apply RTP calculation to Kissed Frog prizes now to get its final probabilities
 kissed_frog_processed_prizes = calculate_rtp_probabilities(
@@ -1434,80 +1438,36 @@ kissed_frog_processed_prizes = calculate_rtp_probabilities(
     UPDATED_FLOOR_PRICES
 )
 
-# New Star cases - manually defined prizes (no RTP calculation needed as they are fixed values)
-star_case_usual_prizes = [
-    {'name': '🏆 100 Stars', 'value': 100, 'probability': 0.005, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💍 100 Stars', 'value': 100, 'probability': 0.005, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💎 100 Stars', 'value': 100, 'probability': 0.005, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🚀 50 Stars', 'value': 50, 'probability': 0.02, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🍾 50 Stars', 'value': 50, 'probability': 0.02, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💐 50 Stars', 'value': 50, 'probability': 0.02, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🎁 25 Stars', 'value': 25, 'probability': 0.1, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🌹 25 Stars', 'value': 25, 'probability': 0.1, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🧸 15 Stars', 'value': 15, 'probability': 0.3525, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💝 15 Stars', 'value': 15, 'probability': 0.3525, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-]
-star_case_usual_prizes.sort(key=lambda p: p['value'], reverse=True)
-
-
-star_case_rarer_prizes = [
-    {'name': 'Lol Pop', 'floor_price': UPDATED_FLOOR_PRICES["Lol Pop"], 'is_ton_prize': True, 'probability': 0.0001, 'imageFilename': generate_image_filename_from_name("Lol Pop")},
-    {'name': '🏆 100 Stars', 'value': 100, 'probability': 0.03, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💍 100 Stars', 'value': 100, 'probability': 0.03, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💎 100 Stars', 'value': 100, 'probability': 0.03, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🚀 50 Stars', 'value': 50, 'probability': 0.1, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🍾 50 Stars', 'value': 50, 'probability': 0.1, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💐 50 Stars', 'value': 50, 'probability': 0.1, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🎁 25 Stars', 'value': 25, 'probability': 0.19, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🌹 25 Stars', 'value': 25, 'probability': 0.19, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '🧸 15 Stars', 'value': 15, 'probability': 0.06495, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-    {'name': '💝 15 Stars', 'value': 15, 'probability': 0.06495, 'imageFilename': "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"},
-]
-star_case_rarer_prizes.sort(key=lambda p: p.get('floor_price', p.get('value', 0)), reverse=True)
-
-
-# Backend cases data (initial templates - will be adjusted by RTP function for TON cases)
-cases_data_backend_raw_list = [
-    {
-        'id': 'usual_star_case',
-        'name': 'Usual',
-        'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/refs/heads/main/file_00000000c09c6243b817671f45379da6.png',
-        'priceStars': 15,
-        'prizes': star_case_usual_prizes
-    },
-    {
-        'id': 'rarer_star_case',
-        'name': 'Rarer',
-        'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/refs/heads/main/file_00000000b5d0624680050d2aa171b3f5.png',
-        'priceStars': 50,
-        'prizes': star_case_rarer_prizes
-    },
+# Backend cases data (initial templates - will be adjusted by RTP function)
+cases_data_backend_with_fixed_prices_raw = [
     {'id':'all_in_01','name':'All In','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/All-In.jpg','priceTON':0.1,'prizes': sorted([
-        {'name':'Plush Pepe','probability': 0.0000001},
-        {'name':'Durov\'s Cap','probability': 0.0000005},
-        {'name':'Precious Peach','probability': 0.000002},
-        {'name':'Bonded Ring','probability': 0.000005},
-        {'name':'Lol Pop','probability': 0.001},
-        {'name':'Nothing','probability': 0.998989, 'imageFilename': 'placeholder_nothing.png'}
+        {'name':'Plush Pepe','probability': 0.0000005}, # Drastically reduced
+        {'name':'Durov\'s Cap','probability': 0.000005}, # Drastically reduced
+        {'name':'Precious Peach','probability': 0.00002}, # Drastically reduced
+        {'name':'Bonded Ring','probability': 0.00005}, # Drastically reduced
+        {'name':'Lol Pop','probability': 0.001}, # Reduced
+        {'name':'Nothing','probability': 0.998924, 'imageFilename': 'placeholder_nothing.png'} # Increased
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'small_billionaire_05','name':'Small Billionaire','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Small-Billionaire.jpg','priceTON':0.5,'prizes': sorted([
-        {'name':'Perfume Bottle','probability': 0.00001},
-        {'name':'Vintage Cigar','probability': 0.000012},
-        {'name':'Signet Ring','probability': 0.000013},
-        {'name':'Swiss Watch','probability': 0.000015},
-        {'name':'Snake Box', 'probability': 0.0005},
-        {'name':'Nothing','probability': 0.99945, 'imageFilename': 'placeholder_nothing.png'}
+        {'name':'Perfume Bottle','probability': 0.0001}, # Drastically reduced
+        {'name':'Vintage Cigar','probability': 0.00012},# Drastically reduced
+        {'name':'Signet Ring','probability': 0.00013},# Drastically reduced
+        {'name':'Swiss Watch','probability': 0.00015},# Drastically reduced
+        {'name':'Snake Box', 'probability': 0.005},  # Reduced
+        {'name':'Nothing','probability': 0.9945, 'imageFilename': 'placeholder_nothing.png'} # Increased
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'lolpop','name':'Lol Pop Stash','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg','priceTON':2.0,'prizes': sorted([
         {'name':'Plush Pepe','probability':0.0000001},
-        {'name':'Neko Helmet','probability':0.000001},
-        {'name':'Snake Box', 'probability': 0.00005},
-        {'name':'Pet Snake', 'probability': 0.00005},
-        {'name':'Skull Flower','probability':0.00005},
-        {'name':'Xmas Stocking', 'probability': 0.00005},
-        {'name':'Spiced Wine','probability':0.00005},
+        {'name':'Neko Helmet','probability':0.00001}, # Price 15 > 2
+        {'name':'Snake Box', 'probability': 0.0005},   # Price 3.3 > 2
+        {'name':'Pet Snake', 'probability': 0.0005},   # Price 3.2 > 2
+        {'name':'Skull Flower','probability':0.0005}, # Price 3.4 > 2
+        # Cheaper items become fillers, their original probabilities are small anyway, RTP will boost them.
+        {'name':'Xmas Stocking', 'probability': 0.05}, # Price 2.5 > 2, reduce
+        {'name':'Spiced Wine','probability':0.05},     # Price 2.2 > 2, reduce
+        # Items <= case price (2.0 TON) - probabilities can be higher
         {'name':'Party Sparkler','probability':0.1},
         {'name':'Homemade Cake','probability':0.1},
         {'name':'Jack-in-the-box','probability':0.1},
@@ -1519,44 +1479,46 @@ cases_data_backend_raw_list = [
         {'name':'Jingle Bells','probability':0.05},
         {'name':'Candy Cane','probability':0.05},
         {'name':'Lunar Snake','probability':0.05},
-        {'name':'Lol Pop','probability':0.0983899},
-        {'name':'Hypno Lollipop','probability':0.1},
+        {'name':'Lol Pop','probability':0.1}, # Main filler, price 1.1
+        {'name':'Hypno Lollipop','probability':0.0484899}, # Main filler, price 1.4
         {'name':'Desk Calendar','probability':0.05},
         {'name':'B-Day Candle','probability':0.05}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'recordplayer','name':'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':3.0,'prizes': sorted([
         {'name':'Plush Pepe','probability':0.0000001},
-        {'name':'Tama Gadget','probability':0.001},
-        {'name':'Snow Globe','probability':0.001},
-        {'name':'Record Player','probability':0.001},
-        {'name':'Big Year', 'probability': 0.001},
-        {'name':'Jelly Bunny','probability':0.001},
-        {'name':'Snake Box', 'probability': 0.001},
-        {'name':'Crystal Ball','probability':0.001},
-        {'name':'Evil Eye','probability':0.001},
-        {'name':'Flying Broom','probability':0.001},
-        {'name':'Skull Flower','probability':0.001},
-        {'name':'Pet Snake', 'probability': 0.005},
-        {'name':'Eternal Candle','probability':0.005},
-        {'name':'Hex Pot','probability':0.1},
+        {'name':'Tama Gadget','probability':0.001}, # Price 4 > 3
+        {'name':'Snow Globe','probability':0.001}, # Price 4 > 3
+        {'name':'Record Player','probability':0.001}, # Price 4 > 3
+        {'name':'Big Year', 'probability': 0.001}, # Price 4.4 > 3
+        {'name':'Jelly Bunny','probability':0.001}, # Price 3.6 > 3
+        {'name':'Snake Box', 'probability': 0.001}, # Price 3.3 > 3
+        {'name':'Crystal Ball','probability':0.001},# Price 6 > 3
+        {'name':'Evil Eye','probability':0.001},    # Price 4.2 > 3
+        {'name':'Flying Broom','probability':0.001},# Price 4.5 > 3
+        {'name':'Skull Flower','probability':0.001},# Price 3.4 > 3
+        # Cheaper items are fillers
+        {'name':'Pet Snake', 'probability': 0.05},  # Price 3.2 > 3, reduce slightly
+        {'name':'Eternal Candle','probability':0.05},# Price 3.1 > 3, reduce slightly
+        {'name':'Hex Pot','probability':0.1},       # Price 3.1 > 3, reduce slightly
         {'name':'Xmas Stocking', 'probability': 0.1},
         {'name':'Snow Mittens','probability':0.1},
-        {'name':'Spy Agaric','probability':0.0809999},
+        {'name':'Spy Agaric','probability':0.1},
         {'name':'Star Notepad','probability':0.1},
-        {'name':'Ginger Cookie','probability':0.1},
-        {'name':'Party Sparkler','probability':0.15},
+        {'name':'Ginger Cookie','probability':0.091},
+        {'name':'Party Sparkler','probability':0.1},
         {'name':'Lol Pop','probability':0.15},
-        {'name':'Hypno Lollipop','probability':0.1}
+        {'name':'Hypno Lollipop','probability':0.15}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id': 'girls_collection', 'name': 'Girl\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg', 'priceTON': 8.0, 'prizes': sorted([
-        {'name': 'Loot Bag', 'probability': 0.00001},
-        {'name': 'Genie Lamp', 'probability': 0.00001},
-        {'name': 'Sharp Tongue', 'probability': 0.00001},
-        {'name': 'Neko Helmet', 'probability': 0.00001},
-        {'name': 'Toy Bear', 'probability': 0.00001},
-        {'name': 'Eternal Rose', 'probability': 0.0001},
+        {'name': 'Loot Bag', 'probability': 0.00001}, # 25 > 8
+        {'name': 'Genie Lamp', 'probability': 0.00001},# 19.3 > 8
+        {'name': 'Sharp Tongue', 'probability': 0.00001},# 17 > 8
+        {'name': 'Neko Helmet', 'probability': 0.00001},# 15 > 8
+        {'name': 'Toy Bear', 'probability': 0.00001},  # 16.3 > 8
+        {'name': 'Eternal Rose', 'probability': 0.0001},# 11 > 8
+        # Fillers (all <= 8)
         {'name': 'Berry Box', 'probability': 0.2},
         {'name': 'Sakura Flower', 'probability': 0.2},
         {'name': 'Bunny Muffin', 'probability': 0.19985},
@@ -1565,141 +1527,137 @@ cases_data_backend_raw_list = [
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id': 'mens_collection', 'name': 'Men\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/men.jpg', 'priceTON': 8.0, 'prizes': sorted([
-        {'name': 'Durov\'s Cap', 'probability': 0.000001},
-        {'name': 'Mini Oscar', 'probability': 0.00001},
-        {'name': 'Perfume Bottle', 'probability': 0.00001},
-        {'name': 'Scared Cat', 'probability': 0.0001},
-        {'name': 'Vintage Cigar', 'probability': 0.0001},
-        {'name': 'Signet Ring','probability':0.0001},
-        {'name':'Swiss Watch','probability':0.0001},
-        {'name':'Top Hat','probability':0.3},
-        {'name':'Record Player','probability':0.3},
-        {'name':'Spiced Wine','probability':0.399579}
+        {'name': 'Durov\'s Cap', 'probability': 0.000001}, # 251 > 8
+        {'name': 'Mini Oscar', 'probability': 0.00001},  # 40.5 > 8
+        {'name': 'Perfume Bottle', 'probability': 0.00001},# 38.3 > 8
+        {'name': 'Scared Cat', 'probability': 0.0001},   # 22 > 8
+        {'name': 'Vintage Cigar', 'probability': 0.0001},# 19.7 > 8
+        {'name': 'Signet Ring', 'probability': 0.0001},  # 18.8 > 8
+        {'name': 'Swiss Watch', 'probability': 0.0001},  # 18.6 > 8
+        # Fillers (all <= 8)
+        {'name': 'Top Hat', 'probability': 0.3},
+        {'name': 'Record Player', 'probability': 0.3},
+        {'name': 'Spiced Wine', 'probability': 0.399579}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'swisswatch','name':'Swiss Watch Box','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg','priceTON':10.0,'prizes': sorted([
         {'name':'Plush Pepe','probability':0.0000001},
-        {'name':'Signet Ring','probability':0.00001},
-        {'name':'Swiss Watch','probability':0.00001},
-        {'name':'Neko Helmet','probability':0.00001},
-        {'name':'Eternal Rose','probability':0.00005},
-        {'name':'Electric Skull','probability':0.0001},
+        {'name':'Signet Ring','probability':0.00001}, # 18.8 > 10
+        {'name':'Swiss Watch','probability':0.00001}, # 18.6 > 10
+        {'name':'Neko Helmet','probability':0.00001}, # 15 > 10
+        {'name':'Eternal Rose','probability':0.00005},# 11 > 10
+        {'name':'Electric Skull','probability':0.0001},# 10.9 > 10
+        # Fillers (all <= 10)
         {'name':'Voodoo Doll','probability':0.1},
         {'name':'Diamond Ring','probability':0.1},
         {'name':'Love Candle','probability':0.1},
-        {'name':'Mad Pumpkin','probability':0.0998199},
-        {'name':'Sleigh Bell','probability':0.1},
+        {'name':'Mad Pumpkin','probability':0.1},
+        {'name':'Sleigh Bell','probability':0.05},
         {'name':'Top Hat','probability':0.1},
-        {'name':'Trapped Heart','probability':0.1},
+        {'name':'Trapped Heart','probability':0.0998199},
         {'name':'Love Potion','probability':0.1},
-        {'name':'Big Year', 'probability': 0.05},
-        {'name':'Record Player','probability':0.05},
+        {'name':'Big Year', 'probability': 0.1},
+        {'name':'Record Player','probability':0.1},
         {'name':'Snake Box', 'probability': 0.05},
         {'name':'Pet Snake', 'probability': 0.05}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
+    # Kissed Frog case uses the dynamically processed 'kissed_frog_processed_prizes_updated'
+    # which is derived from 'finalKissedFrogPrizesWithConsolation_Python_updated'
+    # The RTP function will take 'finalKissedFrogPrizesWithConsolation_Python_updated' as input.
+    # So, the case definition references the processed variable that your setup creates.
+    # For now, I'm providing the raw input that the RTP function would use.
     {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg',
-     'prizes': finalKissedFrogPrizesWithConsolation_Python
+     'prizes': calculate_rtp_probabilities( # Simulating how backend would process it
+         {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'prizes': finalKissedFrogPrizesWithConsolation_Python},
+         UPDATED_FLOOR_PRICES
+     )
     },
 
     {'id':'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON': 20.0,'prizes': sorted([
+        # Drastically reduced for items > 20 TON
         {'name':'Plush Pepe','probability':0.0000001},
         {'name':'Bonded Ring', 'probability': 0.0000005},
         {'name':'Ion Gem','probability':0.000001},
         {'name':'Perfume Bottle','probability':0.000005},
         {'name':'Magic Potion','probability':0.00001},
         {'name':'Loot Bag','probability':0.00001},
+        # Items <= 20 TON become fillers, Snake Box most prominent
         {'name':'Genie Lamp','probability':0.01},
-        {'name':'Swiss Watch','probability':0.01},
+        {'name':'Swiss Watch','probability':0.01}, # Still higher value, so lower prob
         {'name':'Sharp Tongue','probability':0.02},
         {'name':'Neko Helmet','probability':0.02},
         {'name':'Kissed Frog','probability':0.05},
         {'name':'Electric Skull','probability':0.1},
         {'name':'Diamond Ring','probability':0.1},
-        {'name':'Big Year', 'probability': 0.0899734},
-        {'name':'Snake Box', 'probability': 0.5},
+        {'name':'Big Year', 'probability': 0.1},
+        {'name':'Snake Box', 'probability': 0.4899734}, # Main filler
         {'name':'Pet Snake', 'probability': 0.1}
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'vintagecigar','name':'Vintage Cigar Safe','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg','priceTON':40.0,'prizes': sorted([
         {'name':'Plush Pepe','probability':0.0000001},
-        {'name':'Precious Peach','probability':0.000001},
-        {'name':'Bonded Ring', 'probability': 0.000005},
-        {'name':'Mini Oscar','probability':0.00001},
-        {'name':'Perfume Bottle','probability':0.01},
-        {'name':'Scared Cat','probability':0.1},
-        {'name':'Vintage Cigar','probability':0.1},
-        {'name':'Swiss Watch','probability':0.05},
-        {'name':'Sharp Tongue','probability':0.0899839},
-        {'name':'Genie Lamp','probability':0.1},
-        {'name':'Toy Bear','probability':0.15},
-        {'name':'Neko Helmet','probability':0.1},
-        {'name':'Big Year', 'probability': 0.1},
-        {'name':'Snake Box', 'probability': 0.1},
-        {'name':'Pet Snake', 'probability': 0.1}
+        {'name':'Precious Peach','probability':0.000001}, # 162 > 40
+        {'name':'Bonded Ring', 'probability': 0.000005},  # 60.5 > 40
+        {'name':'Mini Oscar','probability':0.00001},      # 40.5 > 40
+        # Items <= 40 TON
+        {'name':'Perfume Bottle','probability':0.01}, # 38.3 < 40
+        {'name':'Scared Cat','probability':0.1},      # 22 < 40
+        {'name':'Vintage Cigar','probability':0.1},   # 19.7 < 40
+        {'name':'Swiss Watch','probability':0.05},    # 18.6 < 40
+        {'name':'Sharp Tongue','probability':0.1},    # 17 < 40
+        {'name':'Genie Lamp','probability':0.1},      # 19.3 < 40
+        {'name':'Toy Bear','probability':0.1399839},  # 16.3 < 40 - filler
+        {'name':'Neko Helmet','probability':0.1},     # 15 < 40
+        {'name':'Big Year', 'probability': 0.1},      # 4.4 < 40
+        {'name':'Snake Box', 'probability': 0.1},     # 3.3 < 40
+        {'name':'Pet Snake', 'probability': 0.1}      # 3.2 < 40
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'astralshard','name':'Astral Shard Relic','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg','priceTON':100.0,'prizes': sorted([
-        {'name':'Plush Pepe','probability':0.0000001},
-        {'name':'Durov\'s Cap','probability':0.0000005},
-        {'name':'Precious Peach','probability':0.000001},
-        {'name':'Bonded Ring', 'probability': 0.01},
-        {'name':'Astral Shard','probability':0.05},
-        {'name':'Ion Gem','probability':0.05},
-        {'name':'Mini Oscar','probability':0.05},
-        {'name':'Perfume Bottle','probability':0.05},
-        {'name':'Magic Potion','probability':0.05},
-        {'name':'Loot Bag','probability':0.0899984},
-        {'name':'Scared Cat','probability':0.1},
-        {'name':'Vintage Cigar','probability':0.1},
-        {'name':'Swiss Watch','probability':0.1},
-        {'name':'Toy Bear','probability':0.1},
-        {'name':'Neko Helmet','probability':0.1},
-        {'name':'Big Year', 'probability': 0.05},
-        {'name':'Pet Snake', 'probability': 0.05}
+        {'name':'Plush Pepe','probability':0.0000001},    # 1200 > 100
+        {'name':'Durov\'s Cap','probability':0.0000005},   # 251 > 100
+        {'name':'Precious Peach','probability':0.000001}, # 162 > 100
+        # Items <= 100 TON
+        {'name':'Bonded Ring', 'probability': 0.01},      # 60.5 < 100
+        {'name':'Astral Shard','probability':0.05},       # 50 < 100
+        {'name':'Ion Gem','probability':0.05},            # 44 < 100
+        {'name':'Mini Oscar','probability':0.05},         # 40.5 < 100
+        {'name':'Perfume Bottle','probability':0.05},     # 38.3 < 100
+        {'name':'Magic Potion','probability':0.05},       # 33 < 100
+        {'name':'Loot Bag','probability':0.0899984},      # 25 < 100 (filler)
+        {'name':'Scared Cat','probability':0.1},          # 22 < 100
+        {'name':'Vintage Cigar','probability':0.1},       # 19.7 < 100
+        {'name':'Swiss Watch','probability':0.1},         # 18.6 < 100
+        {'name':'Toy Bear','probability':0.1},            # 16.3 < 100
+        {'name':'Neko Helmet','probability':0.1},         # 15 < 100
+        {'name':'Big Year', 'probability': 0.05},         # 4.4 < 100
+        {'name':'Pet Snake', 'probability': 0.05}         # 3.2 < 100
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)},
 
     {'id':'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON': 200.0,'prizes': sorted([
-        {'name':'Plush Pepe','probability':0.000001},
-        {'name':'Durov\'s Cap','probability':0.000005},
-        {'name':'Precious Peach','probability':0.4},
-        {'name':'Bonded Ring', 'probability': 0.3},
-        {'name':'Astral Shard','probability':0.299994}
+        {'name':'Plush Pepe','probability':0.000001},    # 1200 > 200
+        {'name':'Durov\'s Cap','probability':0.000005},   # 251 > 200
+        # Items <= 200 TON - these become the main prizes
+        {'name':'Precious Peach','probability':0.4},     # 162 < 200
+        {'name':'Bonded Ring', 'probability': 0.3},      # 60.5 < 200
+        {'name':'Astral Shard','probability':0.299994}   # 50 < 200 (filler)
     ], key=lambda p: UPDATED_FLOOR_PRICES.get(p['name'], 0), reverse=True)}
 ]
 
 cases_data_backend = []
-for case_template in cases_data_backend_raw_list:
+for case_template in cases_data_backend_with_fixed_prices_raw:
     processed_case = {**case_template}
-    if 'priceTON' in case_template: # Only apply RTP to TON cases
-        try:
-            # Re-process the Kissed Frog case to ensure its prizes match the RTP logic
-            if case_template['id'] == 'kissedfrog':
-                processed_case['prizes'] = calculate_rtp_probabilities(
-                    {'id':'kissedfrog','name':'Kissed Frog Pond','priceTON':20.0,'prizes':case_template['prizes']},
-                    UPDATED_FLOOR_PRICES
-                )
-            else:
-                processed_case['prizes'] = calculate_rtp_probabilities(processed_case, UPDATED_FLOOR_PRICES)
-            cases_data_backend.append(processed_case)
-        except Exception as e:
-            case_id = case_template.get('id', 'N/A')
-            case_name = case_template.get('name', 'Unnamed Case')
-            logger.error(f"Failed to process TON case '{case_name}' (ID: {case_id}) for RTP. Skipping this case. Error: {e}", exc_info=True)
-    else: # For Star cases, add directly without RTP adjustment
+    try:
+        processed_case['prizes'] = calculate_rtp_probabilities(processed_case, UPDATED_FLOOR_PRICES)
         cases_data_backend.append(processed_case)
-
-# Sort cases by custom logic: Star cases first (by priceStars desc), then TON cases (by priceTON desc)
-def sort_cases(case):
-    if 'priceStars' in case:
-        # Give Star cases a higher precedence (e.g., sort key component 1), then sort by priceStars descending
-        return (1, -case['priceStars'])
-    else:
-        # Give TON cases a lower precedence (e.g., sort key component 2), then sort by priceTON descending
-        return (2, -case['priceTON'])
-
-cases_data_backend.sort(key=sort_cases)
-
+    except Exception as e:
+        # Log the error and skip this case if RTP calculation fails
+        case_id = case_template.get('id', 'N/A')
+        case_name = case_template.get('name', 'Unnamed Case')
+        logger.error(f"Failed to process case '{case_name}' (ID: {case_id}) for RTP. Skipping this case. Error: {e}", exc_info=True)
+        # This will cause the case to be 'not found' by the API if requested.
+        # You might want to add a dummy case or a specific error message if this happens frequently.
 
 DEFAULT_SLOT_TON_PRIZES = [
     {'name': "0.1 TON", 'value': 0.1, 'is_ton_prize': True, 'probability': 0.1},
@@ -1778,58 +1736,37 @@ def calculate_and_log_rtp():
     for game_data in all_games_data:
         game_id = game_data['id']
         game_name = game_data['name']
+        price = Decimal(str(game_data['priceTON']))
         
         current_ev = Decimal('0')
-        price = Decimal('0')
 
-        if 'priceTON' in game_data:
-            price = Decimal(str(game_data['priceTON']))
-            if 'prizes' in game_data: # Cases
-                for prize in game_data['prizes']:
-                    prize_value = Decimal(str(UPDATED_FLOOR_PRICES.get(prize['name'], 0)))
-                    current_ev += prize_value * Decimal(str(prize['probability']))
-            elif 'prize_pool' in game_data: # Slots
-                num_reels = Decimal(str(game_data.get('reels_config', 3)))
-                for prize_spec in game_data['prize_pool']:
-                    value = Decimal(str(prize_spec.get('value', prize_spec.get('floorPrice', 0))))
-                    prob_on_reel = Decimal(str(prize_spec.get('probability', 0)))
-
-                    if prize_spec.get('is_ton_prize'):
-                        current_ev += prob_on_reel * value * num_reels
-                    else:
-                        current_ev += (prob_on_reel ** num_reels) * value
-            
-            rtp = (current_ev / price) * 100 if price > 0 else Decimal('0')
-            dev_cut = 100 - rtp if price > 0 else Decimal('0')
-            logger.info(f"TON Game: {game_name:<25} | Price: {price:>6.2f} TON | Est.EV: {current_ev:>6.2f} | Est.RTP: {rtp:>6.2f}% | Est.DevCut: {dev_cut:>6.2f}%")
-            
-            if price > 0:
-                overall_total_ev_weighted_by_price += current_ev * price
-                overall_total_cost_sum += price
-        elif 'priceStars' in game_data:
-            star_price = Decimal(str(game_data['priceStars']))
-            star_ev = Decimal('0')
+        if 'prizes' in game_data:
             for prize in game_data['prizes']:
-                if 'value' in prize: # Star prize
-                    star_ev += Decimal(str(prize['value'])) * Decimal(str(prize['probability']))
-                elif 'floor_price' in prize and prize.get('is_ton_prize', False): # TON prize in a Star case
-                    # Convert TON value to approximate Stars for EV calculation
-                    star_ev += (Decimal(str(prize['floor_price'])) * Decimal(str(STARS_PER_TON))) * Decimal(str(prize['probability']))
-            
-            rtp_stars = (star_ev / star_price) * 100 if star_price > 0 else Decimal('0')
-            dev_cut_stars = 100 - rtp_stars if star_price > 0 else Decimal('0')
-            logger.info(f"STAR Game: {game_name:<25} | Price: {star_price:>6.0f} STARS | Est.EV: {star_ev:>6.0f} STARS | Est.RTP: {rtp_stars:>6.2f}% | Est.DevCut: {dev_cut_stars:>6.2f}%")
-            
-            # For overall RTP, we can convert star price and EV to TON equivalents
-            ton_equiv_price = star_price / Decimal(STARS_PER_TON)
-            ton_equiv_ev = star_ev / Decimal(STARS_PER_TON)
-            if ton_equiv_price > 0:
-                overall_total_ev_weighted_by_price += ton_equiv_ev * ton_equiv_price
-                overall_total_cost_sum += ton_equiv_price
+                prize_value = Decimal(str(UPDATED_FLOOR_PRICES.get(prize['name'], 0)))
+                current_ev += prize_value * Decimal(str(prize['probability']))
+        elif 'prize_pool' in game_data:
+            num_reels = Decimal(str(game_data.get('reels_config', 3)))
+            for prize_spec in game_data['prize_pool']:
+                value = Decimal(str(prize_spec.get('value', prize_spec.get('floorPrice', 0))))
+                prob_on_reel = Decimal(str(prize_spec.get('probability', 0)))
+
+                if prize_spec.get('is_ton_prize'):
+                    current_ev += prob_on_reel * value * num_reels
+                else:
+                    current_ev += (prob_on_reel ** num_reels) * value
+        
+        rtp = (current_ev / price) * 100 if price > 0 else Decimal('0')
+        dev_cut = 100 - rtp if price > 0 else Decimal('0')
+        
+        logger.info(f"Game: {game_name:<25} | Price: {price:>6.2f} TON | Est.EV: {current_ev:>6.2f} | Est.RTP: {rtp:>6.2f}% | Est.DevCut: {dev_cut:>6.2f}%")
+        
+        if price > 0:
+            overall_total_ev_weighted_by_price += current_ev * price
+            overall_total_cost_sum += price
 
     if overall_total_cost_sum > 0:
         weighted_avg_rtp = (overall_total_ev_weighted_by_price / overall_total_cost_sum) * 100
-        logger.info(f"--- Approx. Weighted Avg RTP (by TON equivalent value across all games): {weighted_avg_rtp:.2f}% ---")
+        logger.info(f"--- Approx. Weighted Avg RTP (by price, for priced games): {weighted_avg_rtp:.2f}% ---")
     else:
         logger.info("--- No priced games for overall RTP calculation. ---")
 
@@ -1914,7 +1851,7 @@ def validate_init_data(init_data_str: str, bot_token_for_validation: str) -> dic
                 return None
 
         required_keys = ['hash', 'user', 'auth_date']
-        missing_keys = [k for k in required_data.keys() if k not in parsed_data]
+        missing_keys = [k for k in required_keys if k not in parsed_data]
         if missing_keys:
             logger.warning(f"validate_init_data: Missing keys in parsed_data: {missing_keys}. Parsed: {list(parsed_data.keys())}")
             return None
@@ -2018,10 +1955,6 @@ def get_user_data_api():
             item_name = i.nft.name if i.nft else i.item_name_override
             item_image = i.nft.image_filename if i.nft else i.item_image_override or generate_image_filename_from_name(item_name)
             
-            # Use generic star image for star prizes if no override exists
-            if i.is_star_prize and not i.item_image_override:
-                item_image = "https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp"
-
             inv.append({
                 "id":i.id,
                 "name":item_name,
@@ -2031,7 +1964,6 @@ def get_user_data_api():
                 "upgradeMultiplier":i.upgrade_multiplier,
                 "variant":i.variant,
                 "is_ton_prize":i.is_ton_prize,
-                "is_star_prize": i.is_star_prize,
                 "obtained_at":i.obtained_at.isoformat() if i.obtained_at else None
             })
 
@@ -2065,6 +1997,7 @@ def get_invited_friends_api():
     uid = auth["id"]
     db = next(get_db())
     try:
+        # Find all users who were referred by the current user (uid)
         invited_friends = db.query(User).filter(User.referred_by_id == uid).order_by(User.created_at.desc()).all()
         
         friends_data = []
@@ -2073,6 +2006,7 @@ def get_invited_friends_api():
             friends_data.append({
                 "id": friend.id,
                 "name": display_name
+                # You can add more data here if needed, e.g., friend.created_at
             })
             
         return jsonify(friends_data)
@@ -2096,6 +2030,7 @@ def register_referral_api():
     
     db = next(get_db())
     try:
+        # Find or create the user who clicked the link
         referred_user = db.query(User).filter(User.id == user_id).first()
         if not referred_user:
             new_referral_code_for_user = f"ref_{user_id}_{random.randint(1000,9999)}"
@@ -2116,40 +2051,51 @@ def register_referral_api():
             if referred_user.first_name != first_name: referred_user.first_name = first_name
             if referred_user.last_name != last_name: referred_user.last_name = last_name
         
+        # Check if the user was already referred
         if referred_user.referred_by_id:
             db.commit()
             return jsonify({"status": "already_referred", "message": "User was already referred."}), 200
 
+        # Find the referrer (the user who owns the code)
         referrer = db.query(User).filter(User.referral_code == referral_code_used).first()
         if not referrer:
             db.commit()
             return jsonify({"error": "Referrer not found with this code."}), 404
         
+        # Prevent self-referral
         if referrer.id == referred_user.id:
             db.commit()
             return jsonify({"error": "Cannot refer oneself."}), 400
 
+        # Establish the referral link
         referred_user.referred_by_id = referrer.id
         
-        if bot:
+        # --- NEW: Send notification to the referrer ---
+        if bot: # Check if the bot instance is initialized
             try:
+                # Get a clean display name for the new user
                 new_user_display_name = referred_user.first_name or referred_user.username or f"User #{str(referred_user.id)[:6]}"
                 
+                # Construct the notification message
                 notification_message = (
-                    f"🎉 <b>New Referral!</b> 🎉\n\n"
-                    f"A new friend, <b>{new_user_display_name}</b>, has joined using your referral link.\n\n"
-                    f"You will earn <b>10%</b> from their deposits!"
+                    f"🎉 *New Referral!* 🎉\n\n"
+                    f"A new friend, *{new_user_display_name}*, has joined using your referral link.\n\n"
+                    f"You will earn *10%* from their deposits!"
                 )
                 
+                # Send the message to the referrer
                 bot.send_message(
-                    chat_id=referrer.id,
+                    chat_id=referrer.id,  # This is the user ID of the person who gets the notification
                     text=notification_message,
-                    parse_mode="HTML"
+                    parse_mode="Markdown"
                 )
                 logger.info(f"Sent referral notification to referrer {referrer.id} for new user {referred_user.id}.")
 
             except Exception as e_notify:
+                # Log the error but don't fail the entire transaction.
+                # This can happen if the referrer has blocked the bot.
                 logger.error(f"Failed to send referral notification to user {referrer.id}. Reason: {e_notify}")
+        # --- End of new notification logic ---
 
         db.commit()
         logger.info(f"User {user_id} successfully referred by {referrer.id} using code {referral_code_used}")
@@ -2166,6 +2112,7 @@ def register_referral_api():
     finally:
         db.close()
 
+# NEW API Endpoint to fetch gift listings
 @app.route('/api/tonnel_gift_listings/<int:inventory_item_id>', methods=['GET'])
 def get_tonnel_gift_listings_api(inventory_item_id):
     auth_user_data = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
@@ -2175,7 +2122,7 @@ def get_tonnel_gift_listings_api(inventory_item_id):
     player_user_id = auth_user_data["id"]
     db = next(get_db())
     tonnel_client = None
-    loop = None
+    loop = None # Initialize loop to None
 
     try:
         item_to_withdraw = db.query(InventoryItem).filter(
@@ -2185,8 +2132,8 @@ def get_tonnel_gift_listings_api(inventory_item_id):
 
         if not item_to_withdraw:
             return jsonify({"error": "Item not found in your inventory."}), 404
-        if item_to_withdraw.is_ton_prize or item_to_withdraw.is_star_prize: # Added is_star_prize check
-            return jsonify({"error": "TON/Star prizes cannot be listed for Tonnel withdrawal."}), 400
+        if item_to_withdraw.is_ton_prize:
+            return jsonify({"error": "TON prizes cannot be listed for Tonnel withdrawal."}), 400
             
         item_name_for_tonnel = item_to_withdraw.item_name_override or (item_to_withdraw.nft.name if item_to_withdraw.nft else None)
         if not item_name_for_tonnel:
@@ -2196,7 +2143,7 @@ def get_tonnel_gift_listings_api(inventory_item_id):
         if not TONNEL_SENDER_INIT_DATA or not TONNEL_GIFT_SECRET:
             return jsonify({"error": "Withdrawal service configuration error."}), 503
 
-        loop = asyncio.new_event_loop()
+        loop = asyncio.new_event_loop() # Create loop before using client
         asyncio.set_event_loop(loop)
 
         tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
@@ -2209,6 +2156,7 @@ def get_tonnel_gift_listings_api(inventory_item_id):
 
     except Exception as e:
         logger.error(f"Error fetching Tonnel gift listings for item {inventory_item_id}, user {player_user_id}: {e}", exc_info=True)
+        # Attempt to close client session even on error, if client was initialized
         if tonnel_client and loop and not loop.is_closed():
             try:
                 loop.run_until_complete(tonnel_client._close_session_if_open())
@@ -2216,56 +2164,18 @@ def get_tonnel_gift_listings_api(inventory_item_id):
                 logger.error(f"Exception during Tonnel session close on error path: {e_close_on_error}")
         return jsonify({"error": "Server error fetching gift listings."}), 500
     finally:
+        # Close client session if initialized and loop is available and not closed
         if tonnel_client and loop and not loop.is_closed():
             try:
                 loop.run_until_complete(tonnel_client._close_session_if_open())
             except Exception as e_session_close_final:
                 logger.error(f"Exception during final Tonnel session close: {e_session_close_final}")
         
+        # Close the loop if it was created
         if loop and not loop.is_closed():
             loop.close()
         
         db.close()
-
-@app.route('/api/create_star_invoice', methods=['POST'])
-def create_star_invoice_api():
-    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
-    if not auth:
-        return jsonify({"error": "Auth failed"}), 401
-
-    uid = auth["id"]
-    data = flask_request.get_json()
-    case_id = data.get('case_id')
-    
-    if not case_id:
-        return jsonify({"error": "case_id required"}), 400
-
-    target_case = next((c for c in cases_data_backend if c['id'] == case_id), None)
-    if not target_case or 'priceStars' not in target_case:
-        return jsonify({"error": "Star case not found or not a star-based case."}), 404
-
-    price_stars = target_case['priceStars']
-    # Telegram Stars amount is in the smallest units of the currency (1 star = 100 units)
-    amount_in_units = price_stars * 100
-
-    # Payload format: user_id-case_id-timestamp
-    payload = f"{uid}-{case_id}-{int(time.time())}"
-    
-    try:
-        invoice_link = bot.create_invoice_link(
-            title=target_case['name'],
-            description=f"Purchase one '{target_case['name']}' case.",
-            payload=payload,
-            provider_token="", # Must be empty for XTR
-            currency="XTR",
-            prices=[types.LabeledPrice(label=f"{target_case['name']} Case", amount=amount_in_units)]
-        )
-        logger.info(f"Created invoice link for user {uid}, case {case_id}: {invoice_link}")
-        return jsonify({"status": "success", "invoice_url": invoice_link})
-
-    except Exception as e:
-        logger.error(f"Failed to create invoice link for user {uid}, case {case_id}: {e}", exc_info=True)
-        return jsonify({"error": "Could not create payment link."}), 500
 
 @app.route('/api/open_case', methods=['POST'])
 def open_case_api():
@@ -2280,23 +2190,20 @@ def open_case_api():
 
     if not cid:
         return jsonify({"error": "case_id required"}), 400
-    if multiplier not in [1, 2, 3]:
+    if multiplier not in [1, 2, 3]: # Assuming only 1x, 2x, 3x multipliers are allowed
         return jsonify({"error": "Invalid multiplier. Must be 1, 2, or 3."}), 400
     
-    target_case = next((c for c in cases_data_backend if c['id'] == cid), None)
-    if not target_case:
-        return jsonify({"error": "Case not found"}), 404
-
-    if 'priceStars' in target_case:
-        return jsonify({"error": "This case requires payment in Stars. Please use the correct payment flow (create_star_invoice)."}), 400
-
     db = next(get_db())
     try:
         user = db.query(User).filter(User.id == uid).with_for_update().first()
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        base_cost = Decimal(str(target_case['priceTON']))
+        tcase = next((c for c in cases_data_backend if c['id'] == cid), None)
+        if not tcase:
+            return jsonify({"error": "Case not found"}), 404
+        
+        base_cost = Decimal(str(tcase['priceTON'])) # Cost of a single case opening
         total_cost = base_cost * Decimal(multiplier)
 
         if Decimal(str(user.ton_balance)) < total_cost:
@@ -2304,38 +2211,90 @@ def open_case_api():
         
         user.ton_balance = float(Decimal(str(user.ton_balance)) - total_cost)
         
+        prizes_in_case = tcase['prizes']
         won_prizes_list = []
-        for i in range(multiplier):
-            won_prize_data = _perform_case_opening_backend(user, target_case, db)
-            won_prizes_list.append(won_prize_data)
+        total_value_this_spin_from_all_multiplied_opens = Decimal('0') # To update user.total_won_ton
 
-            # Big Win Notification Logic (only for TON cases, for items won)
-            if not won_prize_data.get('is_ton_prize', False) and not won_prize_data.get('is_star_prize', False):
-                actual_val_of_this_prize = Decimal(str(won_prize_data['currentValue']))
-                if base_cost > 0 and actual_val_of_this_prize > (base_cost * Decimal('1.5')):
-                    win_rate_x = (actual_val_of_this_prize / base_cost).quantize(Decimal('0.1'), ROUND_HALF_UP)
-                    
-                    user_handle = auth.get("username")
-                    user_display_name = f"@{user_handle}" if user_handle else auth.get("first_name", "A lucky user")
+        for i in range(multiplier): # Loop for each item in a multi-open
+            rv = random.random()
+            cprob = 0
+            chosen_prize_info = None
 
-                    prize_name_display = won_prize_data['name']
-                    case_name_display = target_case['name']
+            for p_info in prizes_in_case:
+                cprob += p_info['probability']
+                if rv <= cprob:
+                    chosen_prize_info = p_info
+                    break
+            
+            if not chosen_prize_info: # Fallback if somehow no prize is chosen by probability
+                chosen_prize_info = random.choice(prizes_in_case) if prizes_in_case else \
+                                    {'name': "Error Prize", 'floor_price': 0, 'imageFilename': 'placeholder.png', 'is_ton_prize': False}
 
-                    message_to_channel = (
-                        f"🎉 <b>Congratulations!</b> 🎉\n\n"
-                        f"User {user_display_name} won ✨ <b>{prize_name_display}</b> ✨\n"
-                        f"in the 💼 <b>{case_name_display}</b> case!\n\n"
-                        f"Win rate: 🚀 <b>{win_rate_x}x</b>\n\n"
-                        f"@{BOT_USERNAME_FOR_LINK}"
-                    )
-                    try:
-                        if bot:
-                            bot.send_message(BIG_WIN_CHANNEL_ID, message_to_channel, parse_mode="HTML")
-                            logger.info(f"Sent big win notification to channel {BIG_WIN_CHANNEL_ID} for user {uid}, prize {prize_name_display} (value {actual_val_of_this_prize}), case {case_name_display} (cost {base_cost})")
-                        else:
-                            logger.warning("Bot instance not available, cannot send big win notification.")
-                    except Exception as e_channel_msg:
-                        logger.error(f"Failed to send big win message to channel {BIG_WIN_CHANNEL_ID}: {e_channel_msg}")
+
+            dbnft = db.query(NFT).filter(NFT.name == chosen_prize_info['name']).first()
+            
+            # Use floor_price from the processed case data for consistency
+            actual_val_of_this_prize = Decimal(str(chosen_prize_info.get('floor_price', 0))) 
+            
+            variant_name = chosen_prize_info['name'] if chosen_prize_info['name'] in KISSED_FROG_VARIANT_FLOORS else None
+
+            # Create inventory item
+            item = InventoryItem(
+                user_id=uid,
+                nft_id=dbnft.id if dbnft else None,
+                item_name_override=chosen_prize_info['name'],
+                item_image_override=chosen_prize_info.get('imageFilename', generate_image_filename_from_name(chosen_prize_info['name'])),
+                current_value=float(actual_val_of_this_prize.quantize(Decimal('0.01'), ROUND_HALF_UP)),
+                variant=variant_name,
+                is_ton_prize=chosen_prize_info.get('is_ton_prize', False)
+            )
+            db.add(item)
+            db.flush() # To get item.id for the response and potential logging
+
+            won_prizes_list.append({
+                "id": item.id,
+                "name": chosen_prize_info['name'],
+                "imageFilename": item.item_image_override,
+                "floorPrice": float(actual_val_of_this_prize), # The actual value it was won at
+                "currentValue": item.current_value,
+                "variant": item.variant,
+                "is_ton_prize": item.is_ton_prize
+            })
+            
+            total_value_this_spin_from_all_multiplied_opens += actual_val_of_this_prize
+
+            # --- Big Win Notification Logic ---
+            if base_cost > 0 and actual_val_of_this_prize > (base_cost * Decimal('1.5')):
+                win_rate_x = (actual_val_of_this_prize / base_cost).quantize(Decimal('0.1'), ROUND_HALF_UP)
+                
+                user_handle = auth.get("username")
+                if user_handle:
+                    user_display_name = f"@{user_handle}"
+                else:
+                    user_display_name = auth.get("first_name", "A lucky user")
+
+                prize_name_display = chosen_prize_info['name']
+                case_name_display = tcase['name']
+
+                message_to_channel = (
+                    f"🎉 *Congratulations!* 🎉\n\n"
+                    f"User {user_display_name} won ✨ *{prize_name_display}* ✨\n"
+                    f"in the 💼 *{case_name_display}* case!\n\n"
+                    f"Win rate: 🚀 *{win_rate_x}x*\n\n"
+                    f"@{BOT_USERNAME_FOR_LINK}"
+                )
+                try:
+                    if bot: # Ensure bot instance is available
+                        bot.send_message(BIG_WIN_CHANNEL_ID, message_to_channel, parse_mode="Markdown")
+                        logger.info(f"Sent big win notification to channel {BIG_WIN_CHANNEL_ID} for user {uid}, prize {prize_name_display} (value {actual_val_of_this_prize}), case {case_name_display} (cost {base_cost})")
+                    else:
+                        logger.warning("Bot instance not available, cannot send big win notification.")
+                except Exception as e_channel_msg:
+                    logger.error(f"Failed to send big win message to channel {BIG_WIN_CHANNEL_ID}: {e_channel_msg}")
+            # --- End Big Win Notification Logic ---
+
+        # Update user's total winnings metric
+        user.total_won_ton = float(Decimal(str(user.total_won_ton)) + total_value_this_spin_from_all_multiplied_opens)
         
         db.commit()
         return jsonify({
@@ -2403,7 +2362,6 @@ def spin_slot_api():
                 "name": landed_symbol_spec['name'],
                 "imageFilename": landed_symbol_spec.get('imageFilename', generate_image_filename_from_name(landed_symbol_spec['name'])),
                 "is_ton_prize": landed_symbol_spec.get('is_ton_prize', False),
-                "is_star_prize": landed_symbol_spec.get('is_star_prize', False),
                 "currentValue": landed_symbol_spec.get('value', landed_symbol_spec.get('floorPrice', 0))
             })
             
@@ -2421,13 +2379,12 @@ def spin_slot_api():
                     "name": landed_item_data['name'],
                     "imageFilename": landed_item_data.get('imageFilename', TON_PRIZE_IMAGE_DEFAULT),
                     "currentValue": float(ton_val),
-                    "is_ton_prize": True,
-                    "is_star_prize": False
+                    "is_ton_prize": True
                 })
         
         if num_reels == 3 and len(reel_results_data) == 3:
             first_symbol = reel_results_data[0]
-            if not first_symbol.get('is_ton_prize') and not first_symbol.get('is_star_prize') and \
+            if not first_symbol.get('is_ton_prize') and \
                first_symbol['name'] == reel_results_data[1]['name'] and \
                first_symbol['name'] == reel_results_data[2]['name']:
                 
@@ -2443,8 +2400,7 @@ def spin_slot_api():
                         item_image_override=db_nft.image_filename,
                         current_value=float(actual_val.quantize(Decimal('0.01'))),
                         variant=None,
-                        is_ton_prize=False,
-                        is_star_prize=False
+                        is_ton_prize=False
                     )
                     db.add(inv_item)
                     db.flush()
@@ -2456,7 +2412,6 @@ def spin_slot_api():
                         "floorPrice": float(db_nft.floor_price),
                         "currentValue": inv_item.current_value,
                         "is_ton_prize": False,
-                        "is_star_prize": False,
                         "variant": inv_item.variant
                     })
                     total_value_this_spin += actual_val
@@ -2514,8 +2469,8 @@ def upgrade_item_api():
     db = next(get_db())
     try:
         item = db.query(InventoryItem).filter(InventoryItem.id == iid_int, InventoryItem.user_id == uid).with_for_update().first()
-        if not item or item.is_ton_prize or item.is_star_prize: # Added is_star_prize check
-            return jsonify({"error": "Item not found in your inventory or cannot be upgraded (TON/Star prizes)."}) if item else jsonify({"error": "Item not found in your inventory."}), 404
+        if not item or item.is_ton_prize:
+            return jsonify({"error": "Item not found in your inventory or cannot be upgraded."}), 404
         
         user = db.query(User).filter(User.id == uid).with_for_update().first()
         if not user:
@@ -2593,13 +2548,14 @@ def upgrade_item_v2_api():
 
         if not item_to_upgrade:
             return jsonify({"error": "Item to upgrade not found in your inventory."}), 404
-        if item_to_upgrade.is_ton_prize or item_to_upgrade.is_star_prize:
-            return jsonify({"error": "TON/Star prizes cannot be upgraded."}), 400
+        if item_to_upgrade.is_ton_prize:
+            return jsonify({"error": "TON prizes cannot be upgraded."}), 400
 
         value_of_item_to_upgrade = Decimal(str(item_to_upgrade.current_value))
         if value_of_item_to_upgrade <= Decimal('0'):
             return jsonify({"error": "Item to upgrade has no value or invalid value."}), 400
 
+        # Fetch desired NFT data from the NFT table (source of truth for floor prices)
         desired_nft_data = db.query(NFT).filter(NFT.name == desired_item_name_str).first()
         if not desired_nft_data:
             return jsonify({"error": f"Desired item '{desired_item_name_str}' not found as an upgradable NFT."}), 404
@@ -2609,12 +2565,23 @@ def upgrade_item_v2_api():
         if value_of_desired_item <= value_of_item_to_upgrade:
             return jsonify({"error": "Desired item must have a higher value than your current item."}), 400
 
+        # Server-side calculation of multiplier (X) and chance
+        # X represents how many times more valuable the desired item is
         calculated_x = value_of_desired_item / value_of_item_to_upgrade
+        
+        # Effective X for chance calculation, must be > 1
+        # (e.g., if desired is 1.0001 times more, X_eff is 1.01 to ensure some risk factor application)
         x_effective = max(Decimal('1.01'), calculated_x) 
 
+        # Chance formula: MaxChance * (RiskFactor ^ (X_effective - 1))
+        # The -1 ensures that if X_effective is 1 (meaning same value, though filtered out), RiskFactor isn't applied, giving MaxChance.
+        # For X_effective > 1, RiskFactor is applied exponentially.
         chance_decimal_raw = UPGRADE_MAX_CHANCE * (UPGRADE_RISK_FACTOR ** (x_effective - Decimal('1')))
+        
+        # Clamp the chance between MinChance and MaxChance
         server_calculated_chance = min(UPGRADE_MAX_CHANCE, max(UPGRADE_MIN_CHANCE, chance_decimal_raw))
         
+        # Perform the roll
         roll = Decimal(str(random.uniform(0, 100)))
         is_success = roll < server_calculated_chance
         
@@ -2622,26 +2589,28 @@ def upgrade_item_v2_api():
                                       (item_to_upgrade.nft.name if item_to_upgrade.nft else "Unknown Item")
 
         if is_success:
+            # Calculate net change in value for total_won_ton
             net_value_increase = value_of_desired_item - value_of_item_to_upgrade
             user.total_won_ton = float(Decimal(str(user.total_won_ton)) + net_value_increase)
 
+            # Delete old item
             db.delete(item_to_upgrade)
-            db.flush()
+            db.flush() # Ensure delete happens before adding new, if any constraints
 
+            # Create new upgraded item
             new_upgraded_item = InventoryItem(
                 user_id=user.id,
                 nft_id=desired_nft_data.id,
                 item_name_override=desired_nft_data.name,
                 item_image_override=desired_nft_data.image_filename or generate_image_filename_from_name(desired_nft_data.name),
-                current_value=float(value_of_desired_item),
-                upgrade_multiplier=1.0,
-                is_ton_prize=False,
-                is_star_prize=False,
-                variant=None
+                current_value=float(value_of_desired_item), # New item starts at its base floor price
+                upgrade_multiplier=1.0, # Reset upgrade multiplier for the new item
+                is_ton_prize=False, # Upgraded items are not TON prizes
+                variant=None # Assuming base NFTs don't have variants unless specified
             )
             db.add(new_upgraded_item)
             db.commit()
-            db.refresh(new_upgraded_item)
+            db.refresh(new_upgraded_item) # Get ID and other defaults
 
             logger.info(f"User {player_user_id} UPGRADED item ID {inventory_item_id} ({name_of_item_being_upgraded} @ {value_of_item_to_upgrade} TON) "
                         f"to {desired_nft_data.name} (@ {value_of_desired_item} TON). "
@@ -2656,11 +2625,12 @@ def upgrade_item_v2_api():
                     "imageFilename": new_upgraded_item.item_image_override,
                     "currentValue": new_upgraded_item.current_value,
                     "is_ton_prize": new_upgraded_item.is_ton_prize,
-                    "is_star_prize": new_upgraded_item.is_star_prize,
                     "variant": new_upgraded_item.variant,
+                    # Add other fields frontend might expect for consistency
                 }
             })
-        else:
+        else: # Upgrade failed
+            # Item is lost, adjust total_won_ton by subtracting its value
             user.total_won_ton = float(max(Decimal('0'), Decimal(str(user.total_won_ton)) - value_of_item_to_upgrade))
             
             db.delete(item_to_upgrade)
@@ -2717,8 +2687,6 @@ def convert_to_ton_api():
             return jsonify({"error": "Item not found in your inventory."}), 404
         if item.is_ton_prize:
             return jsonify({"error": "Cannot convert a TON prize item (it's already TON)."}), 400
-        if item.is_star_prize: # Star prizes have a separate conversion endpoint
-            return jsonify({"error": "This is a Star prize. Use 'Convert to TON' for stars."}), 400
             
         val_to_add = Decimal(str(item.current_value))
         user.ton_balance = float(Decimal(str(user.ton_balance)) + val_to_add)
@@ -2741,104 +2709,6 @@ def convert_to_ton_api():
     finally:
         db.close()
 
-@app.route('/api/add_stars_to_balance', methods=['POST'])
-def add_stars_to_balance_api():
-    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
-    if not auth:
-        return jsonify({"error": "Auth failed"}), 401
-    
-    uid = auth["id"]
-    data = flask_request.get_json()
-    item_id = data.get('inventory_item_id')
-
-    if not item_id:
-        return jsonify({"error": "inventory_item_id required."}), 400
-    try:
-        item_id_int = int(item_id)
-    except ValueError:
-        return jsonify({"error": "Invalid inventory_item_id format."}), 400
-
-    db = next(get_db())
-    try:
-        user = db.query(User).filter(User.id == uid).with_for_update().first()
-        item = db.query(InventoryItem).filter(InventoryItem.id == item_id_int, InventoryItem.user_id == uid).first()
-
-        if not user or not item:
-            return jsonify({"error": "User or item not found."}), 404
-        if not item.is_star_prize:
-            return jsonify({"error": "This is not a Star prize. Cannot add to star balance."}), 400
-
-        star_amount = int(item.current_value) # Star values are integers
-        user.star_balance = (user.star_balance or 0) + star_amount
-        
-        item_name_converted = item.item_name_override # Use override for simple name
-
-        db.delete(item)
-        db.commit()
-        
-        return jsonify({
-            "status": "success",
-            "message": f"{star_amount} Stars added to your balance.",
-            "new_star_balance": user.star_balance,
-            "item_name": item_name_converted
-        })
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error adding stars to balance for user {uid}: {e}", exc_info=True)
-        return jsonify({"error": "Database error during star conversion."}), 500
-    finally:
-        db.close()
-
-@app.route('/api/convert_star_to_ton', methods=['POST'])
-def convert_star_to_ton_api():
-    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
-    if not auth:
-        return jsonify({"error": "Auth failed"}), 401
-    
-    uid = auth["id"]
-    data = flask_request.get_json()
-    item_id = data.get('inventory_item_id')
-    
-    if not item_id:
-        return jsonify({"error": "inventory_item_id required."}), 400
-    try:
-        item_id_int = int(item_id)
-    except ValueError:
-        return jsonify({"error": "Invalid inventory_item_id format."}), 400
-
-    db = next(get_db())
-    try:
-        user = db.query(User).filter(User.id == uid).with_for_update().first()
-        item = db.query(InventoryItem).filter(InventoryItem.id == item_id_int, InventoryItem.user_id == uid).first()
-        
-        if not user or not item:
-            return jsonify({"error": "User or item not found."}), 404
-        if not item.is_star_prize:
-            return jsonify({"error": "This is not a Star prize. Cannot convert to TON."}), 400
-        
-        star_amount = Decimal(str(item.current_value))
-        ton_amount = (star_amount / Decimal(STARS_PER_TON)).quantize(Decimal('0.00001'), rounding=ROUND_HALF_UP) # High precision for conversion
-        
-        user.ton_balance = float(Decimal(str(user.ton_balance)) + ton_amount)
-        
-        item_name_converted = item.item_name_override # Use override for simple name
-
-        db.delete(item)
-        db.commit()
-        
-        return jsonify({
-            "status": "success",
-            "message": f"{int(star_amount)} Stars converted to {float(ton_amount):.5f} TON.",
-            "new_ton_balance": user.ton_balance,
-            "item_name": item_name_converted
-        })
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error converting stars to TON for user {uid}: {e}", exc_info=True)
-        return jsonify({"error": "Database error during star/TON conversion."}), 500
-    finally:
-        db.close()
-
 @app.route('/api/sell_all_items', methods=['POST'])
 def sell_all_items_api():
     auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
@@ -2852,32 +2722,25 @@ def sell_all_items_api():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        items_to_sell_ton = [item_obj for item_obj in user.inventory if not item_obj.is_ton_prize and not item_obj.is_star_prize]
-        items_to_sell_star = [item_obj for item_obj in user.inventory if item_obj.is_star_prize]
-        
-        if not items_to_sell_ton and not items_to_sell_star:
+        items_to_sell = [item_obj for item_obj in user.inventory if not item_obj.is_ton_prize]
+        if not items_to_sell:
             return jsonify({"status":"no_items","message":"No sellable items in your collection to convert."})
             
-        total_value_from_sell_ton = sum(Decimal(str(i_sell.current_value)) for i_sell in items_to_sell_ton)
-        total_value_from_sell_star = sum(Decimal(str(i_sell.current_value)) for i_sell in items_to_sell_star)
-
-        user.ton_balance = float(Decimal(str(user.ton_balance)) + total_value_from_sell_ton + (total_value_from_sell_star / Decimal(STARS_PER_TON)).quantize(Decimal('0.00001'), rounding=ROUND_HALF_UP))
-        user.star_balance = int(Decimal(str(user.star_balance)) + total_value_from_sell_star)
+        total_value_from_sell = sum(Decimal(str(i_sell.current_value)) for i_sell in items_to_sell)
+        user.ton_balance = float(Decimal(str(user.ton_balance)) + total_value_from_sell)
         
-        num_items_sold = len(items_to_sell_ton) + len(items_to_sell_star)
+        num_items_sold = len(items_to_sell)
 
-        # total_won_ton reduction should only account for TON-valued items sold
-        user.total_won_ton = float(max(Decimal('0'), Decimal(str(user.total_won_ton)) - total_value_from_sell_ton))
+        user.total_won_ton = float(max(Decimal('0'), Decimal(str(user.total_won_ton)) - total_value_from_sell))
         
-        for i_del in items_to_sell_ton + items_to_sell_star:
+        for i_del in items_to_sell:
             db.delete(i_del)
         
         db.commit()
         return jsonify({
             "status":"success",
-            "message":f"All {num_items_sold} sellable items converted. Received {total_value_from_sell_ton:.2f} TON and {total_value_from_sell_star} Stars.",
-            "new_balance_ton":user.ton_balance,
-            "new_star_balance":user.star_balance
+            "message":f"All {num_items_sold} sellable items converted for a total of {total_value_from_sell:.2f} TON.",
+            "new_balance_ton":user.ton_balance
         })
     except Exception as e:
         db.rollback()
@@ -2919,12 +2782,11 @@ def initiate_deposit_api():
         ).first()
 
         if existing_pending_deposit:
-            amount_to_send_display = f"{existing_pending_deposit.final_amount_nano_ton / 1e9:.9f}".rstrip('0').rstrip('.')
             return jsonify({
                 "error": "You already have an active deposit. Please wait for it to expire or complete.",
                 "pending_deposit_id": existing_pending_deposit.id,
                 "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW,
-                "amount_to_send": amount_to_send_display,
+                "amount_to_send": f"{existing_pending_deposit.final_amount_nano_ton / 1e9:.9f}".rstrip('0').rstrip('.'),
                 "final_amount_nano_ton": existing_pending_deposit.final_amount_nano_ton,
                 "comment": existing_pending_deposit.expected_comment,
                 "expires_at": existing_pending_deposit.expires_at.isoformat()
@@ -3019,7 +2881,7 @@ async def check_blockchain_for_deposit(pdep: PendingDeposit, db_sess: SessionLoc
             logger.info(f"Deposit {pdep.id} (TON: {pdep.original_amount_ton}) confirmed and credited to user {usr.id}.")
             return {"status":"success","message":"Deposit confirmed and credited!","new_balance_ton":usr.ton_balance}
         else:
-            if pdep.status == 'pending' and pdep.expires_at <= dt.now(timezone.utc):
+            if pdep.expires_at <= dt.now(timezone.utc) and pdep.status == 'pending':
                 pdep.status = 'expired'
                 db_sess.commit()
                 logger.info(f"Deposit {pdep.id} expired for user {pdep.user_id}.")
@@ -3221,7 +3083,7 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
         
     db = next(get_db())
     tonnel_client = None
-    loop = None
+    loop = None # Initialize loop to None
 
     try:
         item_to_withdraw = db.query(InventoryItem).filter(
@@ -3231,12 +3093,12 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
 
         if not item_to_withdraw:
             return jsonify({"status": "error", "message": "Item not found in your inventory or already withdrawn."}), 404
-        if item_to_withdraw.is_ton_prize or item_to_withdraw.is_star_prize:
-            return jsonify({"status": "error", "message":"TON/Star prizes cannot be withdrawn this way."}), 400
+        if item_to_withdraw.is_ton_prize:
+            return jsonify({"status": "error", "message":"TON prizes cannot be withdrawn this way."}), 400
             
         item_name_withdrawn = item_to_withdraw.item_name_override or (item_to_withdraw.nft.name if item_to_withdraw.nft else "Unknown Item")
 
-        loop = asyncio.new_event_loop()
+        loop = asyncio.new_event_loop() # Create loop before using client
         asyncio.set_event_loop(loop)
         
         tonnel_client = TonnelGiftSender(sender_auth_data=TONNEL_SENDER_INIT_DATA, gift_secret_passphrase=TONNEL_GIFT_SECRET)
@@ -3268,6 +3130,7 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
     except Exception as e:
         db.rollback()
         logger.error(f"Unexpected exception during Tonnel confirm withdrawal. Item Inv ID: {inventory_item_id}, User: {player_user_id}: {e}", exc_info=True)
+        # Attempt to close client session even on error, if client was initialized
         if tonnel_client and loop and not loop.is_closed():
             try:
                 loop.run_until_complete(tonnel_client._close_session_if_open())
@@ -3275,12 +3138,14 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
                 logger.error(f"Exception during Tonnel session close on error path (confirm_withdrawal): {e_close_on_error}")
         return jsonify({"status": "error", "message": "An unexpected server error occurred. Please try again."}), 500
     finally:
+        # Close client session if initialized and loop is available and not closed
         if tonnel_client and loop and not loop.is_closed():
             try:
                 loop.run_until_complete(tonnel_client._close_session_if_open())
             except Exception as e_session_close_final:
                 logger.error(f"Exception during final Tonnel session close (confirm_withdrawal): {e_session_close_final}")
 
+        # Close the loop if it was created
         if loop and not loop.is_closed():
             loop.close()
 
@@ -3289,4 +3154,4 @@ def confirm_tonnel_withdrawal_api(inventory_item_id):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=True)
