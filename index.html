@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -30,13 +30,9 @@
             --main-border-radius: 16px; --button-border-radius: 12px;
             --soft-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25);
             --case-grad-default: linear-gradient(145deg, var(--surface-color), var(--surface-hover-color));
-            --roulette-item-height: 80px;
-            --roulette-visible-items: 3;
-            --single-roulette-row-visual-height: calc(var(--roulette-item-height) * var(--roulette-visible-items) + 20px);
-            /* NEW: Star related colors */
-            --star-color: #FFD700; /* Gold color for stars */
-            --star-gradient-start: #FFD700;
-            --star-gradient-end: #FFA500;
+            --roulette-item-height: 80px; /* Height of a single item in the roulette */
+            --roulette-visible-items: 3; /* How many items are roughly visible */
+            --single-roulette-row-visual-height: calc(var(--roulette-item-height) * var(--roulette-visible-items) + 20px); /* Total height for one reel to show N items + padding */
         }
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -84,13 +80,7 @@
         .case-name { font-weight: 600; font-size: 1.05em; margin-bottom: 8px; color: var(--text-primary); min-height: 2.5em; display: flex; align-items: center; justify-content: center; }
         .case-card .case-name { display: none !important; }
         .case-price { font-size: 0.95em; font-weight: 600; color: var(--text-primary); padding: 12px 0; background-color: rgba(0,0,0,0.2); width: 100%; border-top: 1px solid var(--border-color); }
-        /* NEW: Star case price styling */
-        .case-price.stars {
-            color: var(--star-color);
-            background: linear-gradient(90deg, rgba(255,215,0,0.15), rgba(255,165,0,0.15));
-            border-top: 1px solid rgba(255,215,0,0.3);
-        }
-
+        
         .slot-card { background-image: var(--case-grad-default); border-radius: var(--main-border-radius); padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s ease; border: 1px solid var(--border-color); overflow: hidden; position: relative; }
         .slot-card:hover { filter: brightness(1.12); transform: translateY(-6px) scale(1.02); box-shadow: var(--soft-shadow); }
         .slot-image-display { width: 85px; height: 85px; margin: 0 auto 18px auto; background-color: transparent; border-radius: var(--button-border-radius); overflow: hidden; position: relative; display:flex; align-items:center; justify-content:center;}
@@ -98,18 +88,6 @@
         .slot-name { font-weight: 600; font-size: 1.05em; margin-bottom: 8px; color: var(--text-primary); min-height: 2.5em; display: flex; align-items: center; justify-content: center; }
         .slot-price { font-size: 0.9em; font-weight: 500; color: var(--text-price-color); }
         #profile-balance-display { font-size: 1.6em; font-weight: 600; color: var(--primary-color); margin-bottom: 20px; }
-        /* NEW: Star balance display */
-        #profile-star-balance-display {
-            font-size: 1.6em; font-weight: 600;
-            color: var(--star-color);
-            margin-bottom: 20px;
-            display: flex; align-items: center; justify-content: center;
-            gap: 8px;
-        }
-        #profile-star-balance-display img {
-            width: 28px; height: 28px;
-            object-fit: contain;
-        }
         
         .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(10, 10, 20, 0.75); backdrop-filter: blur(12px) saturate(150%); -webkit-backdrop-filter: blur(12px) saturate(150%); overflow-y: auto; align-items: flex-start; justify-content: center; padding-top: 5vh; padding-bottom: 5vh; }
         .modal.active { display: flex; animation: modalFadeInMinimal 0.3s ease-out; }
@@ -132,7 +110,7 @@
         #win-overlay-prize-image, #upgrade-result-image-container { width: 100%; min-height: 80px; margin: 0 auto 20px; border-radius: var(--main-border-radius); background-color: var(--surface-hover-color); display:flex; align-items:center; justify-content:center; overflow:hidden; flex-wrap: wrap; gap: 10px; padding: 10px; }
         #win-overlay-prize-image img, #upgrade-result-image-container img { max-width:70px; max-height:70px; object-fit:contain; border-radius: 8px; background-color: var(--surface-color); padding: 5px; border: 1px solid var(--border-color); }
         #win-overlay-prize-name, #upgrade-result-title { font-size: 1.5em; font-weight: 700; margin-bottom: 8px; }
-        #win-overlay-prize-name { color: var(--success-color); }
+        #win-overlay-prize-name { color: var(--success-color); } /* Only for win overlay */
         #win-overlay-prize-details, #upgrade-result-message { font-size: 0.9em; color: var(--text-secondary); margin-bottom: 25px; max-height: 60px; overflow-y: auto; text-align: left; padding-left: 10px;}
         .win-overlay-actions button { margin-bottom: 10px; }
         
@@ -142,15 +120,11 @@
         .prize-card-image-placeholder img { display: block; width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1; }
         .prize-card-name { font-size: 0.8em; font-weight: 500; color: var(--text-secondary); line-height: 1.25; width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; white-space: normal; }
         .prize-card-price { position: absolute; top: 5px; right: 5px; background-color: var(--primary-color); color: var(--text-primary); font-size: 0.7em; font-weight: 600; padding: 2px 5px; border-radius: 5px; line-height: 1; }
-        /* NEW: Star price display for prize cards */
-        .prize-card-price.stars {
-            background-color: var(--star-color);
-            color: #333; /* Darker text for readability on gold */
-        }
         #roulette-modal hr { border: none; border-top: 1px solid var(--border-color); margin: 18px 0; flex-shrink: 0; }
         #roulette-modal h4 { font-size: 0.95em; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500; flex-shrink: 0; }
         
         #slot-machine-modal .modal-content { max-width: 480px; }
+        /* ... (existing slot styles, keep if slots feature is still there) ... */
         
         #withdraw-modal .modal-step { display: none; } #withdraw-modal .modal-step.active { display: block; } #withdraw-modal p { color: var(--text-secondary); margin-bottom: 18px; line-height: 1.55;} #withdraw-modal strong { color: var(--text-primary); font-weight: 600; } #withdraw-modal a.button { margin-bottom: 12px; text-decoration: none; }
         .loader { border: 4px solid var(--surface-hover-color); border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin: 22px auto; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -159,23 +133,6 @@
         #profile-wallet-address { display: block; text-align: left; word-break: break-all; margin-bottom: 10px; }
         .inventory-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(115px, 1fr)); gap: 12px; } .inventory-item { background-color: var(--surface-hover-color); border-radius: var(--button-border-radius); padding: 12px; text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s; } .inventory-item:hover { transform: translateY(-3px); box-shadow: 0 3px 10px rgba(0,0,0,0.15); } .inventory-item .item-image-display { width: 65px; height: 65px; margin: 0 auto 10px auto; background-color: transparent; border-radius: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; position:relative; } .inventory-item .item-image-display img { display: block; width: 100%; height: 100%; object-fit: contain; position:relative; z-index: 1;}
         .inventory-item-name { font-size: 0.88em; font-weight: 500; margin-bottom: 5px; line-height: 1.35; } .inventory-item-value { font-size: 0.78em; color: var(--secondary-color); font-weight: 500; margin-bottom: 10px;} .inventory-item-actions { display: flex; flex-direction: column; gap: 6px; margin-top: auto; } .inventory-item-actions .button { font-size: 0.78em; padding: 6px 9px; margin: 0; width: 100%; }
-        /* NEW: Styling for Star-valued items in inventory */
-        .inventory-item-value.stars { color: var(--star-color); }
-        .inventory-item-actions .button.add-to-balance-button { background: linear-gradient(135deg, var(--star-gradient-start), var(--star-gradient-end)); color: #333; }
-        .inventory-item-actions .button.add-to-balance-button:hover { filter: brightness(1.15); box-shadow: 0 3px 8px rgba(255,215,0,0.35); }
-        .inventory-item-actions .button.add-to-balance-button:active { filter: brightness(0.9); transform: scale(0.97); }
-        .inventory-item-actions .button.convert-stars-to-ton-button {
-            background-color: var(--primary-color);
-            background-image: none; /* Override gradient from .button */
-            border: 1px solid rgba(0,122,255,0.3);
-            box-shadow: 0 2px 6px rgba(0,122,255,0.2);
-        }
-        .inventory-item-actions .button.convert-stars-to-ton-button:hover {
-            filter: brightness(1.15);
-            background-color: var(--primary-gradient-end); /* Just a plain color on hover */
-        }
-        .inventory-item-actions .button.convert-stars-to-ton-button:active { filter: brightness(0.9); }
-        
         #sell-all-button { margin-top: 18px; background-color: var(--danger-color); color: white; background-image: none; box-shadow: 0 3px 8px rgba(255, 59, 48, 0.35); } #sell-all-button:hover { filter: brightness(1.15); background-color: var(--danger-color); box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4); } #sell-all-button:active { filter: brightness(0.9); transform: scale(0.97); }
         
         /* --- NEW/UPDATED UPGRADE PAGE STYLES --- */
@@ -184,13 +141,13 @@
             justify-content: space-around;
             align-items: center;
             margin-bottom: 25px;
-            gap: 10px;
+            gap: 10px; /* Gap between slots and arrow */
         }
         
         .upgrade-item-slot {
-            flex: 1;
-            max-width: calc(50% - 25px);
-            height: 150px;
+            flex: 1; /* Each slot takes equal width */
+            max-width: calc(50% - 25px); /* Max width considering arrow and gap */
+            height: 150px; /* Fixed height for the square */
             background-color: var(--surface-hover-color);
             border-radius: var(--main-border-radius);
             border: 2px dashed var(--border-color);
@@ -225,7 +182,7 @@
             font-weight: 500;
         }
         .upgrade-item-slot .slot-item-display img {
-            width: 60px;
+            width: 60px; /* Adjust size as needed */
             height: 60px;
             object-fit: contain;
             margin-bottom: 8px;
@@ -237,7 +194,7 @@
             color: var(--text-primary);
             line-height: 1.2;
             margin-bottom: 4px;
-            max-height: 2.4em;
+            max-height: 2.4em; /* Approx 2 lines */
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -248,7 +205,7 @@
         }
         
         .upgrade-arrow-connector {
-            width: 30px;
+            width: 30px; /* Width of the arrow */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -273,13 +230,13 @@
         }
         /* Ensure inventory-grid within picker has proper styling */
         #upgrade-items-grid {
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            padding-right: 5px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Adjust minmax for smaller cards */
+            gap: 10px; /* Smaller gap */
+            padding-right: 5px; /* For scrollbar space */
         }
         #upgrade-items-grid .inventory-item {
-            padding: 10px;
-            min-height: 130px;
+            padding: 10px; /* Smaller padding */
+            min-height: 130px; /* Adjust height */
         }
         #upgrade-items-grid .inventory-item .item-image-display {
             width: 50px; height: 50px; margin-bottom: 8px;
@@ -293,7 +250,7 @@
             position: relative;
             width: 150px;
             height: 150px;
-            margin: 30px auto;
+            margin: 30px auto; /* Increased margin for better spacing */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -303,13 +260,15 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            border: 8px solid var(--surface-hover-color);
+            border: 8px solid var(--surface-hover-color); /* Default/Losing segment color */
+            position: relative;
+            /* Winning segment will be an overlay or conic-gradient if browser support is fine */
             background: conic-gradient(
                 var(--success-color) 0deg var(--upgrade-win-segment-angle, 0deg), 
                 var(--danger-color) var(--upgrade-win-segment-angle, 0deg) 360deg
             );
             box-shadow: 0 0 20px rgba(0,0,0,0.2), inset 0 0 15px rgba(0,0,0,0.3);
-            transition: transform 0.3s ease-out;
+            transition: transform 0.3s ease-out; /* For subtle effects if needed */
         }
         
         #upgrade-chance-pointer {
@@ -317,12 +276,12 @@
             height: 0;
             border-left: 10px solid transparent;
             border-right: 10px solid transparent;
-            border-bottom: 18px solid var(--primary-color);
+            border-bottom: 18px solid var(--primary-color); /* Triangle color */
             position: absolute;
-            top: -2px;
+            top: -2px; /* Position slightly above the circle's border */
             left: 50%;
-            transform: translateX(-50%) rotate(0deg);
-            transform-origin: center calc(75px + 9px);
+            transform: translateX(-50%) rotate(0deg); /* Initial position at the top */
+            transform-origin: center calc(75px + 9px); /* (radius + half of triangle height approx offset from center) */
             z-index: 2;
             filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.4));
         }
@@ -338,8 +297,8 @@
             transform: translate(-50%, -50%);
             text-align: center;
             color: var(--text-primary);
-            background-color: rgba(40, 43, 61, 0.85);
-            width: calc(100% - 32px);
+            background-color: rgba(40, 43, 61, 0.85); /* Slightly transparent background for text */
+            width: calc(100% - 32px); /* Inner circle for text, considering border width */
             height: calc(100% - 32px);
             border-radius: 50%;
             display: flex;
@@ -363,10 +322,13 @@
             display: block;
         }
         
-        #multiplier-buttons { display: none; }
+        /* Old multiplier buttons removed from default view if any */
+        #multiplier-buttons { display: none; } 
         #upgrade-inventory-select { display: none; }
-        #upgrade-page .content-card p:first-of-type { display: none; }
-        #upgrade-page .content-card #upgrade-result { display: none; }
+        #upgrade-page .content-card p:first-of-type { display: none; } /* Hide "Select an item:" */
+        #upgrade-page .content-card #upgrade-result { display: none; } /* Hide old result text */
+        
+        /* END UPGRADE PAGE STYLES */
         
         .stats-box { display: flex; justify-content: space-around; margin: 24px 0; gap: 14px; } .stat-item { background-color: var(--surface-hover-color); padding: 14px; border-radius: var(--button-border-radius); flex: 1; text-align: center; border: 1px solid var(--border-color); } .stat-item .value { font-size: 1.6em; font-weight: 600; color: var(--primary-color); } .stat-item .label { font-size: 0.8em; color: var(--text-secondary); margin-top: 5px; } .invited-users-list div { padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9em;} .invited-users-list div:last-child { border-bottom: none; }
         .leaderboard-list { padding-left: 0; padding-right: 0; } .leaderboard-list .leader-entry { display: flex; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-color); transition: background-color 0.25s ease-out; position: relative; } .leaderboard-list .leader-entry:hover { background-color: rgba(255,255,255,0.04); } .leaderboard-list .leader-entry:last-child { border-bottom: none; } .leader-entry .rank { font-weight: 700; font-size: 1.05em; min-width: 40px; text-align: left; color: var(--text-secondary); margin-right: 15px; } .leader-entry .avatar-placeholder { width: 44px; height: 44px; border-radius: 50%; background-color: var(--surface-hover-color); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; font-size: 1.2em; font-weight: 600; margin: 0 16px 0 0; border: 2px solid var(--border-color); } .leader-entry .info { flex-grow: 1; } .leader-entry .info .name { font-weight: 600; font-size: 1.1em; color: var(--text-primary); margin-bottom: 3px; } .leader-entry .info .details { font-size: 0.85em; color: var(--text-secondary); line-height: 1.3; } .leader-entry .score { margin-left: auto; font-weight: 700; font-size: 1.05em; color: var(--primary-color); padding-left: 15px; text-align: right; } .leader-entry.current-user-entry { background-color: rgba(0, 122, 255, 0.12); border-left: 3px solid var(--primary-color); padding-left: 17px;} .leader-entry.current-user-entry .rank { color: var(--primary-color); } .leader-entry.current-user-entry .info .name { color: var(--primary-gradient-end); font-weight: 700; } .leader-entry.current-user-entry .score { color: var(--secondary-color); font-weight: 800; } .leader-entry.current-user-entry .avatar-placeholder { border-color: var(--primary-color); }
@@ -396,22 +358,17 @@
     <div id="app-container">
         <header id="app-header">
             <div class="app-title-container"><img src="https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png" alt="Pusik Gifts Logo" class="app-logo"><div class="app-title">Pusik Gifts</div></div>
-            <div class="wallet-info">
-                <div id="wallet-address-display">Connected: ...</div>
-                <div id="balance">
-                    <span id="ton-balance">0.00</span> TON
-                    <span id="star-balance" style="margin-left: 8px; color: var(--star-color);">0</span><img src="https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp" alt="Stars" style="width: 16px; height: 16px; margin-left: 4px;">
-                </div>
-                <div id="ton-connect-button"></div>
-            </div>
+            <div class="wallet-info"><div id="wallet-address-display">Connected: ...</div><div id="balance"><span id="ton-balance">0.00</span> TON</div><div id="ton-connect-button"></div></div>
         </header>
 
         <main id="app-content">
             <div id="main-page" class="page active">
                 <h2>Cases</h2>
                 <div id="cases-grid" class="cases-grid"></div>
+                <!-- Removed slots section for brevity, can be re-added if needed -->
             </div>
 
+            <!-- UPGRADE PAGE - MODIFIED STRUCTURE -->
             <div id="upgrade-page" class="page">
                 <h2>Upgrade Item</h2>
                 <div class="content-card">
@@ -446,6 +403,7 @@
                     <div id="upgrade-picker-container" style="display: none;">
                         <h4 id="upgrade-picker-title">Select Your Item</h4>
                         <div id="upgrade-items-grid" class="inventory-grid" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">
+                            <!-- Items will be populated here by JS -->
                         </div>
                         <button id="close-upgrade-picker-button" class="button button-secondary">Close Picker</button>
                     </div>
@@ -463,10 +421,11 @@
                     <button id="do-upgrade-button" class="button" disabled>Select Items to Upgrade</button>
                 </div>
             </div>
+            <!-- END UPGRADE PAGE -->
 
             <div id="invite-page" class="page"><h2>Referrals</h2><div class="content-card"><p>Invite friends & earn <strong>10%</strong> of deposits!</p><input type="text" id="referral-link" value="Loading..." readonly><button id="copy-ref-link-button" class="button">Copy Code</button><div class="stats-box"><div class="stat-item"><div id="referral-balance" class="value">0.00 TON</div><div class="label">Earnings</div></div><div class="stat-item"><div id="invited-count" class="value">0</div><div class="label">Invited</div></div></div><button id="withdraw-referral-button" class="button button-secondary">Withdraw</button></div><div class="content-card"><h3>Invited Friends</h3><div id="invited-users-list-display" class="invited-users-list"><p>No friends invited yet.</p></div></div></div>
             <div id="leaderboard-page" class="page"><h2>Leaderboard</h2><div id="leaderboard-list" class="leaderboard-list content-card" style="padding-top:0; padding-bottom:0;"></div></div>
-            <div id="profile-page" class="page"><div class="profile-header"><div id="profile-avatar" class="profile-avatar-placeholder"></div><div class="profile-info"><div id="profile-username" class="username">User</div><div id="profile-userid" class="userid">#...</div></div></div><div class="content-card"><h3>Balance</h3><div id="profile-balance-display">0.00 TON</div><div id="profile-star-balance-display">0 <img src="https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp" alt="Stars Logo"></div><input type="number" id="deposit-amount-input" placeholder="Amount in TON"><button id="initiate-deposit-button" class="button">Deposit TON</button></div><div class="content-card"><h3>Promocode</h3><div class="promocode-input-group"><input type="text" id="promocode-input" placeholder="Enter code"><button id="redeem-promocode-button" class="button button-secondary">Redeem</button></div></div><div class="content-card"><h3>Wallet</h3><div id="profile-wallet-address">Not Connected</div><button id="disconnect-wallet-button" class="button button-secondary" style="display: none;">Disconnect</button></div><div class="content-card"><h3>My Collection (<span id="inventory-count">0</span>)</h3><div id="inventory-grid" class="inventory-grid"><p id="empty-inventory-message" style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder); padding:15px 0;">Your collection is empty.</p></div><button id="sell-all-button" class="button" style="display: none;">Sell All for <span id="sell-all-value-ton">0.00</span> TON + <span id="sell-all-value-stars">0</span> Stars</button></div></div>
+            <div id="profile-page" class="page"><div class="profile-header"><div id="profile-avatar" class="profile-avatar-placeholder"></div><div class="profile-info"><div id="profile-username" class="username">User</div><div id="profile-userid" class="userid">#...</div></div></div><div class="content-card"><h3>Balance</h3><div id="profile-balance-display">0.00 TON</div><input type="number" id="deposit-amount-input" placeholder="Amount in TON"><button id="initiate-deposit-button" class="button">Deposit TON</button></div><div class="content-card"><h3>Promocode</h3><div class="promocode-input-group"><input type="text" id="promocode-input" placeholder="Enter code"><button id="redeem-promocode-button" class="button button-secondary">Redeem</button></div></div><div class="content-card"><h3>Wallet</h3><div id="profile-wallet-address">Not Connected</div><button id="disconnect-wallet-button" class="button button-secondary" style="display: none;">Disconnect</button></div><div class="content-card"><h3>My Collection (<span id="inventory-count">0</span>)</h3><div id="inventory-grid" class="inventory-grid"><p id="empty-inventory-message" style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder); padding:15px 0;">Your collection is empty.</p></div><button id="sell-all-button" class="button" style="display: none;">Sell All for <span id="sell-all-value">0.00</span> TON</button></div></div>
         </main>
 
         <nav id="app-nav">
@@ -518,14 +477,16 @@
             <div id="win-overlay-prize-details"></div>
             <div class="win-overlay-actions modal-actions">
                 <button id="win-overlay-save-button" class="button">Save to Collection</button>
-                <button id="win-overlay-convert-button" class="button button-secondary">Convert All to <span id="win-overlay-convert-value-ton">0.00</span> TON</button>
+                <button id="win-overlay-convert-button" class="button button-secondary">Convert All to <span id="win-overlay-convert-value">0.00</span> TON</button>
             </div>
         </div>
     </div>
     
+    <!-- NEW UPGRADE RESULT MODAL -->
     <div id="upgrade-result-modal" class="modal">
         <div class="modal-content">
             <div id="upgrade-result-image-container">
+                <!-- Image of item won/lost -->
             </div>
             <h3 id="upgrade-result-title">Upgrade Status</h3>
             <p id="upgrade-result-message">Details about the upgrade...</p>
@@ -534,6 +495,8 @@
             </div>
         </div>
     </div>
+    <!-- END UPGRADE RESULT MODAL -->
+
 
     <div id="withdraw-modal" class="modal">
         <div class="modal-content">
@@ -575,7 +538,7 @@
             <div class="modal-body" style="text-align: left;">
                 <p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p>
                 <a id="ton-transfer-link" href="#" target="_blank" class="button">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.022 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>
+                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>
                     Open Wallet & Pay
                 </a>
                 <p id="deposit-expiry-info"></p>
@@ -593,16 +556,13 @@ const API_BASE_URL = 'https://case-hznb.onrender.com';
 const BOT_USERNAME = 'pusikGiftsBot';
 const MINI_APP_NAME = 'case';
 const TON_COIN_FULL_URL = 'https://case-bot.com/images/actions/ton.svg';
-const TELEGRAM_STAR_LOGO_URL = 'https://i.ibb.co/P9LpZgD/telegram-stars-logo.webp';
-const STARS_PER_TON = 200; // 1 TON = 200 Stars for conversion
-
 const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
 const currentUser = {
     id: null, username: null, first_name: 'User', last_name: null,
     walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
     inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0,
     invited_friends_count: 0,
-    photo_url: null
+    photo_url: null // Added field for user profile photo URL
 };
 let currentOpenCaseOrSlot = null;
 let selectedCaseMultiplier = 1;
@@ -610,15 +570,15 @@ let itemToWithdraw = null;
 const upgradeChances = { 1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3 };
 let lastWonPrizesForOverlay = [];
 let selectedUpgradeMultiplier = 1.5;
-let spinAnimationTimeoutOuter = null;
+let spinAnimationTimeoutOuter = null; // Initialize as null for safety
 
-let selectedItemForUpgrade = null;
-let desiredItemForUpgrade = null;
+let selectedItemForUpgrade = null;    // { id, name, imageFilename, currentValue }
+let desiredItemForUpgrade = null;     // { name, imageFilename, floorPrice }
 let calculatedUpgradeMultiplier = 0;
 let calculatedUpgradeChance = 0;
-let currentUpgradePickerType = null;
-let allAppGiftsForUpgrade = [];
-
+let currentUpgradePickerType = null; // 'inventory' or 'desired'
+let allAppGiftsForUpgrade = []; // To be populated with all unique gifts
+    
 const GIFT_NAME_TO_ID_MAP = {
   "Santa Hat": "5983471780763796287","Signet Ring": "5936085638515261992","Precious Peach": "5933671725160989227","Plush Pepe": "5936013938331222567",
   "Spiced Wine": "5913442287462908725","Jelly Bunny": "5915502858152706668","Durov's Cap": "5915521180483191380","Perfume Bottle": "5913517067138499193",
@@ -643,37 +603,236 @@ const GIFT_NAME_TO_ID_MAP = {
 
 // Add near global variables
 let availableTonnelGifts = [];
-let selectedTonnelGiftDetails = null;
+let selectedTonnelGiftDetails = null; // To store { gift_id, gift_num, name, price } of chosen gift
 
+// DOM Element References (Additions for withdrawal modal)
+const tonnelGiftChoicesGrid = document.getElementById('tonnel-gift-choices-grid');
+const tonnelGiftsLoader = document.getElementById('tonnel-gifts-loader');
+const withdrawStepGiftsConfirmBtn = document.getElementById('withdraw-step-gifts-confirm');
+const withdrawStepGiftsBackBtn = document.getElementById('withdraw-step-gifts-back');
+const withdrawFinalizingLoader = document.getElementById('withdraw-finalizing-loader'); // New specific loader ID
+
+// Update showWithdrawStep to handle the new structure
+function showWithdrawStep(stepName) { // stepName will be 'step-1', 'step-gifts', 'step-finalizing'
+    withdrawSteps.forEach(s => s.classList.remove('active'));
+    const targetStep = document.getElementById(`withdraw-${stepName}`);
+    if (targetStep) {
+        targetStep.classList.add('active');
+    } else {
+        console.error(`Withdraw step with ID 'withdraw-${stepName}' not found.`);
+    }
+}
+
+// Helper to format gift name for Fragment URL
 function formatGiftNameForFragmentUrl(name) {
     if (!name) return 'unknown';
     let formatted = name.toLowerCase();
     formatted = formatted.replace(/&/g, 'and');
     formatted = formatted.replace(/'/g, '');
-    formatted = formatted.replace(/\s+/g, '');
-    formatted = formatted.replace(/[^a-z0-9]/gi, '');
+    formatted = formatted.replace(/\s+/g, ''); // Remove all spaces
+    formatted = formatted.replace(/[^a-z0-9]/gi, ''); // Remove special characters except numbers
     return formatted;
 }
 
 
+// Modify startWithdrawalProcess
+function startWithdrawalProcess(inventoryItemId) {
+    const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
+    if (!item || item.is_ton_prize) {
+        showTGNotification("Item not found or not withdrawable.", "error");
+        return;
+    }
+    itemToWithdraw = inventoryItemId; // Store the inventory item ID
+    selectedTonnelGiftDetails = null; // Reset selection
+    availableTonnelGifts = []; // Reset available gifts
+
+    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
+    showWithdrawStep('step-1'); // Show initial instructions step
+    withdrawModal.classList.add('active');
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
+}
+
+// NEW: Handle "Continue" from Step 1 - Fetch Tonnel Gifts
+withdrawStep1NextBtn.addEventListener('click', async () => {
+    if (!itemToWithdraw) {
+        showTGNotification("Error: No item selected for withdrawal.", "error");
+        return;
+    }
+    showWithdrawStep('step-gifts');
+    tonnelGiftsLoader.style.display = 'block';
+    tonnelGiftChoicesGrid.innerHTML = ''; // Clear previous choices
+    withdrawStepGiftsConfirmBtn.style.display = 'none';
+
+    try {
+        // The itemToWithdraw (inventory_item_id) is already set
+        const gifts = await apiRequest(`/api/tonnel_gift_listings/${itemToWithdraw}`);
+        availableTonnelGifts = gifts; // Store the fetched gifts
+        populateTonnelGiftChoicesGrid(gifts);
+    } catch (error) {
+        console.error("Failed to fetch Tonnel gift listings:", error);
+        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--danger-color);">Could not load gift listings. Please try again.</p>`;
+    } finally {
+        tonnelGiftsLoader.style.display = 'none';
+    }
+});
+
+// NEW: Populate Tonnel Gift Choices Grid
+function populateTonnelGiftChoicesGrid(gifts) {
+    tonnelGiftChoicesGrid.innerHTML = ''; // Clear existing
+    if (!gifts || gifts.length === 0) {
+        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder);">No listings found for this gift on Tonnel Market currently.</p>`;
+        return;
+    }
+
+    gifts.forEach(gift => {
+        const card = document.createElement('div');
+        card.className = 'case-card inventory-item'; // Re-use similar styling
+        card.style.cursor = 'pointer';
+        card.style.padding = '10px'; // Add some padding
+        card.dataset.giftId = gift.gift_id; // Tonnel's internal ID for purchase
+        card.dataset.giftNum = gift.gift_num; // Tonnel's display number for Fragment URL
+        card.dataset.giftName = gift.name;
+        card.dataset.giftPrice = gift.price; // Store price for confirmation if needed
+
+        const fragmentName = formatGiftNameForFragmentUrl(gift.name);
+        const imageUrl = `https://nft.fragment.com/gift/${fragmentName}-${gift.gift_num}.webp`;
+        
+        const imgCont = document.createElement('div');
+        imgCont.className = 'item-image-display'; // Reuse inventory item image display style
+        imgCont.style.width = '65px'; imgCont.style.height = '65px'; // Adjust size as needed
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = `${gift.name} #${gift.gift_num}`;
+        img.loading = 'lazy';
+        img.onerror = () => { img.src = generateImageFilename('placeholder.png'); }; // Fallback
+        imgCont.appendChild(img);
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'inventory-item-name';
+        nameEl.textContent = `${gift.name} #${gift.gift_num}`;
+        nameEl.style.fontSize = '0.8em'; // Smaller text
+
+        const priceEl = document.createElement('div'); // Displaying Tonnel price
+        priceEl.className = 'inventory-item-value';
+        priceEl.textContent = `${gift.price} TON`;
+        priceEl.style.fontSize = '0.75em';
+
+        card.appendChild(imgCont);
+        card.appendChild(nameEl);
+        card.appendChild(priceEl);
+
+        card.addEventListener('click', () => handleTonnelGiftChoice(card, gift));
+        tonnelGiftChoicesGrid.appendChild(card);
+    });
+}
+
+// NEW: Handle Tonnel Gift Choice
+function handleTonnelGiftChoice(selectedCard, giftData) {
+    // Remove selection from other cards
+    tonnelGiftChoicesGrid.querySelectorAll('.case-card').forEach(card => {
+        card.style.border = '1px solid var(--border-color)'; // Reset border
+    });
+    // Highlight selected card
+    selectedCard.style.border = '2px solid var(--primary-color)';
+    
+    selectedTonnelGiftDetails = {
+        gift_id: giftData.gift_id, // This is crucial for purchase
+        gift_num: giftData.gift_num,
+        name: giftData.name,
+        price: giftData.price // Store for confirmation
+    };
+    withdrawStepGiftsConfirmBtn.style.display = 'block';
+    withdrawStepGiftsConfirmBtn.textContent = `Send ${giftData.name} #${giftData.gift_num} (${giftData.price} TON)`;
+}
+
+// Event listener for "Back" from gift selection
+withdrawStepGiftsBackBtn.addEventListener('click', () => {
+    showWithdrawStep('step-1');
+    selectedTonnelGiftDetails = null; // Clear selection
+    tonnelGiftChoicesGrid.innerHTML = ''; // Clear gift choices
+    withdrawStepGiftsConfirmBtn.style.display = 'none';
+});
+
+// Event listener for "Confirm & Send Chosen Gift"
+withdrawStepGiftsConfirmBtn.addEventListener('click', async () => {
+    if (!selectedTonnelGiftDetails || !itemToWithdraw) {
+        showTGNotification("Error: No gift selected or item issue.", "error");
+        return;
+    }
+    await completeChosenGiftWithdrawal();
+});
+    
 const UPDATED_FLOOR_PRICES_FRONTEND = {
-    'Plush Pepe': 3024.0, 'Neko Helmet': 15.0, 'Sharp Tongue': 17.0, "Durov's Cap": 420.0,
-    'Voodoo Doll': 9.4, 'Vintage Cigar': 24.0, 'Astral Shard': 80.0, 'Scared Cat': 22.0,
-    'Swiss Watch': 25.0, 'Perfume Bottle': 88.0, 'Precious Peach': 270.0, 'Toy Bear': 16.3,
-    'Genie Lamp': 46.0, 'Loot Bag': 45.0, 'Kissed Frog': 24.0, 'Electric Skull': 10.9,
-    'Diamond Ring': 12.0, 'Mini Oscar': 40.5, 'Party Sparkler': 2.0, 'Homemade Cake': 2.0,
-    'Cookie Heart': 1.8, 'Jack-in-the-box': 2.0, 'Skull Flower': 3.4, 'Lol Pop': 1.1,
-    'Hypno Lollipop': 1.4, 'Desk Calendar': 1.1, 'B-Day Candle': 1.4, 'Record Player': 4.0,
-    'Jelly Bunny': 3.6, 'Tama Gadget': 4.0, 'Snow Globe': 2.0, 'Eternal Rose': 11.0,
-    'Love Potion': 5.4, 'Top Hat': 6.0, 'Berry Box': 4.1, 'Bunny Muffin': 4.0,
-    'Candy Cane': 1.6, 'Crystal Ball': 6.0, 'Easter Egg': 1.8, 'Eternal Candle': 3.1,
-    'Evil Eye': 4.2, 'Flying Broom': 4.5, 'Ginger Cookie': 2.7, 'Hanging Star': 4.1,
-    'Hex Pot': 3.1, 'Ion Gem': 44.0, 'Jester Hat': 2.0, 'Jingle Bells': 1.8,
-    'Love Candle': 6.7, 'Lunar Snake': 1.5, 'Mad Pumpkin': 6.2, 'Magic Potion': 54.0,
-    'Pet Snake': 3.2, 'Sakura Flower': 4.1, 'Santa Hat': 2.0, 'Signet Ring': 18.8,
-    'Sleigh Bell': 6.0, 'Snow Mittens': 2.9, 'Spiced Wine': 2.2, 'Spy Agaric': 2.8,
-    'Star Notepad': 2.8, 'Trapped Heart': 6.0, 'Winter Wreath': 2.0,
-    "Big Year": 4.4, "Snake Box": 3.3, "Bonded Ring": 60.5, "Xmas Stocking": 2.5
+    'Plush Pepe': 3024.0,       // Updated
+    'Neko Helmet': 15.0,
+    'Sharp Tongue': 17.0,
+    "Durov's Cap": 420.0,       // Updated
+    'Voodoo Doll': 9.4,
+    'Vintage Cigar': 24.0,      // Updated
+    'Astral Shard': 80.0,       // Updated
+    'Scared Cat': 22.0,
+    'Swiss Watch': 25.0,        // Updated
+    'Perfume Bottle': 88.0,     // Updated
+    'Precious Peach': 270.0,    // Updated
+    'Toy Bear': 16.3,
+    'Genie Lamp': 46.0,         // Updated
+    'Loot Bag': 45.0,           // Updated
+    'Kissed Frog': 24.0,        // Updated
+    'Electric Skull': 10.9,
+    'Diamond Ring': 12.0,       // Updated
+    'Mini Oscar': 40.5,
+    'Party Sparkler': 2.0,
+    'Homemade Cake': 2.0,
+    'Cookie Heart': 1.8,
+    'Jack-in-the-box': 2.0,
+    'Skull Flower': 3.4,
+    'Lol Pop': 1.1,             // Updated
+    'Hypno Lollipop': 1.4,      // Assuming this stays or update if related to Lol Pop
+    'Desk Calendar': 1.1,       // Updated
+    'B-Day Candle': 1.4,
+    'Record Player': 4.0,
+    'Jelly Bunny': 3.6,
+    'Tama Gadget': 4.0,
+    'Snow Globe': 2.0,          // Updated
+    'Eternal Rose': 11.0,
+    'Love Potion': 5.4,
+    'Top Hat': 6.0,
+    'Berry Box': 4.1,
+    'Bunny Muffin': 4.0,
+    'Candy Cane': 1.6,
+    'Crystal Ball': 6.0,
+    'Easter Egg': 1.8,
+    'Eternal Candle': 3.1,
+    'Evil Eye': 4.2,
+    'Flying Broom': 4.5,
+    'Ginger Cookie': 2.7,
+    'Hanging Star': 4.1,
+    'Hex Pot': 3.1,
+    'Ion Gem': 44.0,
+    'Jester Hat': 2.0,
+    'Jingle Bells': 1.8,
+    'Love Candle': 6.7,
+    'Lunar Snake': 1.5,
+    'Mad Pumpkin': 6.2,
+    'Magic Potion': 54.0,       // Updated
+    'Pet Snake': 3.2,
+    'Sakura Flower': 4.1,
+    'Santa Hat': 2.0,
+    'Signet Ring': 18.8,
+    'Sleigh Bell': 6.0,
+    'Snow Mittens': 2.9,
+    'Spiced Wine': 2.2,
+    'Spy Agaric': 2.8,
+    'Star Notepad': 2.8,
+    'Trapped Heart': 6.0,
+    'Winter Wreath': 2.0,
+    "Big Year": 4.4,
+    "Snake Box": 3.3,
+    "Bonded Ring": 60.5,
+    "Xmas Stocking": 2.5
+    // Add Light Sword and Gem Signet if they have defined prices
+    // "Light Sword": XX.X,
+    // "Gem Signet": XX.X
 };
 const KISSED_FROG_VARIANT_FLOORS={"Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,"Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,"Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,"Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,"Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,"Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,"Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,"Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,"Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0};
 Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
@@ -683,9 +842,6 @@ function generateImageFilename(nameOrUrl) {
     if (nameOrUrl.startsWith('http://') || nameOrUrl.startsWith('https://')) return nameOrUrl;
     const name = nameOrUrl;
     if (name.toLowerCase().includes("ton") && name.toLowerCase().includes("prize")) return TON_COIN_FULL_URL;
-    // NEW: Star prize image logic
-    if (name.toLowerCase().includes("star") && name.toLowerCase().includes("stars")) return TELEGRAM_STAR_LOGO_URL;
-
     if (GIFT_NAME_TO_ID_MAP[name]) return `https://cdn.changes.tg/gifts/originals/${GIFT_NAME_TO_ID_MAP[name]}/Original.png`;
     if (Object.keys(KISSED_FROG_VARIANT_FLOORS).includes(name)) return `https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/${name.replace(/\s/g, '%20')}.png`;
     let filename = name.replace(/\s+/g, '-').replace(/&/g, 'and').replace(/'/g, "");
@@ -698,6 +854,7 @@ function generateImageFilename(nameOrUrl) {
 }
 
 const finalKissedFrogPrizesWithConsolation = [
+    // Extremely rare expensive frogs
     {'name':'Happy Pepe','probability': 0.0000001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png','floorPrice':500.0},
     {'name':'Tree Frog','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png','floorPrice':150.0},
     {'name':'Brewtoad','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png','floorPrice':150.0},
@@ -715,6 +872,7 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Icefrog','probability': 0.000002, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png','floorPrice':45.0},
     {'name':'Lava Leap','probability': 0.000002, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png','floorPrice':45.0},
     {'name':'Toadstool','probability': 0.000002, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png','floorPrice':45.0},
+    // ... (include all other tier 2 frogs with probability 0.000002 and their respective images/prices)
     {'name':'Desert Frog','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png','floorPrice':45.0},
     {'name':'Cupid','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png','floorPrice':45.0},
     {'name':'Hopberry','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png','floorPrice':45.0},
@@ -727,6 +885,7 @@ const finalKissedFrogPrizesWithConsolation = [
 
     {'name':'Starry Night','probability': 0.00001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png','floorPrice':30.0},
     {'name':'Silver','probability': 0.00001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png','floorPrice':30.0},
+    // ... (include all other tier 3 frogs with probability 0.00001 and their respective images/prices)
     {'name':'Ectofrog','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png','floorPrice':30.0},
     {'name':'Poison','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png','floorPrice':30.0},
     {'name':'Minty Bloom','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png','floorPrice':30.0},
@@ -739,6 +898,7 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Bronze','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png','floorPrice':30.0},
 
     {'name':'Lily Pond','probability': 0.001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png','floorPrice':19.0},
+    // ... (include all other tier 4 frogs with probability 0.001 and their respective images/prices)
     {'name':'Toadberry','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png','floorPrice':19.0},
     {'name':'Frogwave','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png','floorPrice':19.0},
     {'name':'Melon','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png','floorPrice':19.0},
@@ -752,7 +912,9 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Brownie','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png','floorPrice':19.0},
     {'name':'Banana Pox','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png','floorPrice':19.0},
 
+    // NEW: Spy Agaric
     {'name': 'Spy Agaric', 'probability': 0.20, 'imageFilename': generateImageFilename('Spy Agaric'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spy Agaric']},
+    // Desk Calendar - VERY common filler
     {'name': 'Desk Calendar', 'probability': 0.78, 'imageFilename': generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']}
 ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
 let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
@@ -760,61 +922,7 @@ let remainingProbForConsolation = 1.0 - currentProbSumForKF;
 if(remainingProbForConsolation > 0.00001){finalKissedFrogPrizesWithConsolation.push({name:"Desk Calendar",probability:remainingProbForConsolation});}
 finalKissedFrogPrizesWithConsolation.forEach(p=>{if(!p.imageFilename)p.imageFilename=generateImageFilename(p.name);if(p.floorPrice===undefined)p.floorPrice=UPDATED_FLOOR_PRICES_FRONTEND[p.name];});
 
-
-// NEW: Star Case Prize Pools (ensure probabilities sum to 1)
-const STAR_PRIZES_USUAL_CASE = [
-    {'name': '🏆 100 Stars', 'value': 100, 'probability': 0.005},
-    {'name': '💍 100 Stars', 'value': 100, 'probability': 0.005},
-    {'name': '💎 100 Stars', 'value': 100, 'probability': 0.005},
-    {'name': '🚀 50 Stars', 'value': 50, 'probability': 0.02},
-    {'name': '🍾 50 Stars', 'value': 50, 'probability': 0.02},
-    {'name': '💐 50 Stars', 'value': 50, 'probability': 0.02},
-    {'name': '🎁 25 Stars', 'value': 25, 'probability': 0.1},
-    {'name': '🌹 25 Stars', 'value': 25, 'probability': 0.1},
-    {'name': '🧸 15 Stars', 'value': 15, 'probability': 0.3525},
-    {'name': '💝 15 Stars', 'value': 15, 'probability': 0.3525},
-];
-STAR_PRIZES_USUAL_CASE.forEach(p => p.imageFilename = generateImageFilename(p.name));
-STAR_PRIZES_USUAL_CASE.sort((a,b) => (b.value || 0) - (a.value || 0));
-
-
-const STAR_PRIZES_RARER_CASE = [
-    {'name': 'Lol Pop', 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND["Lol Pop"], 'is_ton_prize': true, 'probability': 0.0001},
-    {'name': '🏆 100 Stars', 'value': 100, 'probability': 0.03},
-    {'name': '💍 100 Stars', 'value': 100, 'probability': 0.03},
-    {'name': '💎 100 Stars', 'value': 100, 'probability': 0.03},
-    {'name': '🚀 50 Stars', 'value': 50, 'probability': 0.1},
-    {'name': '🍾 50 Stars', 'value': 50, 'probability': 0.1},
-    {'name': '💐 50 Stars', 'value': 50, 'probability': 0.1},
-    {'name': '🎁 25 Stars', 'value': 25, 'probability': 0.19},
-    {'name': '🌹 25 Stars', 'value': 25, 'probability': 0.19},
-    {'name': '🧸 15 Stars', 'value': 15, 'probability': 0.06495},
-    {'name': '💝 15 Stars', 'value': 15, 'probability': 0.06495},
-];
-STAR_PRIZES_RARER_CASE.forEach(p => {
-    if (!p.imageFilename) p.imageFilename = generateImageFilename(p.name);
-});
-STAR_PRIZES_RARER_CASE.sort((a,b) => (b.floorPrice || b.value || 0) - (a.floorPrice || a.value || 0));
-
-
 const casesData = [
-    // NEW: Star Cases (placed first)
-    {
-        id:'usual_star_case',
-        name:'Usual',
-        imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/refs/heads/main/file_00000000c09c6243b817671f45379da6.png',
-        priceStars:15,
-        prizes: STAR_PRIZES_USUAL_CASE
-    },
-    {
-        id:'rarer_star_case',
-        name:'Rarer',
-        imageFilename:'https://raw.githubusercontent.com/Vasiliy-katsyka/case/refs/heads/main/file_00000000b5d0624680050d2aa171b3f5.png',
-        priceStars:50,
-        prizes: STAR_PRIZES_RARER_CASE
-    },
-
-    // Existing TON Cases
     {id:'all_in_01',name:'All In','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/All-In.jpg','priceTON':0.1,'prizes':[
         {'name':'Plush Pepe','probability': 0.0000005, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Durov\'s Cap','probability': 0.000005, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
@@ -824,7 +932,7 @@ const casesData = [
         {'name':'Nothing','probability': 0.998924, 'imageFilename': 'placeholder_nothing.png', 'floorPrice':0.0}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
-    {id:'small_billionaire_05',name:'Small Billionaire','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Small-Billionaire.jpg','priceTON':0.5,'prizes':[
+    {id:'small_billionaire_05','name':'Small Billionaire','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Small-Billionaire.jpg','priceTON':0.5,'prizes':[
         {'name':'Perfume Bottle','probability': 0.0001, 'imageFilename':generateImageFilename('Perfume Bottle'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle']},
         {'name':'Vintage Cigar','probability': 0.00012, 'imageFilename':generateImageFilename('Vintage Cigar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Vintage Cigar']},
         {'name':'Signet Ring','probability': 0.00013, 'imageFilename':generateImageFilename('Signet Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Signet Ring']},
@@ -858,7 +966,7 @@ const casesData = [
         {'name':'B-Day Candle','probability':0.05}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
-    {id:'recordplayer',name:'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':3.0,'prizes':[
+    {id:'recordplayer','name':'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':3.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Tama Gadget','probability':0.001, 'imageFilename':generateImageFilename('Tama Gadget'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Tama Gadget']},
         {'name':'Snow Globe','probability':0.001, 'imageFilename':generateImageFilename('Snow Globe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snow Globe']},
@@ -926,16 +1034,16 @@ const casesData = [
         {'name':'Trapped Heart','probability':0.1, 'imageFilename':generateImageFilename('Trapped Heart'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Trapped Heart']},
         {'name':'Love Potion','probability':0.1, 'imageFilename':generateImageFilename('Love Potion'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Love Potion']},
         {'name':'Big Year', 'probability': 0.05, 'imageFilename':generateImageFilename('Big Year'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Big Year']},
-        {'name':'Record Player', 'probability':0.05, 'imageFilename':generateImageFilename('Record Player'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Record Player']},
+        {'name':'Record Player','probability':0.05, 'imageFilename':generateImageFilename('Record Player'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Record Player']},
         {'name':'Snake Box', 'probability': 0.05, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']},
         {'name':'Pet Snake', 'probability': 0.05, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
     {id:'kissedfrog',name:'Kissed Frog Pond','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg','priceTON':20.0,
-     'prizes': finalKissedFrogPrizesWithConsolation
+     'prizes': finalKissedFrogPrizesWithConsolation // Use the updated list
     },
 
-    {id:'perfumebottle',name:'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON': 20.0,'prizes':[
+    {id:'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON': 20.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Bonded Ring', 'probability': 0.0000005, 'imageFilename':generateImageFilename('Bonded Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Bonded Ring']},
         {'name':'Ion Gem','probability':0.000001, 'imageFilename':generateImageFilename('Ion Gem'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Ion Gem']},
@@ -950,11 +1058,11 @@ const casesData = [
         {'name':'Electric Skull','probability':0.1, 'imageFilename':generateImageFilename('Electric Skull'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Electric Skull']},
         {'name':'Diamond Ring','probability':0.1, 'imageFilename':generateImageFilename('Diamond Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Diamond Ring']},
         {'name':'Big Year', 'probability': 0.0899734, 'imageFilename':generateImageFilename('Big Year'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Big Year']},
-        {'name':'Snake Box', 'probability': 0.5, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']},
+        {'name':'Snake Box', 'probability': 0.5, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']}, // Main filler
         {'name':'Pet Snake', 'probability': 0.1, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
-    {id:'vintagecigar',name:'Vintage Cigar Safe','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg','priceTON':40.0,'prizes':[
+    {id:'vintagecigar','name':'Vintage Cigar Safe','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg','priceTON':40.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Precious Peach','probability':0.000001, 'imageFilename':generateImageFilename('Precious Peach'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Precious Peach']},
         {'name':'Bonded Ring', 'probability': 0.000005, 'imageFilename':generateImageFilename('Bonded Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Bonded Ring']},
@@ -972,7 +1080,7 @@ const casesData = [
         {'name':'Pet Snake', 'probability': 0.1, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
-    {id:'astralshard',name:'Astral Shard Relic','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg','priceTON':100.0,'prizes':[
+    {id:'astralshard','name':'Astral Shard Relic','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg','priceTON':100.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Durov\'s Cap','probability':0.0000005, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
         {'name':'Precious Peach','probability':0.000001, 'imageFilename':generateImageFilename('Precious Peach'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Precious Peach']},
@@ -992,7 +1100,7 @@ const casesData = [
         {'name':'Pet Snake', 'probability': 0.05, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
 
-    {id:'plushpepe',name:'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON': 200.0,'prizes':[
+    {id:'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON': 200.0,'prizes':[
         {'name':'Plush Pepe','probability':0.000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Durov\'s Cap','probability':0.000005, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
         {'name':'Precious Peach','probability':0.4, 'imageFilename':generateImageFilename('Precious Peach'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Precious Peach']},
@@ -1002,25 +1110,22 @@ const casesData = [
 ];
 
 casesData.forEach(caseItem => {
-    // Only normalize TON case probabilities, Star case probabilities are fixed.
-    if (caseItem.priceTON) {
-        let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
-        if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.0001) {
-            const factor = 1.0 / totalProb;
-            caseItem.prizes.forEach(prize => { prize.probability *= factor; });
-        }
-    }
-    caseItem.prizes.sort((a,b) => (b.floorPrice || b.value || 0) - (a.floorPrice || a.value || 0));
-});
+    if (caseItem.id === 'kissedfrog') return;
 
+    let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
+    if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.0001) {
+        const factor = 1.0 / totalProb;
+        caseItem.prizes.forEach(prize => { prize.probability *= factor; });
+    }
+    caseItem.prizes.sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
+});
 
 // DOM Element References
 const headerElements = {
     tonConnectButton: document.getElementById('ton-connect-button'),
     walletAddressDisplay: document.getElementById('wallet-address-display'),
     tonBalanceSpan: document.getElementById('ton-balance'),
-    starBalanceSpan: document.getElementById('star-balance'), // NEW: Star balance span
-    balanceDisplay: document.getElementById('balance') // This is the combined TON/Stars display in header
+    balanceDisplay: document.getElementById('balance')
 };
 const appNavButtons = document.querySelectorAll('.nav-button');
 const pages = document.querySelectorAll('.page');
@@ -1035,9 +1140,11 @@ const closeRouletteButton = document.getElementById('close-roulette-button');
 const possiblePrizesDisplay = document.getElementById('possible-prizes-display');
 const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
 
-const rouletteReel1 = document.getElementById('roulette-reel-1');
-const rouletteReel2 = document.getElementById('roulette-reel-2');
-const rouletteReel3 = document.getElementById('roulette-reel-3');
+// NEW GLOBAL REFERENCES FOR REELS (for the 3-reel slot machine visual)
+// These elements are guaranteed to exist in the HTML structure now.
+const rouletteReel1 = document.getElementById('roulette-reel-1'); // Get the parent container
+const rouletteReel2 = document.getElementById('roulette-reel-2'); // Get the parent container
+const rouletteReel3 = document.getElementById('roulette-reel-3'); // Get the parent container
 
 const winOverlayModal = document.getElementById('win-overlay-modal');
 const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image');
@@ -1045,27 +1152,20 @@ const winOverlayNameEl = document.getElementById('win-overlay-prize-name');
 const winOverlayPrizeDetailsEl = document.getElementById('win-overlay-prize-details');
 const winOverlaySaveBtn = document.getElementById('win-overlay-save-button');
 const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button');
-const winOverlayConvertValueTon = document.getElementById('win-overlay-convert-value-ton');
-
+const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
 
 const withdrawModal = document.getElementById('withdraw-modal');
 const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
-const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next'); // Now step1 has a next button
-const withdrawStepGiftsConfirmBtn = document.getElementById('withdraw-step-gifts-confirm'); // Renamed from withdrawStep2NextBtn
-const withdrawStepGiftsBackBtn = document.getElementById('withdraw-step-gifts-back'); // Renamed from withdrawStep2BackBtn
-const withdrawFinalizingLoader = document.getElementById('withdraw-finalizing-loader');
+const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
+const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
 const withdrawStatusMessage = document.getElementById('withdraw-status-message');
 const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
-const tonnelGiftChoicesGrid = document.getElementById('tonnel-gift-choices-grid');
-const tonnelGiftsLoader = document.getElementById('tonnel-gifts-loader');
-
 
 const profileElements = {
     avatar: document.getElementById('profile-avatar'),
     username: document.getElementById('profile-username'),
     userid: document.getElementById('profile-userid'),
     balanceDisplay: document.getElementById('profile-balance-display'),
-    starBalanceDisplay: document.getElementById('profile-star-balance-display'), // NEW
     walletAddress: document.getElementById('profile-wallet-address'),
     inventoryGrid: document.getElementById('inventory-grid'),
     inventoryCount: document.getElementById('inventory-count'),
@@ -1074,12 +1174,11 @@ const profileElements = {
     depositAmountInput: document.getElementById('deposit-amount-input'),
     initiateDepositButton: document.getElementById('initiate-deposit-button'),
     sellAllButton: document.getElementById('sell-all-button'),
-    sellAllValueTonSpan: document.getElementById('sell-all-value-ton'),
-    sellAllValueStarsSpan: document.getElementById('sell-all-value-stars'),
+    sellAllValueSpan: document.getElementById('sell-all-value'),
     promocodeInput: document.getElementById('promocode-input'),
     redeemPromocodeButton: document.getElementById('redeem-promocode-button')
 };
-const upgradePageElements = {
+const upgradePageElements = { // Changed from 'upgradeElements' to avoid conflict
     selectedInventoryItemSlot: document.getElementById('selected-inventory-item-slot'),
     desiredUpgradeItemSlot: document.getElementById('desired-upgrade-item-slot'),
     
@@ -1095,11 +1194,19 @@ const upgradePageElements = {
     calculatedChanceText: document.getElementById('upgrade-calculated-chance'),
     doUpgradeButton: document.getElementById('do-upgrade-button'),
 
+    // New result modal elements
     upgradeResultModal: document.getElementById('upgrade-result-modal'),
     upgradeResultImageContainer: document.getElementById('upgrade-result-image-container'),
     upgradeResultTitle: document.getElementById('upgrade-result-title'),
     upgradeResultMessage: document.getElementById('upgrade-result-message'),
     closeUpgradeResultModalButton: document.getElementById('close-upgrade-result-modal-button'),
+};
+const upgradeElements = {
+    inventorySelect: document.getElementById('upgrade-inventory-select'),
+    multiplierButtons: document.getElementById('multiplier-buttons'),
+    doUpgradeButton: document.getElementById('do-upgrade-button'),
+    upgradeResult: document.getElementById('upgrade-result'),
+    chanceDisplay: document.getElementById('upgrade-chance-display')
 };
 const inviteElements = {
     referralLink: document.getElementById('referral-link'),
@@ -1107,7 +1214,7 @@ const inviteElements = {
     referralBalance: document.getElementById('referral-balance'),
     invitedCount: document.getElementById('invited-count'),
     withdrawReferralButton: document.getElementById('withdraw-referral-button'),
-    invitedUsersListDisplay: document.getElementById('invited-users-list-display')
+    invitedUsersListDisplay: document.getElementById('invited-users-list-display') // Already existed, but confirming it's here
 };
 const leaderboardList = document.getElementById('leaderboard-list');
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
@@ -1118,8 +1225,8 @@ const depositExpiryInfo = document.getElementById('deposit-expiry-info');
 const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
 
-const VISUAL_ITEMS_PER_REEL_INITIAL = 10;
-const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70;
+const VISUAL_ITEMS_PER_REEL_INITIAL = 10; // Number of items to initially populate each reel
+const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70; // Additional items appended for the spin to ensure enough length
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
 let depositRecipientAddressRaw = '';
@@ -1176,9 +1283,6 @@ function closeWinOverlayModalWithBackButton() {
 function closeDepositModalWithBackButton() {
     closeDepositInstructionsModal();
 }
-function closeWithdrawModalWithBackButton() {
-    closeWithdrawModal();
-}
 
 function updateLoadingStatus(message) {
     if (loadingStatusText) {
@@ -1209,9 +1313,7 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
 
 function updateBalances() {
     headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`;
-    headerElements.starBalanceSpan.textContent = `${currentUser.starBalance}`; // Update Star balance in header
     profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
-    profileElements.starBalanceDisplay.innerHTML = `${currentUser.starBalance} <img src="${TELEGRAM_STAR_LOGO_URL}" alt="Stars Logo">`; // Update Star balance in profile
 }
 
 function navigateToPage(pageId) {
@@ -1219,6 +1321,7 @@ function navigateToPage(pageId) {
     document.getElementById(pageId)?.classList.add('active');
     appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
     
+    // When the user navigates to the referrals page, fetch and render the list of friends.
     if (pageId === 'invite-page') {
         renderInvitedFriendsList();
     }
@@ -1282,7 +1385,7 @@ function updateUIBasedOnWallet(wallet) {
 
     if (dataFetchedSuccessfully) {
         updateBalances();
-        renderProfile();
+        renderProfile(); // Also calls renderInventory which depends on currentUser.inventory
     } else {
         headerElements.tonBalanceSpan.textContent = `0.00`;
         profileElements.balanceDisplay.innerHTML = `0.00 TON`;
@@ -1314,32 +1417,27 @@ function renderCases() {
         imgCont.appendChild(img);
         const priceEl = document.createElement('div');
         priceEl.className = 'case-price';
-        
-        // NEW: Display price based on currency (TON or Stars)
-        if (caseItem.priceStars) {
-            priceEl.textContent = `${caseItem.priceStars} Stars`;
-            priceEl.classList.add('stars'); // Add class for specific styling
-        } else {
-            priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
-        }
+        priceEl.textContent = `${parseFloat(caseItem.priceTON).toFixed(1)} TON`;
         card.append(imgCont, priceEl);
         casesGrid.appendChild(card);
     });
 }
 
 function renderProfile() {
-    profileElements.avatar.innerHTML = '';
+    // Clear any previous content in the avatar placeholder
+    profileElements.avatar.innerHTML = ''; 
 
     if (currentUser.photo_url) {
         const img = document.createElement('img');
         img.src = currentUser.photo_url;
         img.alt = currentUser.first_name ? `${currentUser.first_name}'s avatar` : 'User Avatar';
-        img.style.width = '100%';
+        img.style.width = '100%'; // Make image fill the placeholder
         img.style.height = '100%';
-        img.style.objectFit = 'cover';
-        img.style.borderRadius = 'inherit';
+        img.style.objectFit = 'cover'; // Cover the area without distortion
+        img.style.borderRadius = 'inherit'; // Inherit border-radius from parent
         profileElements.avatar.appendChild(img);
     } else {
+        // Fallback to text initial if no photo URL is available
         profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
     }
 
@@ -1347,21 +1445,19 @@ function renderProfile() {
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
     profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
-    updateBalances(); // Ensure balances are updated on profile page load
     renderInventory();
 }
 
 function renderInventory() {
     profileElements.inventoryGrid.innerHTML = '';
-    let totalTonValue = 0;
-    let totalStarValue = 0;
-
+    let totalValue = 0;
     if (currentUser.inventory.length === 0) {
         profileElements.emptyInventoryMessage.style.display = 'block';
         profileElements.sellAllButton.style.display = 'none';
     } else {
         profileElements.emptyInventoryMessage.style.display = 'none';
         currentUser.inventory.forEach(item => {
+            totalValue += item.currentValue || 0;
             const itemDiv = document.createElement('div');
             itemDiv.className = 'inventory-item';
             const imgCont = document.createElement('div');
@@ -1371,40 +1467,12 @@ function renderInventory() {
             img.alt = item.name;
             img.loading = 'lazy';
             imgCont.appendChild(img);
-
-            let valueText = '';
-            let valueClass = '';
-            let actionsHTML = '';
-
-            if (item.is_star_prize) {
-                valueText = `${(item.currentValue || 0)} Stars`;
-                valueClass = 'stars';
-                totalStarValue += (item.currentValue || 0);
-                actionsHTML = `
-                    <button class="button add-to-balance-button" onclick="handleAddToStarBalance(${item.id})">Add to Balance</button>
-                    <button class="button button-secondary convert-stars-to-ton-button" onclick="handleConvertStarToTon(${item.id})">Convert to TON</button>
-                `;
-            } else if (item.is_ton_prize) {
-                valueText = `${(item.currentValue || 0).toFixed(2)} TON`;
-                actionsHTML = `<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>`;
-                totalTonValue += (item.currentValue || 0); // Still counts towards TON
-            } else { // Regular NFT item
-                valueText = `${(item.currentValue || 0).toFixed(2)} TON`;
-                totalTonValue += (item.currentValue || 0);
-                actionsHTML = `
-                    <button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button>
-                    <button class="button button-secondary" onclick="handleSingleConvert(${item.id})">Convert</button>
-                `;
-            }
-            
-            itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value ${valueClass}">${valueText}</div><div class="inventory-item-actions">${actionsHTML}</div>`;
+            itemDiv.innerHTML = `<div class="inventory-item-name" title="${item.name}">${item.name}</div><div class="inventory-item-value">${(item.currentValue || 0).toFixed(2)} TON</div><div class="inventory-item-actions">${item.is_ton_prize ? '<span style="font-size:0.8em; color:var(--success-color);">TON Prize</span>' : `<button class="button button-secondary withdraw-button" onclick="startWithdrawalProcess(${item.id})">Withdraw</button><button class="button button-secondary" onclick="handleSingleConvert(${item.id})">Convert</button>`}</div>`;
             itemDiv.insertBefore(imgCont, itemDiv.firstChild);
             profileElements.inventoryGrid.appendChild(itemDiv);
         });
-        
         profileElements.sellAllButton.style.display = 'block';
-        profileElements.sellAllValueTonSpan.textContent = totalTonValue.toFixed(2);
-        profileElements.sellAllValueStarsSpan.textContent = Math.round(totalStarValue);
+        profileElements.sellAllValueSpan.textContent = totalValue.toFixed(2);
     }
     profileElements.inventoryCount.textContent = currentUser.inventory.length;
 }
@@ -1426,6 +1494,7 @@ async function renderLeaderboard() {
 }
 
 function renderInvitePage() {
+    // This now generates a `t.me/bot?start=...` link, which is more reliable.
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}?start=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
     inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0;
@@ -1433,15 +1502,16 @@ function renderInvitePage() {
 
 async function renderInvitedFriendsList() {
     const listContainer = inviteElements.invitedUsersListDisplay;
-    listContainer.innerHTML = '<div class="loader" style="margin: 10px auto; width: 30px; height: 30px;"></div>';
+    listContainer.innerHTML = '<div class="loader" style="margin: 10px auto; width: 30px; height: 30px;"></div>'; // Show loader
 
     try {
         const friends = await apiRequest('/api/get_invited_friends');
 
         if (friends && friends.length > 0) {
-            listContainer.innerHTML = '';
+            listContainer.innerHTML = ''; // Clear loader
             friends.forEach(friend => {
                 const friendDiv = document.createElement('div');
+                // You can style this div further using CSS if needed
                 friendDiv.textContent = friend.name || `User #${friend.id}`;
                 listContainer.appendChild(friendDiv);
             });
@@ -1458,71 +1528,45 @@ function showWinOverlay(wonPrizesArray) {
     lastWonPrizesForOverlay = wonPrizesArray;
     winOverlayPrizeImageContainer.innerHTML = '';
     winOverlayPrizeDetailsEl.innerHTML = '';
-    
-    // Calculate total values for conversion buttons
-    let totalConvertibleTonValue = 0;
-    let totalConvertibleStarValue = 0;
-    let hasTonConvertible = false;
-
-    wonPrizesArray.forEach(prizeItem => {
+    if (wonPrizesArray.length === 1) {
+        const prizeItem = wonPrizesArray[0];
         const img = document.createElement('img');
         img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
         img.alt = prizeItem.name;
         winOverlayPrizeImageContainer.appendChild(img);
-
-        if (prizeItem.is_ton_prize || (!prizeItem.is_ton_prize && !prizeItem.is_star_prize)) { // Ton prizes or TON-valued NFTs
-            totalConvertibleTonValue += (prizeItem.currentValue || 0);
-            hasTonConvertible = true;
-        } else if (prizeItem.is_star_prize) {
-            totalConvertibleStarValue += (prizeItem.currentValue || 0);
-        }
-    });
-
-    if (wonPrizesArray.length === 1) {
-        const prizeItem = wonPrizesArray[0];
         winOverlayNameEl.textContent = `You Won: ${prizeItem.name}!`;
-        winOverlayPrizeDetailsEl.textContent = ''; // Clear details if only one item
-
-        if (prizeItem.is_star_prize) {
-            // For single Star prize, only display "Save to Collection"
-            winOverlayConvertBtn.style.display = 'none';
-        } else if (prizeItem.is_ton_prize) {
-            // For single TON prize, no convert button is needed either
-            winOverlayConvertBtn.style.display = 'none';
-        } else { // Single NFT prize
-            winOverlayConvertBtn.style.display = 'block';
-            winOverlayConvertValueTon.textContent = totalConvertibleTonValue.toFixed(2);
-            winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to "; // Reset text
+        winOverlayConvertBtn.style.display = prizeItem.is_ton_prize ? 'none' : 'block';
+        if (!prizeItem.is_ton_prize) {
+            winOverlayConvertValue.textContent = (prizeItem.currentValue || 0).toFixed(2);
+            winOverlayConvertBtn.childNodes[0].nodeValue = "Convert to ";
         }
-    } else { // Multiple items
+    } else if (wonPrizesArray.length > 1) {
         winOverlayNameEl.textContent = `You Won ${wonPrizesArray.length} Items!`;
+        let totalConvertValue = 0;
+        let canConvertAny = false;
         let prizeNamesHTML = '';
         wonPrizesArray.forEach(prizeItem => {
-            let valStr = '';
-            if (prizeItem.is_star_prize) {
-                valStr = `${(prizeItem.currentValue || 0)} Stars`;
-            } else {
-                valStr = `${(prizeItem.currentValue || 0).toFixed(2)} TON`;
+            const img = document.createElement('img');
+            img.src = generateImageFilename(prizeItem.imageFilename || prizeItem.name);
+            img.alt = prizeItem.name;
+            winOverlayPrizeImageContainer.appendChild(img);
+            prizeNamesHTML += `<div>- ${prizeItem.name} (${(prizeItem.currentValue || 0).toFixed(2)} TON)</div>`;
+            if (!prizeItem.is_ton_prize) {
+                totalConvertValue += (prizeItem.currentValue || 0);
+                canConvertAny = true;
             }
-            prizeNamesHTML += `<div>- ${prizeItem.name} (${valStr})</div>`;
         });
         winOverlayPrizeDetailsEl.innerHTML = prizeNamesHTML;
-
-        // Display combined conversion button only for TON-valued items
-        if (hasTonConvertible) {
-            winOverlayConvertBtn.style.display = 'block';
-            winOverlayConvertValueTon.textContent = totalConvertibleTonValue.toFixed(2);
+        winOverlayConvertBtn.style.display = canConvertAny ? 'block' : 'none';
+        if (canConvertAny) {
+            winOverlayConvertValue.textContent = totalConvertValue.toFixed(2);
             winOverlayConvertBtn.childNodes[0].nodeValue = "Convert All to ";
-        } else {
-            winOverlayConvertBtn.style.display = 'none'; // No TON-valued items to mass convert
         }
     }
-
     winOverlayModal.classList.add('active');
     if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
 }
-
 
 function closeWinOverlayModal() {
     if (tgBackButton) popTgBackButtonHandler();
@@ -1530,28 +1574,35 @@ function closeWinOverlayModal() {
     lastWonPrizesForOverlay = [];
 }
 
+// MODIFIED initializeRouletteVisuals FUNCTION
 function initializeRouletteVisuals(caseItem, multiplier) {
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
-    const itemHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height').replace('px', '')) || 80;
-    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260;
+    // We assume roulette-item height is fixed for initial calc. Get from CSS if needed.
+    const itemHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height').replace('px', '')) || 80; 
+    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260; // Assuming this is set up
     
+    // Hide all reels initially
     allReelContainers.forEach(container => container.classList.remove('active'));
 
-    let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, is_star_prize: false, floor_price: 0, value: 0 }];
+    // Determine available prizes, with a fallback for empty cases
+    let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floor_price: 0 }];
 
+    // Show and populate only the necessary number of reels
     for (let i = 0; i < multiplier; i++) {
         const reelContainer = allReelContainers[i];
         if (reelContainer) {
-            reelContainer.classList.add('active');
+            reelContainer.classList.add('active'); // Make this reel visible
             const spinnerReel = reelContainer.querySelector('.roulette-spinner-reel');
-            spinnerReel.innerHTML = '';
+            spinnerReel.innerHTML = ''; // Clear existing items when a case is opened/multiplier changed
 
             let defaultVisualItemsData = [];
+            // Populate with initial items to make it look ready
             for (let j = 0; j < VISUAL_ITEMS_PER_REEL_INITIAL; j++) {
                 const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
                 defaultVisualItemsData.push(randomPrize);
             }
             
+            // Append visual items to the reel
             defaultVisualItemsData.forEach(pData => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
@@ -1559,84 +1610,85 @@ function initializeRouletteVisuals(caseItem, multiplier) {
                 img.src = generateImageFilename(pData.imageFilename || pData.name);
                 img.alt = pData.name;
                 itemEl.appendChild(img);
+                // Store full prize data on the element for later inspection (e.g., floorPrice for nudging)
                 itemEl.dataset.prizeData = JSON.stringify({
                     name: pData.name, imageFilename: pData.imageFilename,
-                    is_ton_prize: pData.is_ton_prize, is_star_prize: pData.is_star_prize, floorPrice: pData.floor_price, value: pData.value
+                    is_ton_prize: pData.is_ton_prize, floorPrice: pData.floor_price, value: pData.value 
                 });
                 spinnerReel.appendChild(itemEl);
             });
 
-            spinnerReel.style.transition = 'none';
+            // Set initial reel position to center one of the items
+            // This makes it look like it's already "on" something without needing to spin.
+            spinnerReel.style.transition = 'none'; // Ensure no transition on initial load
             const middleItemIndex = Math.floor(VISUAL_ITEMS_PER_REEL_INITIAL / 2);
+            // Calculate offset to bring the middle of the middle item to the center of the visible roulette area
             const initialScrollOffset = (middleItemIndex * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2);
             spinnerReel.style.top = `-${initialScrollOffset}px`;
-            void spinnerReel.offsetWidth;
+            void spinnerReel.offsetWidth; // Force reflow
         }
     }
 }
 
 function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem;
-    selectedCaseMultiplier = 1;
-    updateCaseMultiplierButtons();
-    updateSpinButtonText();
-
+    selectedCaseMultiplier = 1; // Default to 1x when opening
+    updateCaseMultiplierButtons(); // This will call initializeRouletteVisuals with 1x
     rouletteCaseName.textContent = caseItem.name;
+    updateSpinButtonText();
 
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
 
+    // Iterate through prizes in the selected case
     caseItem.prizes.forEach(p => {
         if (!p || !p.name) return;
 
-        const prizeName = p.name;
-        // For star prizes, use 'value' field as floorPrice. For others, use UPDATED_FLOOR_PRICES_FRONTEND or existing floorPrice.
-        const displayValue = p.is_star_prize ? p.value : (UPDATED_FLOOR_PRICES_FRONTEND[prizeName] || p.floorPrice || 0);
+        const prizeName = p.name; // Get the name of the prize
+        // Look up the floor price from the global UPDATED_FLOOR_PRICES_FRONTEND map
+        const floorPrice = UPDATED_FLOOR_PRICES_FRONTEND[prizeName] || 0; // Default to 0 if not found
 
-        const pDataForDisplay = {
+        // Create a new prize data object for the map, including the looked-up floorPrice
+        const pDataWithPrice = {
             name: prizeName,
-            probability: p.probability,
-            imageFilename: p.imageFilename || generateImageFilename(prizeName),
-            displayValue: displayValue, // Use displayValue for showing
-            is_star_prize: p.is_star_prize || false // Pass star flag
+            probability: p.probability, // Keep probability as it's part of the raw data
+            imageFilename: p.imageFilename || generateImageFilename(prizeName), // Use imageFilename from data or generate
+            floorPrice: floorPrice // Explicitly add the looked-up floor price
         };
 
+        // Aggregate prizes by name (if there are duplicates or for consistent display)
         if (prizeMap.has(prizeName)) {
+            // If you need to combine probabilities or other stats for identical prizes, do it here
+            // For now, if a name already exists, we'll just ensure its floorPrice is consistent.
+            // (In our current setup, prize names within one case are unique, so this mainly handles Kissed Frog variants properly)
             const existing = prizeMap.get(prizeName);
             prizeMap.set(prizeName, {
                 ...existing,
                 probability: (existing.probability || 0) + (p.probability || 0),
-                displayValue: displayValue // Ensure consistent display value
+                floorPrice: floorPrice // Ensure the correct floor price is set
             });
         } else {
-            prizeMap.set(prizeName, pDataForDisplay);
+            prizeMap.set(prizeName, pDataWithPrice);
         }
     });
 
+    // Now iterate through the aggregated prizeMap to display the cards
     prizeMap.forEach((pData, name) => {
+        const displayPrice = pData.floorPrice || 0; // Use the floorPrice from pData
         const card = document.createElement('div');
         card.className = 'prize-card';
 
         const imgCont = document.createElement('div');
         imgCont.className = 'prize-card-image-placeholder';
         const img = document.createElement('img');
-        img.src = pData.imageFilename;
+        img.src = pData.imageFilename; // Use the imageFilename now present in pData
         img.alt = name;
         imgCont.appendChild(img);
 
-        const priceSpan = document.createElement('span');
-        priceSpan.className = 'prize-card-price';
-        if (pData.is_star_prize) {
-            priceSpan.textContent = `${pData.displayValue} Stars`;
-            priceSpan.classList.add('stars');
-        } else {
-            priceSpan.textContent = `${pData.displayValue.toFixed(2)} TON`;
-        }
+        // Display the floor price in TON
+        card.innerHTML = `<span class="prize-card-price">${displayPrice.toFixed(2)} TON</span><span class="prize-card-name">${name}</span>`;
         
-        card.innerHTML = `<span class="prize-card-name">${name}</span>`;
         card.insertBefore(imgCont, card.firstChild);
-        card.insertBefore(priceSpan, card.children[1]); // Insert price after image, before name
-
         possiblePrizesDisplay.appendChild(card);
     });
 
@@ -1645,16 +1697,10 @@ function openRouletteModal(caseItem) {
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 }
 
-
 function updateSpinButtonText() {
-    if (currentOpenCaseOrSlot) {
-        if (currentOpenCaseOrSlot.priceTON) {
-            const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
-            spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
-        } else if (currentOpenCaseOrSlot.priceStars) {
-            const totalPrice = parseFloat(currentOpenCaseOrSlot.priceStars) * selectedCaseMultiplier;
-            spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice} Stars)`;
-        }
+    if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) {
+        const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
+        spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
     }
 }
 
@@ -1664,6 +1710,7 @@ function updateCaseMultiplierButtons() {
         if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary');
         else btn.classList.add('button-secondary');
     }); 
+    // Re-initialize visuals based on the NEW selected multiplier
     initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier);
 }
 
@@ -1672,62 +1719,26 @@ function closeRouletteModal() {
     rouletteModal.classList.remove('active');
     currentOpenCaseOrSlot = null;
     if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
+    // Ensure all reels are hidden when closing the modal
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
     allReelContainers.forEach(container => container.classList.remove('active'));
 }
 
 function getItemValue(prizeObject) {
     if (prizeObject.is_ton_prize) {
-        return prizeObject.currentValue || prizeObject.value || 0;
+        return prizeObject.currentValue || prizeObject.value || 0; // Use 'value' for TON prizes
     }
-    if (prizeObject.is_star_prize) {
-        return prizeObject.currentValue || prizeObject.value || 0;
-    }
-    return prizeObject.floorPrice || prizeObject.currentValue || 0;
+    // For NFT items, prizeObject should already have floorPrice from `caseItem.prizes`
+    return prizeObject.floorPrice || prizeObject.currentValue || 0; 
 }
     
+// MODIFIED spinRoulette FUNCTION
 async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return;
     spinButton.disabled = true;
     spinButton.textContent = 'Spinning...';
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 
-    if (currentOpenCaseOrSlot.priceStars) {
-        // NEW: Star Case Payment Flow
-        try {
-            const res = await apiRequest('/api/create_star_invoice', 'POST', { case_id: currentOpenCaseOrSlot.id });
-            if (res.status === 'success' && res.invoice_url) {
-                closeRouletteModal(); // Close game modal, let Telegram handle payment UI
-                Telegram.WebApp.openInvoice(res.invoice_url, (status) => {
-                    if (status === 'paid') {
-                        showTGNotification("Payment successful! Your prize will be delivered by the bot in a Telegram message. Check your chat with @pusikGiftsBot!", 'success');
-                        fetchInitialUserData().then(() => { // Re-fetch user data to update balances and inventory
-                            updateBalances();
-                            renderProfile();
-                        });
-                    } else if (status === 'cancelled') {
-                        showTGNotification("Payment cancelled.", 'warning');
-                    } else {
-                        showTGNotification("Payment failed or unknown status.", 'error');
-                    }
-                    spinButton.disabled = false;
-                    updateSpinButtonText();
-                });
-            } else {
-                showTGNotification(res.error || res.message || 'Failed to get payment link.', 'error');
-                spinButton.disabled = false;
-                updateSpinButtonText();
-            }
-        } catch (e) {
-            console.error("Star case spin error:", e);
-            showTGNotification("Error initiating Star payment. Please try again.", "error");
-            spinButton.disabled = false;
-            updateSpinButtonText();
-        }
-        return; // Exit here for star cases
-    }
-
-    // Existing TON Case Spin Logic (remains largely unchanged)
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
     const activeSpinners = allReelContainers
                                 .filter(container => container.classList.contains('active'))
@@ -1740,16 +1751,20 @@ async function spinRoulette() {
         return;
     }
 
-    const availablePrizes = currentOpenCaseOrSlot.prizes;
+    const availablePrizes = currentOpenCaseOrSlot.prizes; 
     
+    // Dynamically get item height and visible reel height (they might change or be affected by padding)
     const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
     const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
-    const centerOffset = (rouletteRowVisibleHeight / 2);
+    const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window for the payline
 
+    // Prepare reels for spin: Append buffer items and winning item
     activeSpinners.forEach((spinnerReel, reelIndex) => {
-        spinnerReel.style.transition = 'none';
-        void spinnerReel.offsetWidth;
+        // Remove existing transitions to prevent flicker when appending
+        spinnerReel.style.transition = 'none'; 
+        void spinnerReel.offsetWidth; // Force reflow
 
+        // Append a buffer of random items to make the spin visually longer
         for (let j = 0; j < VISUAL_ITEMS_PER_REEL_SPIN_BUFFER; j++) {
             const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
             const itemEl = document.createElement('div');
@@ -1760,8 +1775,7 @@ async function spinRoulette() {
             itemEl.appendChild(img);
             itemEl.dataset.prizeData = JSON.stringify({
                 name: randomPrize.name, imageFilename: randomPrize.imageFilename,
-                is_ton_prize: randomPrize.is_ton_prize, is_star_prize: randomPrize.is_star_prize,
-                floorPrice: randomPrize.floor_price, value: randomPrize.value
+                is_ton_prize: randomPrize.is_ton_prize, floorPrice: randomPrize.floor_price, value: randomPrize.value
             });
             spinnerReel.appendChild(itemEl);
         }
@@ -1781,15 +1795,18 @@ async function spinRoulette() {
 
             activeSpinners.forEach((spinnerReel, index) => {
                 let currentReelItemsDOMElements = Array.from(spinnerReel.children);
-                const actualWonPrizeBackendData = result.won_prizes[index] ||
-                                                  (index === 0 && result.won_prizes[0]);
+                const actualWonPrizeBackendData = result.won_prizes[index] || 
+                                                  (index === 0 && result.won_prizes[0]); // Fallback for single win
 
                 if (!actualWonPrizeBackendData) {
                     console.warn(`No won prize data for reel ${index}. Skipping animation for this reel.`);
-                    return;
+                    return; 
                 }
 
-                const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2);
+                // --- 1. Place the actual winning prize at a determined "landing zone"
+                // The winning item will land at the end of the initial items + a buffer offset
+                // This ensures it appears after the initial set, but not at the very end of the *newly added* buffer
+                const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2); 
 
                 if (currentReelItemsDOMElements[landingSpotIndex]) {
                     const targetEl = currentReelItemsDOMElements[landingSpotIndex];
@@ -1802,23 +1819,28 @@ async function spinRoulette() {
                     console.warn(`Could not place winning item at target index ${landingSpotIndex}. Reel may be too short or index is off.`);
                 }
 
+                // --- 2. Calculate base scroll distance to center the winning item
                 let scrollDist = (landingSpotIndex * itemHeight) + (itemHeight / 2) - centerOffset;
 
-                const randomBiasRange = itemHeight * 0.4;
-                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2);
+                // --- 3. Add a random visual bias within the winning item's height
+                const randomBiasRange = itemHeight * 0.4; // Up to 40% of item height deviation from center
+                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2); // Random value between -range/2 and +range/2
                 scrollDist += visualBiasOffsetPx;
 
-                const nudgeRange = 3;
+                // --- 4. Implement Nudge towards more expensive nearby items
+                const nudgeRange = 3; // Check 3 items above and 3 items below
                 const winningItemValue = getItemValue(actualWonPrizeBackendData);
-                let nudgeValueThreshold = winningItemValue * 1.5;
+                let nudgeValueThreshold = winningItemValue * 1.5; // Nudge towards items 1.5x more expensive
 
                 let bestNudgeCandidate = null;
-                let maxNudgeAmount = itemHeight * 0.4;
+                let maxNudgeAmount = itemHeight * 0.4; // Max nudge amount within the item
                 
+                // Scan for expensive items above and below the winning item
                 for (let j = 1; j <= nudgeRange; j++) {
                     const idxAbove = landingSpotIndex - j;
                     const idxBelow = landingSpotIndex + j;
 
+                    // Check item above
                     if (idxAbove >= 0 && currentReelItemsDOMElements[idxAbove]) {
                         try {
                             const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData);
@@ -1829,6 +1851,7 @@ async function spinRoulette() {
                         } catch (e) { /* ignore parse errors for robustness */ }
                     }
 
+                    // Check item below
                     if (idxBelow < currentReelItemsDOMElements.length && currentReelItemsDOMElements[idxBelow]) {
                         try {
                             const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData);
@@ -1840,55 +1863,71 @@ async function spinRoulette() {
                     }
                 }
 
+                // Apply the nudge
                 if (bestNudgeCandidate) {
-                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1));
-                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount);
+                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1)); // Closer items nudge more
+                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); // Clamp to max nudge
 
                     if (bestNudgeCandidate.direction === 'above') {
-                        scrollDist -= nudgeMagnitude;
-                    } else {
-                        scrollDist += nudgeMagnitude;
+                        // Move reel UP (scrollDist decreases), payline lands lower on winner (closer to item above)
+                        scrollDist -= nudgeMagnitude; 
+                        console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
+                    } else { // 'below'
+                        // Move reel DOWN (scrollDist increases), payline lands higher on winner (closer to item below)
+                        scrollDist += nudgeMagnitude; 
+                        console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
                     }
                 }
 
-                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset;
-                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset;
+                // --- 5. Clamp the final scroll position to ensure payline stays within the winning item
+                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
+                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
                 scrollDist = Math.max(minScrollPosForWinner, Math.min(maxScrollPosForWinner, scrollDist));
 
-                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;
+                // Apply animation
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; // Slower, smoother ease-out
                 spinnerReel.style.top = `-${scrollDist}px`;
             });
 
             const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
+                // Update user inventory with ALL won prizes from the backend
                 result.won_prizes.forEach(wp => {
                     const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
-                    if (existingItemIndex === -1 && wp.id) {
-                        currentUser.inventory.push({
-                            id: wp.id, name: wp.name, imageFilename: wp.imageFilename,
-                            currentValue: wp.currentValue, variant: wp.variant,
-                            is_ton_prize: wp.is_ton_prize || false, is_star_prize: wp.is_star_prize || false
+                    // Add item only if it's new (and has an ID, to avoid adding TON prizes to inventory list)
+                    if (existingItemIndex === -1 && wp.id) { 
+                        currentUser.inventory.push({ 
+                            id: wp.id, name: wp.name, imageFilename: wp.imageFilename, 
+                            currentValue: wp.currentValue, variant: wp.variant, is_ton_prize: wp.is_ton_prize || false 
                         });
                     }
                 });
                 renderInventory();
                 showWinOverlay(result.won_prizes);
 
+                // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
                 activeSpinners.forEach(spinnerReel => {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
-                    const itemHeightCalc = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
+                    // Recalculate itemHeight for robustness, though it should be constant for the same reel
+                    const itemHeightCalc = spinnerRereel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
+                    
+                    // Estimate the index of the item that is now at the top of the visible window
                     const itemsScrolledPast = Math.floor(Math.abs(currentTop) / itemHeightCalc);
-                    const startIndex = Math.max(0, itemsScrolledPast - 10);
+                    
+                    // Keep items around the final stopping point for visual continuity
+                    // Example: Keep 10 items before the stopped item and (visible items * 2) after
+                    const startIndex = Math.max(0, itemsScrolledPast - 10); 
                     const endIndex = Math.min(spinnerReel.children.length, itemsScrolledPast + 10 + Math.ceil(rouletteRowVisibleHeight / itemHeightCalc) * 2);
                     
                     const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
                     
-                    spinnerReel.innerHTML = '';
+                    spinnerReel.innerHTML = ''; // Clear and re-populate with trimmed list
                     itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
 
-                    spinnerReel.style.transition = 'none';
+                    spinnerReel.style.transition = 'none'; 
+                    // Adjust top position to account for removed items
                     spinnerReel.style.top = `${currentTop + (startIndex * itemHeightCalc)}px`;
-                    void spinnerReel.offsetWidth;
+                    void spinnerReel.offsetWidth; // Force reflow
                 });
 
             }, animationDuration + 100);
@@ -1919,10 +1958,6 @@ async function convertItemToTon(itemId) {
         showTGNotification("Cannot convert TON prize.", "info");
         return false;
     }
-    if (itemInInventory && itemInInventory.is_star_prize) { // New condition for Star prizes
-        showTGNotification("This is a Star prize. Use 'Convert to TON' button specifically for stars.", "warning");
-        return false;
-    }
     try {
         const res = await apiRequest('/api/convert_to_ton', 'POST', { inventory_item_id: parseInt(itemId) });
         if (res.status === 'success') {
@@ -1939,57 +1974,6 @@ async function convertItemToTon(itemId) {
     }
 }
 
-async function handleAddToStarBalance(itemId) {
-    const itemInInventory = currentUser.inventory.find(i => i.id === itemId);
-    if (itemInInventory && !itemInInventory.is_star_prize) {
-        showTGNotification("This is not a Star prize. Cannot add to star balance.", "warning");
-        return false;
-    }
-    try {
-        const res = await apiRequest('/api/add_stars_to_balance', 'POST', { inventory_item_id: parseInt(itemId) });
-        if (res.status === 'success') {
-            currentUser.starBalance = res.new_star_balance;
-            currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
-            showTGNotification(`${res.message}`, 'success');
-            updateBalances();
-            renderInventory();
-            return true;
-        } else {
-            showTGNotification(res.error || res.message || 'Failed to add stars.', 'error');
-            return false;
-        }
-    } catch (e) {
-        showTGNotification("Add to balance request failed.", "error");
-        return false;
-    }
-}
-
-async function handleConvertStarToTon(itemId) {
-    const itemInInventory = currentUser.inventory.find(i => i.id === itemId);
-    if (itemInInventory && !itemInInventory.is_star_prize) {
-        showTGNotification("This is not a Star prize. Cannot convert to TON.", "warning");
-        return false;
-    }
-    try {
-        const res = await apiRequest('/api/convert_star_to_ton', 'POST', { inventory_item_id: parseInt(itemId) });
-        if (res.status === 'success') {
-            currentUser.tonBalance = res.new_ton_balance;
-            currentUser.inventory = currentUser.inventory.filter(i => i.id !== parseInt(itemId));
-            showTGNotification(`${res.message}`, 'success');
-            updateBalances();
-            renderInventory();
-            return true;
-        } else {
-            showTGNotification(res.error || res.message || 'Failed to convert stars.', 'error');
-            return false;
-        }
-    } catch (e) {
-        showTGNotification("Convert stars to TON request failed.", "error");
-        return false;
-    }
-}
-
-
 async function handleConvertAll() {
     if (lastWonPrizesForOverlay.length === 0) {
         showTGNotification("No items to convert.", "warning");
@@ -1997,14 +1981,14 @@ async function handleConvertAll() {
     }
     let successCount = 0;
     let failCount = 0;
-    const itemsToConvert = lastWonPrizesForOverlay.filter(p => !p.is_ton_prize && !p.is_star_prize && p.id); // Only TON-valued NFTs
+    const itemsToConvert = lastWonPrizesForOverlay.filter(p => !p.is_ton_prize && p.id);
     if (itemsToConvert.length === 0) {
         showTGNotification("No convertible items in this win.", "info");
         closeWinOverlayModal();
         return;
     }
     for (const item of itemsToConvert) {
-        const success = await convertItemToTon(item.id); // This calls the /api/convert_to_ton endpoint
+        const success = await convertItemToTon(item.id);
         if (success) successCount++;
         else failCount++;
     }
@@ -2015,7 +1999,7 @@ async function handleConvertAll() {
     closeWinOverlayModal();
 }
 
-async function handleUpgrade() {
+async function handleUpgrade() { // Renamed from original `handleUpgrade` in provided code snippet
     if (!selectedItemForUpgrade || !desiredItemForUpgrade) {
         showTGNotification("Please select both your item and the desired item.", 'warning');
         return;
@@ -2026,74 +2010,66 @@ async function handleUpgrade() {
     Telegram.WebApp.HapticFeedback?.impactOccurred('medium');
 
     try {
-        const res = await apiRequest('/api/upgrade_item_v2', 'POST', {
+        // The backend will use selectedItemForUpgrade.id and desiredItemForUpgrade.name
+        // It will also recalculate multiplier and chance for security.
+        const res = await apiRequest('/api/upgrade_item_v2', 'POST', { 
             inventory_item_id: selectedItemForUpgrade.id,
-            desired_item_name: desiredItemForUpgrade.name
+            desired_item_name: desiredItemForUpgrade.name 
+            // Backend will fetch floor prices and calculate actual X and chance
         });
 
         await startUpgradeAnimation(res.status === 'success');
         
         if (res.status === 'success') {
-            const upgradedItemData = res.item;
+            const upgradedItemData = res.item; // Backend returns the new item
             currentUser.inventory = currentUser.inventory.filter(i => i.id !== selectedItemForUpgrade.id);
             currentUser.inventory.push(upgradedItemData);
             
             showUpgradeResultModal(true, selectedItemForUpgrade, upgradedItemData);
         } else {
-            if (res.item_lost) {
+            if (res.item_lost) { // If backend confirms item was lost
                 currentUser.inventory = currentUser.inventory.filter(i => i.id !== selectedItemForUpgrade.id);
             }
             showUpgradeResultModal(false, selectedItemForUpgrade, null);
         }
         
-        renderInventory();
-        updateBalances();
+        renderInventory(); // Update inventory list in profile
+        updateBalances(); // Balances might change if backend adjusts total_won_ton
 
     } catch (e) {
         console.error("Upgrade error:", e);
         showTGNotification("An error occurred during upgrade. Please try again.", "error");
+        // Reset UI if error before animation
         upgradePageElements.chancePointer.classList.remove('spinning');
         upgradePageElements.chancePointer.style.transform = `translateX(-50%) rotate(0deg)`;
     } finally {
-        upgradePageElements.doUpgradeButton.disabled = false;
+        upgradePageElements.doUpgradeButton.disabled = false; // Re-enable button after modal is closed (or here if modal handles its own lifecycle)
+        // Text reset will happen when modal is closed or new items selected
     }
 }
 
 async function sellAllItems() {
-    const sellableItemsTon = currentUser.inventory.filter(i => !i.is_ton_prize && !i.is_star_prize);
-    const sellableItemsStar = currentUser.inventory.filter(i => i.is_star_prize);
-
-    if (!sellableItemsTon.length && !sellableItemsStar.length) {
+    const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize);
+    if (!sellableItems.length) {
         showTGNotification("No sellable items.", "info");
         return;
     }
-
-    const totalTonValueDisplay = parseFloat(profileElements.sellAllValueTonSpan.textContent);
-    const totalStarValueDisplay = parseFloat(profileElements.sellAllValueStarsSpan.textContent);
-
-    let confirmMessage = `Sell all non-TON/Star items for ${totalTonValueDisplay.toFixed(2)} TON`;
-    if (totalStarValueDisplay > 0) {
-        confirmMessage += ` and ${totalStarValueDisplay} Stars`;
-    }
-    confirmMessage += `?`;
-
+    const val = parseFloat(profileElements.sellAllValueSpan.textContent);
     if (Telegram.WebApp.showConfirm) {
-        Telegram.WebApp.showConfirm(confirmMessage, async (ok) => {
+        Telegram.WebApp.showConfirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`, async (ok) => {
             if (ok) doSellAll();
         });
-    } else if (confirm(confirmMessage)) {
+    } else if (confirm(`Sell all non-TON items for ~${val.toFixed(2)} TON?`)) {
         doSellAll();
     }
 }
-
 
 async function doSellAll() {
     try {
         const res = await apiRequest('/api/sell_all_items', 'POST');
         if (res.status === 'success') {
             currentUser.tonBalance = res.new_balance_ton;
-            currentUser.starBalance = res.new_star_balance;
-            currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize); // Only TON prizes remain in inventory
+            currentUser.inventory = currentUser.inventory.filter(i => i.is_ton_prize);
             updateBalances();
             renderInventory();
             showTGNotification(res.message, "success");
@@ -2103,34 +2079,25 @@ async function doSellAll() {
     }
 }
 
-function showWithdrawStep(stepName) {
-    withdrawSteps.forEach(s => s.classList.remove('active'));
-    const targetStep = document.getElementById(`withdraw-${stepName}`);
-    if (targetStep) {
-        targetStep.classList.add('active');
-    } else {
-        console.error(`Withdraw step with ID 'withdraw-${stepName}' not found.`);
-    }
+function showWithdrawStep(step) {
+    withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step));
 }
 
 function startWithdrawalProcess(inventoryItemId) {
     const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
-    if (!item || item.is_ton_prize || item.is_star_prize) {
+    if (!item || item.is_ton_prize) {
         showTGNotification("Item not found or not withdrawable.", "error");
         return;
     }
     itemToWithdraw = inventoryItemId;
-    selectedTonnelGiftDetails = null;
-    availableTonnelGifts = [];
-
     withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
-    showWithdrawStep('step-1');
+    showWithdrawStep(1);
     withdrawModal.classList.add('active');
-    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
 }
 
 async function completeChosenGiftWithdrawal() {
-    if (!itemToWithdraw || !selectedTonnelGiftDetails) {
+    if (!itemToWithdraw || !selectedTonnelGiftDetails) { // itemToWithdraw is inventory_item_id
         showTGNotification("No item or specific gift selected for withdrawal.", "error");
         return;
     }
@@ -2139,10 +2106,11 @@ async function completeChosenGiftWithdrawal() {
     withdrawFinalizingLoader.style.display = 'block';
 
     try {
+        // Send inventory_item_id in URL, chosen_tonnel_gift_id in body
         const res = await apiRequest(
             `/api/confirm_tonnel_withdrawal/${itemToWithdraw}`,
             'POST',
-            { chosen_tonnel_gift_details: selectedTonnelGiftDetails }
+            { chosen_tonnel_gift_details: selectedTonnelGiftDetails } // Send all details
         );
 
         if (res.status === 'success') {
@@ -2156,6 +2124,8 @@ async function completeChosenGiftWithdrawal() {
             withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed.";
             withdrawStatusMessage.style.color = 'var(--danger-color)';
             showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error');
+            // Optionally, allow user to go back to gift selection if purchase fails
+            // For now, it stays on finalizing step with error. User can close.
         }
     } catch (e) {
         withdrawStatusMessage.textContent = "Error processing withdrawal.";
@@ -2163,11 +2133,13 @@ async function completeChosenGiftWithdrawal() {
         showTGNotification("Error processing Tonnel withdrawal.", "error");
     } finally {
         withdrawFinalizingLoader.style.display = 'none';
+        // Reset for next time
         itemToWithdraw = null;
         selectedTonnelGiftDetails = null;
     }
 }
 
+// Close finalizing step
 document.getElementById('withdraw-step-finalizing-close').addEventListener('click', closeWithdrawModal);
     
 function closeWithdrawModal() {
@@ -2176,7 +2148,7 @@ function closeWithdrawModal() {
     itemToWithdraw = null;
     selectedTonnelGiftDetails = null;
     availableTonnelGifts = [];
-    showWithdrawStep('step-1');
+    showWithdrawStep('step-1'); // Reset to first step
     withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
     withdrawStatusMessage.textContent = "";
     withdrawFinalizingLoader.style.display = 'none';
@@ -2321,40 +2293,46 @@ async function redeemPromocode() {
 function populateAllAppGifts() {
     const uniqueGifts = new Map();
 
+    // Collect from casesData
     casesData.forEach(caseItem => {
         caseItem.prizes.forEach(prize => {
-            if (prize.name && prize.name !== 'Nothing' && !prize.is_ton_prize && !prize.is_star_prize) { // Ensure not TON or Star prize
+            if (prize.name && prize.name !== 'Nothing' && !prize.is_ton_prize) {
                 if (!uniqueGifts.has(prize.name)) {
                     uniqueGifts.set(prize.name, {
                         name: prize.name,
                         imageFilename: prize.imageFilename || generateImageFilename(prize.name),
-                        floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[prize.name] || 0
+                        floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[prize.name] || 0 // Ensure price from master list
                     });
                 }
             }
         });
     });
 
+    // Collect from UPDATED_FLOOR_PRICES_FRONTEND (might have items not in cases)
     for (const name in UPDATED_FLOOR_PRICES_FRONTEND) {
         if (!uniqueGifts.has(name) && name !== 'Nothing') {
              uniqueGifts.set(name, {
                 name: name,
-                imageFilename: generateImageFilename(name),
+                imageFilename: generateImageFilename(name), // Assumes generateImageFilename can handle it
                 floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[name]
             });
         }
     }
     
     allAppGiftsForUpgrade = Array.from(uniqueGifts.values()).sort((a,b) => a.floorPrice - b.floorPrice);
+    // console.log("All App Gifts for Upgrade:", allAppGiftsForUpgrade);
 }
+// --- END NEW: Function to populateAllAppGiftsForUpgrade ---
 
-function openUpgradeItemPicker(type) {
+
+// --- NEW: Functions for New Upgrade UI Logic ---
+function openUpgradeItemPicker(type) { // type is 'inventory' or 'desired'
     currentUpgradePickerType = type;
     upgradePageElements.upgradeItemsGrid.innerHTML = '';
     
     if (type === 'inventory') {
         upgradePageElements.upgradePickerTitle.textContent = "Select Your Item from Inventory";
-        const userInventoryForUpgrade = currentUser.inventory.filter(item => !item.is_ton_prize && !item.is_star_prize && item.currentValue > 0);
+        const userInventoryForUpgrade = currentUser.inventory.filter(item => !item.is_ton_prize && item.currentValue > 0);
         if (userInventoryForUpgrade.length === 0) {
             upgradePageElements.upgradeItemsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: var(--text-placeholder);">Your inventory is empty or has no upgradable items.</p>';
         } else {
@@ -2366,7 +2344,7 @@ function openUpgradeItemPicker(type) {
     } else if (type === 'desired') {
         if (!selectedItemForUpgrade) {
             showTGNotification("Please select your item first.", "warning");
-            return;
+            return; // Don't open picker if base item not selected
         }
         upgradePageElements.upgradePickerTitle.textContent = "Select Desired Item";
         const potentialDesiredItems = allAppGiftsForUpgrade.filter(
@@ -2390,9 +2368,9 @@ function closeUpgradeItemPicker() {
     currentUpgradePickerType = null;
 }
 
-function createUpgradeableItemCard(itemData, type) {
+function createUpgradeableItemCard(itemData, type) { // itemData for inventory: {id, name, imageFilename, currentValue}, for desired: {name, imageFilename, floorPrice}
     const card = document.createElement('div');
-    card.className = 'inventory-item';
+    card.className = 'inventory-item'; // Reuse styling
 
     const imgCont = document.createElement('div');
     imgCont.className = 'item-image-display';
@@ -2416,7 +2394,7 @@ function createUpgradeableItemCard(itemData, type) {
     selectBtn.textContent = 'Select';
     if (type === 'inventory') {
         selectBtn.onclick = () => handleSelectInventoryItemForUpgrade(itemData.id);
-    } else {
+    } else { // desired
         selectBtn.onclick = () => handleSelectDesiredItemForUpgrade(itemData.name);
     }
     actionsEl.appendChild(selectBtn);
@@ -2428,7 +2406,7 @@ function createUpgradeableItemCard(itemData, type) {
     return card;
 }
 
-function updateSlotDisplay(slotElement, itemData, type) {
+function updateSlotDisplay(slotElement, itemData, type) { // type 'inventory' or 'desired'
     const placeholder = slotElement.querySelector('.slot-placeholder');
     const display = slotElement.querySelector('.slot-item-display');
     if (itemData) {
@@ -2438,8 +2416,8 @@ function updateSlotDisplay(slotElement, itemData, type) {
         display.querySelector('.slot-item-value').textContent = `${(type === 'inventory' ? itemData.currentValue : itemData.floorPrice).toFixed(2)} TON`;
         placeholder.style.display = 'none';
         display.style.display = 'flex';
-        display.style.flexDirection = 'column';
-    } else {
+        display.style.flexDirection = 'column'; // Ensure items stack vertically
+    } else { // Reset slot
         placeholder.style.display = 'flex';
         display.style.display = 'none';
     }
@@ -2448,9 +2426,10 @@ function updateSlotDisplay(slotElement, itemData, type) {
 function handleSelectInventoryItemForUpgrade(inventoryItemId) {
     const item = currentUser.inventory.find(i => i.id === inventoryItemId);
     if (item) {
-        selectedItemForUpgrade = { ...item };
+        selectedItemForUpgrade = { ...item }; // Store a copy
         updateSlotDisplay(upgradePageElements.selectedInventoryItemSlot, selectedItemForUpgrade, 'inventory');
         
+        // Reset desired item if new inventory item is selected
         desiredItemForUpgrade = null;
         updateSlotDisplay(upgradePageElements.desiredUpgradeItemSlot, null, 'desired');
         
@@ -2462,7 +2441,7 @@ function handleSelectInventoryItemForUpgrade(inventoryItemId) {
 function handleSelectDesiredItemForUpgrade(itemName) {
     const item = allAppGiftsForUpgrade.find(g => g.name === itemName);
     if (item) {
-        desiredItemForUpgrade = { ...item };
+        desiredItemForUpgrade = { ...item }; // Store a copy
         updateSlotDisplay(upgradePageElements.desiredUpgradeItemSlot, desiredItemForUpgrade, 'desired');
         calculateAndDisplayUpgradeStats();
         closeUpgradeItemPicker();
@@ -2477,10 +2456,12 @@ function calculateAndDisplayUpgradeStats() {
             showTGNotification("Selected item has no value.", "error");
         } else {
             calculatedUpgradeMultiplier = desiredItemForUpgrade.floorPrice / selectedItemForUpgrade.currentValue;
-            const xEffective = Math.max(1.01, calculatedUpgradeMultiplier);
-            const maxChance = 75;
-            const minChance = 3;
-            const riskFactor = 0.60;
+            // New chance formula: Chance = MaxChance * Math.pow(RiskFactor, X - 1)
+            // Clamp X for chance calculation to avoid extreme values if desired item is much cheaper (though filter should prevent this)
+            const xEffective = Math.max(1.01, calculatedUpgradeMultiplier); // Ensure X > 1 for pow calculation
+            const maxChance = 75;  // Max possible chance in %
+            const minChance = 3;   // Min possible chance in %
+            const riskFactor = 0.60; // Lower value means chance drops faster with higher X
 
             let chance = maxChance * Math.pow(riskFactor, xEffective - 1);
             calculatedUpgradeChance = Math.min(maxChance, Math.max(minChance, chance));
@@ -2491,6 +2472,7 @@ function calculateAndDisplayUpgradeStats() {
         upgradePageElements.doUpgradeButton.disabled = false;
         upgradePageElements.doUpgradeButton.textContent = "Attempt Upgrade";
 
+        // Update the win segment angle for the circle
         const winAngle = (calculatedUpgradeChance / 100) * 360;
         document.documentElement.style.setProperty('--upgrade-win-segment-angle', `${winAngle}deg`);
 
@@ -2503,32 +2485,37 @@ function calculateAndDisplayUpgradeStats() {
         upgradePageElements.doUpgradeButton.textContent = "Select Items to Upgrade";
         document.documentElement.style.setProperty('--upgrade-win-segment-angle', `0deg`);
     }
+    // Reset pointer
     upgradePageElements.chancePointer.classList.remove('spinning');
     upgradePageElements.chancePointer.style.transform = `translateX(-50%) rotate(0deg)`;
 
 }
+// --- END NEW: Functions for New Upgrade UI Logic ---
 
+// --- NEW: Upgrade Animation and Result Modal Functions ---
 let upgradeSpinTimeout;
 
 function startUpgradeAnimation(isSuccess) {
     const pointer = upgradePageElements.chancePointer;
-    pointer.classList.remove('spinning');
-    pointer.style.transform = `translateX(-50%) rotate(0deg)`;
-    void pointer.offsetWidth;
+    pointer.classList.remove('spinning'); // Remove to reset transition if any
+    pointer.style.transform = `translateX(-50%) rotate(0deg)`; // Reset to top
+    void pointer.offsetWidth; // Force reflow to apply reset
 
-    const winSegmentAngle = (calculatedUpgradeChance / 100) * 360;
-    const safetyMargin = 5;
+    const winSegmentAngle = (calculatedUpgradeChance / 100) * 360; // Angle for the green part
+    const safetyMargin = 5; // Degrees, to ensure it lands visibly within the segment
 
     let targetAngle;
     if (isSuccess) {
+        // Land somewhere in the middle of the green win segment
         targetAngle = Math.random() * (winSegmentAngle - 2 * safetyMargin) + safetyMargin;
     } else {
+        // Land somewhere in the red lose segment
         const loseSegmentStart = winSegmentAngle;
         const loseSegmentAngle = 360 - winSegmentAngle;
         targetAngle = loseSegmentStart + (Math.random() * (loseSegmentAngle - 2 * safetyMargin) + safetyMargin);
     }
 
-    const fullSpins = 3 + Math.floor(Math.random() * 3);
+    const fullSpins = 3 + Math.floor(Math.random() * 3); // 3 to 5 full spins
     const finalAngle = fullSpins * 360 + targetAngle;
 
     pointer.classList.add('spinning');
@@ -2536,16 +2523,16 @@ function startUpgradeAnimation(isSuccess) {
     
     return new Promise(resolve => {
         if(upgradeSpinTimeout) clearTimeout(upgradeSpinTimeout);
-        upgradeSpinTimeout = setTimeout(resolve, 5100);
+        upgradeSpinTimeout = setTimeout(resolve, 5100); // Match CSS transition duration + buffer
     });
 }
 
-function showUpgradeResultModal(isSuccess, originalItem, newItemData) {
+function showUpgradeResultModal(isSuccess, originalItem, newItemData) { // newItemData is null if failed
     const modal = upgradePageElements.upgradeResultModal;
     const titleEl = upgradePageElements.upgradeResultTitle;
     const messageEl = upgradePageElements.upgradeResultMessage;
     const imageContainer = upgradePageElements.upgradeResultImageContainer;
-    imageContainer.innerHTML = '';
+    imageContainer.innerHTML = ''; // Clear previous images
 
     if (isSuccess && newItemData) {
         titleEl.textContent = "Upgrade Successful!";
@@ -2565,7 +2552,7 @@ function showUpgradeResultModal(isSuccess, originalItem, newItemData) {
         const img = document.createElement('img');
         img.src = originalItem.imageFilename || generateImageFilename(originalItem.name);
         img.alt = originalItem.name;
-        imageContainer.appendChild(img);
+        imageContainer.appendChild(img); // Show the lost item
     }
     modal.classList.add('active');
     Telegram.WebApp.HapticFeedback?.notificationOccurred(isSuccess ? 'success' : 'error');
@@ -2573,6 +2560,7 @@ function showUpgradeResultModal(isSuccess, originalItem, newItemData) {
 
 function closeUpgradeResultModal() {
     upgradePageElements.upgradeResultModal.classList.remove('active');
+    // Reset upgrade selections and UI for next attempt
     selectedItemForUpgrade = null;
     desiredItemForUpgrade = null;
     updateSlotDisplay(upgradePageElements.selectedInventoryItemSlot, null, 'inventory');
@@ -2585,8 +2573,9 @@ upgradePageElements.selectedInventoryItemSlot.addEventListener('click', () => op
 upgradePageElements.desiredUpgradeItemSlot.addEventListener('click', () => openUpgradeItemPicker('desired'));
 upgradePageElements.closeUpgradePickerButton.addEventListener('click', closeUpgradeItemPicker);
 
-upgradePageElements.doUpgradeButton.addEventListener('click', handleUpgrade);
+upgradePageElements.doUpgradeButton.addEventListener('click', handleUpgrade); // Uses the modified handleUpgrade
 
+// Listener for new result modal close button
 upgradePageElements.closeUpgradeResultModalButton.addEventListener('click', closeUpgradeResultModal);
     
 appNavButtons.forEach(b => b.addEventListener('click', () => navigateToPage(b.dataset.page)));
@@ -2604,92 +2593,8 @@ caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
 profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect());
 profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
-withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep('step-gifts')); // Updated for 'step-gifts'
+withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
-
-// NEW: Event listener for "Back" from gift selection
-withdrawStepGiftsBackBtn.addEventListener('click', () => {
-    showWithdrawStep('step-1');
-    selectedTonnelGiftDetails = null;
-    tonnelGiftChoicesGrid.innerHTML = '';
-    withdrawStepGiftsConfirmBtn.style.display = 'none';
-});
-
-// NEW: Populate Tonnel Gift Choices Grid
-function populateTonnelGiftChoicesGrid(gifts) {
-    tonnelGiftChoicesGrid.innerHTML = '';
-    if (!gifts || gifts.length === 0) {
-        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder);">No listings found for this gift on Tonnel Market currently.</p>`;
-        return;
-    }
-
-    gifts.forEach(gift => {
-        const card = document.createElement('div');
-        card.className = 'case-card inventory-item';
-        card.style.cursor = 'pointer';
-        card.style.padding = '10px';
-        card.dataset.giftId = gift.gift_id;
-        card.dataset.giftNum = gift.gift_num;
-        card.dataset.giftName = gift.name;
-        card.dataset.giftPrice = gift.price;
-
-        const fragmentName = formatGiftNameForFragmentUrl(gift.name);
-        const imageUrl = `https://nft.fragment.com/gift/${fragmentName}-${gift.gift_num}.webp`;
-        
-        const imgCont = document.createElement('div');
-        imgCont.className = 'item-image-display';
-        imgCont.style.width = '65px'; imgCont.style.height = '65px';
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = `${gift.name} #${gift.gift_num}`;
-        img.loading = 'lazy';
-        img.onerror = () => { img.src = generateImageFilename('placeholder.png'); };
-        imgCont.appendChild(img);
-
-        const nameEl = document.createElement('div');
-        nameEl.className = 'inventory-item-name';
-        nameEl.textContent = `${gift.name} #${gift.gift_num}`;
-        nameEl.style.fontSize = '0.8em';
-
-        const priceEl = document.createElement('div');
-        priceEl.className = 'inventory-item-value';
-        priceEl.textContent = `${gift.price} TON`;
-        priceEl.style.fontSize = '0.75em';
-
-        card.appendChild(imgCont);
-        card.appendChild(nameEl);
-        card.appendChild(priceEl);
-
-        card.addEventListener('click', () => handleTonnelGiftChoice(card, gift));
-        tonnelGiftChoicesGrid.appendChild(card);
-    });
-}
-
-// NEW: Handle Tonnel Gift Choice
-function handleTonnelGiftChoice(selectedCard, giftData) {
-    tonnelGiftChoicesGrid.querySelectorAll('.case-card').forEach(card => {
-        card.style.border = '1px solid var(--border-color)';
-    });
-    selectedCard.style.border = '2px solid var(--primary-color)';
-    
-    selectedTonnelGiftDetails = {
-        gift_id: giftData.gift_id,
-        gift_num: giftData.gift_num,
-        name: giftData.name,
-        price: giftData.price
-    };
-    withdrawStepGiftsConfirmBtn.style.display = 'block';
-    withdrawStepGiftsConfirmBtn.textContent = `Send ${giftData.name} #${giftData.gift_num} (${giftData.price} TON)`;
-}
-
-// NEW: Event listener for "Confirm & Send Chosen Gift"
-withdrawStepGiftsConfirmBtn.addEventListener('click', async () => {
-    if (!selectedTonnelGiftDetails || !itemToWithdraw) {
-        showTGNotification("Error: No gift selected or item issue.", "error");
-        return;
-    }
-    await completeChosenGiftWithdrawal();
-});
 
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error'));
@@ -2714,7 +2619,7 @@ cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
 
 async function fetchInitialUserData() {
     if (!Telegram.WebApp.initData) {
-        dataFetchedSuccessfully = true;
+        dataFetchedSuccessfully = true; // No backend data, proceed with local state
         return false;
     }
     try {
@@ -2730,21 +2635,25 @@ async function fetchInitialUserData() {
     }
 }
 
+// --- MODIFIED initializeApp FUNCTION (FULL) ---
 async function initializeApp() {
+    // Start with a loading status message
     updateLoadingStatus("Initializing application...");
 
+    // Preload images
     const allImageUrls = new Set();
     casesData.forEach(c => {
         const mainImgSrc = c.imageFilename || (c.name ? generateImageFilename(c.name) : null); if (mainImgSrc) allImageUrls.add(mainImgSrc);
         if (c.overlayPrizeName) allImageUrls.add(generateImageFilename(c.overlayPrizeName));
-        c.prizes.forEach(p => { if (p.is_ton_prize) allImageUrls.add(TON_COIN_FULL_URL); else if (p.is_star_prize) allImageUrls.add(TELEGRAM_STAR_LOGO_URL); else allImageUrls.add(generateImageFilename(p.imageFilename || p.name)); });
+        c.prizes.forEach(p => { if (p.is_ton_prize) allImageUrls.add(TON_COIN_FULL_URL); else allImageUrls.add(generateImageFilename(p.imageFilename || p.name)); });
     });
     allImageUrls.add(TON_COIN_FULL_URL);
-    allImageUrls.add(TELEGRAM_STAR_LOGO_URL); // Ensure star logo is preloaded
     allImageUrls.forEach(url => { const img = new Image(); img.src = url; });
 
+    // Initialize Telegram WebApp BackButton
     if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton;
 
+    // Check if running inside Telegram Mini App and get user data
     if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
         updateLoadingStatus("Connecting to Telegram Mini App...");
         Telegram.WebApp.ready();
@@ -2757,52 +2666,72 @@ async function initializeApp() {
             currentUser.username = tgUser.username;
             currentUser.first_name = tgUser.first_name || 'User';
             currentUser.last_name = tgUser.last_name;
-            currentUser.photo_url = tgUser.photo_url || null;
+            currentUser.photo_url = tgUser.photo_url || null; // Store photo_url if available
             
+            // Ensure referral code is set for new users, even if not explicitly referred
             if (!currentUser.referralCode) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
         }
-        populateAllAppGifts();
+        populateAllAppGifts(); 
+        // Apply Telegram WebApp colors from CSS variables
         try {
             const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25';
             Telegram.WebApp.setHeaderColor(bg);
             Telegram.WebApp.setBackgroundColor(bg);
         } catch (e) {
+            // Ignore errors if Telegram.WebApp methods are not available or fail
             console.warn("Failed to set Telegram WebApp colors:", e);
         }
     } else {
+        // Fallback for non-Telegram environments (e.g., direct browser access)
         console.warn("Not running inside Telegram WebApp. Using fallback data.");
         if (!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2, 8)}`;
-        currentUser.photo_url = 'https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png';
+        // Provide a placeholder photo_url for browser testing
+        currentUser.photo_url = 'https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png'; 
     }
 
+    // Set up TonConnect UI status change listener
     updateLoadingStatus("Authenticating wallet...");
     tonConnectUI.onStatusChange(async wallet => {
-        updateUIBasedOnWallet(wallet);
+        // This callback can fire before initial user data is fully loaded.
+        // updateUIBasedOnWallet handles displaying wallet info.
+        updateUIBasedOnWallet(wallet); 
+        // If dataFetchedSuccessfully is true, it means main user data is loaded,
+        // so we can trigger a re-render of profile/header based on wallet changes.
         if (dataFetchedSuccessfully) {
             renderHeader();
             renderProfile();
         }
     });
 
+    // Fetch initial user data from your backend
     updateLoadingStatus("Loading user data...");
     if (Telegram.WebApp.initData) {
-        await fetchInitialUserData();
+        await fetchInitialUserData(); // This sets dataFetchedSuccessfully based on API response
     } else {
-        dataFetchedSuccessfully = true;
+        dataFetchedSuccessfully = true; // No backend data to fetch (e.g., browser mode), so mark as "fetched"
     }
     
+    // Ensure UI is updated based on wallet status after initial user data fetch attempt
+    // This catches cases where onStatusChange might not have fired yet, or needs a refresh
     updateUIBasedOnWallet(tonConnectWalletInfo || tonConnectUI.wallet);
 
+    // Render main game content and sections
     updateLoadingStatus("Loading game content...");
-    renderHeader();
-    renderCasesAndSlots();
-    renderProfile();
-    renderLeaderboard();
-    renderInvitePage();
+    renderHeader(); // Renders header (including balance)
+    renderCasesAndSlots(); // Renders cases (and slots if you re-add them)
+    renderProfile(); // Renders profile page (including inventory and avatar)
+    renderLeaderboard(); // Fetches and renders leaderboard data
+    renderInvitePage(); // Renders referral page content
 
+    // Navigate to the default main page after everything is loaded
+    navigateToPage('main-page');
+
+    // Hide the loading screen after all content is loaded and rendered
     updateLoadingStatus("Ready!");
     if (loadingScreen) {
         loadingScreen.classList.add('hidden');
+        // Optional: Remove the element from DOM after transition to be super clean
+        // setTimeout(() => { loadingScreen.remove(); }, 600); // 100ms more than the CSS transition duration
     }
 }
     
