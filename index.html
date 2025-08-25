@@ -543,7 +543,6 @@
             </div>
         </div>
     </div>
-
 <script>
 // Global Constants and Data Definitions
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
@@ -556,7 +555,7 @@ const currentUser = {
     walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
     inventory: [], referralCode: null, referralEarningsPending: 0, total_won_ton: 0,
     invited_friends_count: 0,
-    photo_url: null // Added field for user profile photo URL
+    photo_url: null
 };
 let currentOpenCaseOrSlot = null;
 let selectedCaseMultiplier = 1;
@@ -564,14 +563,14 @@ let itemToWithdraw = null;
 const upgradeChances = { 1.5: 50, 2: 35, 3: 25, 5: 15, 10: 8, 20: 3 };
 let lastWonPrizesForOverlay = [];
 let selectedUpgradeMultiplier = 1.5;
-let spinAnimationTimeoutOuter = null; // Initialize as null for safety
+let spinAnimationTimeoutOuter = null;
 
-let selectedItemForUpgrade = null;    // { id, name, imageFilename, currentValue }
-let desiredItemForUpgrade = null;     // { name, imageFilename, floorPrice }
+let selectedItemForUpgrade = null;
+let desiredItemForUpgrade = null;
 let calculatedUpgradeMultiplier = 0;
 let calculatedUpgradeChance = 0;
-let currentUpgradePickerType = null; // 'inventory' or 'desired'
-let allAppGiftsForUpgrade = []; // To be populated with all unique gifts
+let currentUpgradePickerType = null;
+let allAppGiftsForUpgrade = [];
     
 const GIFT_NAME_TO_ID_MAP = {
   "Santa Hat": "5983471780763796287","Signet Ring": "5936085638515261992","Precious Peach": "5933671725160989227","Plush Pepe": "5936013938331222567",
@@ -595,82 +594,38 @@ const GIFT_NAME_TO_ID_MAP = {
   "Light Sword": "5897581235231785485"
 };
 
-// Add near global variables
-let availableTonnelGifts = [];
-let selectedTonnelGiftDetails = null; // To store { gift_id, gift_num, name, price } of chosen gift
-
-// DOM Element References (Additions for withdrawal modal)
-const tonnelGiftChoicesGrid = document.getElementById('tonnel-gift-choices-grid');
-const tonnelGiftsLoader = document.getElementById('tonnel-gifts-loader');
-const withdrawStepGiftsConfirmBtn = document.getElementById('withdraw-step-gifts-confirm');
-const withdrawStepGiftsBackBtn = document.getElementById('withdraw-step-gifts-back');
-const withdrawFinalizingLoader = document.getElementById('withdraw-finalizing-loader'); // New specific loader ID
-
-// Helper to format gift name for Fragment URL
-function formatGiftNameForFragmentUrl(name) {
-    if (!name) return 'unknown';
-    let formatted = name.toLowerCase();
-    formatted = formatted.replace(/&/g, 'and');
-    formatted = formatted.replace(/'/g, '');
-    formatted = formatted.replace(/\s+/g, ''); // Remove all spaces
-    formatted = formatted.replace(/[^a-z0-9]/gi, ''); // Remove special characters except numbers
-    return formatted;
-}
-
-
-// Modify startWithdrawalProcess
-function startWithdrawalProcess(inventoryItemId) {
-    const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
-    if (!item || item.is_ton_prize) {
-        showTGNotification("Item not found or not withdrawable.", "error");
-        return;
-    }
-    itemToWithdraw = item; // Store the whole item object
-    document.getElementById('withdraw-item-name').textContent = item.name;
-    withdrawModal.classList.add('active');
-    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
-}
-
-// Event listener for "Back" from gift selection
-withdrawStepGiftsBackBtn.addEventListener('click', () => {
-    showWithdrawStep('step-1');
-    selectedTonnelGiftDetails = null; // Clear selection
-    tonnelGiftChoicesGrid.innerHTML = ''; // Clear gift choices
-    withdrawStepGiftsConfirmBtn.style.display = 'none';
-});
-    
 const UPDATED_FLOOR_PRICES_FRONTEND = {
-    'Plush Pepe': 3024.0,       // Updated
+    'Plush Pepe': 3024.0,
     'Neko Helmet': 15.0,
     'Sharp Tongue': 17.0,
-    "Durov's Cap": 420.0,       // Updated
+    "Durov's Cap": 420.0,
     'Voodoo Doll': 9.4,
-    'Vintage Cigar': 24.0,      // Updated
-    'Astral Shard': 80.0,       // Updated
+    'Vintage Cigar': 24.0,
+    'Astral Shard': 80.0,
     'Scared Cat': 22.0,
-    'Swiss Watch': 25.0,        // Updated
-    'Perfume Bottle': 88.0,     // Updated
-    'Precious Peach': 270.0,    // Updated
+    'Swiss Watch': 25.0,
+    'Perfume Bottle': 88.0,
+    'Precious Peach': 270.0,
     'Toy Bear': 16.3,
-    'Genie Lamp': 46.0,         // Updated
-    'Loot Bag': 45.0,           // Updated
-    'Kissed Frog': 24.0,        // Updated
+    'Genie Lamp': 46.0,
+    'Loot Bag': 45.0,
+    'Kissed Frog': 24.0,
     'Electric Skull': 10.9,
-    'Diamond Ring': 12.0,       // Updated
+    'Diamond Ring': 12.0,
     'Mini Oscar': 40.5,
     'Party Sparkler': 2.0,
     'Homemade Cake': 2.0,
     'Cookie Heart': 1.8,
     'Jack-in-the-box': 2.0,
     'Skull Flower': 3.4,
-    'Lol Pop': 1.1,             // Updated
-    'Hypno Lollipop': 1.4,      // Assuming this stays or update if related to Lol Pop
-    'Desk Calendar': 1.1,       // Updated
+    'Lol Pop': 1.1,
+    'Hypno Lollipop': 1.4,
+    'Desk Calendar': 1.1,
     'B-Day Candle': 1.4,
     'Record Player': 4.0,
     'Jelly Bunny': 3.6,
     'Tama Gadget': 4.0,
-    'Snow Globe': 2.0,          // Updated
+    'Snow Globe': 2.0,
     'Eternal Rose': 11.0,
     'Love Potion': 5.4,
     'Top Hat': 6.0,
@@ -691,7 +646,7 @@ const UPDATED_FLOOR_PRICES_FRONTEND = {
     'Love Candle': 6.7,
     'Lunar Snake': 1.5,
     'Mad Pumpkin': 6.2,
-    'Magic Potion': 54.0,       // Updated
+    'Magic Potion': 54.0,
     'Pet Snake': 3.2,
     'Sakura Flower': 4.1,
     'Santa Hat': 2.0,
@@ -707,9 +662,6 @@ const UPDATED_FLOOR_PRICES_FRONTEND = {
     "Snake Box": 3.3,
     "Bonded Ring": 60.5,
     "Xmas Stocking": 2.5
-    // Add Light Sword and Gem Signet if they have defined prices
-    // "Light Sword": XX.X,
-    // "Gem Signet": XX.X
 };
 const KISSED_FROG_VARIANT_FLOORS={"Happy Pepe":500.0,"Tree Frog":150.0,"Brewtoad":150.0,"Puddles":150.0,"Honeyhop":150.0,"Melty Butter":150.0,"Lucifrog":150.0,"Zodiak Croak":150.0,"Count Croakula":150.0,"Lilie Pond":150.0,"Sweet Dream":150.0,"Frogmaid":150.0,"Rocky Hopper":150.0,"Icefrog":45.0,"Lava Leap":45.0,"Toadstool":45.0,"Desert Frog":45.0,"Cupid":45.0,"Hopberry":45.0,"Ms. Toad":45.0,"Trixie":45.0,"Prince Ribbit":45.0,"Pond Fairy":45.0,"Boingo":45.0,"Tesla Frog":45.0,"Starry Night":30.0,"Silver":30.0,"Ectofrog":30.0,"Poison":30.0,"Minty Bloom":30.0,"Sarutoad":30.0,"Void Hopper":30.0,"Ramune":30.0,"Lemon Drop":30.0,"Ectobloom":30.0,"Duskhopper":30.0,"Bronze":30.0,"Lily Pond":19.0,"Toadberry":19.0,"Frogwave":19.0,"Melon":19.0,"Sky Leaper":19.0,"Frogtart":19.0,"Peach":19.0,"Sea Breeze":19.0,"Lemon Juice":19.0,"Cranberry":19.0,"Tide Pod":19.0,"Brownie":19.0,"Banana Pox":19.0};
 Object.assign(UPDATED_FLOOR_PRICES_FRONTEND, KISSED_FROG_VARIANT_FLOORS);
@@ -731,7 +683,6 @@ function generateImageFilename(nameOrUrl) {
 }
 
 const finalKissedFrogPrizesWithConsolation = [
-    // Extremely rare expensive frogs
     {'name':'Happy Pepe','probability': 0.0000001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Happy%20Pepe.png','floorPrice':500.0},
     {'name':'Tree Frog','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tree%20Frog.png','floorPrice':150.0},
     {'name':'Brewtoad','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brewtoad.png','floorPrice':150.0},
@@ -745,11 +696,9 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Sweet Dream','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Sweet%20Dream.png','floorPrice':150.0},
     {'name':'Frogmaid','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogmaid.png','floorPrice':150.0},
     {'name':'Rocky Hopper','probability': 0.0000005, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Rocky%20Hopper.png','floorPrice':150.0},
-
     {'name':'Icefrog','probability': 0.000002, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Icefrog.png','floorPrice':45.0},
     {'name':'Lava Leap','probability': 0.000002, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lava%20Leap.png','floorPrice':45.0},
     {'name':'Toadstool','probability': 0.000002, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadstool.png','floorPrice':45.0},
-    // ... (include all other tier 2 frogs with probability 0.000002 and their respective images/prices)
     {'name':'Desert Frog','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Desert%20Frog.png','floorPrice':45.0},
     {'name':'Cupid','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Cupid.png','floorPrice':45.0},
     {'name':'Hopberry','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Hopberry.png','floorPrice':45.0},
@@ -759,10 +708,8 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Pond Fairy','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Pond%20Fairy.png','floorPrice':45.0},
     {'name':'Boingo','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Boingo.png','floorPrice':45.0},
     {'name':'Tesla Frog','probability':0.000002,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tesla%20Frog.png','floorPrice':45.0},
-
     {'name':'Starry Night','probability': 0.00001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Starry%20Night.png','floorPrice':30.0},
     {'name':'Silver','probability': 0.00001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Silver.png','floorPrice':30.0},
-    // ... (include all other tier 3 frogs with probability 0.00001 and their respective images/prices)
     {'name':'Ectofrog','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectofrog.png','floorPrice':30.0},
     {'name':'Poison','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Poison.png','floorPrice':30.0},
     {'name':'Minty Bloom','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Minty%20Bloom.png','floorPrice':30.0},
@@ -773,9 +720,7 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Ectobloom','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Ectobloom.png','floorPrice':30.0},
     {'name':'Duskhopper','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Duskhopper.png','floorPrice':30.0},
     {'name':'Bronze','probability':0.00001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Bronze.png','floorPrice':30.0},
-
     {'name':'Lily Pond','probability': 0.001, 'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Lily%20Pond.png','floorPrice':19.0},
-    // ... (include all other tier 4 frogs with probability 0.001 and their respective images/prices)
     {'name':'Toadberry','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Toadberry.png','floorPrice':19.0},
     {'name':'Frogwave','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Frogwave.png','floorPrice':19.0},
     {'name':'Melon','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Melon.png','floorPrice':19.0},
@@ -788,10 +733,7 @@ const finalKissedFrogPrizesWithConsolation = [
     {'name':'Tide Pod','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Tide%20Pod.png','floorPrice':19.0},
     {'name':'Brownie','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Brownie.png','floorPrice':19.0},
     {'name':'Banana Pox','probability':0.001,'imageFilename':'https://cdn.changes.tg/gifts/models/Kissed%20Frog/png/Banana%20Pox.png','floorPrice':19.0},
-
-    // NEW: Spy Agaric
     {'name': 'Spy Agaric', 'probability': 0.20, 'imageFilename': generateImageFilename('Spy Agaric'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spy Agaric']},
-    // Desk Calendar - VERY common filler
     {'name': 'Desk Calendar', 'probability': 0.78, 'imageFilename': generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']}
 ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0));
 let currentProbSumForKF = finalKissedFrogPrizesWithConsolation.reduce((sum,p)=>sum+p.probability,0);
@@ -808,7 +750,6 @@ const casesData = [
         {'name':'Lol Pop','probability': 0.001, 'imageFilename':generateImageFilename('Lol Pop'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Lol Pop']},
         {'name':'Nothing','probability': 0.998924, 'imageFilename': 'placeholder_nothing.png', 'floorPrice':0.0}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'small_billionaire_05','name':'Small Billionaire','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Small-Billionaire.jpg','priceTON':0.5,'prizes':[
         {'name':'Perfume Bottle','probability': 0.0001, 'imageFilename':generateImageFilename('Perfume Bottle'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Perfume Bottle']},
         {'name':'Vintage Cigar','probability': 0.00012, 'imageFilename':generateImageFilename('Vintage Cigar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Vintage Cigar']},
@@ -817,7 +758,6 @@ const casesData = [
         {'name':'Snake Box', 'probability': 0.005, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']},
         {'name':'Nothing','probability': 0.9945, 'imageFilename': 'placeholder_nothing.png', 'floorPrice':0.0}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'lolpop',name:'Lol Pop Stash','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Lol-Pop.jpg','priceTON':2.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Neko Helmet','probability':0.00001, 'imageFilename':generateImageFilename('Neko Helmet'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Neko Helmet']},
@@ -842,7 +782,6 @@ const casesData = [
         {'name':'Desk Calendar','probability':0.05, 'imageFilename':generateImageFilename('Desk Calendar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Desk Calendar']},
         {'name':'B-Day Candle','probability':0.05}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'recordplayer','name':'Record Player Vault','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Record-Player.jpg','priceTON':3.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Tama Gadget','probability':0.001, 'imageFilename':generateImageFilename('Tama Gadget'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Tama Gadget']},
@@ -867,7 +806,6 @@ const casesData = [
         {'name':'Lol Pop','probability':0.15, 'imageFilename':generateImageFilename('Lol Pop'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Lol Pop']},
         {'name':'Hypno Lollipop','probability':0.1}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id: 'girls_collection', name: 'Girl\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/girls.jpg', priceTON: 8.0, prizes: [
         {'name': 'Loot Bag', 'probability': 0.00001, 'imageFilename':generateImageFilename('Loot Bag'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Loot Bag']},
         {'name': 'Genie Lamp', 'probability': 0.00001, 'imageFilename':generateImageFilename('Genie Lamp'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Genie Lamp']},
@@ -881,7 +819,6 @@ const casesData = [
         {'name': 'Star Notepad', 'probability': 0.2, 'imageFilename':generateImageFilename('Star Notepad'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Star Notepad']},
         {'name': 'Cookie Heart', 'probability': 0.2, 'imageFilename':generateImageFilename('Cookie Heart'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Cookie Heart']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id: 'mens_collection', name: 'Men\'s Collection', 'imageFilename': 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/men.jpg', priceTON: 8.0, prizes: [
         {'name': 'Durov\'s Cap', 'probability': 0.000001, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
         {'name': 'Mini Oscar', 'probability': 0.00001, 'imageFilename':generateImageFilename('Mini Oscar'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Mini Oscar']},
@@ -894,7 +831,6 @@ const casesData = [
         {'name': 'Record Player', 'probability': 0.3, 'imageFilename':generateImageFilename('Record Player'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Record Player']},
         {'name': 'Spiced Wine', 'probability': 0.399579, 'imageFilename':generateImageFilename('Spiced Wine'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Spiced Wine']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'swisswatch',name:'Swiss Watch Box','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Swiss-Watch.jpg','priceTON':10.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Signet Ring','probability':0.00001, 'imageFilename':generateImageFilename('Signet Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Signet Ring']},
@@ -915,11 +851,7 @@ const casesData = [
         {'name':'Snake Box', 'probability': 0.05, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']},
         {'name':'Pet Snake', 'probability': 0.05, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
-    {id:'kissedfrog',name:'Kissed Frog Pond','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg','priceTON':20.0,
-     'prizes': finalKissedFrogPrizesWithConsolation // Use the updated list
-    },
-
+    {id:'kissedfrog',name:'Kissed Frog Pond','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Kissed-Frog.jpg','priceTON':20.0, 'prizes': finalKissedFrogPrizesWithConsolation},
     {id:'perfumebottle','name':'Perfume Chest','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Perfume-Bottle.jpg','priceTON': 20.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Bonded Ring', 'probability': 0.0000005, 'imageFilename':generateImageFilename('Bonded Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Bonded Ring']},
@@ -935,10 +867,9 @@ const casesData = [
         {'name':'Electric Skull','probability':0.1, 'imageFilename':generateImageFilename('Electric Skull'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Electric Skull']},
         {'name':'Diamond Ring','probability':0.1, 'imageFilename':generateImageFilename('Diamond Ring'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Diamond Ring']},
         {'name':'Big Year', 'probability': 0.0899734, 'imageFilename':generateImageFilename('Big Year'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Big Year']},
-        {'name':'Snake Box', 'probability': 0.5, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']}, // Main filler
+        {'name':'Snake Box', 'probability': 0.5, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']},
         {'name':'Pet Snake', 'probability': 0.1, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'vintagecigar','name':'Vintage Cigar Safe','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Vintage-Cigar.jpg','priceTON':40.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Precious Peach','probability':0.000001, 'imageFilename':generateImageFilename('Precious Peach'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Precious Peach']},
@@ -956,7 +887,6 @@ const casesData = [
         {'name':'Snake Box', 'probability': 0.1, 'imageFilename':generateImageFilename('Snake Box'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Snake Box']},
         {'name':'Pet Snake', 'probability': 0.1, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'astralshard','name':'Astral Shard Relic','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Astral-Shard.jpg','priceTON':100.0,'prizes':[
         {'name':'Plush Pepe','probability':0.0000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Durov\'s Cap','probability':0.0000005, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
@@ -976,7 +906,6 @@ const casesData = [
         {'name':'Big Year', 'probability': 0.05, 'imageFilename':generateImageFilename('Big Year'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Big Year']},
         {'name':'Pet Snake', 'probability': 0.05, 'imageFilename':generateImageFilename('Pet Snake'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Pet Snake']}
     ].sort((a,b) => (b.floorPrice || 0) - (a.floorPrice || 0))},
-
     {id:'plushpepe','name':'Plush Pepe Hoard','imageFilename':'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/caseImages/Plush-Pepe.jpg','priceTON': 200.0,'prizes':[
         {'name':'Plush Pepe','probability':0.000001, 'imageFilename':generateImageFilename('Plush Pepe'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Plush Pepe']},
         {'name':'Durov\'s Cap','probability':0.000005, 'imageFilename':generateImageFilename('Durov\'s Cap'), 'floorPrice': UPDATED_FLOOR_PRICES_FRONTEND['Durov\'s Cap']},
@@ -988,7 +917,6 @@ const casesData = [
 
 casesData.forEach(caseItem => {
     if (caseItem.id === 'kissedfrog') return;
-
     let totalProb = caseItem.prizes.reduce((sum, prize) => sum + prize.probability, 0);
     if (totalProb > 0 && Math.abs(totalProb - 1.0) > 0.0001) {
         const factor = 1.0 / totalProb;
@@ -1016,13 +944,9 @@ const spinButton = document.getElementById('spin-button');
 const closeRouletteButton = document.getElementById('close-roulette-button');
 const possiblePrizesDisplay = document.getElementById('possible-prizes-display');
 const caseMultiplierSelector = document.querySelector('.case-multiplier-selector');
-
-// NEW GLOBAL REFERENCES FOR REELS (for the 3-reel slot machine visual)
-// These elements are guaranteed to exist in the HTML structure now.
-const rouletteReel1 = document.getElementById('roulette-reel-1'); // Get the parent container
-const rouletteReel2 = document.getElementById('roulette-reel-2'); // Get the parent container
-const rouletteReel3 = document.getElementById('roulette-reel-3'); // Get the parent container
-
+const rouletteReel1 = document.getElementById('roulette-reel-1');
+const rouletteReel2 = document.getElementById('roulette-reel-2');
+const rouletteReel3 = document.getElementById('roulette-reel-3');
 const winOverlayModal = document.getElementById('win-overlay-modal');
 const winOverlayPrizeImageContainer = document.getElementById('win-overlay-prize-image');
 const winOverlayNameEl = document.getElementById('win-overlay-prize-name');
@@ -1030,14 +954,8 @@ const winOverlayPrizeDetailsEl = document.getElementById('win-overlay-prize-deta
 const winOverlaySaveBtn = document.getElementById('win-overlay-save-button');
 const winOverlayConvertBtn = document.getElementById('win-overlay-convert-button');
 const winOverlayConvertValue = document.getElementById('win-overlay-convert-value');
-
 const withdrawModal = document.getElementById('withdraw-modal');
-const withdrawSteps = withdrawModal.querySelectorAll('.modal-step');
-const withdrawStep2NextBtn = document.getElementById('withdraw-step2-next');
-const withdrawStep2BackBtn = document.getElementById('withdraw-step2-back');
-const withdrawStatusMessage = document.getElementById('withdraw-status-message');
 const closeWithdrawModalButton = document.getElementById('close-withdraw-modal-button');
-
 const profileElements = {
     avatar: document.getElementById('profile-avatar'),
     username: document.getElementById('profile-username'),
@@ -1055,35 +973,24 @@ const profileElements = {
     promocodeInput: document.getElementById('promocode-input'),
     redeemPromocodeButton: document.getElementById('redeem-promocode-button')
 };
-const upgradePageElements = { // Changed from 'upgradeElements' to avoid conflict
+const upgradePageElements = {
     selectedInventoryItemSlot: document.getElementById('selected-inventory-item-slot'),
     desiredUpgradeItemSlot: document.getElementById('desired-upgrade-item-slot'),
-    
     upgradePickerContainer: document.getElementById('upgrade-picker-container'),
     upgradePickerTitle: document.getElementById('upgrade-picker-title'),
     upgradeItemsGrid: document.getElementById('upgrade-items-grid'),
     closeUpgradePickerButton: document.getElementById('close-upgrade-picker-button'),
-
     chanceDisplayContainer: document.getElementById('upgrade-chance-display-container'),
     chanceCircle: document.getElementById('upgrade-chance-circle'),
     chancePointer: document.getElementById('upgrade-chance-pointer'),
     calculatedMultiplierText: document.getElementById('upgrade-calculated-multiplier'),
     calculatedChanceText: document.getElementById('upgrade-calculated-chance'),
     doUpgradeButton: document.getElementById('do-upgrade-button'),
-
-    // New result modal elements
     upgradeResultModal: document.getElementById('upgrade-result-modal'),
     upgradeResultImageContainer: document.getElementById('upgrade-result-image-container'),
     upgradeResultTitle: document.getElementById('upgrade-result-title'),
     upgradeResultMessage: document.getElementById('upgrade-result-message'),
     closeUpgradeResultModalButton: document.getElementById('close-upgrade-result-modal-button'),
-};
-const upgradeElements = {
-    inventorySelect: document.getElementById('upgrade-inventory-select'),
-    multiplierButtons: document.getElementById('multiplier-buttons'),
-    doUpgradeButton: document.getElementById('do-upgrade-button'),
-    upgradeResult: document.getElementById('upgrade-result'),
-    chanceDisplay: document.getElementById('upgrade-chance-display')
 };
 const inviteElements = {
     referralLink: document.getElementById('referral-link'),
@@ -1091,7 +998,7 @@ const inviteElements = {
     referralBalance: document.getElementById('referral-balance'),
     invitedCount: document.getElementById('invited-count'),
     withdrawReferralButton: document.getElementById('withdraw-referral-button'),
-    invitedUsersListDisplay: document.getElementById('invited-users-list-display') // Already existed, but confirming it's here
+    invitedUsersListDisplay: document.getElementById('invited-users-list-display')
 };
 const leaderboardList = document.getElementById('leaderboard-list');
 const depositInstructionsModal = document.getElementById('deposit-instructions-modal');
@@ -1105,11 +1012,9 @@ const depositWalletAddressEl = document.getElementById('deposit-wallet-address')
 const depositCommentTextEl = document.getElementById('deposit-comment-text');
 const copyDepositAddressBtn = document.getElementById('copy-deposit-address-button');
 const copyDepositCommentBtn = document.getElementById('copy-deposit-comment-button');
-
-// Add new global variable to hold the comment text for the copy function
 let depositCommentText = ''; 
-const VISUAL_ITEMS_PER_REEL_INITIAL = 10; // Number of items to initially populate each reel
-const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70; // Additional items appended for the spin to ensure enough length
+const VISUAL_ITEMS_PER_REEL_INITIAL = 10;
+const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70;
 let currentPendingDepositId = null;
 let depositExpiryInterval = null;
 let depositRecipientAddressRaw = '';
@@ -1120,10 +1025,8 @@ const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
 });
 let tgBackButton = null;
 const backButtonHandlerStack = [];
-
 let dataFetchedSuccessfully = false;
 let tonConnectWalletInfo = null;
-
 
 // Utility Functions
 function _updateTgBackButton() {
@@ -1165,13 +1068,11 @@ function closeWinOverlayModalWithBackButton() {
 function closeDepositModalWithBackButton() {
     closeDepositInstructionsModal();
 }
-
 function updateLoadingStatus(message) {
     if (loadingStatusText) {
         loadingStatusText.textContent = message;
     }
 }
-    
 async function apiRequest(endpoint, method = 'GET', body = null) {
     const headers = { 'Content-Type': 'application/json' };
     if (Telegram.WebApp.initData) headers['X-Telegram-Init-Data'] = Telegram.WebApp.initData;
@@ -1192,22 +1093,17 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
         throw error;
     }
 }
-
 function updateBalances() {
     headerElements.tonBalanceSpan.textContent = `${currentUser.tonBalance.toFixed(2)}`;
     profileElements.balanceDisplay.innerHTML = `${currentUser.tonBalance.toFixed(2)} TON`;
 }
-
 function navigateToPage(pageId) {
     pages.forEach(p => p.classList.remove('active'));
     document.getElementById(pageId)?.classList.add('active');
     appNavButtons.forEach(b => b.classList.toggle('active', b.dataset.page === pageId));
-    
-    // When the user navigates to the referrals page, fetch and render the list of friends.
     if (pageId === 'invite-page') {
         renderInvitedFriendsList();
     }
-
     if (tgBackButton) {
         if (pageId === 'main-page') {
             clearTgBackButtonStack();
@@ -1222,7 +1118,6 @@ function navigateToPage(pageId) {
     }
     window.scrollTo(0, 0);
 }
-
 function showTGNotification(message, type = 'info') {
     Telegram.WebApp.showAlert?.(message);
     if (Telegram.WebApp.HapticFeedback) {
@@ -1231,15 +1126,12 @@ function showTGNotification(message, type = 'info') {
         else if (type === 'warning') Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
     }
 }
-
 function renderHeader() {
     updateBalances();
 }
-
 function updateUIBasedOnWallet(wallet) {
     tonConnectWalletInfo = wallet;
     const connected = !!wallet;
-
     if (connected) {
         const addr = wallet.account.address;
         currentUser.walletAddressRaw = addr;
@@ -1264,20 +1156,17 @@ function updateUIBasedOnWallet(wallet) {
         profileElements.walletAddress.textContent = 'Not Connected';
         profileElements.disconnectWalletButton.style.display = 'none';
     }
-
     if (dataFetchedSuccessfully) {
         updateBalances();
-        renderProfile(); // Also calls renderInventory which depends on currentUser.inventory
+        renderProfile();
     } else {
         headerElements.tonBalanceSpan.textContent = `0.00`;
         profileElements.balanceDisplay.innerHTML = `0.00 TON`;
     }
 }
-
 function renderCasesAndSlots() {
     renderCases();
 }
-
 function renderCases() {
     casesGrid.innerHTML = '';
     if (!casesData || casesData.length === 0) {
@@ -1304,32 +1193,26 @@ function renderCases() {
         casesGrid.appendChild(card);
     });
 }
-
 function renderProfile() {
-    // Clear any previous content in the avatar placeholder
-    profileElements.avatar.innerHTML = ''; 
-
+    profileElements.avatar.innerHTML = '';
     if (currentUser.photo_url) {
         const img = document.createElement('img');
         img.src = currentUser.photo_url;
         img.alt = currentUser.first_name ? `${currentUser.first_name}'s avatar` : 'User Avatar';
-        img.style.width = '100%'; // Make image fill the placeholder
+        img.style.width = '100%';
         img.style.height = '100%';
-        img.style.objectFit = 'cover'; // Cover the area without distortion
-        img.style.borderRadius = 'inherit'; // Inherit border-radius from parent
+        img.style.objectFit = 'cover';
+        img.style.borderRadius = 'inherit';
         profileElements.avatar.appendChild(img);
     } else {
-        // Fallback to text initial if no photo URL is available
         profileElements.avatar.textContent = currentUser.first_name ? currentUser.first_name.charAt(0).toUpperCase() : '?';
     }
-
     profileElements.username.textContent = (currentUser.first_name || currentUser.last_name) ? `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() : currentUser.username || 'User';
     profileElements.userid.textContent = currentUser.id ? `#${currentUser.id}` : '#...';
     profileElements.walletAddress.textContent = currentUser.walletAddress || 'Not Connected';
     profileElements.disconnectWalletButton.style.display = currentUser.walletAddress ? 'block' : 'none';
     renderInventory();
 }
-
 function renderInventory() {
     profileElements.inventoryGrid.innerHTML = '';
     let totalValue = 0;
@@ -1358,7 +1241,6 @@ function renderInventory() {
     }
     profileElements.inventoryCount.textContent = currentUser.inventory.length;
 }
-
 async function renderLeaderboard() {
     try {
         const leaders = await apiRequest('/api/get_leaderboard');
@@ -1374,26 +1256,20 @@ async function renderLeaderboard() {
         leaderboardList.innerHTML = '<p style="text-align:center;color:var(--text-placeholder);padding:20px;">Could not load leaders.</p>';
     }
 }
-
 function renderInvitePage() {
-    // This now generates a `t.me/bot?start=...` link, which is more reliable.
     inviteElements.referralLink.value = currentUser.referralCode ? `https://t.me/${BOT_USERNAME}?start=${currentUser.referralCode}` : 'Loading...';
     inviteElements.referralBalance.innerHTML = `${currentUser.referralEarningsPending.toFixed(2)} TON`;
     inviteElements.invitedCount.textContent = currentUser.invited_friends_count || 0;
 }
-
 async function renderInvitedFriendsList() {
     const listContainer = inviteElements.invitedUsersListDisplay;
-    listContainer.innerHTML = '<div class="loader" style="margin: 10px auto; width: 30px; height: 30px;"></div>'; // Show loader
-
+    listContainer.innerHTML = '<div class="loader" style="margin: 10px auto; width: 30px; height: 30px;"></div>';
     try {
         const friends = await apiRequest('/api/get_invited_friends');
-
         if (friends && friends.length > 0) {
-            listContainer.innerHTML = ''; // Clear loader
+            listContainer.innerHTML = '';
             friends.forEach(friend => {
                 const friendDiv = document.createElement('div');
-                // You can style this div further using CSS if needed
                 friendDiv.textContent = friend.name || `User #${friend.id}`;
                 listContainer.appendChild(friendDiv);
             });
@@ -1405,7 +1281,6 @@ async function renderInvitedFriendsList() {
         listContainer.innerHTML = '<p style="color: var(--danger-color);">Could not load friends list.</p>';
     }
 }
-
 function showWinOverlay(wonPrizesArray) {
     lastWonPrizesForOverlay = wonPrizesArray;
     winOverlayPrizeImageContainer.innerHTML = '';
@@ -1449,42 +1324,28 @@ function showWinOverlay(wonPrizesArray) {
     if (tgBackButton) pushTgBackButtonHandler(closeWinOverlayModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.notificationOccurred('success');
 }
-
 function closeWinOverlayModal() {
     if (tgBackButton) popTgBackButtonHandler();
     winOverlayModal.classList.remove('active');
     lastWonPrizesForOverlay = [];
 }
-
-// MODIFIED initializeRouletteVisuals FUNCTION
 function initializeRouletteVisuals(caseItem, multiplier) {
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
-    // We assume roulette-item height is fixed for initial calc. Get from CSS if needed.
     const itemHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--roulette-item-height').replace('px', '')) || 80; 
-    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260; // Assuming this is set up
-    
-    // Hide all reels initially
+    const rouletteRowVisibleHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--single-roulette-row-visual-height').replace('px', '')) || 260;
     allReelContainers.forEach(container => container.classList.remove('active'));
-
-    // Determine available prizes, with a fallback for empty cases
     let availablePrizes = caseItem && caseItem.prizes && caseItem.prizes.length > 0 ? caseItem.prizes : [{ name: "Loading...", imageFilename: "placeholder.png", is_ton_prize: false, floor_price: 0 }];
-
-    // Show and populate only the necessary number of reels
     for (let i = 0; i < multiplier; i++) {
         const reelContainer = allReelContainers[i];
         if (reelContainer) {
-            reelContainer.classList.add('active'); // Make this reel visible
+            reelContainer.classList.add('active');
             const spinnerReel = reelContainer.querySelector('.roulette-spinner-reel');
-            spinnerReel.innerHTML = ''; // Clear existing items when a case is opened/multiplier changed
-
+            spinnerReel.innerHTML = '';
             let defaultVisualItemsData = [];
-            // Populate with initial items to make it look ready
             for (let j = 0; j < VISUAL_ITEMS_PER_REEL_INITIAL; j++) {
                 const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
                 defaultVisualItemsData.push(randomPrize);
             }
-            
-            // Append visual items to the reel
             defaultVisualItemsData.forEach(pData => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'roulette-item';
@@ -1492,161 +1353,106 @@ function initializeRouletteVisuals(caseItem, multiplier) {
                 img.src = generateImageFilename(pData.imageFilename || pData.name);
                 img.alt = pData.name;
                 itemEl.appendChild(img);
-                // Store full prize data on the element for later inspection (e.g., floorPrice for nudging)
                 itemEl.dataset.prizeData = JSON.stringify({
                     name: pData.name, imageFilename: pData.imageFilename,
                     is_ton_prize: pData.is_ton_prize, floorPrice: pData.floor_price, value: pData.value 
                 });
                 spinnerReel.appendChild(itemEl);
             });
-
-            // Set initial reel position to center one of the items
-            // This makes it look like it's already "on" something without needing to spin.
-            spinnerReel.style.transition = 'none'; // Ensure no transition on initial load
+            spinnerReel.style.transition = 'none';
             const middleItemIndex = Math.floor(VISUAL_ITEMS_PER_REEL_INITIAL / 2);
-            // Calculate offset to bring the middle of the middle item to the center of the visible roulette area
             const initialScrollOffset = (middleItemIndex * itemHeight) + (itemHeight / 2) - (rouletteRowVisibleHeight / 2);
             spinnerReel.style.top = `-${initialScrollOffset}px`;
-            void spinnerReel.offsetWidth; // Force reflow
+            void spinnerReel.offsetWidth;
         }
     }
 }
-
 function openRouletteModal(caseItem) {
     currentOpenCaseOrSlot = caseItem;
-    selectedCaseMultiplier = 1; // Default to 1x when opening
-    updateCaseMultiplierButtons(); // This will call initializeRouletteVisuals with 1x
+    selectedCaseMultiplier = 1;
+    updateCaseMultiplierButtons();
     rouletteCaseName.textContent = caseItem.name;
     updateSpinButtonText();
-
     possiblePrizesDisplay.innerHTML = '';
     const prizeMap = new Map();
-
-    // Iterate through prizes in the selected case
     caseItem.prizes.forEach(p => {
         if (!p || !p.name) return;
-
-        const prizeName = p.name; // Get the name of the prize
-        // Look up the floor price from the global UPDATED_FLOOR_PRICES_FRONTEND map
-        const floorPrice = UPDATED_FLOOR_PRICES_FRONTEND[prizeName] || 0; // Default to 0 if not found
-
-        // Create a new prize data object for the map, including the looked-up floorPrice
-        const pDataWithPrice = {
-            name: prizeName,
-            probability: p.probability, // Keep probability as it's part of the raw data
-            imageFilename: p.imageFilename || generateImageFilename(prizeName), // Use imageFilename from data or generate
-            floorPrice: floorPrice // Explicitly add the looked-up floor price
-        };
-
-        // Aggregate prizes by name (if there are duplicates or for consistent display)
+        const prizeName = p.name;
+        const floorPrice = UPDATED_FLOOR_PRICES_FRONTEND[prizeName] || 0;
+        const pDataWithPrice = { name: prizeName, probability: p.probability, imageFilename: p.imageFilename || generateImageFilename(prizeName), floorPrice: floorPrice };
         if (prizeMap.has(prizeName)) {
-            // If you need to combine probabilities or other stats for identical prizes, do it here
-            // For now, if a name already exists, we'll just ensure its floorPrice is consistent.
-            // (In our current setup, prize names within one case are unique, so this mainly handles Kissed Frog variants properly)
             const existing = prizeMap.get(prizeName);
-            prizeMap.set(prizeName, {
-                ...existing,
-                probability: (existing.probability || 0) + (p.probability || 0),
-                floorPrice: floorPrice // Ensure the correct floor price is set
-            });
+            prizeMap.set(prizeName, { ...existing, probability: (existing.probability || 0) + (p.probability || 0), floorPrice: floorPrice });
         } else {
             prizeMap.set(prizeName, pDataWithPrice);
         }
     });
-
-    // Now iterate through the aggregated prizeMap to display the cards
     prizeMap.forEach((pData, name) => {
-        const displayPrice = pData.floorPrice || 0; // Use the floorPrice from pData
+        const displayPrice = pData.floorPrice || 0;
         const card = document.createElement('div');
         card.className = 'prize-card';
-
         const imgCont = document.createElement('div');
         imgCont.className = 'prize-card-image-placeholder';
         const img = document.createElement('img');
-        img.src = pData.imageFilename; // Use the imageFilename now present in pData
+        img.src = pData.imageFilename;
         img.alt = name;
         imgCont.appendChild(img);
-
-        // Display the floor price in TON
         card.innerHTML = `<span class="prize-card-price">${displayPrice.toFixed(2)} TON</span><span class="prize-card-name">${name}</span>`;
-        
         card.insertBefore(imgCont, card.firstChild);
         possiblePrizesDisplay.appendChild(card);
     });
-
     rouletteModal.classList.add('active');
     if (tgBackButton) pushTgBackButtonHandler(closeRouletteModalWithBackButton);
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
 }
-
 function updateSpinButtonText() {
     if (currentOpenCaseOrSlot && currentOpenCaseOrSlot.priceTON) {
         const totalPrice = parseFloat(currentOpenCaseOrSlot.priceTON) * selectedCaseMultiplier;
         spinButton.textContent = `Spin ${selectedCaseMultiplier}x (${totalPrice.toFixed(1)} TON)`;
     }
 }
-
 function updateCaseMultiplierButtons() {
     caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
         btn.classList.toggle('active-multiplier', parseInt(btn.dataset.multiplier) === selectedCaseMultiplier);
         if (parseInt(btn.dataset.multiplier) === selectedCaseMultiplier) btn.classList.remove('button-secondary');
         else btn.classList.add('button-secondary');
     }); 
-    // Re-initialize visuals based on the NEW selected multiplier
     initializeRouletteVisuals(currentOpenCaseOrSlot, selectedCaseMultiplier);
 }
-
 function closeRouletteModal() {
     if (tgBackButton) popTgBackButtonHandler();
     rouletteModal.classList.remove('active');
     currentOpenCaseOrSlot = null;
     if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
-    // Ensure all reels are hidden when closing the modal
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
     allReelContainers.forEach(container => container.classList.remove('active'));
 }
-
 function getItemValue(prizeObject) {
     if (prizeObject.is_ton_prize) {
-        return prizeObject.currentValue || prizeObject.value || 0; // Use 'value' for TON prizes
+        return prizeObject.currentValue || prizeObject.value || 0;
     }
-    // For NFT items, prizeObject should already have floorPrice from `caseItem.prizes`
     return prizeObject.floorPrice || prizeObject.currentValue || 0; 
 }
-    
-// MODIFIED spinRoulette FUNCTION
 async function spinRoulette() {
     if (!currentOpenCaseOrSlot) return;
     spinButton.disabled = true;
     spinButton.textContent = 'Spinning...';
     Telegram.WebApp.HapticFeedback?.impactOccurred('light');
-
     const allReelContainers = [rouletteReel1, rouletteReel2, rouletteReel3];
-    const activeSpinners = allReelContainers
-                                .filter(container => container.classList.contains('active'))
-                                .map(container => container.querySelector('.roulette-spinner-reel'));
-    
+    const activeSpinners = allReelContainers.filter(container => container.classList.contains('active')).map(container => container.querySelector('.roulette-spinner-reel'));
     if (activeSpinners.length === 0) {
         showTGNotification("No active reels to spin. Please select a multiplier.", "error");
         spinButton.disabled = false;
         updateSpinButtonText();
         return;
     }
-
-    const availablePrizes = currentOpenCaseOrSlot.prizes; 
-    
-    // Dynamically get item height and visible reel height (they might change or be affected by padding)
+    const availablePrizes = currentOpenCaseOrSlot.prizes;
     const itemHeight = activeSpinners[0].querySelector('.roulette-item').offsetHeight;
     const rouletteRowVisibleHeight = activeSpinners[0].parentElement.clientHeight;
-    const centerOffset = (rouletteRowVisibleHeight / 2); // Center of the visible window for the payline
-
-    // Prepare reels for spin: Append buffer items and winning item
+    const centerOffset = (rouletteRowVisibleHeight / 2);
     activeSpinners.forEach((spinnerReel, reelIndex) => {
-        // Remove existing transitions to prevent flicker when appending
-        spinnerReel.style.transition = 'none'; 
-        void spinnerReel.offsetWidth; // Force reflow
-
-        // Append a buffer of random items to make the spin visually longer
+        spinnerReel.style.transition = 'none';
+        void spinnerReel.offsetWidth;
         for (let j = 0; j < VISUAL_ITEMS_PER_REEL_SPIN_BUFFER; j++) {
             const randomPrize = availablePrizes[Math.floor(Math.random() * availablePrizes.length)];
             const itemEl = document.createElement('div');
@@ -1662,34 +1468,22 @@ async function spinRoulette() {
             spinnerReel.appendChild(itemEl);
         }
     });
-
     try {
         const result = await apiRequest('/api/open_case', 'POST', { case_id: currentOpenCaseOrSlot.id, multiplier: selectedCaseMultiplier });
-        
         spinButton.disabled = false;
         updateSpinButtonText();
-
         if (result.status === 'success' && result.won_prizes && result.won_prizes.length > 0) {
             currentUser.tonBalance = result.new_balance_ton;
             updateBalances();
-
             if (spinAnimationTimeoutOuter) clearTimeout(spinAnimationTimeoutOuter);
-
             activeSpinners.forEach((spinnerReel, index) => {
                 let currentReelItemsDOMElements = Array.from(spinnerReel.children);
-                const actualWonPrizeBackendData = result.won_prizes[index] || 
-                                                  (index === 0 && result.won_prizes[0]); // Fallback for single win
-
+                const actualWonPrizeBackendData = result.won_prizes[index] || (index === 0 && result.won_prizes[0]);
                 if (!actualWonPrizeBackendData) {
                     console.warn(`No won prize data for reel ${index}. Skipping animation for this reel.`);
-                    return; 
+                    return;
                 }
-
-                // --- 1. Place the actual winning prize at a determined "landing zone"
-                // The winning item will land at the end of the initial items + a buffer offset
-                // This ensures it appears after the initial set, but not at the very end of the *newly added* buffer
-                const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2); 
-
+                const landingSpotIndex = VISUAL_ITEMS_PER_REEL_INITIAL + Math.floor(VISUAL_ITEMS_PER_REEL_SPIN_BUFFER / 2);
                 if (currentReelItemsDOMElements[landingSpotIndex]) {
                     const targetEl = currentReelItemsDOMElements[landingSpotIndex];
                     const imgElement = targetEl.querySelector('img');
@@ -1700,29 +1494,18 @@ async function spinRoulette() {
                 } else {
                     console.warn(`Could not place winning item at target index ${landingSpotIndex}. Reel may be too short or index is off.`);
                 }
-
-                // --- 2. Calculate base scroll distance to center the winning item
                 let scrollDist = (landingSpotIndex * itemHeight) + (itemHeight / 2) - centerOffset;
-
-                // --- 3. Add a random visual bias within the winning item's height
-                const randomBiasRange = itemHeight * 0.4; // Up to 40% of item height deviation from center
-                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2); // Random value between -range/2 and +range/2
+                const randomBiasRange = itemHeight * 0.4;
+                let visualBiasOffsetPx = (Math.random() * randomBiasRange) - (randomBiasRange / 2);
                 scrollDist += visualBiasOffsetPx;
-
-                // --- 4. Implement Nudge towards more expensive nearby items
-                const nudgeRange = 3; // Check 3 items above and 3 items below
+                const nudgeRange = 3;
                 const winningItemValue = getItemValue(actualWonPrizeBackendData);
-                let nudgeValueThreshold = winningItemValue * 1.5; // Nudge towards items 1.5x more expensive
-
+                let nudgeValueThreshold = winningItemValue * 1.5;
                 let bestNudgeCandidate = null;
-                let maxNudgeAmount = itemHeight * 0.4; // Max nudge amount within the item
-                
-                // Scan for expensive items above and below the winning item
+                let maxNudgeAmount = itemHeight * 0.4;
                 for (let j = 1; j <= nudgeRange; j++) {
                     const idxAbove = landingSpotIndex - j;
                     const idxBelow = landingSpotIndex + j;
-
-                    // Check item above
                     if (idxAbove >= 0 && currentReelItemsDOMElements[idxAbove]) {
                         try {
                             const itemAboveData = JSON.parse(currentReelItemsDOMElements[idxAbove].dataset.prizeData);
@@ -1730,10 +1513,8 @@ async function spinRoulette() {
                             if (itemAboveValue > nudgeValueThreshold && (!bestNudgeCandidate || itemAboveValue > getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)))) {
                                 bestNudgeCandidate = { item: currentReelItemsDOMElements[idxAbove], direction: 'above', distance: j };
                             }
-                        } catch (e) { /* ignore parse errors for robustness */ }
+                        } catch (e) {}
                     }
-
-                    // Check item below
                     if (idxBelow < currentReelItemsDOMElements.length && currentReelItemsDOMElements[idxBelow]) {
                         try {
                             const itemBelowData = JSON.parse(currentReelItemsDOMElements[idxBelow].dataset.prizeData);
@@ -1741,42 +1522,30 @@ async function spinRoulette() {
                             if (itemBelowValue > nudgeValueThreshold && (!bestNudgeCandidate || itemBelowValue > getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData)))) {
                                 bestNudgeCandidate = { item: currentReelItemsDOMElements[idxBelow], direction: 'below', distance: j };
                             }
-                        } catch (e) { /* ignore parse errors for robustness */ }
+                        } catch (e) {}
                     }
                 }
-
-                // Apply the nudge
                 if (bestNudgeCandidate) {
-                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1)); // Closer items nudge more
-                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount); // Clamp to max nudge
-
+                    let nudgeMagnitude = maxNudgeAmount * (1 / (bestNudgeCandidate.distance + 1));
+                    nudgeMagnitude = Math.min(nudgeMagnitude, maxNudgeAmount);
                     if (bestNudgeCandidate.direction === 'above') {
-                        // Move reel UP (scrollDist decreases), payline lands lower on winner (closer to item above)
-                        scrollDist -= nudgeMagnitude; 
+                        scrollDist -= nudgeMagnitude;
                         console.log(`Nudging reel ${index} up by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
-                    } else { // 'below'
-                        // Move reel DOWN (scrollDist increases), payline lands higher on winner (closer to item below)
-                        scrollDist += nudgeMagnitude; 
+                    } else {
+                        scrollDist += nudgeMagnitude;
                         console.log(`Nudging reel ${index} down by ${nudgeMagnitude.toFixed(2)}px towards ${JSON.parse(bestNudgeCandidate.item.dataset.prizeData).name} (value ${getItemValue(JSON.parse(bestNudgeCandidate.item.dataset.prizeData))})`);
                     }
                 }
-
-                // --- 5. Clamp the final scroll position to ensure payline stays within the winning item
-                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset; // 10% from top of item
-                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset; // 90% from top of item
+                const minScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.1) - centerOffset;
+                const maxScrollPosForWinner = (landingSpotIndex * itemHeight) + (itemHeight * 0.9) - centerOffset;
                 scrollDist = Math.max(minScrollPosForWinner, Math.min(maxScrollPosForWinner, scrollDist));
-
-                // Apply animation
-                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`; // Slower, smoother ease-out
+                spinnerReel.style.transition = `top 6s cubic-bezier(0.25, 0.1, 0.2, 1)`;
                 spinnerReel.style.top = `-${scrollDist}px`;
             });
-
             const animationDuration = 6000;
             spinAnimationTimeoutOuter = setTimeout(() => {
-                // Update user inventory with ALL won prizes from the backend
                 result.won_prizes.forEach(wp => {
                     const existingItemIndex = currentUser.inventory.findIndex(invItem => invItem.id === wp.id);
-                    // Add item only if it's new (and has an ID, to avoid adding TON prizes to inventory list)
                     if (existingItemIndex === -1 && wp.id) { 
                         currentUser.inventory.push({ 
                             id: wp.id, name: wp.name, imageFilename: wp.imageFilename, 
@@ -1786,34 +1555,20 @@ async function spinRoulette() {
                 });
                 renderInventory();
                 showWinOverlay(result.won_prizes);
-
-                // --- Post-spin cleanup: Trim reels to a manageable size around the visible area ---
                 activeSpinners.forEach(spinnerReel => {
                     const currentTop = parseFloat(spinnerReel.style.top.replace('px', ''));
-                    // Recalculate itemHeight for robustness, though it should be constant for the same reel
-                    const itemHeightCalc = spinnerRereel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
-                    
-                    // Estimate the index of the item that is now at the top of the visible window
+                    const itemHeightCalc = spinnerReel.querySelector('.roulette-item') ? spinnerReel.querySelector('.roulette-item').offsetHeight : 80;
                     const itemsScrolledPast = Math.floor(Math.abs(currentTop) / itemHeightCalc);
-                    
-                    // Keep items around the final stopping point for visual continuity
-                    // Example: Keep 10 items before the stopped item and (visible items * 2) after
-                    const startIndex = Math.max(0, itemsScrolledPast - 10); 
+                    const startIndex = Math.max(0, itemsScrolledPast - 10);
                     const endIndex = Math.min(spinnerReel.children.length, itemsScrolledPast + 10 + Math.ceil(rouletteRowVisibleHeight / itemHeightCalc) * 2);
-                    
                     const itemsToKeep = Array.from(spinnerReel.children).slice(startIndex, endIndex);
-                    
-                    spinnerReel.innerHTML = ''; // Clear and re-populate with trimmed list
+                    spinnerReel.innerHTML = '';
                     itemsToKeep.forEach(itemEl => spinnerReel.appendChild(itemEl));
-
-                    spinnerReel.style.transition = 'none'; 
-                    // Adjust top position to account for removed items
+                    spinnerReel.style.transition = 'none';
                     spinnerReel.style.top = `${currentTop + (startIndex * itemHeightCalc)}px`;
-                    void spinnerReel.offsetWidth; // Force reflow
+                    void spinnerReel.offsetWidth;
                 });
-
             }, animationDuration + 100);
-
         } else {
             showTGNotification(result.error || result.message || 'Failed to open case.', 'error');
         }
@@ -1824,7 +1579,6 @@ async function spinRoulette() {
         showTGNotification("Error during spin. Please try again.", "error");
     }
 }
-    
 async function handleSingleConvert(itemId) {
     const success = await convertItemToTon(itemId);
     if (success) {
@@ -1833,7 +1587,6 @@ async function handleSingleConvert(itemId) {
         renderInventory();
     }
 }
-
 async function convertItemToTon(itemId) {
     const itemInInventory = currentUser.inventory.find(i => i.id === itemId);
     if (itemInInventory && itemInInventory.is_ton_prize) {
@@ -1855,7 +1608,6 @@ async function convertItemToTon(itemId) {
         return false;
     }
 }
-
 async function handleConvertAll() {
     if (lastWonPrizesForOverlay.length === 0) {
         showTGNotification("No items to convert.", "warning");
@@ -1880,56 +1632,42 @@ async function handleConvertAll() {
     else showTGNotification(`${successCount} item(s) converted to TON!`, 'success');
     closeWinOverlayModal();
 }
-
-async function handleUpgrade() { // Renamed from original `handleUpgrade` in provided code snippet
+async function handleUpgrade() {
     if (!selectedItemForUpgrade || !desiredItemForUpgrade) {
         showTGNotification("Please select both your item and the desired item.", 'warning');
         return;
     }
-
     upgradePageElements.doUpgradeButton.disabled = true;
     upgradePageElements.doUpgradeButton.textContent = "Upgrading...";
     Telegram.WebApp.HapticFeedback?.impactOccurred('medium');
-
     try {
-        // The backend will use selectedItemForUpgrade.id and desiredItemForUpgrade.name
-        // It will also recalculate multiplier and chance for security.
         const res = await apiRequest('/api/upgrade_item_v2', 'POST', { 
             inventory_item_id: selectedItemForUpgrade.id,
-            desired_item_name: desiredItemForUpgrade.name 
-            // Backend will fetch floor prices and calculate actual X and chance
+            desired_item_name: desiredItemForUpgrade.name
         });
-
         await startUpgradeAnimation(res.status === 'success');
-        
         if (res.status === 'success') {
-            const upgradedItemData = res.item; // Backend returns the new item
+            const upgradedItemData = res.item;
             currentUser.inventory = currentUser.inventory.filter(i => i.id !== selectedItemForUpgrade.id);
             currentUser.inventory.push(upgradedItemData);
-            
             showUpgradeResultModal(true, selectedItemForUpgrade, upgradedItemData);
         } else {
-            if (res.item_lost) { // If backend confirms item was lost
+            if (res.item_lost) {
                 currentUser.inventory = currentUser.inventory.filter(i => i.id !== selectedItemForUpgrade.id);
             }
             showUpgradeResultModal(false, selectedItemForUpgrade, null);
         }
-        
-        renderInventory(); // Update inventory list in profile
-        updateBalances(); // Balances might change if backend adjusts total_won_ton
-
+        renderInventory();
+        updateBalances();
     } catch (e) {
         console.error("Upgrade error:", e);
         showTGNotification("An error occurred during upgrade. Please try again.", "error");
-        // Reset UI if error before animation
         upgradePageElements.chancePointer.classList.remove('spinning');
         upgradePageElements.chancePointer.style.transform = `translateX(-50%) rotate(0deg)`;
     } finally {
-        upgradePageElements.doUpgradeButton.disabled = false; // Re-enable button after modal is closed (or here if modal handles its own lifecycle)
-        // Text reset will happen when modal is closed or new items selected
+        upgradePageElements.doUpgradeButton.disabled = false;
     }
 }
-
 async function sellAllItems() {
     const sellableItems = currentUser.inventory.filter(i => !i.is_ton_prize);
     if (!sellableItems.length) {
@@ -1945,7 +1683,6 @@ async function sellAllItems() {
         doSellAll();
     }
 }
-
 async function doSellAll() {
     try {
         const res = await apiRequest('/api/sell_all_items', 'POST');
@@ -1960,92 +1697,69 @@ async function doSellAll() {
         showTGNotification("Sell all request failed.", "error");
     }
 }
-
-function showWithdrawStep(step) {
-    withdrawSteps.forEach((s, i) => s.classList.toggle('active', i + 1 === step));
-}
-
 function startWithdrawalProcess(inventoryItemId) {
     const item = currentUser.inventory.find(i => i.id === parseInt(inventoryItemId));
     if (!item || item.is_ton_prize) {
         showTGNotification("Item not found or not withdrawable.", "error");
         return;
     }
-    itemToWithdraw = inventoryItemId;
-    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
-    showWithdrawStep(1);
+    itemToWithdraw = item; // Store the whole item object
+    const withdrawItemNameEl = document.getElementById('withdraw-item-name');
+    if (withdrawItemNameEl) {
+        withdrawItemNameEl.textContent = item.name;
+    }
     withdrawModal.classList.add('active');
-    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
+    if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
 }
-
-// Close finalizing step
-document.getElementById('withdraw-step-finalizing-close').addEventListener('click', closeWithdrawModal);
-    
 function closeWithdrawModal() {
     if (tgBackButton) popTgBackButtonHandler();
     withdrawModal.classList.remove('active');
     itemToWithdraw = null;
 }
-
 async function initiateDepositProcedure() {
     const amtTxt = profileElements.depositAmountInput.value;
     if (!amtTxt.trim()) {
         showTGNotification("Enter amount.", "warning");
         return;
     }
-
     const amt = parseFloat(amtTxt);
-    // Note: The check `amt <= 0` is redundant if you also check `amt < 0.1`, but it's clear and doesn't hurt.
     if (isNaN(amt) || amt < 0.1 || amt > 10000) {
         showTGNotification("Invalid amount. Min 0.1 TON", "error");
         return;
     }
-
     profileElements.initiateDepositButton.disabled = true;
     profileElements.initiateDepositButton.textContent = "Initializing...";
-
     try {
         const res = await apiRequest('/api/initiate_deposit', 'POST', { amount: amt });
-        
-        // Always reset button state after API call, regardless of success or failure
         profileElements.initiateDepositButton.disabled = false;
         profileElements.initiateDepositButton.textContent = "Deposit TON";
-
         if (res.status === 'success') {
             currentPendingDepositId = res.pending_deposit_id;
             depositRecipientAddressRaw = res.recipient_address;
-            depositCommentText = res.comment; // Store unique comment
+            depositCommentText = res.comment;
             const nanoAmt = res.final_amount_nano_ton;
-            
             depositWalletAddressEl.textContent = depositRecipientAddressRaw;
             depositCommentTextEl.textContent = depositCommentText;
-
-            // The semicolon inside the template literal is fine if the protocol requires it
             tonTransferLink.href = `ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)};`;
-            
             startDepositExpiryTimer(res.expires_at);
             depositStatusMessageEl.textContent = '';
             depositLoader.style.display = 'none';
             confirmPaymentSentButton.disabled = false;
             confirmPaymentSentButton.textContent = 'I Sent Funds';
-            
             depositInstructionsModal.classList.add('active');
             if (tgBackButton) {
                 pushTgBackButtonHandler(closeDepositModalWithBackButton);
             }
         } else {
-            // CORRECTED SYNTAX: Use the || (OR) operator for fallbacks
             showTGNotification(res.message || res.error || 'Failed to initiate deposit.', 'error');
         }
     } catch (e) {
         profileElements.initiateDepositButton.disabled = false;
         profileElements.initiateDepositButton.textContent = "Deposit TON";
         showTGNotification("Deposit init request failed.", "error");
-        console.error("Error during deposit initiation:", e); // Good practice for debugging
+        console.error("Error during deposit initiation:", e);
     }
 }
-
-
 function startDepositExpiryTimer(expiresISO) {
     if (depositExpiryInterval) clearInterval(depositExpiryInterval);
     const expiry = new Date(expiresISO).getTime();
@@ -2067,7 +1781,6 @@ function startDepositExpiryTimer(expiresISO) {
     update();
     depositExpiryInterval = setInterval(update, 1e3);
 }
-
 async function verifyPaymentSent() {
     if (!currentPendingDepositId) {
         showTGNotification("No deposit.", "error");
@@ -2107,8 +1820,6 @@ async function verifyPaymentSent() {
         if (depositLoader.style.display === 'block' && !depositStatusMessageEl.textContent.includes('Checking')) depositLoader.style.display = 'none';
     }
 }
-
-// Replace the existing closeDepositInstructionsModal function
 function closeDepositInstructionsModal() {
     if (tgBackButton) popTgBackButtonHandler();
     depositInstructionsModal.classList.remove('active');
@@ -2122,7 +1833,6 @@ function closeDepositInstructionsModal() {
     depositWalletAddressEl.textContent = ''; 
     depositCommentTextEl.textContent = ''; 
 }
-
 async function redeemPromocode() {
     const code = profileElements.promocodeInput.value.trim();
     if (!code) {
@@ -2144,11 +1854,8 @@ async function redeemPromocode() {
         profileElements.redeemPromocodeButton.disabled = false;
     }
 }
-
 function populateAllAppGifts() {
     const uniqueGifts = new Map();
-
-    // Collect from casesData
     casesData.forEach(caseItem => {
         caseItem.prizes.forEach(prize => {
             if (prize.name && prize.name !== 'Nothing' && !prize.is_ton_prize) {
@@ -2156,35 +1863,26 @@ function populateAllAppGifts() {
                     uniqueGifts.set(prize.name, {
                         name: prize.name,
                         imageFilename: prize.imageFilename || generateImageFilename(prize.name),
-                        floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[prize.name] || 0 // Ensure price from master list
+                        floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[prize.name] || 0
                     });
                 }
             }
         });
     });
-
-    // Collect from UPDATED_FLOOR_PRICES_FRONTEND (might have items not in cases)
     for (const name in UPDATED_FLOOR_PRICES_FRONTEND) {
         if (!uniqueGifts.has(name) && name !== 'Nothing') {
              uniqueGifts.set(name, {
                 name: name,
-                imageFilename: generateImageFilename(name), // Assumes generateImageFilename can handle it
+                imageFilename: generateImageFilename(name),
                 floorPrice: UPDATED_FLOOR_PRICES_FRONTEND[name]
             });
         }
     }
-    
     allAppGiftsForUpgrade = Array.from(uniqueGifts.values()).sort((a,b) => a.floorPrice - b.floorPrice);
-    // console.log("All App Gifts for Upgrade:", allAppGiftsForUpgrade);
 }
-// --- END NEW: Function to populateAllAppGiftsForUpgrade ---
-
-
-// --- NEW: Functions for New Upgrade UI Logic ---
-function openUpgradeItemPicker(type) { // type is 'inventory' or 'desired'
+function openUpgradeItemPicker(type) {
     currentUpgradePickerType = type;
     upgradePageElements.upgradeItemsGrid.innerHTML = '';
-    
     if (type === 'inventory') {
         upgradePageElements.upgradePickerTitle.textContent = "Select Your Item from Inventory";
         const userInventoryForUpgrade = currentUser.inventory.filter(item => !item.is_ton_prize && item.currentValue > 0);
@@ -2199,13 +1897,12 @@ function openUpgradeItemPicker(type) { // type is 'inventory' or 'desired'
     } else if (type === 'desired') {
         if (!selectedItemForUpgrade) {
             showTGNotification("Please select your item first.", "warning");
-            return; // Don't open picker if base item not selected
+            return;
         }
         upgradePageElements.upgradePickerTitle.textContent = "Select Desired Item";
         const potentialDesiredItems = allAppGiftsForUpgrade.filter(
             gift => gift.floorPrice > selectedItemForUpgrade.currentValue
         );
-
         if (potentialDesiredItems.length === 0) {
             upgradePageElements.upgradeItemsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color: var(--text-placeholder);">No items available for upgrade with higher value.</p>';
         } else {
@@ -2217,31 +1914,25 @@ function openUpgradeItemPicker(type) { // type is 'inventory' or 'desired'
     }
     upgradePageElements.upgradePickerContainer.style.display = 'block';
 }
-
 function closeUpgradeItemPicker() {
     upgradePageElements.upgradePickerContainer.style.display = 'none';
     currentUpgradePickerType = null;
 }
-
-function createUpgradeableItemCard(itemData, type) { // itemData for inventory: {id, name, imageFilename, currentValue}, for desired: {name, imageFilename, floorPrice}
+function createUpgradeableItemCard(itemData, type) {
     const card = document.createElement('div');
-    card.className = 'inventory-item'; // Reuse styling
-
+    card.className = 'inventory-item';
     const imgCont = document.createElement('div');
     imgCont.className = 'item-image-display';
     const img = document.createElement('img');
     img.src = itemData.imageFilename || generateImageFilename(itemData.name);
     img.alt = itemData.name;
     imgCont.appendChild(img);
-
     const nameEl = document.createElement('div');
     nameEl.className = 'inventory-item-name';
     nameEl.textContent = itemData.name;
-
     const valueEl = document.createElement('div');
     valueEl.className = 'inventory-item-value';
     valueEl.textContent = `${(type === 'inventory' ? itemData.currentValue : itemData.floorPrice).toFixed(2)} TON`;
-    
     const actionsEl = document.createElement('div');
     actionsEl.className = 'inventory-item-actions';
     const selectBtn = document.createElement('button');
@@ -2249,19 +1940,17 @@ function createUpgradeableItemCard(itemData, type) { // itemData for inventory: 
     selectBtn.textContent = 'Select';
     if (type === 'inventory') {
         selectBtn.onclick = () => handleSelectInventoryItemForUpgrade(itemData.id);
-    } else { // desired
+    } else {
         selectBtn.onclick = () => handleSelectDesiredItemForUpgrade(itemData.name);
     }
     actionsEl.appendChild(selectBtn);
-
     card.appendChild(imgCont);
     card.appendChild(nameEl);
     card.appendChild(valueEl);
     card.appendChild(actionsEl);
     return card;
 }
-
-function updateSlotDisplay(slotElement, itemData, type) { // type 'inventory' or 'desired'
+function updateSlotDisplay(slotElement, itemData, type) {
     const placeholder = slotElement.querySelector('.slot-placeholder');
     const display = slotElement.querySelector('.slot-item-display');
     if (itemData) {
@@ -2271,38 +1960,32 @@ function updateSlotDisplay(slotElement, itemData, type) { // type 'inventory' or
         display.querySelector('.slot-item-value').textContent = `${(type === 'inventory' ? itemData.currentValue : itemData.floorPrice).toFixed(2)} TON`;
         placeholder.style.display = 'none';
         display.style.display = 'flex';
-        display.style.flexDirection = 'column'; // Ensure items stack vertically
-    } else { // Reset slot
+        display.style.flexDirection = 'column';
+    } else {
         placeholder.style.display = 'flex';
         display.style.display = 'none';
     }
 }
-
 function handleSelectInventoryItemForUpgrade(inventoryItemId) {
     const item = currentUser.inventory.find(i => i.id === inventoryItemId);
     if (item) {
-        selectedItemForUpgrade = { ...item }; // Store a copy
+        selectedItemForUpgrade = { ...item };
         updateSlotDisplay(upgradePageElements.selectedInventoryItemSlot, selectedItemForUpgrade, 'inventory');
-        
-        // Reset desired item if new inventory item is selected
         desiredItemForUpgrade = null;
         updateSlotDisplay(upgradePageElements.desiredUpgradeItemSlot, null, 'desired');
-        
         calculateAndDisplayUpgradeStats();
         closeUpgradeItemPicker();
     }
 }
-
 function handleSelectDesiredItemForUpgrade(itemName) {
     const item = allAppGiftsForUpgrade.find(g => g.name === itemName);
     if (item) {
-        desiredItemForUpgrade = { ...item }; // Store a copy
+        desiredItemForUpgrade = { ...item };
         updateSlotDisplay(upgradePageElements.desiredUpgradeItemSlot, desiredItemForUpgrade, 'desired');
         calculateAndDisplayUpgradeStats();
         closeUpgradeItemPicker();
     }
 }
-
 function calculateAndDisplayUpgradeStats() {
     if (selectedItemForUpgrade && desiredItemForUpgrade) {
         if (selectedItemForUpgrade.currentValue <= 0) {
@@ -2311,26 +1994,19 @@ function calculateAndDisplayUpgradeStats() {
             showTGNotification("Selected item has no value.", "error");
         } else {
             calculatedUpgradeMultiplier = desiredItemForUpgrade.floorPrice / selectedItemForUpgrade.currentValue;
-            // New chance formula: Chance = MaxChance * Math.pow(RiskFactor, X - 1)
-            // Clamp X for chance calculation to avoid extreme values if desired item is much cheaper (though filter should prevent this)
-            const xEffective = Math.max(1.01, calculatedUpgradeMultiplier); // Ensure X > 1 for pow calculation
-            const maxChance = 75;  // Max possible chance in %
-            const minChance = 3;   // Min possible chance in %
-            const riskFactor = 0.60; // Lower value means chance drops faster with higher X
-
+            const xEffective = Math.max(1.01, calculatedUpgradeMultiplier);
+            const maxChance = 75;
+            const minChance = 3;
+            const riskFactor = 0.60;
             let chance = maxChance * Math.pow(riskFactor, xEffective - 1);
             calculatedUpgradeChance = Math.min(maxChance, Math.max(minChance, chance));
         }
-
         upgradePageElements.calculatedMultiplierText.textContent = `${calculatedUpgradeMultiplier.toFixed(2)}x`;
         upgradePageElements.calculatedChanceText.textContent = `${calculatedUpgradeChance.toFixed(1)}% Chance`;
         upgradePageElements.doUpgradeButton.disabled = false;
         upgradePageElements.doUpgradeButton.textContent = "Attempt Upgrade";
-
-        // Update the win segment angle for the circle
         const winAngle = (calculatedUpgradeChance / 100) * 360;
         document.documentElement.style.setProperty('--upgrade-win-segment-angle', `${winAngle}deg`);
-
     } else {
         calculatedUpgradeMultiplier = 0;
         calculatedUpgradeChance = 0;
@@ -2340,82 +2016,62 @@ function calculateAndDisplayUpgradeStats() {
         upgradePageElements.doUpgradeButton.textContent = "Select Items to Upgrade";
         document.documentElement.style.setProperty('--upgrade-win-segment-angle', `0deg`);
     }
-    // Reset pointer
     upgradePageElements.chancePointer.classList.remove('spinning');
     upgradePageElements.chancePointer.style.transform = `translateX(-50%) rotate(0deg)`;
-
 }
-// --- END NEW: Functions for New Upgrade UI Logic ---
-
-// --- NEW: Upgrade Animation and Result Modal Functions ---
 let upgradeSpinTimeout;
-
 function startUpgradeAnimation(isSuccess) {
     const pointer = upgradePageElements.chancePointer;
-    pointer.classList.remove('spinning'); // Remove to reset transition if any
-    pointer.style.transform = `translateX(-50%) rotate(0deg)`; // Reset to top
-    void pointer.offsetWidth; // Force reflow to apply reset
-
-    const winSegmentAngle = (calculatedUpgradeChance / 100) * 360; // Angle for the green part
-    const safetyMargin = 5; // Degrees, to ensure it lands visibly within the segment
-
+    pointer.classList.remove('spinning');
+    pointer.style.transform = `translateX(-50%) rotate(0deg)`;
+    void pointer.offsetWidth;
+    const winSegmentAngle = (calculatedUpgradeChance / 100) * 360;
+    const safetyMargin = 5;
     let targetAngle;
     if (isSuccess) {
-        // Land somewhere in the middle of the green win segment
         targetAngle = Math.random() * (winSegmentAngle - 2 * safetyMargin) + safetyMargin;
     } else {
-        // Land somewhere in the red lose segment
         const loseSegmentStart = winSegmentAngle;
         const loseSegmentAngle = 360 - winSegmentAngle;
         targetAngle = loseSegmentStart + (Math.random() * (loseSegmentAngle - 2 * safetyMargin) + safetyMargin);
     }
-
-    const fullSpins = 3 + Math.floor(Math.random() * 3); // 3 to 5 full spins
+    const fullSpins = 3 + Math.floor(Math.random() * 3);
     const finalAngle = fullSpins * 360 + targetAngle;
-
     pointer.classList.add('spinning');
     pointer.style.transform = `translateX(-50%) rotate(${finalAngle}deg)`;
-    
     return new Promise(resolve => {
         if(upgradeSpinTimeout) clearTimeout(upgradeSpinTimeout);
-        upgradeSpinTimeout = setTimeout(resolve, 5100); // Match CSS transition duration + buffer
+        upgradeSpinTimeout = setTimeout(resolve, 5100);
     });
 }
-
-function showUpgradeResultModal(isSuccess, originalItem, newItemData) { // newItemData is null if failed
+function showUpgradeResultModal(isSuccess, originalItem, newItemData) {
     const modal = upgradePageElements.upgradeResultModal;
     const titleEl = upgradePageElements.upgradeResultTitle;
     const messageEl = upgradePageElements.upgradeResultMessage;
     const imageContainer = upgradePageElements.upgradeResultImageContainer;
-    imageContainer.innerHTML = ''; // Clear previous images
-
+    imageContainer.innerHTML = '';
     if (isSuccess && newItemData) {
         titleEl.textContent = "Upgrade Successful!";
         titleEl.style.color = 'var(--success-color)';
         messageEl.textContent = `Your ${originalItem.name} has been upgraded to ${newItemData.name}!`;
-        
         const img = document.createElement('img');
         img.src = newItemData.imageFilename || generateImageFilename(newItemData.name);
         img.alt = newItemData.name;
         imageContainer.appendChild(img);
-
     } else {
         titleEl.textContent = "Upgrade Failed";
         titleEl.style.color = 'var(--danger-color)';
         messageEl.textContent = `Unfortunately, your ${originalItem.name} was lost in the attempt.`;
-
         const img = document.createElement('img');
         img.src = originalItem.imageFilename || generateImageFilename(originalItem.name);
         img.alt = originalItem.name;
-        imageContainer.appendChild(img); // Show the lost item
+        imageContainer.appendChild(img);
     }
     modal.classList.add('active');
     Telegram.WebApp.HapticFeedback?.notificationOccurred(isSuccess ? 'success' : 'error');
 }
-
 function closeUpgradeResultModal() {
     upgradePageElements.upgradeResultModal.classList.remove('active');
-    // Reset upgrade selections and UI for next attempt
     selectedItemForUpgrade = null;
     desiredItemForUpgrade = null;
     updateSlotDisplay(upgradePageElements.selectedInventoryItemSlot, null, 'inventory');
@@ -2427,12 +2083,8 @@ function closeUpgradeResultModal() {
 upgradePageElements.selectedInventoryItemSlot.addEventListener('click', () => openUpgradeItemPicker('inventory'));
 upgradePageElements.desiredUpgradeItemSlot.addEventListener('click', () => openUpgradeItemPicker('desired'));
 upgradePageElements.closeUpgradePickerButton.addEventListener('click', closeUpgradeItemPicker);
-
-upgradePageElements.doUpgradeButton.addEventListener('click', handleUpgrade); // Uses the modified handleUpgrade
-
-// Listener for new result modal close button
+upgradePageElements.doUpgradeButton.addEventListener('click', handleUpgrade);
 upgradePageElements.closeUpgradeResultModalButton.addEventListener('click', closeUpgradeResultModal);
-    
 appNavButtons.forEach(b => b.addEventListener('click', () => navigateToPage(b.dataset.page)));
 spinButton.addEventListener('click', spinRoulette);
 closeRouletteButton.addEventListener('click', closeRouletteModal);
@@ -2448,13 +2100,12 @@ caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
 profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect());
 profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
-// Add these new event listeners along with the others
 copyDepositAddressBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(depositRecipientAddressRaw)
         .then(() => showTGNotification("Address copied!", 'success'))
         .catch(() => showTGNotification("Failed to copy address.", 'error'));
 });
-document.getElementById('close-withdraw-modal-button').addEventListener('click', closeWithdrawModal);
+closeWithdrawModalButton.addEventListener('click', closeWithdrawModal);
 document.getElementById('confirm-withdraw-button').addEventListener('click', async () => {
     if (!itemToWithdraw) {
         showTGNotification("No item selected for withdrawal.", "error");
@@ -2482,7 +2133,6 @@ copyDepositCommentBtn.addEventListener('click', () => {
         .then(() => showTGNotification("Comment copied!", 'success'))
         .catch(() => showTGNotification("Failed to copy comment.", 'error'));
 });
-
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error'));
 });
@@ -2503,10 +2153,9 @@ inviteElements.withdrawReferralButton.addEventListener('click', async () => {
 profileElements.sellAllButton?.addEventListener('click', sellAllItems);
 confirmPaymentSentButton?.addEventListener('click', verifyPaymentSent);
 cancelDepositButton?.addEventListener('click', closeDepositInstructionsModal);
-
 async function fetchInitialUserData() {
     if (!Telegram.WebApp.initData) {
-        dataFetchedSuccessfully = true; // No backend data, proceed with local state
+        dataFetchedSuccessfully = true;
         return false;
     }
     try {
@@ -2521,13 +2170,8 @@ async function fetchInitialUserData() {
         return false;
     }
 }
-
-// --- MODIFIED initializeApp FUNCTION (FULL) ---
 async function initializeApp() {
-    // Start with a loading status message
     updateLoadingStatus("Initializing application...");
-
-    // Preload images
     const allImageUrls = new Set();
     casesData.forEach(c => {
         const mainImgSrc = c.imageFilename || (c.name ? generateImageFilename(c.name) : null); if (mainImgSrc) allImageUrls.add(mainImgSrc);
@@ -2536,92 +2180,61 @@ async function initializeApp() {
     });
     allImageUrls.add(TON_COIN_FULL_URL);
     allImageUrls.forEach(url => { const img = new Image(); img.src = url; });
-
-    // Initialize Telegram WebApp BackButton
     if (Telegram.WebApp.BackButton) tgBackButton = Telegram.WebApp.BackButton;
-
-    // Check if running inside Telegram Mini App and get user data
     if (Telegram.WebApp && Telegram.WebApp.initDataUnsafe) {
         updateLoadingStatus("Connecting to Telegram Mini App...");
         Telegram.WebApp.ready();
         Telegram.WebApp.expand();
         Telegram.WebApp.enableClosingConfirmation();
-        
         const tgUser = Telegram.WebApp.initDataUnsafe.user;
         if (tgUser) {
             currentUser.id = tgUser.id;
             currentUser.username = tgUser.username;
             currentUser.first_name = tgUser.first_name || 'User';
             currentUser.last_name = tgUser.last_name;
-            currentUser.photo_url = tgUser.photo_url || null; // Store photo_url if available
-            
-            // Ensure referral code is set for new users, even if not explicitly referred
+            currentUser.photo_url = tgUser.photo_url || null;
             if (!currentUser.referralCode) currentUser.referralCode = `ref_${currentUser.id.toString().slice(-6)}`;
         }
-        populateAllAppGifts(); 
-        // Apply Telegram WebApp colors from CSS variables
+        populateAllAppGifts();
         try {
             const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg-gradient-start').trim() || '#181A25';
             Telegram.WebApp.setHeaderColor(bg);
             Telegram.WebApp.setBackgroundColor(bg);
         } catch (e) {
-            // Ignore errors if Telegram.WebApp methods are not available or fail
             console.warn("Failed to set Telegram WebApp colors:", e);
         }
     } else {
-        // Fallback for non-Telegram environments (e.g., direct browser access)
         console.warn("Not running inside Telegram WebApp. Using fallback data.");
         if (!currentUser.referralCode) currentUser.referralCode = `ref_BRWSR${Math.random().toString(36).substring(2, 8)}`;
-        // Provide a placeholder photo_url for browser testing
         currentUser.photo_url = 'https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png'; 
     }
-
-    // Set up TonConnect UI status change listener
     updateLoadingStatus("Authenticating wallet...");
     tonConnectUI.onStatusChange(async wallet => {
-        // This callback can fire before initial user data is fully loaded.
-        // updateUIBasedOnWallet handles displaying wallet info.
         updateUIBasedOnWallet(wallet); 
-        // If dataFetchedSuccessfully is true, it means main user data is loaded,
-        // so we can trigger a re-render of profile/header based on wallet changes.
         if (dataFetchedSuccessfully) {
             renderHeader();
             renderProfile();
         }
     });
-
-    // Fetch initial user data from your backend
     updateLoadingStatus("Loading user data...");
     if (Telegram.WebApp.initData) {
-        await fetchInitialUserData(); // This sets dataFetchedSuccessfully based on API response
+        await fetchInitialUserData();
     } else {
-        dataFetchedSuccessfully = true; // No backend data to fetch (e.g., browser mode), so mark as "fetched"
+        dataFetchedSuccessfully = true;
     }
-    
-    // Ensure UI is updated based on wallet status after initial user data fetch attempt
-    // This catches cases where onStatusChange might not have fired yet, or needs a refresh
     updateUIBasedOnWallet(tonConnectWalletInfo || tonConnectUI.wallet);
-
-    // Render main game content and sections
     updateLoadingStatus("Loading game content...");
-    renderHeader(); // Renders header (including balance)
-    renderCasesAndSlots(); // Renders cases (and slots if you re-add them)
-    renderProfile(); // Renders profile page (including inventory and avatar)
-    renderLeaderboard(); // Fetches and renders leaderboard data
-    renderInvitePage(); // Renders referral page content
-
-    // Navigate to the default main page after everything is loaded
+    renderHeader();
+    renderCasesAndSlots();
+    renderProfile();
+    renderLeaderboard();
+    renderInvitePage();
     navigateToPage('main-page');
-
-    // Hide the loading screen after all content is loaded and rendered
     updateLoadingStatus("Ready!");
     if (loadingScreen) {
         loadingScreen.classList.add('hidden');
-        // Optional: Remove the element from DOM after transition to be super clean
-        // setTimeout(() => { loadingScreen.remove(); }, 600); // 100ms more than the CSS transition duration
     }
 }
-    
 document.addEventListener('DOMContentLoaded', initializeApp);
 document.addEventListener('DOMContentLoaded', calculateAndDisplayUpgradeStats);
 </script>
