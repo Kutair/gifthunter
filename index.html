@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pusik Gifts - Full Feature</title>
+    <title>GIFT HUNTER</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -348,16 +348,16 @@
 <body>
     <div id="loading-screen">
         <img src="https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png" alt="Pusik Gifts Logo" class="loading-logo">
-        <div class="loading-title">Pusik Gifts</div>
+        <div class="loading-title">GIFT HUNTER</div>
         <div class="loader"></div>
         <p id="loading-status" class="loading-status-text">Loading...</p>
         <div class="channel-link-container">
-            <a href="https://t.me/pusikGifts" target="_blank">@pusikGifts</a>
+            <a href="https://t.me/nft" target="_blank">@gifthunter</a>
         </div>
     </div>
     <div id="app-container">
         <header id="app-header">
-            <div class="app-title-container"><img src="https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png" alt="Pusik Gifts Logo" class="app-logo"><div class="app-title">Pusik Gifts</div></div>
+            <div class="app-title-container"><img src="https://i.ibb.co/N6dt5Pc9/Background-Eraser-20250423-210102862.png" alt="Pusik Gifts Logo" class="app-logo"><div class="app-title">Gift Hunter</div></div>
             <div class="wallet-info"><div id="wallet-address-display">Connected: ...</div><div id="balance"><span id="ton-balance">0.00</span> TON</div><div id="ton-connect-button"></div></div>
         </header>
 
@@ -502,35 +502,15 @@
         <div class="modal-content">
             <h3>Withdraw Gift</h3>
             <div class="modal-body">
-                <div id="withdraw-step-1" class="modal-step active">
-                    <p>To withdraw your NFT item, it will be sent as a gift via Tonnel Market.
-                        <br><br><strong>IMPORTANT:</strong>
-                        <br>1. Open Tonnel Gifts via the button below.
-                        <br>2. You <strong>MUST</strong> send any message to the <a href="https://t.me/giftrelayer" target="_blank" style="color: var(--primary-color); text-decoration: underline;">@giftrelayer</a> bot in Telegram if you haven't interacted with it before. Otherwise, the gift cannot be delivered.
-                    </p>
-                    <a href="https://t.me/tonnel_network_bot/gifts?startapp=ref_5146625949" target="_blank" class="button" style="margin-bottom: 10px;">Open Tonnel Gifts & Message Relayer</a>
-                    <button id="withdraw-step1-next" class="button button-secondary">Continue to Gift Selection</button>
-                </div>
-
-                <div id="withdraw-step-gifts" class="modal-step">
-                    <p>Please choose the specific gift instance you wish to withdraw from the available listings on Tonnel Market. This may take a moment to load.</p>
-                    <div id="tonnel-gift-choices-grid" class="inventory-grid" style="grid-template-columns: repeat(auto-fill, minmax(max(120px, calc(50% - 10px - 1px)), 1fr)); gap: 15px; margin-bottom: 20px; max-height: 35vh; overflow-y: auto; padding-top:10px;">
-                        <div class="loader" id="tonnel-gifts-loader" style="display: none; grid-column: 1 / -1;"></div>
-                    </div>
-                    <button id="withdraw-step-gifts-confirm" class="button" style="display: none; margin-bottom:10px;">Confirm & Send Chosen Gift</button>
-                    <button id="withdraw-step-gifts-back" class="button button-secondary">Back</button>
-                </div>
-
-                <div id="withdraw-step-finalizing" class="modal-step">
-                     <p>Finalizing withdrawal for the chosen gift...</p>
-                     <div id="withdraw-finalizing-loader" class="loader"></div>
-                     <p id="withdraw-status-message"></p>
-                     <button id="withdraw-step-finalizing-close" class="button button-secondary">Close</button>
-                </div>
+                <p>Are you sure you want to request a withdrawal for <strong id="withdraw-item-name"></strong>? An administrator will process your request shortly.</p>
             </div>
-            <button id="close-withdraw-modal-button" class="button button-secondary" style="margin-top:15px;">Close Window</button>
+            <div class="modal-actions">
+                <button id="confirm-withdraw-button" class="button">Confirm</button>
+                <button id="close-withdraw-modal-button" class="button button-secondary">Cancel</button>
+            </div>
         </div>
     </div>
+
 
     <div id="deposit-instructions-modal" class="modal">
         <div class="modal-content">
@@ -642,15 +622,12 @@ function startWithdrawalProcess(inventoryItemId) {
         showTGNotification("Item not found or not withdrawable.", "error");
         return;
     }
-    itemToWithdraw = inventoryItemId; // Store the inventory item ID
-    selectedTonnelGiftDetails = null; // Reset selection
-    availableTonnelGifts = []; // Reset available gifts
-
-    withdrawModal.querySelector('h3').textContent = `Withdraw ${item.name}`;
-    showWithdrawStep('step-1'); // Show initial instructions step
+    itemToWithdraw = item; // Store the whole item object
+    document.getElementById('withdraw-item-name').textContent = item.name;
     withdrawModal.classList.add('active');
     if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
 }
+
 
 // NEW: Handle "Continue" from Step 1 - Fetch Tonnel Gifts
 withdrawStep1NextBtn.addEventListener('click', async () => {
@@ -2146,14 +2123,6 @@ function closeWithdrawModal() {
     if (tgBackButton) popTgBackButtonHandler();
     withdrawModal.classList.remove('active');
     itemToWithdraw = null;
-    selectedTonnelGiftDetails = null;
-    availableTonnelGifts = [];
-    showWithdrawStep('step-1'); // Reset to first step
-    withdrawModal.querySelector('h3').textContent = "Withdraw Gift";
-    withdrawStatusMessage.textContent = "";
-    withdrawFinalizingLoader.style.display = 'none';
-    tonnelGiftChoicesGrid.innerHTML = '';
-    withdrawStepGiftsConfirmBtn.style.display = 'none';
 }
 
 async function initiateDepositProcedure() {
@@ -2595,6 +2564,29 @@ profileElements.initiateDepositButton.addEventListener('click', initiateDepositP
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
+document.getElementById('confirm-withdraw-button').addEventListener('click', async () => {
+    if (!itemToWithdraw) {
+        showTGNotification("No item selected for withdrawal.", "error");
+        return;
+    }
+    try {
+        const response = await apiRequest('/api/request_manual_withdrawal', 'POST', {
+            inventory_item_id: itemToWithdraw.id
+        });
+        if (response.status === 'success') {
+            showTGNotification("Withdrawal request sent successfully!", 'success');
+            // Optionally, remove the item from the local inventory display
+            currentUser.inventory = currentUser.inventory.filter(i => i.id !== itemToWithdraw.id);
+            renderInventory();
+        } else {
+            showTGNotification(response.error || "Failed to send withdrawal request.", 'error');
+        }
+    } catch (error) {
+        showTGNotification("An error occurred while sending the request.", "error");
+    } finally {
+        closeWithdrawModal();
+    }
+});
 
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
     navigator.clipboard.writeText(inviteElements.referralLink.value).then(() => showTGNotification("Copied!", 'success')).catch(() => showTGNotification("Failed.", 'error'));
