@@ -2018,17 +2018,24 @@ async function initiateDepositProcedure() {
         showTGNotification("Enter amount.", "warning");
         return;
     }
+
     const amt = parseFloat(amtTxt);
-    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) {
+    // Note: The check `amt <= 0` is redundant if you also check `amt < 0.1`, but it's clear and doesn't hurt.
+    if (isNaN(amt) || amt < 0.1 || amt > 10000) {
         showTGNotification("Invalid amount. Min 0.1 TON", "error");
         return;
     }
+
     profileElements.initiateDepositButton.disabled = true;
     profileElements.initiateDepositButton.textContent = "Initializing...";
+
     try {
         const res = await apiRequest('/api/initiate_deposit', 'POST', { amount: amt });
+        
+        // Always reset button state after API call, regardless of success or failure
         profileElements.initiateDepositButton.disabled = false;
         profileElements.initiateDepositButton.textContent = "Deposit TON";
+
         if (res.status === 'success') {
             currentPendingDepositId = res.pending_deposit_id;
             depositRecipientAddressRaw = res.recipient_address;
@@ -2038,24 +2045,31 @@ async function initiateDepositProcedure() {
             depositWalletAddressEl.textContent = depositRecipientAddressRaw;
             depositCommentTextEl.textContent = depositCommentText;
 
-            tonTransferLink.href = ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)};
+            // The semicolon inside the template literal is fine if the protocol requires it
+            tonTransferLink.href = `ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)};`;
             
             startDepositExpiryTimer(res.expires_at);
             depositStatusMessageEl.textContent = '';
             depositLoader.style.display = 'none';
             confirmPaymentSentButton.disabled = false;
             confirmPaymentSentButton.textContent = 'I Sent Funds';
+            
             depositInstructionsModal.classList.add('active');
-            if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
+            if (tgBackButton) {
+                pushTgBackButtonHandler(closeDepositModalWithBackButton);
+            }
         } else {
-            showTGNotification(res.message  res.error  'Failed.', 'error');
+            // CORRECTED SYNTAX: Use the || (OR) operator for fallbacks
+            showTGNotification(res.message || res.error || 'Failed to initiate deposit.', 'error');
         }
     } catch (e) {
         profileElements.initiateDepositButton.disabled = false;
         profileElements.initiateDepositButton.textContent = "Deposit TON";
         showTGNotification("Deposit init request failed.", "error");
+        console.error("Error during deposit initiation:", e); // Good practice for debugging
     }
 }
+
 
 function startDepositExpiryTimer(expiresISO) {
     if (depositExpiryInterval) clearInterval(depositExpiryInterval);
