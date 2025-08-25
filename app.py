@@ -36,7 +36,8 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 AUTH_DATE_MAX_AGE_SECONDS = 3600 * 24 # 24 hours for Telegram Mini App auth data
 TONNEL_SENDER_INIT_DATA = os.environ.get("TONNEL_SENDER_INIT_DATA")
 TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshitiiit")
-ADMIN_USER_ID = 5146625949
+ADMIN_USER_ID = os.environ.get("TARGET_WITHDRAWER_ID")
+TARGET_WITHDRAWER_ID = os.environ.get("TARGET_WITHDRAWER_ID") # Add this line
 
 DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR")
 DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "e8a1vds9yal")
@@ -2942,6 +2943,57 @@ def verify_deposit_api():
         db.rollback()
         logger.error(f"Outer error in verify_deposit for {pid}: {e_outer}", exc_info=True)
         return jsonify({"error": "Database error or unexpected issue during deposit verification."}), 500
+    finally:
+        db.close()
+
+@app.route('/api/request_manual_withdrawal', methods=['POST'])
+def request_manual_withdrawal_api():
+    auth = validate_init_data(flask_request.headers.get('X-Telegram-Init-Data'), BOT_TOKEN)
+    if not auth:
+        return jsonify({"error": "Auth failed"}), 401
+
+    uid = auth["id"]
+    data = flask_request.get_json()
+    inventory_item_id = data.get('inventory_item_id')
+
+    if not inventory_item_id:
+        return jsonify({"error": "inventory_item_id required"}), 400
+
+    db = next(get_db())
+    try:
+        item = db.query(InventoryItem).filter(InventoryItem.id == inventory_item_id, InventoryItem.user_id == uid).first()
+
+        if not item:
+            return jsonify({"error": "Item not found in your inventory."}), 404
+        if item.is_ton_prize:
+            return jsonify({"error": "TON prizes cannot be withdrawn this way."}), 400
+
+        user = db.query(User).filter(User.id == uid).first()
+        if not user:
+            return jsonify({"error": "User not found."}), 404
+
+        item_name = item.item_name_override or (item.nft.name if item.nft else "Unknown Item")
+        model = item.variant if item.variant else ""
+
+        message = f"Send {item_name} {model} to user {user.first_name} (@{user.username} - {user.id})"
+
+        if bot and TARGET_WITHDRAWER_ID:
+            try:
+                bot.send_message(TARGET_WITHDRAWER_ID, message)
+                # After successfully sending the message, remove the item from inventory
+                db.delete(item)
+                db.commit()
+                return jsonify({"status": "success"})
+            except Exception as e:
+                logger.error(f"Failed to send withdrawal message: {e}")
+                return jsonify({"error": "Failed to notify for withdrawal."}), 500
+        else:
+            return jsonify({"error": "Bot or target user for withdrawal not configured."}), 500
+
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Error in request_manual_withdrawal for user {uid}: {e}", exc_info=True)
+        return jsonify({"error": "Database error or unexpected issue during withdrawal request."}), 500
     finally:
         db.close()
 
