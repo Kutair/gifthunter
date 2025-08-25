@@ -631,31 +631,6 @@ function startWithdrawalProcess(inventoryItemId) {
     if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModal);
 }
 
-
-// NEW: Handle "Continue" from Step 1 - Fetch Tonnel Gifts
-withdrawStep1NextBtn.addEventListener('click', async () => {
-    if (!itemToWithdraw) {
-        showTGNotification("Error: No item selected for withdrawal.", "error");
-        return;
-    }
-    showWithdrawStep('step-gifts');
-    tonnelGiftsLoader.style.display = 'block';
-    tonnelGiftChoicesGrid.innerHTML = ''; // Clear previous choices
-    withdrawStepGiftsConfirmBtn.style.display = 'none';
-
-    try {
-        // The itemToWithdraw (inventory_item_id) is already set
-        const gifts = await apiRequest(`/api/tonnel_gift_listings/${itemToWithdraw}`);
-        availableTonnelGifts = gifts; // Store the fetched gifts
-        populateTonnelGiftChoicesGrid(gifts);
-    } catch (error) {
-        console.error("Failed to fetch Tonnel gift listings:", error);
-        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--danger-color);">Could not load gift listings. Please try again.</p>`;
-    } finally {
-        tonnelGiftsLoader.style.display = 'none';
-    }
-});
-
 // Event listener for "Back" from gift selection
 withdrawStepGiftsBackBtn.addEventListener('click', () => {
     showWithdrawStep('step-1');
