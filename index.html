@@ -551,7 +551,6 @@ const API_BASE_URL = 'https://gifthunter.onrender.com';
 const BOT_USERNAME = 'pusikGiftsBot';
 const MINI_APP_NAME = 'case';
 const TON_COIN_FULL_URL = 'https://case-bot.com/images/actions/ton.svg';
-const withdrawStep1NextBtn = document.getElementById('withdraw-step1-next');
 const currentUser = {
     id: null, username: null, first_name: 'User', last_name: null,
     walletAddress: null, walletAddressRaw: null, tonBalance: 0.00, starBalance: 0,
@@ -607,17 +606,6 @@ const withdrawStepGiftsConfirmBtn = document.getElementById('withdraw-step-gifts
 const withdrawStepGiftsBackBtn = document.getElementById('withdraw-step-gifts-back');
 const withdrawFinalizingLoader = document.getElementById('withdraw-finalizing-loader'); // New specific loader ID
 
-// Update showWithdrawStep to handle the new structure
-function showWithdrawStep(stepName) { // stepName will be 'step-1', 'step-gifts', 'step-finalizing'
-    withdrawSteps.forEach(s => s.classList.remove('active'));
-    const targetStep = document.getElementById(`withdraw-${stepName}`);
-    if (targetStep) {
-        targetStep.classList.add('active');
-    } else {
-        console.error(`Withdraw step with ID 'withdraw-${stepName}' not found.`);
-    }
-}
-
 // Helper to format gift name for Fragment URL
 function formatGiftNameForFragmentUrl(name) {
     if (!name) return 'unknown';
@@ -668,90 +656,12 @@ withdrawStep1NextBtn.addEventListener('click', async () => {
     }
 });
 
-// NEW: Populate Tonnel Gift Choices Grid
-function populateTonnelGiftChoicesGrid(gifts) {
-    tonnelGiftChoicesGrid.innerHTML = ''; // Clear existing
-    if (!gifts || gifts.length === 0) {
-        tonnelGiftChoicesGrid.innerHTML = `<p style="grid-column: 1 / -1; text-align: center; color: var(--text-placeholder);">No listings found for this gift on Tonnel Market currently.</p>`;
-        return;
-    }
-
-    gifts.forEach(gift => {
-        const card = document.createElement('div');
-        card.className = 'case-card inventory-item'; // Re-use similar styling
-        card.style.cursor = 'pointer';
-        card.style.padding = '10px'; // Add some padding
-        card.dataset.giftId = gift.gift_id; // Tonnel's internal ID for purchase
-        card.dataset.giftNum = gift.gift_num; // Tonnel's display number for Fragment URL
-        card.dataset.giftName = gift.name;
-        card.dataset.giftPrice = gift.price; // Store price for confirmation if needed
-
-        const fragmentName = formatGiftNameForFragmentUrl(gift.name);
-        const imageUrl = `https://nft.fragment.com/gift/${fragmentName}-${gift.gift_num}.webp`;
-        
-        const imgCont = document.createElement('div');
-        imgCont.className = 'item-image-display'; // Reuse inventory item image display style
-        imgCont.style.width = '65px'; imgCont.style.height = '65px'; // Adjust size as needed
-        const img = document.createElement('img');
-        img.src = imageUrl;
-        img.alt = `${gift.name} #${gift.gift_num}`;
-        img.loading = 'lazy';
-        img.onerror = () => { img.src = generateImageFilename('placeholder.png'); }; // Fallback
-        imgCont.appendChild(img);
-
-        const nameEl = document.createElement('div');
-        nameEl.className = 'inventory-item-name';
-        nameEl.textContent = `${gift.name} #${gift.gift_num}`;
-        nameEl.style.fontSize = '0.8em'; // Smaller text
-
-        const priceEl = document.createElement('div'); // Displaying Tonnel price
-        priceEl.className = 'inventory-item-value';
-        priceEl.textContent = `${gift.price} TON`;
-        priceEl.style.fontSize = '0.75em';
-
-        card.appendChild(imgCont);
-        card.appendChild(nameEl);
-        card.appendChild(priceEl);
-
-        card.addEventListener('click', () => handleTonnelGiftChoice(card, gift));
-        tonnelGiftChoicesGrid.appendChild(card);
-    });
-}
-
-// NEW: Handle Tonnel Gift Choice
-function handleTonnelGiftChoice(selectedCard, giftData) {
-    // Remove selection from other cards
-    tonnelGiftChoicesGrid.querySelectorAll('.case-card').forEach(card => {
-        card.style.border = '1px solid var(--border-color)'; // Reset border
-    });
-    // Highlight selected card
-    selectedCard.style.border = '2px solid var(--primary-color)';
-    
-    selectedTonnelGiftDetails = {
-        gift_id: giftData.gift_id, // This is crucial for purchase
-        gift_num: giftData.gift_num,
-        name: giftData.name,
-        price: giftData.price // Store for confirmation
-    };
-    withdrawStepGiftsConfirmBtn.style.display = 'block';
-    withdrawStepGiftsConfirmBtn.textContent = `Send ${giftData.name} #${giftData.gift_num} (${giftData.price} TON)`;
-}
-
 // Event listener for "Back" from gift selection
 withdrawStepGiftsBackBtn.addEventListener('click', () => {
     showWithdrawStep('step-1');
     selectedTonnelGiftDetails = null; // Clear selection
     tonnelGiftChoicesGrid.innerHTML = ''; // Clear gift choices
     withdrawStepGiftsConfirmBtn.style.display = 'none';
-});
-
-// Event listener for "Confirm & Send Chosen Gift"
-withdrawStepGiftsConfirmBtn.addEventListener('click', async () => {
-    if (!selectedTonnelGiftDetails || !itemToWithdraw) {
-        showTGNotification("Error: No gift selected or item issue.", "error");
-        return;
-    }
-    await completeChosenGiftWithdrawal();
 });
     
 const UPDATED_FLOOR_PRICES_FRONTEND = {
@@ -2094,49 +2004,6 @@ function startWithdrawalProcess(inventoryItemId) {
     if (tgBackButton) pushTgBackButtonHandler(closeWithdrawModalWithBackButton);
 }
 
-async function completeChosenGiftWithdrawal() {
-    if (!itemToWithdraw || !selectedTonnelGiftDetails) { // itemToWithdraw is inventory_item_id
-        showTGNotification("No item or specific gift selected for withdrawal.", "error");
-        return;
-    }
-    showWithdrawStep('step-finalizing');
-    withdrawStatusMessage.textContent = "Processing Tonnel withdrawal...";
-    withdrawFinalizingLoader.style.display = 'block';
-
-    try {
-        // Send inventory_item_id in URL, chosen_tonnel_gift_id in body
-        const res = await apiRequest(
-            `/api/confirm_tonnel_withdrawal/${itemToWithdraw}`,
-            'POST',
-            { chosen_tonnel_gift_details: selectedTonnelGiftDetails } // Send all details
-        );
-
-        if (res.status === 'success') {
-            const idx = currentUser.inventory.findIndex(i => i.id === parseInt(itemToWithdraw));
-            if (idx !== -1) currentUser.inventory.splice(idx, 1);
-            renderInventory();
-            withdrawStatusMessage.textContent = res.message || "Tonnel withdrawal initiated!";
-            withdrawStatusMessage.style.color = 'var(--success-color)';
-            showTGNotification(res.message || "Tonnel withdrawal initiated!", 'success');
-        } else {
-            withdrawStatusMessage.textContent = res.message || res.error || "Tonnel withdrawal failed.";
-            withdrawStatusMessage.style.color = 'var(--danger-color)';
-            showTGNotification(res.message || res.error || "Tonnel withdrawal failed.", 'error');
-            // Optionally, allow user to go back to gift selection if purchase fails
-            // For now, it stays on finalizing step with error. User can close.
-        }
-    } catch (e) {
-        withdrawStatusMessage.textContent = "Error processing withdrawal.";
-        withdrawStatusMessage.style.color = 'var(--danger-color)';
-        showTGNotification("Error processing Tonnel withdrawal.", "error");
-    } finally {
-        withdrawFinalizingLoader.style.display = 'none';
-        // Reset for next time
-        itemToWithdraw = null;
-        selectedTonnelGiftDetails = null;
-    }
-}
-
 // Close finalizing step
 document.getElementById('withdraw-step-finalizing-close').addEventListener('click', closeWithdrawModal);
     
@@ -2593,21 +2460,13 @@ caseMultiplierSelector.querySelectorAll('button').forEach(btn => {
 profileElements.disconnectWalletButton.addEventListener('click', () => tonConnectUI.disconnect());
 profileElements.initiateDepositButton.addEventListener('click', initiateDepositProcedure);
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
-withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
-closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
 // Add these new event listeners along with the others
 copyDepositAddressBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(depositRecipientAddressRaw)
         .then(() => showTGNotification("Address copied!", 'success'))
         .catch(() => showTGNotification("Failed to copy address.", 'error'));
 });
-
-copyDepositCommentBtn.addEventListener('click', () => {
-    navigator.clipboard.writeText(depositCommentText)
-        .then(() => showTGNotification("Comment copied!", 'success'))
-        .catch(() => showTGNotification("Failed to copy comment.", 'error'));
-});
-
+document.getElementById('close-withdraw-modal-button').addEventListener('click', closeWithdrawModal);
 document.getElementById('confirm-withdraw-button').addEventListener('click', async () => {
     if (!itemToWithdraw) {
         showTGNotification("No item selected for withdrawal.", "error");
@@ -2619,7 +2478,6 @@ document.getElementById('confirm-withdraw-button').addEventListener('click', asy
         });
         if (response.status === 'success') {
             showTGNotification("Withdrawal request sent successfully!", 'success');
-            // Optionally, remove the item from the local inventory display
             currentUser.inventory = currentUser.inventory.filter(i => i.id !== itemToWithdraw.id);
             renderInventory();
         } else {
@@ -2630,6 +2488,11 @@ document.getElementById('confirm-withdraw-button').addEventListener('click', asy
     } finally {
         closeWithdrawModal();
     }
+});
+copyDepositCommentBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(depositCommentText)
+        .then(() => showTGNotification("Comment copied!", 'success'))
+        .catch(() => showTGNotification("Failed to copy comment.", 'error'));
 });
 
 inviteElements.copyRefLinkButton.addEventListener('click', () => {
