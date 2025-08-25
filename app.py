@@ -26,6 +26,7 @@ from Crypto.Util.Padding import pad
 from pytoniq import LiteBalancer
 import asyncio
 import math
+import secrets # Add this import for generating secure random strings
 
 
 load_dotenv()
@@ -39,7 +40,7 @@ TONNEL_GIFT_SECRET = os.environ.get("TONNEL_GIFT_SECRET", "yowtfisthispieceofshi
 ADMIN_USER_ID = os.environ.get("TARGET_WITHDRAWER_ID")
 TARGET_WITHDRAWER_ID = os.environ.get("TARGET_WITHDRAWER_ID") # Add this line
 
-DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS", "UQBZs1e2h5CwmxQxmAJLGNqEPcQ9iU3BCDj0NSzbwTiGa3hR")
+DEPOSIT_RECIPIENT_ADDRESS_RAW = os.environ.get("DEPOSIT_WALLET_ADDRESS")
 DEPOSIT_COMMENT = os.environ.get("DEPOSIT_COMMENT", "e8a1vds9yal")
 PENDING_DEPOSIT_EXPIRY_MINUTES = 30
 
@@ -127,7 +128,7 @@ if not DATABASE_URL:
 if not TONNEL_SENDER_INIT_DATA:
     logger.warning("TONNEL_SENDER_INIT_DATA not set! Tonnel gift withdrawal will likely fail.")
 
-NORMAL_WEBAPP_URL = "https://vasiliy-katsyka.github.io/case"
+NORMAL_WEBAPP_URL = "https://kutair.github.io/gifthunter"
 MAINTENANCE_WEBAPP_URL = "https://vasiliy-katsyka.github.io/maintencaincec" # If you still use this
 # Example: Choose based on an environment variable or a fixed value for production
 WEBAPP_URL = NORMAL_WEBAPP_URL # Assuming normal operation on the server
@@ -188,13 +189,13 @@ class PendingDeposit(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     user_id = Column(BigInteger, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     original_amount_ton = Column(Float, nullable=False)
-    unique_identifier_nano_ton = Column(BigInteger, nullable=False)
     final_amount_nano_ton = Column(BigInteger, nullable=False, index=True)
-    expected_comment = Column(String, nullable=False, default="cpd7r07ud3s")
+    expected_comment = Column(String, nullable=False, index=True, unique=True) # Comment is now the unique ID
     status = Column(String, default="pending", index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     expires_at = Column(DateTime(timezone=True), nullable=False)
     owner = relationship("User", back_populates="pending_deposits")
+
 
 class PromoCode(Base):
     __tablename__ = "promo_codes"
@@ -1815,7 +1816,7 @@ initial_setup_and_logging()
 
 # --- Flask App Setup ---
 app = Flask(__name__)
-PROD_ORIGIN = "https://vasiliy-katsyka.github.io"
+PROD_ORIGIN = "https://kutair.github.io"
 NULL_ORIGIN = "null"
 LOCAL_DEV_ORIGINS = ["http://localhost:5500","http://127.0.0.1:5500","http://localhost:8000","http://127.0.0.1:8000",]
 final_allowed_origins = list(set([PROD_ORIGIN, NULL_ORIGIN] + LOCAL_DEV_ORIGINS))
@@ -2776,39 +2777,31 @@ def initiate_deposit_api():
         if not user:
             return jsonify({"error": "User not found."}), 404
         
-        existing_pending_deposit = db.query(PendingDeposit).filter(
+        # Invalidate any other pending deposits for this user to avoid confusion
+        db.query(PendingDeposit).filter(
             PendingDeposit.user_id == uid,
-            PendingDeposit.status == 'pending',
-            PendingDeposit.expires_at > dt.now(timezone.utc)
-        ).first()
+            PendingDeposit.status == 'pending'
+        ).update({"status": "cancelled"})
 
-        if existing_pending_deposit:
-            return jsonify({
-                "error": "You already have an active deposit. Please wait for it to expire or complete.",
-                "pending_deposit_id": existing_pending_deposit.id,
-                "recipient_address": DEPOSIT_RECIPIENT_ADDRESS_RAW,
-                "amount_to_send": f"{existing_pending_deposit.final_amount_nano_ton / 1e9:.9f}".rstrip('0').rstrip('.'),
-                "final_amount_nano_ton": existing_pending_deposit.final_amount_nano_ton,
-                "comment": existing_pending_deposit.expected_comment,
-                "expires_at": existing_pending_deposit.expires_at.isoformat()
-            }), 409
-            
-        nano_part = random.randint(10000, 999999)
-        final_nano_amt = int(orig_amt * 1e9) + nano_part
+        # Generate a new unique comment
+        unique_comment = secrets.token_hex(4) # e.g., 'a1b2c3d4'
+        while db.query(PendingDeposit).filter(PendingDeposit.expected_comment == unique_comment).first():
+            unique_comment = secrets.token_hex(4)
+
+        final_nano_amt = int(orig_amt * 1e9)
         
         pdep = PendingDeposit(
             user_id=uid,
             original_amount_ton=orig_amt,
-            unique_identifier_nano_ton=nano_part,
             final_amount_nano_ton=final_nano_amt,
-            expected_comment=DEPOSIT_COMMENT,
+            expected_comment=unique_comment,
             expires_at=dt.now(timezone.utc) + timedelta(minutes=PENDING_DEPOSIT_EXPIRY_MINUTES)
         )
         db.add(pdep)
         db.commit()
         db.refresh(pdep)
         
-        amount_to_send_display = f"{final_nano_amt / 1e9:.9f}".rstrip('0').rstrip('.')
+        amount_to_send_display = f"{orig_amt:.4f}".rstrip('0').rstrip('.')
         
         return jsonify({
             "status":"success",
@@ -2816,7 +2809,7 @@ def initiate_deposit_api():
             "recipient_address":DEPOSIT_RECIPIENT_ADDRESS_RAW,
             "amount_to_send":amount_to_send_display,
             "final_amount_nano_ton":final_nano_amt,
-            "comment":DEPOSIT_COMMENT,
+            "comment":unique_comment,
             "expires_at":pdep.expires_at.isoformat()
         })
     except Exception as e:
@@ -2828,8 +2821,7 @@ def initiate_deposit_api():
 
 async def check_blockchain_for_deposit(pdep: PendingDeposit, db_sess: SessionLocal):
     """
-    Asynchronously checks the blockchain for a matching deposit transaction.
-    Takes a database session object to manage transaction state.
+    Asynchronously checks the blockchain for a matching deposit transaction based on comment and amount.
     """
     prov = None
     try:
@@ -2842,31 +2834,33 @@ async def check_blockchain_for_deposit(pdep: PendingDeposit, db_sess: SessionLoc
         for tx in txs:
             if not tx.in_msg or not tx.in_msg.is_internal:
                 continue
-
-            if tx.in_msg.info.value_coins != pdep.final_amount_nano_ton:
-                continue
-
+            
             tx_time = dt.fromtimestamp(tx.now, tz=timezone.utc)
             if not (pdep.created_at - timedelta(minutes=5) <= tx_time <= pdep.expires_at + timedelta(minutes=5)):
                 continue
 
-            cmt_slice = tx.in_msg.body.begin_parse()
-            if cmt_slice.remaining_bits >= 32 and cmt_slice.load_uint(32) == 0:
-                try:
-                    comment_text = cmt_slice.load_snake_string()
-                    if comment_text == pdep.expected_comment:
-                        deposit_found = True
-                        break
-                except Exception as e_comment:
-                    logger.debug(f"Comment parsing error for tx {tx.hash.hex()}: {e_comment}")
+            tx_comment = ""
+            try:
+                cmt_slice = tx.in_msg.body.begin_parse()
+                if cmt_slice.remaining_bits >= 32 and cmt_slice.load_uint(32) == 0:
+                    tx_comment = cmt_slice.load_snake_string()
+            except Exception:
+                continue
+            
+            if tx_comment == pdep.expected_comment:
+                if tx.in_msg.info.value_coins == pdep.final_amount_nano_ton:
+                    deposit_found = True
+                    break
+                else:
+                    logger.warning(f"Deposit {pdep.id} found matching comment '{pdep.expected_comment}' but with incorrect amount. Expected: {pdep.final_amount_nano_ton}, Received: {tx.in_msg.info.value_coins}.")
 
         if deposit_found:
+            # Credit user logic (same as before)
             usr = db_sess.query(User).filter(User.id == pdep.user_id).with_for_update().first()
             if not usr:
                 pdep.status = 'failed_user_not_found'
                 db_sess.commit()
-                logger.error(f"Deposit {pdep.id} confirmed on blockchain but user {pdep.user_id} not found in DB.")
-                return {"status":"error","message":"User for deposit not found in our records."}
+                return {"status":"error","message":"User for deposit not found."}
             
             usr.ton_balance = float(Decimal(str(usr.ton_balance)) + Decimal(str(pdep.original_amount_ton)))
             
@@ -2875,27 +2869,24 @@ async def check_blockchain_for_deposit(pdep: PendingDeposit, db_sess: SessionLoc
                 if referrer:
                     referral_bonus = (Decimal(str(pdep.original_amount_ton)) * Decimal('0.10')).quantize(Decimal('0.01'),ROUND_HALF_UP)
                     referrer.referral_earnings_pending = float(Decimal(str(referrer.referral_earnings_pending)) + referral_bonus)
-                    logger.info(f"Referral bonus of {referral_bonus:.2f} TON added to user {referrer.id} for deposit {pdep.id}.")
             
             pdep.status = 'completed'
             db_sess.commit()
-            logger.info(f"Deposit {pdep.id} (TON: {pdep.original_amount_ton}) confirmed and credited to user {usr.id}.")
             return {"status":"success","message":"Deposit confirmed and credited!","new_balance_ton":usr.ton_balance}
         else:
+            # Pending/expired logic (same as before)
             if pdep.expires_at <= dt.now(timezone.utc) and pdep.status == 'pending':
                 pdep.status = 'expired'
                 db_sess.commit()
-                logger.info(f"Deposit {pdep.id} expired for user {pdep.user_id}.")
                 return {"status":"expired","message":"This deposit request has expired."}
             
-            return {"status":"pending","message":"Transaction not confirmed yet. Please wait or check again."}
+            return {"status":"pending","message":"Transaction not found. Please ensure you sent the exact amount with the correct comment."}
     except Exception as e_bc_check:
         logger.error(f"Blockchain check error for deposit {pdep.id}: {e_bc_check}", exc_info=True)
         return {"status":"error","message":"An error occurred during blockchain verification."}
     finally:
         if prov:
             await prov.close_all()
-
 
 @app.route('/api/verify_deposit', methods=['POST'])
 def verify_deposit_api():
