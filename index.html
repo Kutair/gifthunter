@@ -2019,7 +2019,7 @@ async function initiateDepositProcedure() {
         return;
     }
     const amt = parseFloat(amtTxt);
-    if (isNaN(amt)  amt <= 0  amt < 0.1 || amt > 10000) {
+    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) {
         showTGNotification("Invalid amount. Min 0.1 TON", "error");
         return;
     }
