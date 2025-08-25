@@ -510,25 +510,40 @@
             </div>
         </div>
     </div>
-
-
+    
+    
+    <!-- In index.html, replace the entire #deposit-instructions-modal div -->
     <div id="deposit-instructions-modal" class="modal">
         <div class="modal-content">
             <h3>Deposit TON</h3>
             <div class="modal-body" style="text-align: left;">
-                <p>To deposit TON, please send the exact amount specified to the address below. Ensure you include the unique comment if your wallet supports it, or send the precise nanoTON amount.</p>
+                <p>To deposit, send the <strong>exact amount</strong> of TON to the address below. You <strong>MUST</strong> include the unique comment provided.</p>
+                
+                <div class="content-card" style="margin-bottom: 15px; padding: 15px;">
+                    <h4 style="margin-top:0; margin-bottom: 8px; color: var(--text-secondary);">Wallet Address:</h4>
+                    <p id="deposit-wallet-address" style="word-break: break-all; font-weight: 600; margin-bottom: 10px;"></p>
+                    <button id="copy-deposit-address-button" class="button button-secondary">Copy Address</button>
+                </div>
+    
+                <div class="content-card" style="margin-bottom: 20px; padding: 15px;">
+                    <h4 style="margin-top:0; margin-bottom: 8px; color: var(--text-secondary);">Required Comment:</h4>
+                    <p id="deposit-comment-text" style="font-weight: 600; margin-bottom: 10px; font-size: 1.2em; letter-spacing: 1px;"></p>
+                    <button id="copy-deposit-comment-button" class="button button-secondary">Copy Comment</button>
+                </div>
+    
                 <a id="ton-transfer-link" href="#" target="_blank" class="button">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2zM12.012 6.5a1.023 1.023 0 00-.73.31l-3.204 3.272c-.203.207-.224.537-.04.763l1.715 2.11c.173.214.49.24.69.057l1.864-1.671a.525.525 0 01.742 0l1.864 1.67a.485.485 0 00.69-.057l1.715-2.11a.544.544 0 00-.04-.763L12.742 6.81a1.023 1.023 0 00-.73-.31zm-.001 1.447a.35.35 0 01.247.102l2.462 2.51-1.192 1.47-1.517-1.36a1.222 1.222 0 00-1.737-.001l-1.517 1.36-1.192-1.47 2.463-2.51a.35.35 0 01.247-.102zM8.5 14h7v1.5h-7z"/></svg>
+                    <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,4.5A7.5,7.5,0,0,1,19.5,12A7.5,7.5,0,0,1,12,19.5A7.5,7.5,0,0,1,4.5,12A7.5,7.5,0,0,1,12,4.5M12,2A10,10,0,0,0,2,12A10,10,0,0,0,12,22A10,10,0,0,0,22,12A10,10,0,0,0,12,2M11,17H13V15H11V17M13,13H11V7H13V13Z"/></svg>
                     Open Wallet & Pay
                 </a>
-                <p id="deposit-expiry-info"></p>
-                <p id="deposit-status-message"></p>
+                <p id="deposit-expiry-info" style="text-align: center; margin-top: 15px;"></p>
+                <p id="deposit-status-message" style="text-align: center;"></p>
                 <div id="deposit-loader" class="loader" style="display:none;"></div>
                 <button id="confirm-payment-sent-button" class="button button-secondary">I Sent Funds</button>
                 <button id="cancel-deposit-button" class="button button-secondary">Cancel</button>
             </div>
         </div>
     </div>
+
 <script>
 // Global Constants and Data Definitions
 const IMAGE_BASE_URL = 'https://raw.githubusercontent.com/Vasiliy-katsyka/case/main/GiftImages/';
@@ -1201,7 +1216,13 @@ const cancelDepositButton = document.getElementById('cancel-deposit-button');
 const depositExpiryInfo = document.getElementById('deposit-expiry-info');
 const depositStatusMessageEl = document.getElementById('deposit-status-message');
 const depositLoader = document.getElementById('deposit-loader');
+const depositWalletAddressEl = document.getElementById('deposit-wallet-address');
+const depositCommentTextEl = document.getElementById('deposit-comment-text');
+const copyDepositAddressBtn = document.getElementById('copy-deposit-address-button');
+const copyDepositCommentBtn = document.getElementById('copy-deposit-comment-button');
 
+// Add new global variable to hold the comment text for the copy function
+let depositCommentText = ''; 
 const VISUAL_ITEMS_PER_REEL_INITIAL = 10; // Number of items to initially populate each reel
 const VISUAL_ITEMS_PER_REEL_SPIN_BUFFER = 70; // Additional items appended for the spin to ensure enough length
 let currentPendingDepositId = null;
@@ -2132,7 +2153,7 @@ async function initiateDepositProcedure() {
         return;
     }
     const amt = parseFloat(amtTxt);
-    if (isNaN(amt) || amt <= 0 || amt < 0.1 || amt > 10000) {
+    if (isNaN(amt)  amt <= 0  amt < 0.1 || amt > 10000) {
         showTGNotification("Invalid amount. Min 0.1 TON", "error");
         return;
     }
@@ -2145,9 +2166,14 @@ async function initiateDepositProcedure() {
         if (res.status === 'success') {
             currentPendingDepositId = res.pending_deposit_id;
             depositRecipientAddressRaw = res.recipient_address;
-            depositCommentText = res.comment;
-            const nanoAmt = res.final_amount_nano_ton || Math.round(parseFloat(res.amount_to_send) * 1e9);
-            tonTransferLink.href = `ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)}`;
+            depositCommentText = res.comment; // Store unique comment
+            const nanoAmt = res.final_amount_nano_ton;
+            
+            depositWalletAddressEl.textContent = depositRecipientAddressRaw;
+            depositCommentTextEl.textContent = depositCommentText;
+
+            tonTransferLink.href = ton://transfer/${depositRecipientAddressRaw}?amount=${nanoAmt}&text=${encodeURIComponent(depositCommentText)};
+            
             startDepositExpiryTimer(res.expires_at);
             depositStatusMessageEl.textContent = '';
             depositLoader.style.display = 'none';
@@ -2155,7 +2181,9 @@ async function initiateDepositProcedure() {
             confirmPaymentSentButton.textContent = 'I Sent Funds';
             depositInstructionsModal.classList.add('active');
             if (tgBackButton) pushTgBackButtonHandler(closeDepositModalWithBackButton);
-        } else showTGNotification(res.message || res.error || 'Failed.', 'error');
+        } else {
+            showTGNotification(res.message  res.error  'Failed.', 'error');
+        }
     } catch (e) {
         profileElements.initiateDepositButton.disabled = false;
         profileElements.initiateDepositButton.textContent = "Deposit TON";
@@ -2225,6 +2253,7 @@ async function verifyPaymentSent() {
     }
 }
 
+// Replace the existing closeDepositInstructionsModal function
 function closeDepositInstructionsModal() {
     if (tgBackButton) popTgBackButtonHandler();
     depositInstructionsModal.classList.remove('active');
@@ -2235,6 +2264,8 @@ function closeDepositInstructionsModal() {
     depositStatusMessageEl.textContent = '';
     depositLoader.style.display = 'none';
     depositExpiryInfo.textContent = '';
+    depositWalletAddressEl.textContent = ''; 
+    depositCommentTextEl.textContent = ''; 
 }
 
 async function redeemPromocode() {
@@ -2564,6 +2595,19 @@ profileElements.initiateDepositButton.addEventListener('click', initiateDepositP
 profileElements.redeemPromocodeButton.addEventListener('click', redeemPromocode);
 withdrawStep1NextBtn.addEventListener('click', () => showWithdrawStep(2));
 closeWithdrawModalButton?.addEventListener('click', closeWithdrawModal);
+// Add these new event listeners along with the others
+copyDepositAddressBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(depositRecipientAddressRaw)
+        .then(() => showTGNotification("Address copied!", 'success'))
+        .catch(() => showTGNotification("Failed to copy address.", 'error'));
+});
+
+copyDepositCommentBtn.addEventListener('click', () => {
+    navigator.clipboard.writeText(depositCommentText)
+        .then(() => showTGNotification("Comment copied!", 'success'))
+        .catch(() => showTGNotification("Failed to copy comment.", 'error'));
+});
+
 document.getElementById('confirm-withdraw-button').addEventListener('click', async () => {
     if (!itemToWithdraw) {
         showTGNotification("No item selected for withdrawal.", "error");
